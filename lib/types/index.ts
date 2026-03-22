@@ -24,6 +24,8 @@ export interface Student {
   enrolledCourses: string[]
   status: 'active' | 'inactive' | 'graduated'
   avatar?: string
+  guardianName?: string
+  studentId?: string
   enrolledAt: string
   progress: number
   grade?: string

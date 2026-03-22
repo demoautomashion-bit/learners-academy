@@ -80,9 +80,11 @@ export default function StudentsPage() {
     const formData = new FormData(e.currentTarget)
     const newStudent: Student = {
       id: `student-${Date.now()}`,
+      studentId: formData.get('studentId') as string,
       name: formData.get('name') as string,
       email: formData.get('email') as string,
       phone: formData.get('phone') as string,
+      guardianName: formData.get('guardianName') as string,
       enrolledCourses: [],
       status: 'active',
       enrolledAt: new Date().toISOString().split('T')[0],
@@ -155,8 +157,16 @@ export default function StudentsPage() {
             <form onSubmit={handleAddStudent}>
               <FieldGroup className="py-4">
                 <Field>
+                  <FieldLabel>Student ID</FieldLabel>
+                  <Input name="studentId" placeholder="e.g. STU-001" required />
+                </Field>
+                <Field>
                   <FieldLabel>Full Name</FieldLabel>
                   <Input name="name" placeholder="Enter student's name" required />
+                </Field>
+                <Field>
+                  <FieldLabel>Guardian&apos;s Name</FieldLabel>
+                  <Input name="guardianName" placeholder="Enter guardian's name" required />
                 </Field>
                 <Field>
                   <FieldLabel>Email Address</FieldLabel>
@@ -403,6 +413,14 @@ export default function StudentsPage() {
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="w-4 h-4 text-muted-foreground" />
                   <span>{selectedStudent.phone}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center justify-center w-4 h-4 rounded bg-primary/10 text-[10px] font-bold text-primary">ID</div>
+                  <span className="font-medium">{selectedStudent.studentId || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground font-semibold">Guardian:</span>
+                  <span>{selectedStudent.guardianName || 'N/A'}</span>
                 </div>
               </div>
 

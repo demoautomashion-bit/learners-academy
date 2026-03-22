@@ -16,24 +16,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { BookOpen, ClipboardList, TrendingUp, LogOut, User, Bell } from "lucide-react"
+import { Lock, ClipboardList, LogOut, User, Bell } from "lucide-react"
 import { Toaster } from "@/components/ui/sonner"
 
 const studentNavItems = [
   {
-    title: "My Classes",
+    title: "Access Portal",
     href: "/student",
-    icon: BookOpen,
+    icon: Lock,
   },
   {
     title: "Assessments",
     href: "/student/assessments",
     icon: ClipboardList,
-  },
-  {
-    title: "My Progress",
-    href: "/student/progress",
-    icon: TrendingUp,
   },
 ]
 
