@@ -19,9 +19,9 @@ import { cn } from "@/lib/utils"
 import { Lock, ClipboardList, LogOut, User, Bell } from "lucide-react"
 import { Toaster } from "@/components/ui/sonner"
 
-const studentNavItems = [
+const assessmentNavItems = [
   {
-    title: "Access Portal",
+    title: "Access Vault",
     href: "/student",
     icon: Lock,
   },
@@ -93,13 +93,13 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
               <h1 className="font-serif text-lg font-semibold text-foreground">
                 The Learners Academy
               </h1>
-              <p className="text-xs text-muted-foreground">Student Portal</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Assessment Portal</p>
             </div>
           </Link>
 
           {/* Navigation */}
           <nav className="hidden items-center gap-1 md:flex">
-            {studentNavItems.map((item) => {
+            {assessmentNavItems.map((item) => {
               const isActive = pathname === item.href
               return (
                 <Link key={item.href} href={item.href}>
@@ -174,7 +174,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
 
         {/* Mobile Navigation */}
         <nav className="flex items-center justify-around border-t py-2 md:hidden">
-          {studentNavItems.map((item) => {
+          {assessmentNavItems.map((item) => {
             const isActive = pathname === item.href
             return (
               <Link key={item.href} href={item.href}>

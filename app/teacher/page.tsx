@@ -17,6 +17,7 @@ import {
   Library,
   TrendingUp
 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { mockCourses, mockAssignments, mockSubmissions } from '@/lib/mock-data'
 
 // Filter to show only the teacher's data (for demo, using teacher-1)
@@ -62,50 +63,74 @@ export default function TeacherDashboard() {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <motion.div 
+        className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+      >
         <div>
-          <h1 className="font-serif text-3xl font-semibold text-foreground">
-            Teacher Dashboard
+          <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground italic">
+            Teacher Hub
           </h1>
-          <p className="text-muted-foreground mt-1 text-editorial-label">
-            Elevating education through digital excellence.
+          <p className="text-editorial-meta text-lg mt-1">
+            Orchestrating academic excellence through precision insights.
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/teacher/library">
+          <Button variant="outline" asChild className="hover-lift border-primary/20">
+            <Link href="/teacher/library" className="flex items-center">
               <Plus className="w-4 h-4 mr-2" />
-              Add Question
+              Build Block
             </Link>
           </Button>
-          <Button asChild>
+          <Button asChild className="hover-lift shadow-sm">
             <Link href="/teacher/assessments">
-              Generate Test
+              Initiate Test
             </Link>
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <motion.div 
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+          }
+        }}
+      >
         {stats.map((stat) => (
-          <Link key={stat.title} href={stat.href}>
-            <Card className="hover-lift cursor-pointer border-none shadow-sm ring-1 ring-border">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-widest leading-none">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold font-serif">{stat.value}</div>
-              </CardContent>
-            </Card>
-          </Link>
+          <motion.div
+            key={stat.title}
+            variants={{
+              hidden: { opacity: 0, scale: 0.95, y: 10 },
+              show: { opacity: 1, scale: 1, y: 0 }
+            }}
+          >
+            <Link href={stat.href}>
+              <Card className="hover-lift cursor-pointer border-none shadow-sm ring-1 ring-border bg-card hover:ring-primary/40 transition-premium">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4">
+                  <CardTitle className="text-editorial-label">
+                    {stat.title}
+                  </CardTitle>
+                  <div className={`p-1.5 rounded-lg ${stat.bgColor} opacity-60`}>
+                    <stat.icon className={`h-3 w-3 ${stat.color}`} />
+                  </div>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-3xl font-serif font-bold italic tracking-tight">{stat.value}</div>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -125,22 +150,22 @@ export default function TeacherDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             {mockAssignments.slice(0, 3).map((assignment) => (
-              <div key={assignment.id} className="p-4 rounded-xl border hover:bg-muted/30 transition-all group">
+              <div key={assignment.id} className="p-4 rounded-xl border border-primary/5 hover:bg-muted/30 transition-premium group curso-pointer hover:shadow-sm">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h4 className="font-medium group-hover:text-primary transition-colors">{assignment.title}</h4>
-                    <p className="text-xs text-muted-foreground">{assignment.courseName}</p>
+                    <h4 className="font-serif font-bold italic text-md group-hover:text-primary transition-colors">{assignment.title}</h4>
+                    <p className="text-editorial-label text-[9px] mt-0.5 opacity-60">{assignment.courseName}</p>
                   </div>
-                  <Badge variant="outline" className="text-[10px] tracking-wider uppercase font-bold text-success border-success/20 bg-success/5">
-                    Active
+                  <Badge variant="outline" className="text-[9px] tracking-[0.15em] uppercase font-bold text-success border-success/20 bg-success/5">
+                    Live
                   </Badge>
                 </div>
-                <div className="space-y-2 mt-3">
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
-                    <span>Submissions</span>
+                <div className="space-y-2 mt-4">
+                  <div className="flex items-center justify-between text-[9px] text-muted-foreground uppercase tracking-[0.1em] font-bold opacity-70">
+                    <span>Registry Capture</span>
                     <span>{assignment.submissionsCount}/{assignment.totalStudents}</span>
                   </div>
-                  <Progress value={(assignment.submissionsCount / assignment.totalStudents) * 100} className="h-1.5" />
+                  <Progress value={(assignment.submissionsCount / assignment.totalStudents) * 100} className="h-1" />
                 </div>
               </div>
             ))}

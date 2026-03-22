@@ -147,40 +147,42 @@ export default function StudentsPage() {
               Enroll Student
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md bg-card/80 backdrop-blur-xl border-primary/10">
             <DialogHeader>
-              <DialogTitle>Enroll New Student</DialogTitle>
-              <DialogDescription>
-                Fill in the details to enroll a new student.
+              <DialogTitle className="font-serif text-2xl italic">Enroll New Student</DialogTitle>
+              <DialogDescription className="text-editorial-meta">
+                Onboard a new candidate into the academy database.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddStudent}>
-              <FieldGroup className="py-4">
+              <FieldGroup className="py-6 space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Student ID</FieldLabel>
+                    <Input name="studentId" placeholder="e.g. STU-001" required className="bg-background/50" />
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
+                    <Input name="phone" placeholder="+1 (555) 001" className="bg-background/50" />
+                  </Field>
+                </div>
                 <Field>
-                  <FieldLabel>Student ID</FieldLabel>
-                  <Input name="studentId" placeholder="e.g. STU-001" required />
+                  <FieldLabel className="text-editorial-label">Full Name</FieldLabel>
+                  <Input name="name" placeholder="Enter student's full name" required className="bg-background/50" />
                 </Field>
                 <Field>
-                  <FieldLabel>Full Name</FieldLabel>
-                  <Input name="name" placeholder="Enter student's name" required />
+                  <FieldLabel className="text-editorial-label">Guardian&apos;s Full Name</FieldLabel>
+                  <Input name="guardianName" placeholder="Enter parent/guardian name" required className="bg-background/50" />
                 </Field>
                 <Field>
-                  <FieldLabel>Guardian&apos;s Name</FieldLabel>
-                  <Input name="guardianName" placeholder="Enter guardian's name" required />
+                  <FieldLabel className="text-editorial-label">Academic Email</FieldLabel>
+                  <Input name="email" type="email" placeholder="student@example.com" required className="bg-background/50" />
                 </Field>
                 <Field>
-                  <FieldLabel>Email Address</FieldLabel>
-                  <Input name="email" type="email" placeholder="student@example.com" required />
-                </Field>
-                <Field>
-                  <FieldLabel>Phone Number</FieldLabel>
-                  <Input name="phone" placeholder="+1 (555) 000-0000" />
-                </Field>
-                <Field>
-                  <FieldLabel>Enroll in Class</FieldLabel>
+                  <FieldLabel className="text-editorial-label">Initial Enrollment</FieldLabel>
                   <Select name="course">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a class" />
+                    <SelectTrigger className="bg-background/50">
+                      <SelectValue placeholder="Select a registry class" />
                     </SelectTrigger>
                     <SelectContent>
                       {mockCourses.filter(c => c.status === 'active').map((course) => (
@@ -192,11 +194,11 @@ export default function StudentsPage() {
                   </Select>
                 </Field>
               </FieldGroup>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="text-muted-foreground hover:text-foreground">
                   Cancel
                 </Button>
-                <Button type="submit">Enroll Student</Button>
+                <Button type="submit" className="px-8 font-semibold uppercase tracking-wide">Complete Enrollment</Button>
               </DialogFooter>
             </form>
           </DialogContent>

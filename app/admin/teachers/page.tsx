@@ -142,37 +142,39 @@ export default function TeachersPage() {
               Add Teacher
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-sm">
+          <DialogContent className="max-w-md bg-card/80 backdrop-blur-xl border-primary/10">
             <DialogHeader>
-              <DialogTitle>Add New Teacher</DialogTitle>
-              <DialogDescription>
-                Fill in the details to add a new teacher to the academy.
+              <DialogTitle className="font-serif text-2xl italic">Add New Teacher</DialogTitle>
+              <DialogDescription className="text-editorial-meta">
+                Register a new academic professional to the academy registry.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddTeacher}>
-              <FieldGroup className="py-4 space-y-4">
+              <FieldGroup className="py-6 space-y-6">
                 <Field>
-                  <FieldLabel>Teacher Name</FieldLabel>
-                  <Input name="name" placeholder="Enter full name" required />
+                  <FieldLabel className="text-editorial-label">Teacher Full Name</FieldLabel>
+                  <Input name="name" placeholder="Enter teacher's full name" required className="bg-background/50" />
                 </Field>
                 <Field>
-                  <FieldLabel>Email Address</FieldLabel>
-                  <Input name="email" type="email" placeholder="teacher@learnersacademy.com" required />
+                  <FieldLabel className="text-editorial-label">Academic Email</FieldLabel>
+                  <Input name="email" type="email" placeholder="teacher@learnersacademy.com" required className="bg-background/50" />
                 </Field>
-                <Field>
-                  <FieldLabel>Employee ID</FieldLabel>
-                  <Input name="employeeId" placeholder="e.g. EMP-101" required />
-                </Field>
-                <Field>
-                  <FieldLabel>Phone Number</FieldLabel>
-                  <Input name="phone" placeholder="+92 300 1234567" required />
-                </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Employee ID</FieldLabel>
+                    <Input name="employeeId" placeholder="e.g. EMP-101" required className="bg-background/50" />
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
+                    <Input name="phone" placeholder="+92 300 1234567" required className="bg-background/50" />
+                  </Field>
+                </div>
               </FieldGroup>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="text-muted-foreground hover:text-foreground">
                   Cancel
                 </Button>
-                <Button type="submit">Add Teacher</Button>
+                <Button type="submit" className="px-8 font-semibold uppercase tracking-wide">Add Professional</Button>
               </DialogFooter>
             </form>
           </DialogContent>
