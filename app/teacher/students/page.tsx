@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { mockStudents, mockCourses, mockEnrollments } from "@/lib/mock-data"
+import { mockStudents, mockCourses } from "@/lib/mock-data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

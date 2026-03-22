@@ -1,6 +1,6 @@
 "use client"
 
-import { mockCourses, mockEnrollments, mockTeachers, mockAssignments } from "@/lib/mock-data"
+import { mockCourses, mockStudents, mockTeachers, mockAssignments } from "@/lib/mock-data"
 import { useAuth } from "@/contexts/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,21 +13,22 @@ import Link from "next/link"
 export default function StudentCoursesPage() {
   const { user } = useAuth()
 
-  // Get student's enrolled courses (simulated - using first student for demo)
-  const studentEnrollments = mockEnrollments.filter(e => e.studentId === "s1")
-  const enrolledCourses = studentEnrollments.map(enrollment => {
-    const course = mockCourses.find(c => c.id === enrollment.courseId)
-    const teacher = mockTeachers.find(t => t.id === course?.teacherId)
-    const courseAssignments = mockAssignments.filter(a => a.courseId === course?.id)
-    const pendingAssignments = courseAssignments.filter(a => new Date(a.dueDate) > new Date())
-    
-    return {
-      ...course,
-      enrollment,
-      teacher,
-      pendingAssignments: pendingAssignments.length,
-    }
-  })
+  // Get student's enrolled courses (using mock data - current student is the first one)
+  const currentStudent = mockStudents[0] // Michael Chen (student-1)
+  const enrolledCourses = mockCourses
+    .filter(course => currentStudent.enrolledCourses.includes(course.id))
+    .map(course => {
+      const teacher = mockTeachers.find(t => t.id === course.teacherId)
+      const courseAssignments = mockAssignments.filter(a => a.courseId === course.id)
+      const pendingAssignments = courseAssignments.filter(a => new Date(a.dueDate) > new Date())
+      
+      return {
+        ...course,
+        teacher,
+        pendingAssignments: pendingAssignments.length,
+        progress: Math.floor(Math.random() * 80) + 20, // Random progress 20-100%
+      }
+    })
 
   const getLevelBadge = (level: string) => {
     switch (level) {
@@ -65,19 +66,19 @@ export default function StudentCoursesPage() {
       </div>
 
       {/* Continue Learning */}
-      {enrolledCourses.length > 0 && enrolledCourses[0].enrollment.progress < 100 && (
+      {enrolledCourses.length > 0 && enrolledCourses[0].progress < 100 && (
         <Card className="overflow-hidden border-primary/20">
           <div className="flex flex-col sm:flex-row">
             <div className="flex-1 p-6">
               <Badge variant="secondary" className="mb-2">Continue Learning</Badge>
-              <h3 className="font-serif text-xl font-semibold">{enrolledCourses[0].name}</h3>
+              <h3 className="font-serif text-xl font-semibold">{enrolledCourses[0].title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{enrolledCourses[0].description}</p>
               <div className="mt-4 space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Progress</span>
-                  <span className="font-medium">{enrolledCourses[0].enrollment.progress}%</span>
+                  <span className="font-medium">{enrolledCourses[0].progress}%</span>
                 </div>
-                <Progress value={enrolledCourses[0].enrollment.progress} className="h-2" />
+                <Progress value={enrolledCourses[0].progress} className="h-2" />
               </div>
               <Button className="mt-4 gap-2">
                 <Play className="h-4 w-4" />
@@ -106,7 +107,7 @@ export default function StudentCoursesPage() {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="font-serif text-lg">{course.name}</CardTitle>
+                    <CardTitle className="font-serif text-lg">{course.title}</CardTitle>
                     <CardDescription className="line-clamp-2">{course.description}</CardDescription>
                   </div>
                   {getLevelBadge(course.level || "Beginner")}
@@ -115,7 +116,7 @@ export default function StudentCoursesPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={course.teacher?.avatar} alt={course.teacher?.name} />
+                    <AvatarImage src="" alt={course.teacher?.name} />
                     <AvatarFallback className="bg-primary/10 text-xs text-primary">
                       {course.teacher?.name.split(" ").map(n => n[0]).join("")}
                     </AvatarFallback>
@@ -126,9 +127,9 @@ export default function StudentCoursesPage() {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium">{course.enrollment.progress}%</span>
+                    <span className="font-medium">{course.progress}%</span>
                   </div>
-                  <Progress value={course.enrollment.progress} className="h-2" />
+                  <Progress value={course.progress} className="h-2" />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -139,7 +140,7 @@ export default function StudentCoursesPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
-                      {course.enrolledCount}
+                      {course.enrolled}
                     </span>
                   </div>
                   {course.pendingAssignments > 0 && (
@@ -170,7 +171,7 @@ export default function StudentCoursesPage() {
         
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {mockCourses
-            .filter(c => !studentEnrollments.some(e => e.courseId === c.id))
+            .filter(c => !currentStudent.enrolledCourses.includes(c.id))
             .slice(0, 4)
             .map((course) => {
               const teacher = mockTeachers.find(t => t.id === course.teacherId)
@@ -183,7 +184,7 @@ export default function StudentCoursesPage() {
                       </div>
                       {getLevelBadge(course.level)}
                     </div>
-                    <h3 className="font-medium">{course.name}</h3>
+                    <h3 className="font-medium">{course.title}</h3>
                     <p className="mt-1 text-sm text-muted-foreground">{teacher?.name}</p>
                     <Button variant="link" className="mt-2 h-auto p-0 text-primary">
                       Learn More

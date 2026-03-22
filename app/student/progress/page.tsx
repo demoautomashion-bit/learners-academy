@@ -1,6 +1,6 @@
 "use client"
 
-import { mockCourses, mockEnrollments, mockSubmissions, mockAssignments } from "@/lib/mock-data"
+import { mockCourses, mockSubmissions, mockAssignments, mockStudents } from "@/lib/mock-data"
 import { useAuth } from "@/contexts/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
