@@ -521,20 +521,21 @@ function SidebarMenuButton({
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
       {...props}
     >
-      {isActive && (
-        <motion.div
-          layoutId="sidebar-active-pill"
-          className="absolute inset-y-0 left-0 w-1 bg-primary rounded-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        />
+      {isActive ? (
+        <span className="flex items-center gap-2 w-full h-full">
+          <motion.div
+            layoutId="sidebar-active-pill"
+            className="absolute inset-y-0 left-0 w-1 bg-primary rounded-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          />
+          <div className="absolute inset-0 bg-linear-to-r from-primary/5 to-transparent pointer-events-none" />
+          {props.children}
+        </span>
+      ) : (
+        props.children
       )}
-      {/* Premium Backlight on active */}
-      {isActive && (
-        <div className="absolute inset-0 bg-linear-to-r from-primary/5 to-transparent pointer-events-none" />
-      )}
-      {props.children}
     </Comp>
   )
 
