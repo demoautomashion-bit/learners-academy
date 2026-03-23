@@ -43,7 +43,7 @@ export function Logo({
   const content = (
     <div className={cn(
       'flex items-center relative transition-all duration-500', 
-      orientation === 'vertical' ? 'flex-col gap-6 text-center' : 'gap-3',
+      orientation === 'vertical' ? 'flex-col gap-2.5 text-center' : 'gap-3',
       className
     )}>
       <div className={cn(

@@ -121,8 +121,8 @@ export default function TeacherLayout({
   return (
     <SidebarProvider>
       <Sidebar className="border-r border-white/5 bg-sidebar transition-premium">
-        <SidebarHeader className="border-b border-white/5 px-4 py-8">
-          <Logo size="md" variant="light" showText={true} href="/" />
+        <SidebarHeader className="border-b border-white/5 px-4 py-8 items-center justify-center">
+          <Logo size="md" variant="light" showText={true} href="/" orientation="vertical" />
         </SidebarHeader>
 
         <SidebarContent className="px-3 py-6">

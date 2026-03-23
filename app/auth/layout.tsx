@@ -1,5 +1,3 @@
-import { Toaster } from '@/components/ui/sonner'
-
 export default function AuthLayout({
   children,
 }: {
@@ -10,7 +8,6 @@ export default function AuthLayout({
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
         {children}
       </main>
-      <Toaster position="top-center" richColors />
     </div>
   )
 }

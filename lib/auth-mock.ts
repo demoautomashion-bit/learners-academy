@@ -1,34 +1,7 @@
 import type { User, UserRole, AuthSession, LoginCredentials, RegisterData } from './types/auth'
 
 // Mock user database
-const mockUsers: User[] = [
-  {
-    id: 'admin-1',
-    email: 'admin@learnersacademy.com',
-    name: 'John Administrator',
-    role: 'admin',
-    avatar: '/images/avatars/admin.png',
-    createdAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: 'teacher-1',
-    email: 'teacher@learnersacademy.com',
-    name: 'Sarah Williams',
-    role: 'teacher',
-    employeeId: 'EMP-001',
-    phone: '+92 300 1234567',
-    avatar: '/images/avatars/teacher.png',
-    createdAt: '2024-02-01T00:00:00Z',
-  },
-  {
-    id: 'student-1',
-    email: 'student@learnersacademy.com',
-    name: 'Michael Chen',
-    role: 'student',
-    avatar: '/images/avatars/student.png',
-    createdAt: '2024-03-01T00:00:00Z',
-  },
-]
+const mockUsers: User[] = []
 
 // Generate a mock JWT-like token
 function generateMockToken(user: User): string {
