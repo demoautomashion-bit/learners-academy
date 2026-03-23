@@ -160,7 +160,7 @@ export default function StudentAssessmentsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="font-serif text-2xl font-semibold text-foreground sm:text-3xl italic">
+          <h1 className="font-serif text-2xl font-bold text-foreground sm:text-3xl">
             Assessments
           </h1>
           <p className="mt-2 text-muted-foreground text-editorial-label">
@@ -183,7 +183,7 @@ export default function StudentAssessmentsPage() {
                   {test.durationMinutes} mins
                 </div>
               </div>
-              <CardTitle className="mt-2 font-serif text-xl italic">{test.title}</CardTitle>
+              <CardTitle className="mt-2 font-serif text-xl">{test.title}</CardTitle>
               <CardDescription className="text-editorial-label text-[10px] uppercase tracking-wide">
                 Nature: {test.nature} • {test.totalMarks} Marks
               </CardDescription>
@@ -223,8 +223,8 @@ export default function StudentAssessmentsPage() {
                   </div>
                   
                   <div>
-                    <h2 className="text-3xl font-serif font-bold italic mb-2 text-foreground">Assessment Audit Complete</h2>
-                    <p className="text-muted-foreground italic">Real-time analytical results based on your performance.</p>
+                    <h2 className="text-3xl font-serif font-bold mb-2 text-foreground">Assessment Audit Complete</h2>
+                    <p className="text-muted-foreground">Real-time analytical results based on your performance.</p>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-3">
@@ -392,7 +392,7 @@ export default function StudentAssessmentsPage() {
                         <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-4">
                           <AlertTriangle className="w-10 h-10" />
                         </div>
-                        <CardTitle className="text-2xl font-serif italic">Test Interrupted</CardTitle>
+                        <CardTitle className="text-2xl font-serif">Test Interrupted</CardTitle>
                         <CardDescription>
                           A violation occurred (window de-focus or tab switch). Excessive violations will result in auto-submission.
                         </CardDescription>

@@ -63,7 +63,7 @@ export default function StudentProgressPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-2xl font-semibold text-foreground sm:text-3xl">
+        <h1 className="font-serif text-2xl font-bold text-foreground sm:text-3xl">
           My Progress
         </h1>
         <p className="mt-2 text-muted-foreground">

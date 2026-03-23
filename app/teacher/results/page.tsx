@@ -173,7 +173,7 @@ export default function ResultsPage() {
                           {result.grade ? (
                             <span className="font-bold text-foreground">{result.grade}%</span>
                           ) : (
-                            <span className="text-muted-foreground italic">Pending</span>
+                            <span className="text-muted-foreground">Pending</span>
                           )}
                         </td>
                         <td className="px-4 py-4 text-right">
@@ -216,7 +216,7 @@ export default function ResultsPage() {
               </div>
               <div className="flex flex-col gap-1 pt-2">
                 <span className="text-sm font-medium">Subjective Prompt:</span>
-                <p className="text-sm text-muted-foreground bg-background p-2 rounded border italic">
+                <p className="text-sm text-muted-foreground bg-background p-2 rounded border">
                 "Summarize the main argument of the text..."
                 </p>
               </div>

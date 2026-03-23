@@ -82,7 +82,7 @@ export default function StudentAccessPage() {
                   <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-2 border border-primary/20">
                     <Shield className="w-8 h-8 text-primary" />
                   </div>
-                  <CardTitle className="font-serif text-3xl tracking-tight italic">
+                  <CardTitle className="font-serif text-3xl tracking-tight">
                     Assessment Portal
                   </CardTitle>
                   <CardDescription className="text-muted-foreground mt-2">

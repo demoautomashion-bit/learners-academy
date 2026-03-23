@@ -128,7 +128,7 @@ export default function TeachersPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-semibold text-foreground">
+          <h1 className="font-serif text-3xl font-bold text-foreground">
             Teachers
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -144,7 +144,7 @@ export default function TeachersPage() {
           </DialogTrigger>
           <DialogContent className="max-w-md bg-card/80 backdrop-blur-xl border-primary/10">
             <DialogHeader>
-              <DialogTitle className="font-serif text-2xl italic">Add New Teacher</DialogTitle>
+              <DialogTitle className="font-serif text-2xl">Add New Teacher</DialogTitle>
               <DialogDescription className="text-editorial-meta">
                 Register a new academic professional to the academy registry.
               </DialogDescription>

@@ -157,7 +157,7 @@ export default function ClassesPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-semibold text-foreground">
+          <h1 className="font-serif text-3xl font-bold text-foreground">
             Classes
           </h1>
           <p className="text-muted-foreground mt-1">

@@ -36,7 +36,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="font-serif text-3xl font-semibold text-foreground">
+        <h1 className="font-serif text-3xl font-bold text-foreground">
           Settings
         </h1>
         <p className="text-muted-foreground mt-1">

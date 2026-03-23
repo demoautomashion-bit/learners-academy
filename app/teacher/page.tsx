@@ -70,7 +70,7 @@ export default function TeacherDashboard() {
         transition={{ duration: 0.6 }}
       >
         <div>
-          <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground italic">
+          <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground">
             Teacher Hub
           </h1>
           <p className="text-editorial-meta text-lg mt-1">
@@ -124,7 +124,7 @@ export default function TeacherDashboard() {
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <div className="text-3xl font-serif font-bold italic tracking-tight">{stat.value}</div>
+                  <div className="text-3xl font-serif font-bold tracking-tight">{stat.value}</div>
                 </CardContent>
               </Card>
             </Link>
@@ -153,7 +153,7 @@ export default function TeacherDashboard() {
               <div key={assignment.id} className="p-4 rounded-xl border border-primary/5 hover:bg-muted/30 transition-premium group curso-pointer hover:shadow-sm">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h4 className="font-serif font-bold italic text-md group-hover:text-primary transition-colors">{assignment.title}</h4>
+                    <p className="font-serif font-bold text-base group-hover:text-primary transition-colors">{assignment.title}</p>
                     <p className="text-editorial-label text-[9px] mt-0.5 opacity-60">{assignment.courseName}</p>
                   </div>
                   <Badge variant="outline" className="text-[9px] tracking-[0.15em] uppercase font-bold text-success border-success/20 bg-success/5">

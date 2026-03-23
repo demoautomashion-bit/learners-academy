@@ -85,7 +85,7 @@ export default function LibraryPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-semibold text-foreground">
+          <h1 className="font-serif text-3xl font-bold text-foreground">
             Assessment Library
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -195,7 +195,7 @@ export default function LibraryPage() {
                       <div className="bg-muted p-4 rounded-full mb-4">
                         <LibraryIcon className="w-8 h-8 text-muted-foreground" />
                       </div>
-                      <h3 className="font-semibold text-lg">Empty Category</h3>
+                      <p className="font-semibold text-lg">Empty Category</p>
                       <p className="text-muted-foreground max-w-xs">
                         There are no content blocks in {activeTab} yet.
                       </p>

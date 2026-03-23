@@ -133,7 +133,7 @@ export default function StudentsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-semibold text-foreground">
+          <h1 className="font-serif text-3xl font-bold text-foreground">
             Students
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -149,7 +149,7 @@ export default function StudentsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-md bg-card/80 backdrop-blur-xl border-primary/10">
             <DialogHeader>
-              <DialogTitle className="font-serif text-2xl italic">Enroll New Student</DialogTitle>
+              <DialogTitle className="font-serif text-2xl">Enroll New Student</DialogTitle>
               <DialogDescription className="text-editorial-meta">
                 Onboard a new candidate into the academy database.
               </DialogDescription>

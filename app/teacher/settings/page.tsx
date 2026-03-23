@@ -44,7 +44,7 @@ export default function TeacherSettingsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="font-serif text-3xl font-semibold text-foreground italic">
+        <h1 className="font-serif text-3xl font-bold text-foreground">
           Profile Settings
         </h1>
         <p className="text-muted-foreground mt-2 text-editorial-label">
@@ -83,7 +83,7 @@ export default function TeacherSettingsPage() {
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{item.label}</p>
                     <p className="font-medium text-lg leading-none">{item.value}</p>
-                    <p className="text-sm text-muted-foreground mt-2 italic">{item.description}</p>
+                    <p className="text-sm text-muted-foreground mt-2">{item.description}</p>
                   </div>
                 </div>
               </div>

@@ -82,7 +82,7 @@ export default function AdminDashboard() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground italic">
+        <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground">
           Dashboard Registry
         </h1>
         <p className="text-editorial-meta text-lg mt-1">
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
                   <stat.icon className="h-4 w-4 text-muted-foreground opacity-50" />
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <div className="text-2xl font-serif font-bold italic tracking-tight">{stat.value}</div>
+                  <div className="text-2xl font-serif font-bold tracking-tight">{stat.value}</div>
                   <div className="flex items-center gap-1.5 mt-1">
                     <Badge 
                       variant="secondary" 
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     <div>
-                      <p className="font-serif font-bold italic text-md leading-tight">{student.name}</p>
+                      <p className="font-serif font-bold text-base leading-tight">{student.name}</p>
                       <p className="text-editorial-label text-[10px] lowercase opacity-70">{student.email}</p>
                     </div>
                   </div>
@@ -354,7 +354,7 @@ export default function AdminDashboard() {
                     {course.enrolled}/{course.capacity}
                   </span>
                 </div>
-                <h4 className="font-medium text-sm mb-1 line-clamp-1">{course.title}</h4>
+                <p className="font-medium text-sm mb-1 line-clamp-1">{course.title}</p>
                 <p className="text-xs text-muted-foreground mb-3">{course.teacherName}</p>
                 <Progress value={(course.enrolled / course.capacity) * 100} className="h-1.5" />
               </div>

@@ -47,7 +47,7 @@ export default function TeacherClassesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="font-serif text-3xl font-semibold text-foreground">
+        <h1 className="font-serif text-3xl font-bold text-foreground">
           My Classes
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -244,7 +244,7 @@ export default function TeacherClassesPage() {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <ClipboardList className="w-4 h-4 text-muted-foreground" />
-                          <h4 className="font-medium">{assignment.title}</h4>
+                          <p className="font-medium">{assignment.title}</p>
                         </div>
                         <Badge 
                           variant={assignment.status === 'active' ? 'default' : 'secondary'}
