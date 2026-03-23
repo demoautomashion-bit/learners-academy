@@ -65,16 +65,8 @@ export function Logo({
           textColorClass,
           orientation === 'vertical' ? 'items-center' : ''
         )}>
-          <span className={cn('font-serif font-medium tracking-tight', textSize)}>
-            The Learners
-          </span>
-          <span className={cn('font-serif font-medium tracking-wide opacity-80', 
-            size === 'sm' ? 'text-xs' : 
-            size === 'md' ? 'text-sm' : 
-            size === 'lg' ? 'text-base' : 
-            size === 'xl' ? 'text-lg' : 'text-xl'
-          )}>
-            Academy
+          <span className={cn('font-serif font-medium tracking-tight whitespace-nowrap', textSize)}>
+            The Learners Academy
           </span>
           {loading && (
             <motion.div 

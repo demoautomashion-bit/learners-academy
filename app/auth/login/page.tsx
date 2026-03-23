@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
@@ -30,8 +31,8 @@ const portalOptions = [
     title: 'Teacher',
     description: 'Classroom management and student progress',
     icon: BookOpen,
-    gradient: 'from-accent to-accent/80',
-    color: 'oklch(0.72 0.15 195)',
+    gradient: 'from-primary to-primary/80',
+    color: 'oklch(0.62 0.17 240)',
     demoEmail: 'teacher@learnersacademy.com',
   },
   {
@@ -39,14 +40,15 @@ const portalOptions = [
     title: 'Assessment',
     description: 'Access exams, assignments and grades',
     icon: LayoutDashboard,
-    gradient: 'from-success to-success/80',
-    color: 'oklch(0.70 0.17 160)',
+    gradient: 'from-primary to-primary/80',
+    color: 'oklch(0.62 0.17 240)',
     demoEmail: 'student@learnersacademy.com',
   },
 ]
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth()
+  const router = useRouter()
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -55,6 +57,10 @@ export default function LoginPage() {
   const selectedPortal = portalOptions.find(p => p.role === selectedRole)
 
   const handleSelectRole = (role: UserRole) => {
+    if (role === 'student') {
+      router.push('/student')
+      return
+    }
     const portal = portalOptions.find(p => p.role === role)
     setSelectedRole(role)
     setEmail(portal?.demoEmail || '')
@@ -89,14 +95,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-6 max-w-5xl mx-auto overflow-hidden">
       {/* Logo Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center mb-16"
+        className="flex flex-col items-center mb-12"
       >
-        <Logo size="2xl" orientation="vertical" className="mb-6" />
+        <Logo size="2xl" orientation="vertical" className="mb-4" />
         <p className="text-muted-foreground text-sm uppercase tracking-[0.3em] font-sans opacity-70">
           Premium English Language Education
         </p>
@@ -156,13 +162,13 @@ export default function LoginPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-lg mx-auto"
+          className="w-full max-w-md mx-auto"
         >
           <Card className="border-0 shadow-2xl glass-2 overflow-hidden">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 pt-4">
             <button
               onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 -ml-1"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2 -ml-1"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to portal selection
@@ -243,7 +249,7 @@ export default function LoginPage() {
               </FieldGroup>
             </form>
           </CardContent>
-          <CardFooter className="flex-col gap-4 pt-2">
+          <CardFooter className="flex-col gap-4 pt-0 pb-4">
             <div className="w-full flex items-center gap-4">
               <div className="flex-1 h-px bg-border" />
               <span className="text-xs text-muted-foreground uppercase tracking-wider">Demo Credentials</span>

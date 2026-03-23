@@ -56,7 +56,7 @@ export default function StudentAccessPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-[450px]">
         <AnimatePresence mode="wait">
           {step === 1 ? (
@@ -69,8 +69,8 @@ export default function StudentAccessPage() {
             >
               <Card className="border-none shadow-2xl ring-1 ring-border bg-card/60 backdrop-blur-xl overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
-                <CardHeader className="pt-8 text-center">
-                  <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20">
+                <CardHeader className="pt-6 text-center">
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-2 border border-primary/20">
                     <Shield className="w-8 h-8 text-primary" />
                   </div>
                   <CardTitle className="font-serif text-3xl tracking-tight italic">
@@ -80,9 +80,9 @@ export default function StudentAccessPage() {
                     Enter your academic credentials to access your scheduled tests.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pb-8">
-                  <form onSubmit={handleAccess} className="space-y-6">
-                    <FieldGroup className="space-y-4">
+                <CardContent className="pb-6">
+                  <form onSubmit={handleAccess} className="space-y-5">
+                    <FieldGroup className="space-y-3">
                       <Field>
                         <FieldLabel className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
                           Student ID
