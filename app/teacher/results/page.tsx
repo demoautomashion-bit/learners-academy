@@ -33,6 +33,7 @@ import {
   Award
 } from 'lucide-react'
 import { mockSubmissions, mockStudents, mockAssessments } from '@/lib/mock-data'
+import { toast } from 'sonner'
 
 export default function ResultsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -169,8 +170,8 @@ export default function ResultsPage() {
                           </div>
                         </td>
                         <td className="px-4 py-4">
-                          {result.score ? (
-                            <span className="font-bold text-foreground">{result.score}%</span>
+                          {result.grade ? (
+                            <span className="font-bold text-foreground">{result.grade}%</span>
                           ) : (
                             <span className="text-muted-foreground italic">Pending</span>
                           )}

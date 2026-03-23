@@ -1,6 +1,6 @@
 "use client"
 
-import { mockCourses, mockSubmissions, mockAssignments, mockStudents } from "@/lib/mock-data"
+import { mockCourses, mockSubmissions, mockAssignments, mockStudents, mockEnrollments } from "@/lib/mock-data"
 import { useAuth } from "@/contexts/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -182,7 +182,7 @@ export default function StudentProgressPage() {
               return (
                 <div key={enrollment.id} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{course?.name}</span>
+                    <span className="font-medium">{course?.title}</span>
                     <span className="text-sm text-muted-foreground">{enrollment.progress}%</span>
                   </div>
                   <Progress value={enrollment.progress} className="h-2" />
@@ -222,18 +222,15 @@ export default function StudentProgressPage() {
                   >
                     <div>
                       <p className="font-medium">{assignment?.title}</p>
-                      <p className="text-sm text-muted-foreground">{course?.name}</p>
+                      <p className="text-sm text-muted-foreground">{course?.title}</p>
                       <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        Graded on {submission.gradedAt ? new Date(submission.gradedAt).toLocaleDateString() : "N/A"}
+                        Submitted on {new Date(submission.submittedAt).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
                         <p className="text-2xl font-bold text-primary">{submission.grade}%</p>
-                        <p className="text-xs text-muted-foreground">
-                          {submission.grade}/{assignment?.maxPoints} pts
-                        </p>
                       </div>
                       {submission.grade && getGradeBadge(submission.grade)}
                     </div>

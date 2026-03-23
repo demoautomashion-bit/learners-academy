@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { mockStudents, mockCourses } from "@/lib/mock-data"
+import { mockStudents, mockCourses, mockEnrollments } from "@/lib/mock-data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -89,7 +89,7 @@ export default function TeacherStudentsPage() {
           <SelectContent>
             <SelectItem value="all">All Courses</SelectItem>
             {teacherCourses.map(course => (
-              <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+              <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -217,7 +217,7 @@ export default function TeacherStudentsPage() {
                 </Avatar>
                 <div>
                   <h3 className="text-lg font-semibold">{selectedStudent.name}</h3>
-                  <p className="text-muted-foreground">Level: {selectedStudent.level}</p>
+                  <p className="text-muted-foreground">Grade: {selectedStudent.grade || 'N/A'}</p>
                 </div>
               </div>
 
@@ -245,7 +245,7 @@ export default function TeacherStudentsPage() {
                     return (
                       <div key={enrollment.id} className="rounded-lg border p-3">
                         <div className="flex items-center justify-between">
-                          <p className="font-medium">{course?.name}</p>
+                          <p className="font-medium">{course?.title}</p>
                           <Badge variant="outline">{enrollment.progress}%</Badge>
                         </div>
                         <Progress value={enrollment.progress} className="mt-2 h-2" />

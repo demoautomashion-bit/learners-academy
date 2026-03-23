@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,19 +41,27 @@ const TIMINGS = [
 
 export default function StudentAccessPage() {
   const router = useRouter()
+  const { login } = useAuth()
   const [isVerifying, setIsVerifying] = useState(false)
   const [step, setStep] = useState(1)
 
-  const handleAccess = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAccess = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsVerifying(true)
     
-    // Simulate high-security verification
-    setTimeout(() => {
-      setIsVerifying(false)
+    try {
+      // Establish an authenticated session so the student layout guard is satisfied
+      await login({
+        email: 'student@learnersacademy.com',
+        password: 'demo',
+        role: 'student',
+      })
       toast.success('Access Granted. Entering Assessment Portal...')
       router.push('/student/assessments')
-    }, 2000)
+    } catch {
+      toast.error('Verification failed. Please try again.')
+      setIsVerifying(false)
+    }
   }
 
   return (

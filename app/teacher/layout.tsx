@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Toaster } from '@/components/ui/sonner'
 import { Spinner } from '@/components/ui/spinner'
+import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
   BookOpen,

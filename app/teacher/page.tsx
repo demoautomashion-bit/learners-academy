@@ -22,7 +22,7 @@ import { mockCourses, mockAssignments, mockSubmissions } from '@/lib/mock-data'
 
 // Filter to show only the teacher's data (for demo, using teacher-1)
 const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
-const pendingSubmissions = mockSubmissions.filter(s => s.status === 'submitted')
+const pendingSubmissions = mockSubmissions.filter(s => s.status === 'pending')
 
 const stats = [
   {

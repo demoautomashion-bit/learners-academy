@@ -55,7 +55,7 @@ export default function SchedulePage() {
   const [isAddOpen, setIsAddOpen] = useState(false)
 
   const filteredSchedules = schedules.filter(s =>
-    s.className.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.classTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.teacherName.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -65,7 +65,7 @@ export default function SchedulePage() {
     
     const newSchedule: Schedule = {
       id: `sch-${Date.now()}`,
-      className: formData.get('className') as string,
+      classTitle: formData.get('className') as string,
       teacherName: formData.get('teacherName') as string,
       timing: formData.get('timing') as string,
       roomNumber: formData.get('roomNumber') as string,
@@ -179,7 +179,7 @@ export default function SchedulePage() {
                 <Badge variant="outline" className="text-[10px] tracking-widest uppercase font-bold text-primary border-primary/20 bg-primary/5">
                   Confirmed
                 </Badge>
-                <CardTitle className="text-xl font-serif text-foreground leading-tight">{item.className}</CardTitle>
+                <CardTitle className="text-xl font-serif text-foreground leading-tight">{item.classTitle}</CardTitle>
                 <CardDescription className="font-medium text-accent">
                   Prof. {item.teacherName}
                 </CardDescription>

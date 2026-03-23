@@ -469,3 +469,28 @@ export const mockAssessments: AssessmentTemplate[] = [
     status: 'active',
   },
 ]
+
+export interface Enrollment {
+  id: string
+  studentId: string
+  courseId: string
+  progress: number
+  enrolledAt: string
+  status: 'active' | 'completed' | 'dropped'
+}
+
+export const mockEnrollments: Enrollment[] = [
+  // Entries for student-1 / s1 (same student, aliased for the two different pages)
+  { id: 'enr-1', studentId: 's1',       courseId: 'course-1', progress: 75, enrolledAt: '2024-01-10', status: 'active' },
+  { id: 'enr-2', studentId: 's1',       courseId: 'course-3', progress: 40, enrolledAt: '2024-01-10', status: 'active' },
+  { id: 'enr-3', studentId: 'student-1', courseId: 'course-1', progress: 75, enrolledAt: '2024-01-10', status: 'active' },
+  { id: 'enr-4', studentId: 'student-1', courseId: 'course-3', progress: 40, enrolledAt: '2024-01-10', status: 'active' },
+  { id: 'enr-5', studentId: 'student-2', courseId: 'course-1', progress: 60, enrolledAt: '2024-01-15', status: 'active' },
+  { id: 'enr-6', studentId: 'student-3', courseId: 'course-2', progress: 45, enrolledAt: '2024-02-01', status: 'active' },
+  { id: 'enr-7', studentId: 'student-3', courseId: 'course-4', progress: 45, enrolledAt: '2024-02-01', status: 'active' },
+  { id: 'enr-8', studentId: 'student-4', courseId: 'course-1', progress: 90, enrolledAt: '2024-02-10', status: 'active' },
+  { id: 'enr-9', studentId: 'student-4', courseId: 'course-2', progress: 88, enrolledAt: '2024-02-10', status: 'active' },
+  { id: 'enr-10', studentId: 'student-5', courseId: 'course-3', progress: 100, enrolledAt: '2023-09-01', status: 'completed' },
+  { id: 'enr-11', studentId: 'student-6', courseId: 'course-4', progress: 30, enrolledAt: '2024-03-01', status: 'active' },
+  { id: 'enr-12', studentId: 'student-6', courseId: 'course-5', progress: 20, enrolledAt: '2024-03-01', status: 'active' },
+]
