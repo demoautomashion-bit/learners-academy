@@ -1,0 +1,43 @@
+app/admin/layout.tsx(159,36): error TS2304: Cannot find name 'cn'.
+app/admin/layout.tsx(168,49): error TS2304: Cannot find name 'cn'.
+app/admin/schedule/page.tsx(58,7): error TS2339: Property 'className' does not exist on type 'Schedule'.
+app/admin/schedule/page.tsx(68,7): error TS2353: Object literal may only specify known properties, and 'className' does not exist in type 'Schedule'.
+app/admin/schedule/page.tsx(182,95): error TS2339: Property 'className' does not exist on type 'Schedule'.
+app/auth/login/page.tsx(98,49): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+app/auth/login/page.tsx(130,33): error TS2304: Cannot find name 'cn'.
+app/auth/register/page.tsx(82,25): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+app/student/progress/page.tsx(23,30): error TS2304: Cannot find name 'mockEnrollments'.
+app/student/progress/page.tsx(23,53): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/student/progress/page.tsx(29,32): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+app/student/progress/page.tsx(29,37): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/student/progress/page.tsx(36,54): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/student/progress/page.tsx(180,38): error TS7006: Parameter 'enrollment' implicitly has an 'any' type.
+app/student/progress/page.tsx(185,60): error TS2339: Property 'name' does not exist on type 'Course'.
+app/student/progress/page.tsx(225,77): error TS2339: Property 'name' does not exist on type 'Course'.
+app/student/progress/page.tsx(228,47): error TS2339: Property 'gradedAt' does not exist on type 'Submission'.
+app/student/progress/page.tsx(228,78): error TS2339: Property 'gradedAt' does not exist on type 'Submission'.
+app/student/progress/page.tsx(235,59): error TS2339: Property 'maxPoints' does not exist on type 'Assignment'.
+app/teacher/layout.tsx(158,36): error TS2304: Cannot find name 'cn'.
+app/teacher/layout.tsx(167,49): error TS2304: Cannot find name 'cn'.
+app/teacher/page.tsx(25,56): error TS2367: This comparison appears to be unintentional because the types '"pending" | "graded" | "late"' and '"submitted"' have no overlap.
+app/teacher/results/page.tsx(172,35): error TS2339: Property 'score' does not exist on type 'Submission'.
+app/teacher/results/page.tsx(173,81): error TS2339: Property 'score' does not exist on type 'Submission'.
+app/teacher/results/page.tsx(243,15): error TS2304: Cannot find name 'toast'.
+app/teacher/students/page.tsx(38,32): error TS2304: Cannot find name 'mockEnrollments'.
+app/teacher/students/page.tsx(38,55): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/teacher/students/page.tsx(39,36): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/teacher/students/page.tsx(48,32): error TS2304: Cannot find name 'mockEnrollments'.
+app/teacher/students/page.tsx(48,55): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/teacher/students/page.tsx(49,51): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/teacher/students/page.tsx(92,69): error TS2339: Property 'name' does not exist on type 'Course'.
+app/teacher/students/page.tsx(118,80): error TS2304: Cannot find name 'mockEnrollments'.
+app/teacher/students/page.tsx(118,101): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/teacher/students/page.tsx(132,38): error TS2304: Cannot find name 'mockEnrollments'.
+app/teacher/students/page.tsx(132,59): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/teacher/students/page.tsx(156,36): error TS2552: Cannot find name 'mockEnrollments'. Did you mean 'enrollment'?
+app/teacher/students/page.tsx(156,57): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/teacher/students/page.tsx(220,80): error TS2339: Property 'level' does not exist on type 'Student'.
+app/teacher/students/page.tsx(241,18): error TS2304: Cannot find name 'mockEnrollments'.
+app/teacher/students/page.tsx(242,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/teacher/students/page.tsx(243,24): error TS7006: Parameter 'enrollment' implicitly has an 'any' type.
+app/teacher/students/page.tsx(248,63): error TS2339: Property 'name' does not exist on type 'Course'.

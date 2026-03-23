@@ -79,7 +79,7 @@ export default function RegisterPage() {
     <div className="w-full max-w-lg mx-auto">
       {/* Logo Header */}
       <div className="flex flex-col items-center mb-8">
-        <Logo size="lg" href={null} className="mb-4" />
+        <Logo size="lg" className="mb-4" />
         <p className="text-muted-foreground text-center text-balance">
           Join Our Learning Community
         </p>

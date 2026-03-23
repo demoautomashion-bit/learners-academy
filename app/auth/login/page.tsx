@@ -10,32 +10,37 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
-import { ShieldCheck, GraduationCap, BookOpen, ArrowLeft, Mail, Lock } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ShieldCheck, GraduationCap, BookOpen, ArrowLeft, Mail, Lock, LayoutDashboard } from 'lucide-react'
 import type { UserRole } from '@/lib/types/auth'
+import { cn } from '@/lib/utils'
 
 const portalOptions = [
   {
     role: 'admin' as UserRole,
     title: 'Admin',
-    description: 'Manage teachers, students, courses, and institute settings',
+    description: 'Manage institutional settings and oversight',
     icon: ShieldCheck,
     gradient: 'from-primary to-primary/80',
+    color: 'oklch(0.62 0.17 240)',
     demoEmail: 'admin@learnersacademy.com',
   },
   {
     role: 'teacher' as UserRole,
     title: 'Teacher',
-    description: 'Manage classes, assignments, and track student progress',
+    description: 'Classroom management and student progress',
     icon: BookOpen,
     gradient: 'from-accent to-accent/80',
+    color: 'oklch(0.72 0.15 195)',
     demoEmail: 'teacher@learnersacademy.com',
   },
   {
     role: 'student' as UserRole,
-    title: 'Student',
-    description: 'Access courses, submit assignments, and view grades',
-    icon: GraduationCap,
+    title: 'Assessment',
+    description: 'Access exams, assignments and grades',
+    icon: LayoutDashboard,
     gradient: 'from-success to-success/80',
+    color: 'oklch(0.70 0.17 160)',
     demoEmail: 'student@learnersacademy.com',
   },
 ]
@@ -84,73 +89,76 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-5xl mx-auto px-4 py-8">
       {/* Logo Header */}
-      <div className="flex flex-col items-center mb-8">
-        <Logo size="lg" href={null} className="mb-4" />
-        <p className="text-muted-foreground text-center text-balance">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center mb-16"
+      >
+        <Logo size="2xl" orientation="vertical" className="mb-6" />
+        <p className="text-muted-foreground text-sm uppercase tracking-[0.3em] font-sans opacity-70">
           Premium English Language Education
         </p>
-      </div>
+      </motion.div>
 
       {/* Portal Selection */}
       {!selectedRole ? (
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="text-center pb-2">
-            <CardTitle className="font-serif text-2xl">Welcome Back</CardTitle>
-            <CardDescription>
-              Select your portal to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="flex flex-col gap-3">
-              {portalOptions.map((portal) => {
-                const Icon = portal.icon
-                return (
-                  <button
-                    key={portal.role}
-                    onClick={() => handleSelectRole(portal.role)}
-                    className="group relative flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-secondary/50 transition-all duration-200 text-left hover-lift"
-                  >
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${portal.gradient} flex items-center justify-center shadow-md`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground mb-0.5">
-                        {portal.title} Portal
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {portal.description}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0 text-muted-foreground group-hover:text-primary transition-colors">
-                      <ArrowLeft className="w-5 h-5 rotate-180" />
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          </CardContent>
-          <CardFooter className="flex-col gap-4 pt-2">
-            <div className="w-full h-px bg-border" />
-            <p className="text-sm text-muted-foreground text-center">
-              New to The Learners Academy?{' '}
-              <Link href="/auth/register" className="text-primary hover:underline font-medium">
-                Create an account
-              </Link>
-            </p>
-            <Button 
-              variant="ghost" 
-              className="w-full text-[10px] uppercase tracking-widest font-bold text-muted-foreground hover:text-primary transition-all"
-              asChild
-            >
-              <Link href="/">Return to Master Selection</Link>
-            </Button>
-          </CardFooter>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+          {portalOptions.map((portal, idx) => {
+            const Icon = portal.icon
+            return (
+              <motion.button
+                key={portal.role}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                onClick={() => handleSelectRole(portal.role)}
+                className="group relative flex flex-col items-center justify-center p-8 rounded-2xl border bg-card/50 backdrop-blur-sm transition-all duration-300 aspect-square hover:shadow-2xl hover:border-primary/50 overflow-hidden"
+              >
+                {/* Background Brand Tint */}
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500"
+                  style={{ backgroundColor: portal.color }}
+                />
+                
+                {/* Hover Glow */}
+                <div 
+                  className="absolute -inset-1 opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500 rounded-full scale-50 group-hover:scale-100"
+                  style={{ backgroundColor: portal.color }}
+                />
+
+                <div className={cn(
+                  "w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3",
+                  `bg-linear-to-br ${portal.gradient}`
+                )}>
+                  <Icon className="w-10 h-10 text-white" />
+                </div>
+                
+                <h3 className="font-serif text-2xl font-medium mb-2 text-foreground">
+                  {portal.title} Portal
+                </h3>
+                <p className="text-sm text-center text-muted-foreground font-sans max-w-[200px] leading-relaxed">
+                  {portal.description}
+                </p>
+
+                <div className="mt-8 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary">
+                    Go to Portal <ArrowLeft className="w-3 h-3 rotate-180" />
+                  </div>
+                </div>
+              </motion.button>
+            )
+          })}
+        </div>
       ) : (
         /* Login Form */
-        <Card className="border-0 shadow-lg">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-lg mx-auto"
+        >
+          <Card className="border-0 shadow-2xl glass-2 overflow-hidden">
           <CardHeader className="pb-2">
             <button
               onClick={handleBack}
@@ -251,6 +259,7 @@ export default function LoginPage() {
             </div>
           </CardFooter>
         </Card>
+        </motion.div>
       )}
     </div>
   )

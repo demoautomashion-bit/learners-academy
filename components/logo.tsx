@@ -8,10 +8,11 @@ import { motion } from 'framer-motion'
 interface LogoProps {
   className?: string
   showText?: boolean
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   href?: string
   variant?: 'default' | 'light' | 'dark'
   loading?: boolean
+  orientation?: 'horizontal' | 'vertical'
 }
 
 const sizeMap = {
@@ -19,6 +20,7 @@ const sizeMap = {
   md: { image: 48, text: 'text-xl' },
   lg: { image: 64, text: 'text-2xl' },
   xl: { image: 80, text: 'text-3xl' },
+  '2xl': { image: 120, text: 'text-4xl' },
 }
 
 export function Logo({ 
@@ -28,6 +30,7 @@ export function Logo({
   href = '/',
   variant = 'default',
   loading = false,
+  orientation = 'horizontal',
 }: LogoProps) {
   const { image: imageSize, text: textSize } = sizeMap[size]
   
@@ -38,7 +41,11 @@ export function Logo({
       : 'text-foreground'
 
   const content = (
-    <div className={cn('flex items-center gap-3 relative', className)}>
+    <div className={cn(
+      'flex items-center relative transition-all duration-500', 
+      orientation === 'vertical' ? 'flex-col gap-6 text-center' : 'gap-3',
+      className
+    )}>
       <div className={cn(
         'relative flex-shrink-0',
         loading && 'after:absolute after:inset-0 after:bg-linear-to-r after:from-transparent after:via-white/70 after:to-transparent after:translate-x-[-100%] after:animate-shimmer overflow-hidden rounded-full'
@@ -53,12 +60,19 @@ export function Logo({
         />
       </div>
       {showText && (
-        <div className={cn('flex flex-col leading-none relative overflow-hidden', textColorClass)}>
-          <span className={cn('font-serif font-semibold tracking-tight', textSize)}>
+        <div className={cn(
+          'flex flex-col leading-none relative overflow-hidden', 
+          textColorClass,
+          orientation === 'vertical' ? 'items-center' : ''
+        )}>
+          <span className={cn('font-serif font-medium tracking-tight', textSize)}>
             The Learners
           </span>
           <span className={cn('font-serif font-medium tracking-wide opacity-80', 
-            size === 'sm' ? 'text-xs' : size === 'md' ? 'text-sm' : size === 'lg' ? 'text-base' : 'text-lg'
+            size === 'sm' ? 'text-xs' : 
+            size === 'md' ? 'text-sm' : 
+            size === 'lg' ? 'text-base' : 
+            size === 'xl' ? 'text-lg' : 'text-xl'
           )}>
             Academy
           </span>
