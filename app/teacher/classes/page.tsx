@@ -21,7 +21,25 @@ import {
   BookOpen,
   Eye,
   ClipboardList,
+  Search,
+  MoreHorizontal,
 } from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { mockCourses, mockStudents, mockAssignments } from '@/lib/mock-data'
 import type { Course } from '@/lib/types'
 
@@ -31,6 +49,25 @@ const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
 export default function TeacherClassesPage() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [classFilter, setClassFilter] = useState('all')
+
+  const filteredStudents = mockStudents.filter(student => {
+    // Check if student is in any of the teacher's classes
+    const isMyStudent = student.enrolledCourses.some(studentCourseId => 
+      myCourses.some(myCourse => myCourse.id === studentCourseId)
+    )
+    if (!isMyStudent) return false
+
+    // Apply filters
+    const matchesSearch = 
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.studentId?.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesClass = classFilter === 'all' || student.enrolledCourses.includes(classFilter)
+
+    return matchesSearch && matchesClass
+  })
 
   const getLevelColor = (level: Course['level']) => {
     switch (level) {
@@ -56,93 +93,117 @@ export default function TeacherClassesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
           <CardHeader className="pb-2">
-            <CardDescription>Total Classes</CardDescription>
-            <CardTitle className="text-3xl">{myCourses.length}</CardTitle>
+            <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-bold">Total Assigned Classes</CardDescription>
+            <CardTitle className="text-3xl font-serif">{myCourses.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
+        <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
           <CardHeader className="pb-2">
-            <CardDescription>Total Students</CardDescription>
-            <CardTitle className="text-3xl">
+            <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-bold">Total Enrolled Students</CardDescription>
+            <CardTitle className="text-3xl font-serif">
               {myCourses.reduce((acc, c) => acc + c.enrolled, 0)}
             </CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Avg. Class Size</CardDescription>
-            <CardTitle className="text-3xl">
-              {Math.round(myCourses.reduce((acc, c) => acc + c.enrolled, 0) / myCourses.length)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
       </div>
 
-      {/* Classes Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {myCourses.map((course) => (
-          <Card key={course.id} className="hover-lift">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <Badge variant="outline" className={getLevelColor(course.level)}>
-                  {course.level}
-                </Badge>
-                <Badge 
-                  variant={course.status === 'active' ? 'default' : 'secondary'}
-                  className={course.status === 'active' ? 'bg-success hover:bg-success/90' : ''}
-                >
-                  {course.status}
-                </Badge>
-              </div>
-              <CardTitle className="text-lg leading-snug mt-2">
-                {course.title}
-              </CardTitle>
-              <CardDescription className="line-clamp-2">
-                {course.description}
+      {/* Student Registry Table */}
+      <Card className="border-none shadow-sm ring-1 ring-border overflow-hidden bg-card/60 backdrop-blur-xl">
+        <CardHeader className="border-b border-primary/5 pb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle className="font-serif text-2xl">Student Registry</CardTitle>
+              <CardDescription className="text-editorial-meta">
+                Active roster management for your assigned academic sessions.
               </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Enrollment</span>
-                  <span className="font-medium">{course.enrolled}/{course.capacity}</span>
-                </div>
-                <Progress value={(course.enrolled / course.capacity) * 100} className="h-2" />
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger className="w-[200px] bg-background/50">
+                  <SelectValue placeholder="All My Classes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All My Classes</SelectItem>
+                  {myCourses.map(course => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                <Input
+                  placeholder="Search by ID or Name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-background/50 border-primary/10"
+                />
               </div>
-
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{course.duration}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span>{course.enrolled}</span>
-                </div>
-              </div>
-
-              <div className="text-sm">
-                <p className="text-muted-foreground">{course.schedule}</p>
-              </div>
-
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {
-                  setSelectedCourse(course)
-                  setIsDetailOpen(true)
-                }}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-xl border border-primary/5 overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent border-primary/5">
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 py-4 px-6">Student ID</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 py-4 px-6">Student Name</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 py-4 px-6">Guardian Name</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 py-4 px-6">Assigned Class</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStudents.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                      No students found in this roster.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredStudents.map((student) => {
+                    const studentCourse = myCourses.find(c => student.enrolledCourses.includes(c.id))
+                    return (
+                      <TableRow key={student.id} className="hover:bg-primary/[0.02] border-primary/5 transition-colors group">
+                        <TableCell className="font-bold text-primary tracking-tighter py-4 px-6">
+                          {student.studentId || 'N/A'}
+                        </TableCell>
+                        <TableCell className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8 ring-1 ring-primary/10">
+                              <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
+                                {student.name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <p className="font-serif font-bold text-base text-foreground/80 group-hover:text-primary transition-colors">
+                              {student.name}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground font-medium py-4 px-6">
+                          {student.guardianName || 'Registry Record TBC'}
+                        </TableCell>
+                        <TableCell className="py-4 px-6">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm text-foreground/70">{studentCourse?.title || 'Course Registry'}</span>
+                            <span className="text-[10px] text-muted-foreground/60 tracking-wide font-bold uppercase">
+                              {student.classTiming || 'Session TBC'}
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Course Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
