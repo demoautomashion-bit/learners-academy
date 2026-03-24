@@ -13,6 +13,7 @@ interface AuthContextType extends AuthState {
   register: (data: RegisterData) => Promise<void>
   logout: () => Promise<void>
   checkAccess: (requiredRole: UserRole) => boolean
+  updateUser: (data: Partial<User>) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -178,6 +179,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return state.user?.role === requiredRole
   }, [state.user])
 
+  const updateUser = useCallback((data: Partial<User>) => {
+    setState(prev => {
+      if (!prev.user) return prev
+      const newUser = { ...prev.user, ...data }
+      
+      // Update session storage too
+      try {
+        const stored = sessionStorage.getItem(AUTH_STORAGE_KEY)
+        if (stored) {
+          const session = JSON.parse(stored)
+          sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+            ...session,
+            user: newUser
+          }))
+        }
+      } catch (e) {
+        console.error('Failed to update session storage', e)
+      }
+      
+      return { ...prev, user: newUser }
+    })
+  }, [])
+
   return (
     <AuthContext.Provider value={{
       ...state,
@@ -185,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       checkAccess,
+      updateUser,
     }}>
       {children}
     </AuthContext.Provider>

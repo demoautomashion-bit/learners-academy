@@ -6,7 +6,7 @@ import { useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -195,6 +195,7 @@ export default function AdminLayout({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
                 <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.avatar} />
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                     {userInitials}
                   </AvatarFallback>

@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { Field, FieldGroup, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
+import { useAuth } from '@/contexts/auth-context'
 import {
   Building2,
   Mail,
@@ -20,17 +21,33 @@ import {
   Shield,
   Palette,
   Save,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react'
 
 export default function SettingsPage() {
+  const { user, updateUser } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // In a real app, you'd upload to a CDN. Here we simulate with a URL.
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        updateUser({ avatar: reader.result as string })
+        toast.success('Academy logo updated successfully')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const handleSave = async () => {
     setIsLoading(true)
     // Simulate save
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise(resolve => setTimeout(resolve, 800))
     setIsLoading(false)
-    toast.success('Settings saved successfully')
+    toast.success('Settings synchronized successfully')
   }
 
   return (
@@ -46,195 +63,94 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="general" className="gap-2">
+        <TabsList className="bg-muted/50 p-1">
+          <TabsTrigger value="general" className="gap-2 px-6">
             <Building2 className="w-4 h-4" />
             General
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="w-4 h-4" />
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
+          <TabsTrigger value="security" className="gap-2 px-6">
             <Shield className="w-4 h-4" />
             Security
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="gap-2">
+          <TabsTrigger value="appearance" className="gap-2 px-6">
             <Palette className="w-4 h-4" />
             Appearance
           </TabsTrigger>
         </TabsList>
 
-        {/* General Settings */}
         <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Institute Information</CardTitle>
-              <CardDescription>
-                Basic information about your academy
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel>Institute Name</FieldLabel>
-                  <Input defaultValue="The Learners Academy" />
-                </Field>
-                <Field>
-                  <FieldLabel>Tagline</FieldLabel>
-                  <Input defaultValue="Premium English Language Education" />
-                </Field>
-                <Field>
-                  <FieldLabel>Description</FieldLabel>
-                  <Textarea 
-                    defaultValue="Empowering learners with world-class language education since 2010."
-                    rows={3}
-                  />
-                </Field>
-              </FieldGroup>
-            </CardContent>
-          </Card>
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="font-serif">Institute Information</CardTitle>
+                <CardDescription>
+                  Core academic identity and branding parameters.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Institute Name</FieldLabel>
+                    <Input defaultValue="The Learners Academy" className="bg-background/50" />
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Academic Tagline</FieldLabel>
+                    <Input defaultValue="Premium English Language Education" className="bg-background/50" />
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Registry Description</FieldLabel>
+                    <Textarea 
+                      defaultValue="Empowering learners with world-class language education since 2010."
+                      rows={4}
+                      className="bg-background/50"
+                    />
+                  </Field>
+                </FieldGroup>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-              <CardDescription>
-                How students and teachers can reach you
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FieldGroup>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field>
-                    <FieldLabel>Email Address</FieldLabel>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input className="pl-10" defaultValue="contact@learnersacademy.com" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-serif text-lg">Academy Branding</CardTitle>
+                <CardDescription>
+                  Manage the official logo and institutional profile icon.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center justify-center py-6">
+                <div className="relative group cursor-pointer mb-6">
+                  <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-primary/20 flex items-center justify-center bg-muted/30 overflow-hidden transition-all group-hover:border-primary/50">
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-8 h-8 text-primary/20" />
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-2xl">
+                      <Upload className="w-6 h-6 text-white" />
                     </div>
-                  </Field>
-                  <Field>
-                    <FieldLabel>Phone Number</FieldLabel>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input className="pl-10" defaultValue="+1 (555) 123-4567" />
-                    </div>
-                  </Field>
-                </div>
-                <Field>
-                  <FieldLabel>Website</FieldLabel>
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input className="pl-10" defaultValue="https://learnersacademy.com" />
                   </div>
-                </Field>
-                <Field>
-                  <FieldLabel>Address</FieldLabel>
-                  <Textarea 
-                    defaultValue="123 Education Lane, Learning City, LC 12345"
-                    rows={2}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                    onChange={handleLogoUpload}
                   />
-                </Field>
-              </FieldGroup>
-            </CardContent>
-          </Card>
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary">Official Logo</p>
+                  <p className="text-[11px] text-muted-foreground">Supported: JPG, PNG, SVG (Max 2MB)</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-          <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={isLoading}>
-              <Save className="w-4 h-4 mr-2" />
-              {isLoading ? 'Saving...' : 'Save Changes'}
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleSave} disabled={isLoading} className="px-8 font-semibold uppercase tracking-wide">
+              {isLoading ? 'Syncing...' : 'Save General changes'}
             </Button>
           </div>
         </TabsContent>
 
-        {/* Notifications Settings */}
-        <TabsContent value="notifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Notifications</CardTitle>
-              <CardDescription>
-                Configure email notification preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-medium">New Enrollment Alerts</p>
-                  <p className="text-sm text-muted-foreground">
-                    Receive notifications when new students enroll
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-medium">Assignment Submissions</p>
-                  <p className="text-sm text-muted-foreground">
-                    Get notified when students submit assignments
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-medium">Course Completion</p>
-                  <p className="text-sm text-muted-foreground">
-                    Notifications when students complete courses
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-medium">Weekly Reports</p>
-                  <p className="text-sm text-muted-foreground">
-                    Receive weekly summary reports
-                  </p>
-                </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>System Notifications</CardTitle>
-              <CardDescription>
-                In-app notification preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-medium">Browser Notifications</p>
-                  <p className="text-sm text-muted-foreground">
-                    Show desktop notifications
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-medium">Sound Alerts</p>
-                  <p className="text-sm text-muted-foreground">
-                    Play sound for important notifications
-                  </p>
-                </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={isLoading}>
-              <Save className="w-4 h-4 mr-2" />
-              {isLoading ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        </TabsContent>
 
         {/* Security Settings */}
         <TabsContent value="security" className="space-y-6">
@@ -315,21 +231,20 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-        {/* Appearance Settings */}
         <TabsContent value="appearance" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Theme</CardTitle>
+              <CardTitle className="font-serif">Interface Configuration</CardTitle>
               <CardDescription>
-                Customize the look and feel of your dashboard
+                Tailor the visual intensity and density of your administration portal.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <p className="font-medium">Dark Mode</p>
-                  <p className="text-sm text-muted-foreground">
-                    Use dark theme for the dashboard
+                  <p className="font-medium">Dark Mode Appearance</p>
+                  <p className="text-sm text-editorial-meta">
+                    Shift to a premium dark aesthetic for focused work
                   </p>
                 </div>
                 <Switch />
@@ -337,9 +252,9 @@ export default function SettingsPage() {
               <Separator />
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <p className="font-medium">Compact Mode</p>
-                  <p className="text-sm text-muted-foreground">
-                    Show more content with reduced spacing
+                  <p className="font-medium">High-Density Compact Mode</p>
+                  <p className="text-sm text-editorial-meta">
+                    Maximize information visibility by reducing whitespace
                   </p>
                 </div>
                 <Switch />
@@ -347,40 +262,9 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Sidebar</CardTitle>
-              <CardDescription>
-                Configure sidebar behavior
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-medium">Collapsed by Default</p>
-                  <p className="text-sm text-muted-foreground">
-                    Start with sidebar collapsed
-                  </p>
-                </div>
-                <Switch />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-medium">Show Keyboard Shortcuts</p>
-                  <p className="text-sm text-muted-foreground">
-                    Display keyboard shortcut hints
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={isLoading}>
-              <Save className="w-4 h-4 mr-2" />
-              {isLoading ? 'Saving...' : 'Save Changes'}
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleSave} disabled={isLoading} className="px-8 font-semibold uppercase tracking-wide">
+              {isLoading ? 'applying...' : 'Apply Appearance'}
             </Button>
           </div>
         </TabsContent>
