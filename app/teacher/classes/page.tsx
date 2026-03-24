@@ -173,16 +173,9 @@ export default function TeacherClassesPage() {
                           {student.studentId || 'N/A'}
                         </TableCell>
                         <TableCell className="py-4 px-6">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8 ring-1 ring-primary/10">
-                              <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
-                                {student.name.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <p className="font-serif font-bold text-base text-foreground/80 group-hover:text-primary transition-colors">
-                              {student.name}
-                            </p>
-                          </div>
+                          <p className="font-serif font-bold text-base text-foreground/80 group-hover:text-primary transition-colors">
+                            {student.name}
+                          </p>
                         </TableCell>
                         <TableCell className="text-muted-foreground font-medium py-4 px-6">
                           {student.guardianName || 'Registry Record TBC'}
