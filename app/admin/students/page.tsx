@@ -58,6 +58,7 @@ import {
   Award,
 } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
+import { cn } from '@/lib/utils'
 import type { Student } from '@/lib/types'
 
 const ACADEMY_CLASSES = [

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { mockStudents, mockCourses, mockEnrollments } from "@/lib/mock-data"
+import { useData } from "@/contexts/data-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress"
 import { Search, Users, TrendingUp, Award, Mail, Phone, Calendar } from "lucide-react"
 
 export default function TeacherStudentsPage() {
+  const { students: mockStudents, courses: mockCourses, enrollments: mockEnrollments } = useData()
   const [searchQuery, setSearchQuery] = useState("")
   const [courseFilter, setCourseFilter] = useState("all")
   const [selectedStudent, setSelectedStudent] = useState<typeof mockStudents[0] | null>(null)

@@ -43,7 +43,7 @@ const TIMINGS = [
 export default function StudentAccessPage() {
   const router = useRouter()
   const { login } = useAuth()
-  const { courses, schedules } = useData()
+  const { courses, schedules, assessments } = useData()
   const [isVerifying, setIsVerifying] = useState(false)
   const [step, setStep] = useState(1)
 

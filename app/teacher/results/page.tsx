@@ -32,13 +32,12 @@ import {
   TrendingUp,
   Award
 } from 'lucide-react'
-import { mockSubmissions, mockStudents, mockAssessments, mockCourses } from '@/lib/mock-data'
 import { toast } from 'sonner'
-
-// Filter to show only the teacher's relevant sessions
-const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
+import { useData } from '@/contexts/data-context'
 
 export default function ResultsPage() {
+  const { submissions: mockSubmissions, students: mockStudents, assessments: mockAssessments, courses: mockCourses } = useData()
+  const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
   const [searchQuery, setSearchQuery] = useState('')
   const [phaseFilter, setPhaseFilter] = useState('all')
   const [classFilter, setClassFilter] = useState('all')

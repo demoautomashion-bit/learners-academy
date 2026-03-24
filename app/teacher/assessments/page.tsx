@@ -85,6 +85,7 @@ export default function AssessmentsPage() {
       durationMinutes: parseInt(formData.get('duration') as string),
       createdAt: new Date().toISOString().split('T')[0],
       status: 'active',
+      accessCode: '',
     }
 
     publishAssessment(newAssessment)

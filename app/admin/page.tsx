@@ -1,5 +1,6 @@
 'use client'
 
+import React, { useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,15 +32,51 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
-import {
-  mockEnrollmentTrend,
-  mockRevenueData,
-  mockCoursePopularity,
-} from '@/lib/mock-data'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
   const { students, teachers, courses, stats: mockDashboardStats } = useData()
+
+  // Dynamic Chart Data Generation
+  const enrollmentTrendData = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    // Initialize last 6 months buckets
+    const trend = Array(6).fill(0).map((_, i) => {
+      const d = new Date()
+      d.setMonth(d.getMonth() - 5 + i)
+      return {
+        name: months[d.getMonth()],
+        value: 0,
+        monthIdx: d.getMonth(),
+        year: d.getFullYear()
+      }
+    })
+
+    students.forEach(student => {
+      if (!student.enrolledAt) return
+      const date = new Date(student.enrolledAt)
+      const mIdx = date.getMonth()
+      const yr = date.getFullYear()
+      
+      const bucket = trend.find(t => t.monthIdx === mIdx && t.year === yr)
+      if (bucket) {
+        bucket.value += 1
+      }
+    })
+
+    return trend.map(({ name, value }) => ({ name, value }))
+  }, [students])
+
+  const coursePopularityData = useMemo(() => {
+    // Sort courses by current specific enrollment and take top 5
+    return [...courses]
+      .sort((a, b) => b.enrolled - a.enrolled)
+      .slice(0, 5)
+      .map(course => ({
+        name: course.title.length > 15 ? course.title.substring(0, 15) + '...' : course.title,
+        value: course.enrolled
+      }))
+  }, [courses])
 
   const statCards = [
     {
@@ -151,7 +188,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockEnrollmentTrend}>
+                <AreaChart data={enrollmentTrendData}>
                   <defs>
                     <linearGradient id="enrollmentGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />
@@ -195,7 +232,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockCoursePopularity} layout="vertical">
+                <BarChart data={coursePopularityData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis type="number" className="text-xs" />
                   <YAxis 

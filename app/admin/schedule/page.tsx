@@ -32,7 +32,7 @@ import {
   Trash2,
   Edit,
 } from 'lucide-react'
-import { mockSchedules, mockTeachers } from '@/lib/mock-data'
+import { useData } from '@/contexts/data-context'
 import type { Schedule } from '@/lib/types'
 
 const CLASS_LEVELS = [
@@ -52,7 +52,7 @@ const ACADEMY_SLOTS = [
 ]
 
 export default function SchedulePage() {
-  const [schedules, setSchedules] = useState<Schedule[]>(mockSchedules)
+  const { schedules, teachers, addSchedule, removeSchedule } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
 
@@ -76,7 +76,7 @@ export default function SchedulePage() {
       days: ['Mon', 'Wed', 'Fri'], // Default days
     }
 
-    setSchedules([newSchedule, ...schedules])
+    addSchedule(newSchedule)
     setIsAddOpen(false)
     toast.success('Schedule created successfully')
   }
@@ -129,7 +129,7 @@ export default function SchedulePage() {
                         <SelectValue placeholder="Select teacher" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockTeachers.map(teacher => (
+                        {teachers.map(teacher => (
                           <SelectItem key={teacher.id} value={teacher.name}>{teacher.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -203,7 +203,7 @@ export default function SchedulePage() {
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  onClick={() => setSchedules(schedules.filter(s => s.id !== item.id))}
+                  onClick={() => removeSchedule(item.id)}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>

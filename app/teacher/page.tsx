@@ -18,48 +18,48 @@ import {
   TrendingUp
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { mockCourses, mockAssignments, mockSubmissions } from '@/lib/mock-data'
-
-// Filter to show only the teacher's data (for demo, using teacher-1)
-const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
-const pendingSubmissions = mockSubmissions.filter(s => s.status === 'pending')
-
-const stats = [
-  {
-    title: 'My Classes',
-    value: myCourses.length,
-    icon: BookOpen,
-    href: '/teacher/classes',
-    color: 'text-primary',
-    bgColor: 'bg-primary/10',
-  },
-  {
-    title: 'Library Blocks',
-    value: 24, // Placeholder for total questions
-    icon: Library,
-    href: '/teacher/library',
-    color: 'text-accent',
-    bgColor: 'bg-accent/10',
-  },
-  {
-    title: 'Active Tests',
-    value: 3,
-    icon: ClipboardList,
-    href: '/teacher/assessments',
-    color: 'text-warning',
-    bgColor: 'bg-warning/10',
-  },
-  {
-    title: 'Pending Scores',
-    value: pendingSubmissions.length,
-    icon: Clock,
-    href: '/teacher/results',
-    color: 'text-destructive',
-    bgColor: 'bg-destructive/10',
-  },
-]
+import { useData } from '@/contexts/data-context'
 
 export default function TeacherDashboard() {
+  const { courses: mockCourses, assignments: mockAssignments, submissions: mockSubmissions } = useData()
+  const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
+  const pendingSubmissions = mockSubmissions.filter(s => s.status === 'pending')
+
+  const stats = [
+    {
+      title: 'My Classes',
+      value: myCourses.length,
+      icon: BookOpen,
+      href: '/teacher/classes',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
+    },
+    {
+      title: 'Library Blocks',
+      value: 24, // Placeholder for total questions
+      icon: Library,
+      href: '/teacher/library',
+      color: 'text-accent',
+      bgColor: 'bg-accent/10',
+    },
+    {
+      title: 'Active Tests',
+      value: 3,
+      icon: ClipboardList,
+      href: '/teacher/assessments',
+      color: 'text-warning',
+      bgColor: 'bg-warning/10',
+    },
+    {
+      title: 'Pending Scores',
+      value: pendingSubmissions.length,
+      icon: Clock,
+      href: '/teacher/results',
+      color: 'text-destructive',
+      bgColor: 'bg-destructive/10',
+    },
+  ]
+
   return (
     <div className="space-y-8">
       {/* Page Header */}

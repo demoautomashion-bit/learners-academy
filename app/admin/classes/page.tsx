@@ -56,7 +56,7 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { mockCourses, mockTeachers } from '@/lib/mock-data'
+import { useData } from '@/contexts/data-context'
 import type { Course } from '@/lib/types'
 
 const CLASS_LEVELS = [
@@ -85,7 +85,7 @@ const CLASS_TIMES = [
 ]
 
 export default function ClassesPage() {
-  const [courses, setCourses] = useState<Course[]>(mockCourses)
+  const { courses, addCourse, removeCourse, updateCourseStatus } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -120,20 +120,18 @@ export default function ClassesPage() {
       endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       roomNumber: formData.get('roomNumber') as string,
     }
-    setCourses([...courses, newCourse])
+    addCourse(newCourse)
     setIsAddDialogOpen(false)
     toast.success('Class created successfully')
   }
 
   const handleStatusChange = (course: Course, newStatus: Course['status']) => {
-    setCourses(courses.map(c => 
-      c.id === course.id ? { ...c, status: newStatus } : c
-    ))
+    updateCourseStatus(course.id, newStatus)
     toast.success(`Course ${newStatus}`)
   }
 
   const handleDelete = (course: Course) => {
-    setCourses(courses.filter(c => c.id !== course.id))
+    removeCourse(course.id)
     toast.success('Course deleted')
   }
 

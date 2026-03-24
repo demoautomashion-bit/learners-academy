@@ -54,7 +54,7 @@ import {
   UserX,
   User,
 } from 'lucide-react'
-import { mockTeachers } from '@/lib/mock-data'
+import { useData } from '@/contexts/data-context'
 import type { Teacher } from '@/lib/types'
 
 const CLASS_LEVELS = [
@@ -77,7 +77,7 @@ const CLASS_LEVELS = [
 ]
 
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>(mockTeachers)
+  const { teachers, addTeacher, removeTeacher, updateTeacherStatus } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
@@ -106,22 +106,18 @@ export default function TeachersPage() {
       coursesCount: 0,
       studentsCount: 0,
     }
-    setTeachers([...teachers, newTeacher])
+    addTeacher(newTeacher)
     setIsAddDialogOpen(false)
     toast.success('Teacher added successfully')
   }
 
   const handleToggleStatus = (teacher: Teacher) => {
-    setTeachers(teachers.map(t => 
-      t.id === teacher.id 
-        ? { ...t, status: t.status === 'active' ? 'inactive' : 'active' }
-        : t
-    ))
+    updateTeacherStatus(teacher.id, teacher.status === 'active' ? 'inactive' : 'active')
     toast.success(`Teacher ${teacher.status === 'active' ? 'deactivated' : 'activated'}`)
   }
 
   const handleDelete = (teacher: Teacher) => {
-    setTeachers(teachers.filter(t => t.id !== teacher.id))
+    removeTeacher(teacher.id)
     toast.success('Teacher removed successfully')
   }
 

@@ -1,7 +1,7 @@
 "use client"
 
-import { mockCourses, mockSubmissions, mockAssignments, mockStudents, mockEnrollments } from "@/lib/mock-data"
 import { useAuth } from "@/contexts/auth-context"
+import { useData } from "@/contexts/data-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -18,6 +18,7 @@ import {
 
 export default function StudentProgressPage() {
   const { user } = useAuth()
+  const { courses: mockCourses, submissions: mockSubmissions, assignments: mockAssignments, enrollments: mockEnrollments } = useData()
 
   // Simulate student's data (using student s1)
   const studentEnrollments = mockEnrollments.filter(e => e.studentId === "s1")

@@ -40,13 +40,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { mockCourses, mockStudents, mockAssignments } from '@/lib/mock-data'
+import { useData } from '@/contexts/data-context'
 import type { Course } from '@/lib/types'
 
-// Filter to show only the teacher's data
-const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
-
 export default function TeacherClassesPage() {
+  const { courses: mockCourses, students: mockStudents, assignments: mockAssignments } = useData()
+  const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')

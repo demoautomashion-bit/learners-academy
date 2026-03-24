@@ -34,7 +34,7 @@ import {
   Edit,
   Library as LibraryIcon,
 } from 'lucide-react'
-import { mockQuestions } from '@/lib/mock-data'
+import { useData } from '@/contexts/data-context'
 import type { Question, QuestionCategory } from '@/lib/types'
 
 const CATEGORIES: QuestionCategory[] = [
@@ -47,7 +47,7 @@ const CATEGORIES: QuestionCategory[] = [
 ]
 
 export default function LibraryPage() {
-  const [questions, setQuestions] = useState<Question[]>(mockQuestions)
+  const { questions, addQuestion, deleteQuestion } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<string>('Grammar')
   const [isAddOpen, setIsAddOpen] = useState(false)
@@ -71,13 +71,13 @@ export default function LibraryPage() {
       correctAnswer: formData.get('correctAnswer') as string,
     }
 
-    setQuestions([...questions, newQuestion])
+    addQuestion(newQuestion)
     setIsAddOpen(false)
     toast.success('Question added to library')
   }
 
   const handleDelete = (id: string) => {
-    setQuestions(questions.filter(q => q.id !== id))
+    deleteQuestion(id)
     toast.success('Question removed')
   }
 

@@ -7,7 +7,6 @@ import type {
   DashboardStats, ChartData, Schedule, Question, 
   AssessmentTemplate, StudentTest 
 } from '@/lib/types'
-import * as mockData from '@/lib/mock-data'
 
 const DATA_STORAGE_KEY = 'learners_academy_data'
 
@@ -34,6 +33,21 @@ interface DataContextType {
   addQuestion: (question: Question) => void
   deleteQuestion: (id: string) => void
   
+  // Teachers
+  addTeacher: (teacher: Teacher) => void
+  updateTeacherStatus: (id: string, status: Teacher['status']) => void
+  removeTeacher: (id: string) => void
+  
+  // Courses
+  addCourse: (course: Course) => void
+  updateCourseStatus: (id: string, status: Course['status']) => void
+  removeCourse: (id: string) => void
+  
+  // Schedule
+  addSchedule: (schedule: Schedule) => void
+  updateSchedule: (id: string, updates: Partial<Schedule>) => void
+  removeSchedule: (id: string) => void
+  
   // Reset
   resetToDefaults: () => void
 }
@@ -58,7 +72,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     courses: [],
     assignments: [],
     submissions: [],
-    stats: mockData.mockDashboardStats,
+    stats: { totalStudents: 0, totalTeachers: 0, totalCourses: 0, activeEnrollments: 0, revenue: 0, revenueChange: 0, newEnrollments: 0, completionRate: 0 },
     schedules: [],
     questions: [],
     assessments: [],
@@ -76,18 +90,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
           setData(JSON.parse(stored))
           console.log('Restored data from storage')
         } else {
-          // Fallback to initial mocks
+          // Fallback to empty initial state
           const initial = {
-            teachers: mockData.mockTeachers,
-            students: mockData.mockStudents,
-            courses: mockData.mockCourses,
-            assignments: mockData.mockAssignments,
-            submissions: mockData.mockSubmissions,
-            stats: mockData.mockDashboardStats,
-            schedules: mockData.mockSchedules,
-            questions: mockData.mockQuestions,
-            assessments: mockData.mockAssessments,
-            enrollments: mockData.mockEnrollments,
+            teachers: [],
+            students: [],
+            courses: [],
+            assignments: [],
+            submissions: [],
+            stats: { totalStudents: 0, totalTeachers: 0, totalCourses: 0, activeEnrollments: 0, revenue: 0, revenueChange: 0, newEnrollments: 0, completionRate: 0 },
+            schedules: [],
+            questions: [],
+            assessments: [],
+            enrollments: [],
           }
           setData(initial)
           localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(initial))
@@ -208,19 +222,82 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
+  const addTeacher = useCallback((teacher: Teacher) => {
+    setData(prev => ({
+      ...prev,
+      teachers: [...prev.teachers, teacher],
+    }))
+  }, [])
+
+  const updateTeacherStatus = useCallback((id: string, status: Teacher['status']) => {
+    setData(prev => ({
+      ...prev,
+      teachers: prev.teachers.map(t => t.id === id ? { ...t, status } : t),
+    }))
+  }, [])
+
+  const removeTeacher = useCallback((id: string) => {
+    setData(prev => ({
+      ...prev,
+      teachers: prev.teachers.filter(t => t.id !== id),
+    }))
+  }, [])
+
+  const addCourse = useCallback((course: Course) => {
+    setData(prev => ({
+      ...prev,
+      courses: [...prev.courses, course],
+    }))
+  }, [])
+
+  const updateCourseStatus = useCallback((id: string, status: Course['status']) => {
+    setData(prev => ({
+      ...prev,
+      courses: prev.courses.map(c => c.id === id ? { ...c, status } : c),
+    }))
+  }, [])
+
+  const removeCourse = useCallback((id: string) => {
+    setData(prev => ({
+      ...prev,
+      courses: prev.courses.filter(c => c.id !== id),
+    }))
+  }, [])
+
+  const addSchedule = useCallback((schedule: Schedule) => {
+    setData(prev => ({
+      ...prev,
+      schedules: [schedule, ...prev.schedules],
+    }))
+  }, [])
+
+  const updateSchedule = useCallback((id: string, updates: Partial<Schedule>) => {
+    setData(prev => ({
+      ...prev,
+      schedules: prev.schedules.map(s => s.id === id ? { ...s, ...updates } : s),
+    }))
+  }, [])
+
+  const removeSchedule = useCallback((id: string) => {
+    setData(prev => ({
+      ...prev,
+      schedules: prev.schedules.filter(s => s.id !== id),
+    }))
+  }, [])
+
   const resetToDefaults = useCallback(() => {
     localStorage.removeItem(DATA_STORAGE_KEY)
     const initial = {
-      teachers: mockData.mockTeachers,
-      students: mockData.mockStudents,
-      courses: mockData.mockCourses,
-      assignments: mockData.mockAssignments,
-      submissions: mockData.mockSubmissions,
-      stats: mockData.mockDashboardStats,
-      schedules: mockData.mockSchedules,
-      questions: mockData.mockQuestions,
-      assessments: mockData.mockAssessments,
-      enrollments: mockData.mockEnrollments,
+      teachers: [],
+      students: [],
+      courses: [],
+      assignments: [],
+      submissions: [],
+      stats: { totalStudents: 0, totalTeachers: 0, totalCourses: 0, activeEnrollments: 0, revenue: 0, revenueChange: 0, newEnrollments: 0, completionRate: 0 },
+      schedules: [],
+      questions: [],
+      assessments: [],
+      enrollments: [],
     }
     setData(initial)
     toast.info('Database reset to defaults')
@@ -238,6 +315,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateCourseProgress,
       addQuestion,
       deleteQuestion,
+      addTeacher,
+      updateTeacherStatus,
+      removeTeacher,
+      addCourse,
+      updateCourseStatus,
+      removeCourse,
+      addSchedule,
+      updateSchedule,
+      removeSchedule,
       resetToDefaults,
     }}>
       {children}
