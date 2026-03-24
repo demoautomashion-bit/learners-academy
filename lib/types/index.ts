@@ -30,6 +30,7 @@ export interface Student {
   enrolledAt: string
   progress: number
   grade?: string
+  classTiming?: string
 }
 
 export interface Course {

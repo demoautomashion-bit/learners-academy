@@ -60,6 +60,40 @@ import {
 import { useData } from '@/contexts/data-context'
 import type { Student } from '@/lib/types'
 
+const ACADEMY_CLASSES = [
+  'Pre-Foundation',
+  'Foundation One',
+  'Foundation Two',
+  'Foundation Three',
+  'Beginners',
+  'Level One',
+  'Level Two',
+  'Level Three',
+  'Level Four',
+  'Level Five',
+  'Level Six',
+  'Level Advanced',
+  'Professional Advanced',
+  'Speaking Class',
+  'Grammar Speaking Class',
+  'IELTS Preparation Course'
+]
+
+const CLASS_TIMINGS = [
+  '09:00 AM - 10:00 AM',
+  '10:00 AM - 11:00 AM',
+  '11:00 AM - 12:00 PM',
+  '12:00 PM - 01:00 PM',
+  '01:00 PM - 02:00 PM',
+  '02:00 PM - 03:00 PM',
+  '03:00 PM - 04:00 PM',
+  '04:00 PM - 05:00 PM',
+  '05:00 PM - 06:00 PM',
+  '06:00 PM - 07:00 PM',
+  '07:00 PM - 08:00 PM',
+  '08:00 PM - 09:00 PM'
+]
+
 export default function StudentsPage() {
   const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus } = useData()
   const [searchQuery, setSearchQuery] = useState('')
@@ -83,16 +117,18 @@ export default function StudentsPage() {
       id: `student-${Date.now()}`,
       studentId: formData.get('studentId') as string,
       name: formData.get('name') as string,
-      email: formData.get('email') as string,
+      email: '', // Removed from dialog as requested
       phone: formData.get('phone') as string,
       guardianName: formData.get('guardianName') as string,
-      enrolledCourses: [],
+      enrolledCourses: [formData.get('course') as string],
+      classTiming: formData.get('timing') as string,
       status: 'active',
       enrolledAt: new Date().toISOString().split('T')[0],
       progress: 0,
     }
     enrollStudent(newStudent)
     setIsAddDialogOpen(false)
+    toast.success('Registration successful')
   }
 
   const handleToggleStatus = (student: Student) => {
@@ -144,58 +180,75 @@ export default function StudentsPage() {
               Enroll Student
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md bg-card/80 backdrop-blur-xl border-primary/10">
+          <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
             <DialogHeader>
-              <DialogTitle className="font-serif text-2xl">Enroll New Student</DialogTitle>
+              <DialogTitle className="font-serif text-3xl font-bold tracking-tight">Registration Registry</DialogTitle>
               <DialogDescription className="text-editorial-meta">
-                Onboard a new candidate into the academy database.
+                Onboard a new academic professional into the student database.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddStudent}>
               <FieldGroup className="py-6 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
+                    <FieldLabel className="text-editorial-label">Student Name</FieldLabel>
+                    <Input name="name" placeholder="Full name" required className="bg-background/50 h-10" />
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Guardian&apos;s Name</FieldLabel>
+                    <Input name="guardianName" placeholder="Full name" required className="bg-background/50 h-10" />
+                  </Field>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
                     <FieldLabel className="text-editorial-label">Student ID</FieldLabel>
-                    <Input name="studentId" placeholder="e.g. STU-001" required className="bg-background/50" />
+                    <Input name="studentId" placeholder="e.g. STU-001" required className="bg-background/50 h-10" />
                   </Field>
                   <Field>
                     <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
-                    <Input name="phone" placeholder="+1 (555) 001" className="bg-background/50" />
+                    <Input name="phone" placeholder="+1 (555) 000-0000" className="bg-background/50 h-10" />
                   </Field>
                 </div>
-                <Field>
-                  <FieldLabel className="text-editorial-label">Full Name</FieldLabel>
-                  <Input name="name" placeholder="Enter student's full name" required className="bg-background/50" />
-                </Field>
-                <Field>
-                  <FieldLabel className="text-editorial-label">Guardian&apos;s Full Name</FieldLabel>
-                  <Input name="guardianName" placeholder="Enter parent/guardian name" required className="bg-background/50" />
-                </Field>
-                <Field>
-                  <FieldLabel className="text-editorial-label">Academic Email</FieldLabel>
-                  <Input name="email" type="email" placeholder="student@example.com" required className="bg-background/50" />
-                </Field>
-                <Field>
-                  <FieldLabel className="text-editorial-label">Initial Enrollment</FieldLabel>
-                  <Select name="course">
-                    <SelectTrigger className="bg-background/50">
-                      <SelectValue placeholder="Select a registry class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mockCourses.filter(c => c.status === 'active').map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
-                          {course.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Registry Class</FieldLabel>
+                    <Select name="course" required>
+                      <SelectTrigger className="bg-background/50 h-10">
+                        <SelectValue placeholder="Select class level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ACADEMY_CLASSES.map((course) => (
+                          <SelectItem key={course} value={course}>
+                            {course}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Class Timing</FieldLabel>
+                    <Select name="timing" required>
+                      <SelectTrigger className="bg-background/50 h-10">
+                        <SelectValue placeholder="Select session" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CLASS_TIMINGS.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
               </FieldGroup>
               <DialogFooter className="pt-2">
                 <Button type="button" variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="text-muted-foreground hover:text-foreground">
                   Cancel
                 </Button>
-                <Button type="submit" className="px-8 font-semibold uppercase tracking-wide">Complete Enrollment</Button>
+                <Button type="submit" className="px-8 font-semibold uppercase tracking-wide">Register Student</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -203,7 +256,7 @@ export default function StudentsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Students</CardDescription>
@@ -215,22 +268,6 @@ export default function StudentsPage() {
             <CardDescription>Active Students</CardDescription>
             <CardTitle className="text-3xl text-success">
               {students.filter(s => s.status === 'active').length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Graduated</CardDescription>
-            <CardTitle className="text-3xl text-primary">
-              {students.filter(s => s.status === 'graduated').length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Avg. Progress</CardDescription>
-            <CardTitle className="text-3xl">
-              {Math.round(students.reduce((acc, s) => acc + s.progress, 0) / students.length)}%
             </CardTitle>
           </CardHeader>
         </Card>
@@ -271,11 +308,11 @@ export default function StudentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Enrolled Classes</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Grade</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Student ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Guardian Name</TableHead>
+                  <TableHead>Class (Timing)</TableHead>
+                  <TableHead>Phone Number</TableHead>
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -289,42 +326,32 @@ export default function StudentsPage() {
                 ) : (
                   filteredStudents.map((student) => (
                     <TableRow key={student.id}>
+                      <TableCell className="font-bold text-primary tracking-tighter">
+                        {student.studentId || 'ID-TBC'}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarFallback className="bg-primary/10 text-primary">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
                               {student.name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="font-medium">{student.name}</p>
-                            <p className="text-sm text-muted-foreground">{student.email}</p>
-                          </div>
+                          <p className="font-serif font-bold text-base">{student.name}</p>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {student.enrolledCourses.length} class{student.enrolledCourses.length !== 1 ? 'es' : ''}
-                        </Badge>
+                      <TableCell className="text-muted-foreground font-medium">
+                        {student.guardianName || 'N/A'}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Progress value={student.progress} className="w-16 h-2" />
-                          <span className="text-sm text-muted-foreground">{student.progress}%</span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">{student.enrolledCourses[0] || 'Registry Level'}</span>
+                          <span className="text-[10px] text-muted-foreground tracking-wide font-medium">
+                            {student.classTiming || 'Timing TBC'}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <span className={`font-semibold ${getGradeColor(student.grade)}`}>
-                          {student.grade || '-'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={student.status === 'inactive' ? 'secondary' : 'default'}
-                          className={getStatusColor(student.status)}
-                        >
-                          {student.status}
-                        </Badge>
+                      <TableCell className="font-mono text-xs opacity-70">
+                        {student.phone}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -421,22 +448,18 @@ export default function StudentsPage() {
 
                   <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
                     <div className="space-y-1">
-                      <p className="text-muted-foreground font-medium uppercase tracking-tighter text-[9px]">Enrolled In</p>
-                      <p className="font-semibold">{student.enrolledCourses.length} Classes</p>
+                      <p className="text-muted-foreground font-medium uppercase tracking-tighter text-[9px]">Guardian</p>
+                      <p className="font-semibold line-clamp-1">{student.guardianName || 'N/A'}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-muted-foreground font-medium uppercase tracking-tighter text-[9px]">Last Grade</p>
-                      <p className={cn("font-bold text-sm", getGradeColor(student.grade))}>{student.grade || 'N/A'}</p>
+                      <p className="text-muted-foreground font-medium uppercase tracking-tighter text-[9px]">Class & Timing</p>
+                      <p className="font-bold text-primary truncate">
+                        {student.enrolledCourses[0]} ({student.classTiming})
+                      </p>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="text-muted-foreground font-medium">Term Progress</span>
-                      <span className="font-bold">{student.progress}%</span>
-                    </div>
-                    <Progress value={student.progress} className="h-1.5" />
-                  </div>
+
 
                   <div className="mt-4 pt-4 border-t flex items-center justify-between gap-2">
                     <Button 
