@@ -131,14 +131,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // Actions
   const enrollStudent = useCallback((student: Student) => {
-    setData(prev => ({
-      ...prev,
-      students: [...prev.students, student],
-      stats: {
-        ...prev.stats,
-        totalStudents: prev.stats.totalStudents + 1
+    setData(prev => {
+      // Create actual enrollment records for each enrolled course ID
+      const newEnrollments = student.enrolledCourses.map(courseId => ({
+        id: `enr-${Date.now()}-${courseId}`,
+        studentId: student.id,
+        courseId: courseId,
+        enrolledAt: student.enrolledAt,
+        progress: 0,
+        status: 'active'
+      }))
+
+      // Update enrollment counters on the courses
+      const updatedCourses = prev.courses.map(course => {
+        if (student.enrolledCourses.includes(course.id)) {
+          return { ...course, enrolled: (course.enrolled || 0) + 1 }
+        }
+        return course
+      })
+
+      return {
+        ...prev,
+        students: [...prev.students, student],
+        enrollments: [...prev.enrollments, ...newEnrollments],
+        courses: updatedCourses,
+        stats: {
+          ...prev.stats,
+          totalStudents: prev.stats.totalStudents + 1
+        }
       }
-    }))
+    })
   }, [])
 
   const removeStudent = useCallback((id: string) => {
@@ -244,10 +266,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const addCourse = useCallback((course: Course) => {
-    setData(prev => ({
-      ...prev,
-      courses: [...prev.courses, course],
-    }))
+    setData(prev => {
+      // Increment teacher's course count if a real teacher is assigned
+      const updatedTeachers = prev.teachers.map(t => 
+        t.id === course.teacherId ? { ...t, coursesCount: (t.coursesCount || 0) + 1 } : t
+      )
+      
+      return {
+        ...prev,
+        teachers: updatedTeachers,
+        courses: [...prev.courses, course],
+      }
+    })
   }, [])
 
   const updateCourseStatus = useCallback((id: string, status: Course['status']) => {
@@ -258,10 +288,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const removeCourse = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      courses: prev.courses.filter(c => c.id !== id),
-    }))
+    setData(prev => {
+      const courseToRemove = prev.courses.find(c => c.id === id)
+      // Decrement teacher's course count
+      const updatedTeachers = prev.teachers.map(t => 
+        t.id === courseToRemove?.teacherId ? { ...t, coursesCount: Math.max(0, (t.coursesCount || 0) - 1) } : t
+      )
+
+      return {
+        ...prev,
+        teachers: updatedTeachers,
+        courses: prev.courses.filter(c => c.id !== id),
+      }
+    })
   }, [])
 
   const addSchedule = useCallback((schedule: Schedule) => {

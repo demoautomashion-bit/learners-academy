@@ -154,11 +154,11 @@ export default function StudentsPage() {
     }
   }
 
-  const getGradeColor = (grade?: string) => {
+  const getGradeColor = (grade?: number) => {
     if (!grade) return 'text-muted-foreground'
-    if (grade.startsWith('A')) return 'text-success'
-    if (grade.startsWith('B')) return 'text-primary'
-    if (grade.startsWith('C')) return 'text-warning'
+    if (grade >= 80) return 'text-success'
+    if (grade >= 60) return 'text-primary'
+    if (grade >= 40) return 'text-warning'
     return 'text-destructive'
   }
 
@@ -220,9 +220,9 @@ export default function StudentsPage() {
                         <SelectValue placeholder="Select class level" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ACADEMY_CLASSES.map((course) => (
-                          <SelectItem key={course} value={course}>
-                            {course}
+                        {mockCourses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -345,7 +345,9 @@ export default function StudentsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-bold text-sm">{student.enrolledCourses[0] || 'Registry Level'}</span>
+                          <span className="font-bold text-sm">
+                            {mockCourses.find(c => c.id === student.enrolledCourses[0])?.title || 'Registry Level'}
+                          </span>
                           <span className="text-[10px] text-muted-foreground tracking-wide font-medium">
                             {student.classTiming || 'Timing TBC'}
                           </span>
@@ -455,7 +457,7 @@ export default function StudentsPage() {
                     <div className="space-y-1">
                       <p className="text-muted-foreground font-medium uppercase tracking-tighter text-[9px]">Class & Timing</p>
                       <p className="font-bold text-primary truncate">
-                        {student.enrolledCourses[0]} ({student.classTiming})
+                        {mockCourses.find(c => c.id === student.enrolledCourses[0])?.title} ({student.classTiming})
                       </p>
                     </div>
                   </div>

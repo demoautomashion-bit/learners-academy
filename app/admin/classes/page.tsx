@@ -85,7 +85,7 @@ const CLASS_TIMES = [
 ]
 
 export default function ClassesPage() {
-  const { courses, addCourse, removeCourse, updateCourseStatus } = useData()
+  const { courses, teachers, addCourse, removeCourse, updateCourseStatus } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -103,14 +103,16 @@ export default function ClassesPage() {
   const handleAddCourse = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    const teacherId = formData.get('teacherId') as string
+    const teacher = teachers.find(t => t.id === teacherId)
     
     const newCourse: Course = {
       id: `class-${Date.now()}`,
       title: formData.get('title') as string,
       description: 'Institutional English Class',
-      level: 'beginner', // Default level since we now use title for detailed level
-      teacherId: 'manual',
-      teacherName: formData.get('teacherName') as string,
+      level: 'beginner',
+      teacherId: teacherId,
+      teacherName: teacher?.name || 'Academic Faculty',
       capacity: 20,
       enrolled: 0,
       status: 'active',
@@ -203,7 +205,16 @@ export default function ClassesPage() {
                   </Field>
                   <Field>
                     <FieldLabel className="text-editorial-label">Teacher Assignment</FieldLabel>
-                    <Input name="teacherName" placeholder="Instructor name" required className="bg-background/50 h-10" />
+                    <Select name="teacherId" required>
+                      <SelectTrigger className="bg-background/50 h-10 text-editorial-meta">
+                        <SelectValue placeholder="Assign teacher" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teachers.map(teacher => (
+                          <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </div>
                 
