@@ -30,6 +30,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
+import { useAuth } from '@/contexts/auth-context'
 import {
   mockEnrollmentTrend,
   mockRevenueData,
@@ -37,6 +38,7 @@ import {
 } from '@/lib/mock-data'
 
 export default function AdminDashboard() {
+  const { user } = useAuth()
   const { students, teachers, courses, stats: mockDashboardStats } = useData()
 
   const statCards = [
@@ -64,14 +66,6 @@ export default function AdminDashboard() {
       changeType: 'positive' as const,
       href: '/admin/classes',
     },
-    {
-      title: 'Revenue',
-      value: `$${mockDashboardStats.revenue.toLocaleString()}`,
-      icon: DollarSign,
-      change: `+${mockDashboardStats.revenueChange}%`,
-      changeType: 'positive' as const,
-      href: '/admin/settings',
-    },
   ]
 
   return (
@@ -82,17 +76,14 @@ export default function AdminDashboard() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground">
-          Dashboard Registry
+        <h1 className="font-serif text-6xl font-black tracking-tighter text-foreground mb-2">
+          Welcome, {user?.name?.split(' ')[0] || 'Admin'}
         </h1>
-        <p className="text-editorial-meta text-lg mt-1">
-          Welcome back. Monitoring academy performance and student growth.
-        </p>
       </motion.div>
 
       {/* Stats Grid */}
       <motion.div 
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 md:grid-cols-3 lg:grid-cols-3"
         initial="hidden"
         animate="show"
         variants={{
@@ -296,29 +287,23 @@ export default function AdminDashboard() {
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Common administrative tasks</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline" asChild>
+          <CardContent className="space-y-5 py-4">
+            <Button className="w-full justify-start py-6 text-base" variant="outline" asChild>
               <Link href="/admin/students?action=add">
-                <UserPlus className="w-4 h-4 mr-2" />
+                <UserPlus className="w-5 h-5 mr-3 text-primary" />
                 Add New Student
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start py-6 text-base" variant="outline" asChild>
               <Link href="/admin/teachers?action=add">
-                <Users className="w-4 h-4 mr-2" />
+                <Users className="w-5 h-5 mr-3 text-primary" />
                 Add New Teacher
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start py-6 text-base" variant="outline" asChild>
               <Link href="/admin/classes?action=add">
-                <BookOpen className="w-4 h-4 mr-2" />
+                <BookOpen className="w-5 h-5 mr-3 text-primary" />
                 Create Class
-              </Link>
-            </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
-              <Link href="/admin/settings">
-                <ArrowUpRight className="w-4 h-4 mr-2" />
-                View Reports
               </Link>
             </Button>
           </CardContent>
