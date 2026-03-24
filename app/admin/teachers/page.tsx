@@ -52,6 +52,7 @@ import {
   Eye,
   UserCheck,
   UserX,
+  User,
 } from 'lucide-react'
 import { mockTeachers } from '@/lib/mock-data'
 import type { Teacher } from '@/lib/types'
@@ -151,32 +152,41 @@ export default function TeachersPage() {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddTeacher}>
-              <FieldGroup className="py-6 space-y-6">
-                <Field>
-                  <FieldLabel className="text-editorial-label">Teacher Full Name</FieldLabel>
-                  <Input name="name" placeholder="Enter teacher's full name" required className="bg-background/50" />
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Employee ID</FieldLabel>
-                    <Input name="employeeId" placeholder="e.g. EMP-101" required className="bg-background/50" />
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Portal Password</FieldLabel>
-                    <SecureInput name="password" placeholder="••••••••" required className="bg-background/50" />
-                  </Field>
+              <div className="flex gap-6 items-start py-6 px-1">
+                <div className="pt-2">
+                  <Avatar className="h-16 w-16 ring-2 ring-primary/10 transition-premium">
+                    <AvatarFallback className="bg-primary/5 text-primary/40">
+                      <User className="h-8 w-8" />
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <FieldGroup className="flex-1 space-y-4">
                   <Field>
-                    <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
-                    <Input name="phone" placeholder="+92 300 1234567" required className="bg-background/50" />
+                    <FieldLabel className="text-editorial-label">Teacher Full Name</FieldLabel>
+                    <Input name="name" placeholder="Enter teacher's full name" required className="bg-background/50" />
                   </Field>
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Academic Email</FieldLabel>
-                    <Input name="email" type="email" placeholder="teacher@academy.com" required className="bg-background/50 text-xs" />
-                  </Field>
-                </div>
-              </FieldGroup>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field>
+                      <FieldLabel className="text-editorial-label">Employee ID</FieldLabel>
+                      <Input name="employeeId" placeholder="e.g. EMP-101" required className="bg-background/50" />
+                    </Field>
+                    <Field>
+                      <FieldLabel className="text-editorial-label">Portal Password</FieldLabel>
+                      <SecureInput name="password" placeholder="••••••••" required className="bg-background/50" />
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field>
+                      <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
+                      <Input name="phone" placeholder="+92 300 1234567" required className="bg-background/50" />
+                    </Field>
+                    <Field>
+                      <FieldLabel className="text-editorial-label">Academic Email</FieldLabel>
+                      <Input name="email" type="email" placeholder="teacher@academy.com" required className="bg-background/50 text-[10px]" />
+                    </Field>
+                  </div>
+                </FieldGroup>
+              </div>
               <DialogFooter className="pt-2">
                 <Button type="button" variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="text-muted-foreground hover:text-foreground">
                   Cancel

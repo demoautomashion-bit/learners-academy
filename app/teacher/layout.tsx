@@ -178,46 +178,7 @@ export default function TeacherLayout({
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-white/5 p-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start gap-3 h-auto py-3 px-3 hover:bg-primary/5 rounded-xl transition-premium">
-                <Avatar className="h-9 w-9 ring-2 ring-primary/10">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-bold text-foreground truncate">
-                    {user?.name}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold opacity-60">
-                    Faculty Member
-                  </p>
-                </div>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/teacher/settings">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => logout()}
-                className="text-destructive focus:text-destructive"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </SidebarFooter>
+
       </Sidebar>
 
       <SidebarInset className="bg-background">
