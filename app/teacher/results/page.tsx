@@ -32,24 +32,35 @@ import {
   TrendingUp,
   Award
 } from 'lucide-react'
-import { mockSubmissions, mockStudents, mockAssessments } from '@/lib/mock-data'
+import { mockSubmissions, mockStudents, mockAssessments, mockCourses } from '@/lib/mock-data'
 import { toast } from 'sonner'
+
+// Filter to show only the teacher's relevant sessions
+const myCourses = mockCourses.filter(c => c.teacherId === 'teacher-1')
 
 export default function ResultsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [phaseFilter, setPhaseFilter] = useState('all')
+  const [classFilter, setClassFilter] = useState('all')
   const [selectedResult, setSelectedResult] = useState<any>(null)
   const [isGradeOpen, setIsGradeOpen] = useState(false)
 
   const filteredResults = mockSubmissions.filter(result => {
     const student = mockStudents.find(s => s.id === result.studentId)
-    const assessment = mockAssessments.find(a => a.id === result.assignmentId) // Using legacy link for now
+    const assessment = mockAssessments.find(a => a.id === result.assignmentId)
     
+    // Check if student is in the filtered class
+    const isMyStudent = student?.enrolledCourses.some(id => 
+      myCourses.some(c => c.id === id)
+    )
+    if (!isMyStudent) return false
+
     const matchesSearch = student?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          assessment?.title.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesPhase = phaseFilter === 'all' || assessment?.phase === phaseFilter
+    const matchesClass = classFilter === 'all' || student?.enrolledCourses.includes(classFilter)
     
-    return matchesSearch && matchesPhase
+    return matchesSearch && matchesPhase && matchesClass
   })
 
   return (
@@ -102,96 +113,117 @@ export default function ResultsPage() {
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
           <Input
-            placeholder="Search students..."
+            placeholder="Search by student name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-background/50 border-primary/10"
           />
         </div>
-        <Select value={phaseFilter} onValueChange={setPhaseFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Phases" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Phases</SelectItem>
-            <SelectItem value="First Test">First Test (Mid)</SelectItem>
-            <SelectItem value="Last Test">Last Test (Final)</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Select value={classFilter} onValueChange={setClassFilter}>
+            <SelectTrigger className="w-[200px] bg-background/50 border-primary/10">
+              <SelectValue placeholder="All My Classes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All My Classes</SelectItem>
+              {myCourses.map(course => (
+                <SelectItem key={course.id} value={course.id}>
+                  {course.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={phaseFilter} onValueChange={setPhaseFilter}>
+            <SelectTrigger className="w-[180px] bg-background/50 border-primary/10">
+              <SelectValue placeholder="All Phases" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Phases</SelectItem>
+              <SelectItem value="First Test">First Test (Mid)</SelectItem>
+              <SelectItem value="Last Test">Last Test (Final)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Card>
         <CardContent className="p-0">
-          <div className="rounded-lg border overflow-hidden">
+          <div className="rounded-xl border border-primary/5 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium">Student</th>
-                    <th className="px-4 py-3 text-left font-medium">Test & Phase</th>
-                    <th className="px-4 py-3 text-left font-medium">Status</th>
-                    <th className="px-4 py-3 text-left font-medium">Score</th>
-                    <th className="px-4 py-3 text-right font-medium">Actions</th>
+                <thead className="bg-muted/30">
+                  <tr className="border-b border-primary/5">
+                    <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Student</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Class</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Test and Phase</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Score</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-primary/5">
                   {filteredResults.map((result) => {
                     const student = mockStudents.find(s => s.id === result.studentId)
                     const assessment = mockAssessments.find(a => a.id === result.assignmentId)
+                    const studentCourse = myCourses.find(c => student?.enrolledCourses.includes(c.id))
                     
+                    const absoluteScore = result.grade && assessment ? Math.round((result.grade / 100) * assessment.totalMarks) : null
+
                     return (
-                      <tr key={result.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-primary/10 text-primary uppercase">
-                                {student?.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium text-foreground">{student?.name}</span>
+                      <tr key={result.id} className="hover:bg-primary/[0.02] transition-colors group cursor-pointer" onClick={() => {
+                        setSelectedResult(result)
+                        setIsGradeOpen(true)
+                      }}>
+                        <td className="px-6 py-5">
+                          <div className="flex flex-col">
+                            <span className="font-serif font-bold text-base text-foreground/80 group-hover:text-primary transition-colors">
+                              {student?.name}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground/60 font-bold uppercase tracking-tighter">
+                              {student?.studentId}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 space-y-1">
-                          <p className="font-medium">{assessment?.title}</p>
-                          <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+                        <td className="px-6 py-5">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm text-foreground/70">{studentCourse?.title || 'Registry Level'}</span>
+                            <span className="text-[10px] text-muted-foreground/50 tracking-wide font-medium">
+                              {student?.classTiming || 'Timing TBC'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 space-y-1">
+                          <p className="font-bold text-sm text-foreground/80">{assessment?.title}</p>
+                          <Badge variant="outline" className="text-[9px] h-4 px-1 py-0 uppercase tracking-widest font-bold text-primary/70 border-primary/10 bg-primary/5">
                             {assessment?.phase}
                           </Badge>
                         </td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-2">
-                            {result.status === 'graded' ? (
-                              <CheckCircle className="w-4 h-4 text-success" />
-                            ) : (
-                              <Clock className="w-4 h-4 text-warning" />
-                            )}
-                            <span className="capitalize">{result.status}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          {result.grade ? (
-                            <span className="font-bold text-foreground">{result.grade}%</span>
+                        <td className="px-6 py-5">
+                          {absoluteScore !== null ? (
+                            <div className="flex flex-col">
+                              <span className="text-base font-bold text-foreground">
+                                {absoluteScore} <span className="text-muted-foreground/40 font-normal">/ {assessment?.totalMarks}</span>
+                              </span>
+                              <span className="text-[10px] font-bold text-success/70 uppercase tracking-tight">
+                                {result.grade}% Overall
+                              </span>
+                            </div>
                           ) : (
-                            <span className="text-muted-foreground">Pending</span>
+                            <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tight bg-warning/10 text-warning border-warning/20">
+                              Evaluation Pending
+                            </Badge>
                           )}
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              setSelectedResult(result)
-                              setIsGradeOpen(true)
-                            }}
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Review
-                          </Button>
                         </td>
                       </tr>
                     )
                   })}
+                  {filteredResults.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground italic">
+                        No results found for the selected criteria.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

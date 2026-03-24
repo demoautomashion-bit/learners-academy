@@ -61,17 +61,21 @@ export const mockCourses: Course[] = [
 
 export const mockAssignments: Assignment[] = []
 
-export const mockSubmissions: Submission[] = []
+export const mockSubmissions: Submission[] = [
+  { id: 'sub-1', assignmentId: 'test-1', assignmentTitle: 'Mid-term Grammar', studentId: 'S-001', studentName: 'Zaid Khan', submittedAt: '2024-03-15', status: 'graded', grade: 90 },
+  { id: 'sub-2', assignmentId: 'test-1', assignmentTitle: 'Mid-term Grammar', studentId: 'S-002', studentName: 'Ayesha Bibi', submittedAt: '2024-03-15', status: 'graded', grade: 84 },
+  { id: 'sub-3', assignmentId: 'test-2', assignmentTitle: 'Final Vocabulary', studentId: 'S-003', studentName: 'Osman Ali', submittedAt: '2024-03-20', status: 'pending' },
+]
 
 export const mockDashboardStats: DashboardStats = {
-  totalStudents: 0,
-  totalTeachers: 0,
-  totalCourses: 0,
-  activeEnrollments: 0,
-  revenue: 0,
-  revenueChange: 0,
-  newEnrollments: 0,
-  completionRate: 0,
+  totalStudents: 25,
+  totalTeachers: 5,
+  totalCourses: 12,
+  activeEnrollments: 45,
+  revenue: 125000,
+  revenueChange: 12,
+  newEnrollments: 8,
+  completionRate: 88,
 }
 
 export const mockEnrollmentTrend: ChartData[] = []
@@ -114,7 +118,32 @@ export const mockSchedules: Schedule[] = []
 
 export const mockQuestions: Question[] = []
 
-export const mockAssessments: AssessmentTemplate[] = []
+export const mockAssessments: AssessmentTemplate[] = [
+  {
+    id: 'test-1',
+    title: 'Mid-term Grammar',
+    phase: 'First Test',
+    classLevels: ['Foundation One'],
+    nature: 'MCQ',
+    totalMarks: 50,
+    durationMinutes: 60,
+    createdAt: '2024-03-01',
+    status: 'active',
+    accessCode: 'GRM101',
+  },
+  {
+    id: 'test-2',
+    title: 'Final Vocabulary',
+    phase: 'Last Test',
+    classLevels: ['Advanced Fluency'],
+    nature: 'Mixed',
+    totalMarks: 100,
+    durationMinutes: 120,
+    createdAt: '2024-03-10',
+    status: 'active',
+    accessCode: 'VOC202',
+  }
+]
 
 export interface Enrollment {
   id: string
