@@ -229,7 +229,7 @@ export default function StudentAssessmentsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-foreground sm:text-3xl">
+          <h1 className="font-serif leading-tight">
             Assessments
           </h1>
           <p className="mt-2 text-muted-foreground text-editorial-label">
@@ -324,7 +324,7 @@ export default function StudentAssessmentsPage() {
                       <TrendingUp className="w-4 h-4" />
                       AI Academic Audit
                     </h4>
-                    <p className="text-muted-foreground leading-relaxed italic">
+                    <p className="text-muted-foreground leading-relaxed">
                       "{aiAuditResults.feedback}"
                     </p>
                   </div>

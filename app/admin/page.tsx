@@ -113,7 +113,7 @@ export default function AdminDashboard() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <h1 className="font-serif text-6xl font-black tracking-tighter text-foreground mb-2">
+        <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground mb-2">
           Welcome, {user?.name?.split(' ')[0] || 'Admin'}
         </h1>
       </motion.div>
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <p className="font-serif font-bold text-base leading-tight">{student.name}</p>
-                      <p className="text-editorial-label text-[10px] lowercase opacity-70">{student.email}</p>
+                      <p className="text-editorial-label text-[11px] lowercase opacity-70">{student.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
@@ -352,7 +352,7 @@ export default function AdminDashboard() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Active Classes</CardTitle>
-            <CardDescription className="text-editorial-meta">Overview of current educational cycles</CardDescription>
+            <CardDescription>Overview of current educational cycles</CardDescription>
           </div>
           <Button variant="ghost" size="sm" asChild className="text-primary hover:bg-primary/5">
             <Link href="/admin/classes" className="flex items-center">

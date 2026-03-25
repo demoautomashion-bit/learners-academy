@@ -230,7 +230,7 @@ export default function TeacherDashboard() {
           <CardHeader>
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-primary">First Test Phase</CardTitle>
             <CardContent className="p-0 pt-2">
-              <p className="text-sm text-muted-foreground italic">"Pulling 12 questions from Grammar, Reading, and Vocab for the current term's mid-assessments."</p>
+              <p className="text-sm text-muted-foreground">"Pulling 12 questions from Grammar, Reading, and Vocab for the current term's mid-assessments."</p>
             </CardContent>
           </CardHeader>
         </Card>
@@ -238,7 +238,7 @@ export default function TeacherDashboard() {
           <CardHeader>
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-accent">Last Test Phase</CardTitle>
             <CardContent className="p-0 pt-2">
-              <p className="text-sm text-muted-foreground italic">"Comprehensive final assessment encompassing all four skills and grammar fundamentals."</p>
+              <p className="text-sm text-muted-foreground">"Comprehensive final assessment encompassing all four skills and grammar fundamentals."</p>
             </CardContent>
           </CardHeader>
         </Card>

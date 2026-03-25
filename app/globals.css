@@ -203,15 +203,15 @@
   }
   
   h1 {
-    @apply text-3xl md:text-5xl leading-tight;
+    @apply text-3xl md:text-4xl leading-tight;
   }
   
   h2 {
-    @apply text-2xl md:text-4xl leading-tight;
+    @apply text-2xl md:text-3xl leading-tight;
   }
   
   h3 {
-    @apply text-xl md:text-3xl leading-snug;
+    @apply text-xl md:text-2xl leading-snug;
   }
 }
 
@@ -276,7 +276,6 @@
 
   .text-editorial-meta {
     font-family: var(--font-serif);
-    font-style: italic;
     color: var(--muted-foreground);
   }
 

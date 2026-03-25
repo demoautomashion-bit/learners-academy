@@ -90,7 +90,7 @@ export default function ResultsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-semibold text-foreground">
+          <h1 className="font-serif">
             Test Results
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -242,7 +242,7 @@ export default function ResultsPage() {
                   })}
                   {filteredResults.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground italic">
+                      <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
                         No results found for the selected criteria.
                       </td>
                     </tr>

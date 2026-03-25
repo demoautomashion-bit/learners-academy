@@ -70,7 +70,7 @@ export default function TeacherStudentsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl font-semibold text-foreground">My Students</h1>
+        <h1 className="font-serif">My Students</h1>
         <p className="mt-2 text-muted-foreground">View and manage students in your courses</p>
       </div>
 
