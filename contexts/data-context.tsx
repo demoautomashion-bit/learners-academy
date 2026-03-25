@@ -51,6 +51,7 @@ interface DataContextType {
   
   // Reset
   resetToDefaults: () => void
+  isInitialized: boolean
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
@@ -381,6 +382,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       removeSchedule,
       gradeSubmission,
       resetToDefaults,
+      isInitialized,
     }}>
       {children}
     </DataContext.Provider>

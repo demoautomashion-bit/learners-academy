@@ -36,6 +36,20 @@ import {
 } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
 import type { Question, QuestionCategory } from '@/lib/types'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+
+const questionSchema = z.object({
+  category: z.string().min(1, 'Category is required'),
+  type: z.enum(['MCQ', 'Subjective']),
+  phase: z.enum(['First Test', 'Last Test', 'Both']),
+  content: z.string().min(5, 'Content must be at least 5 characters'),
+  options: z.string().optional(),
+  correctAnswer: z.string().optional(),
+})
+
+type QuestionFormValues = z.infer<typeof questionSchema>
 
 const CATEGORIES: QuestionCategory[] = [
   'Grammar',
@@ -52,27 +66,43 @@ export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<string>('Grammar')
   const [isAddOpen, setIsAddOpen] = useState(false)
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm<QuestionFormValues>({
+    resolver: zodResolver(questionSchema),
+    defaultValues: {
+      category: activeTab,
+      type: 'MCQ',
+      phase: 'Both',
+    }
+  })
+
+  const selectedType = watch('type')
+
   const filteredQuestions = questions.filter(q => 
     q.category === activeTab &&
     q.content.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleAddQuestion = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    
+  const onSubmit = (data: QuestionFormValues) => {
     const newQuestion: Question = {
       id: `q-${Date.now()}`,
-      category: formData.get('category') as QuestionCategory,
-      type: formData.get('type') as 'MCQ' | 'Subjective',
-      content: formData.get('content') as string,
-      phase: formData.get('phase') as 'First Test' | 'Last Test' | 'Both',
-      options: (formData.get('type') === 'MCQ') ? (formData.get('options') as string).split(',').map(o => o.trim()) : undefined,
-      correctAnswer: formData.get('correctAnswer') as string,
+      category: data.category as QuestionCategory,
+      type: data.type,
+      content: data.content,
+      phase: data.phase,
+      options: (data.type === 'MCQ' && data.options) ? data.options.split(',').map(o => o.trim()) : undefined,
+      correctAnswer: data.correctAnswer || '',
     }
 
     addQuestion(newQuestion)
     setIsAddOpen(false)
+    reset()
     toast.success('Question added to library')
   }
 
@@ -106,11 +136,11 @@ export default function LibraryPage() {
                 Create a new content block for your assessments.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleAddQuestion}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <FieldGroup className="py-4 space-y-4">
                 <Field>
                   <FieldLabel>Category</FieldLabel>
-                  <Select name="category" defaultValue={activeTab} required>
+                  <Select value={watch('category')} onValueChange={(val) => setValue('category', val)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -120,10 +150,11 @@ export default function LibraryPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.category && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.category.message}</p>}
                 </Field>
                 <Field>
                   <FieldLabel>Type</FieldLabel>
-                  <Select name="type" required>
+                  <Select defaultValue="MCQ" onValueChange={(val) => setValue('type', val as any)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -135,7 +166,7 @@ export default function LibraryPage() {
                 </Field>
                 <Field>
                   <FieldLabel>Test Phase</FieldLabel>
-                  <Select name="phase" required>
+                  <Select defaultValue="Both" onValueChange={(val) => setValue('phase', val as any)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Applicable Phase" />
                     </SelectTrigger>
@@ -148,18 +179,27 @@ export default function LibraryPage() {
                 </Field>
                 <Field>
                   <FieldLabel>Content</FieldLabel>
-                  <Textarea name="content" placeholder="Enter question or prompt" required />
+                  <Textarea {...register('content')} placeholder="Enter question or prompt" />
+                  {errors.content && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.content.message}</p>}
                 </Field>
+                {selectedType === 'MCQ' && (
+                  <Field>
+                    <FieldLabel>Options (comma separated)</FieldLabel>
+                    <Input {...register('options')} placeholder="Opt 1, Opt 2, Opt 3" />
+                  </Field>
+                )}
                 <Field>
-                  <FieldLabel>Options (MCQ only - comma separated)</FieldLabel>
-                  <Input name="options" placeholder="Opt 1, Opt 2, Opt 3" />
+                  <FieldLabel>Correct Answer</FieldLabel>
+                  <Input {...register('correctAnswer')} placeholder="Enter correct answer" />
                 </Field>
               </FieldGroup>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => { setIsAddOpen(false); reset(); }}>
                   Cancel
                 </Button>
-                <Button type="submit">Save to Library</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Saving...' : 'Save to Library'}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

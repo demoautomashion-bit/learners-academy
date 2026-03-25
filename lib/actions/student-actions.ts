@@ -36,3 +36,26 @@ export async function submitTestResultAction(result: StudentTest) {
     return { success: false, error: 'Database error' }
   }
 }
+
+export async function validateAccessTokenAction(token: string) {
+  try {
+    const assessment = await db.assessmentTemplate.findFirst({
+      where: { 
+        accessCode: token,
+        status: 'active' 
+      }
+    })
+    
+    if (!assessment) {
+      return { 
+        success: false, 
+        error: 'Invalid or Inactive Token. Please wait for your instructor to open the assessment.' 
+      }
+    }
+
+    return { success: true, data: assessment }
+  } catch (error) {
+    console.error('Failed to validate access token:', error)
+    return { success: false, error: 'Database error' }
+  }
+}

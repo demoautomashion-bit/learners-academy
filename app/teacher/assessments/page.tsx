@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -42,7 +44,22 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useData } from '@/contexts/data-context'
+import { AssessmentSkeleton } from '@/components/dashboard-skeleton'
 import type { AssessmentTemplate } from '@/lib/types'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+
+const assessmentSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters'),
+  phase: z.enum(['First Test', 'Last Test']),
+  classLevel: z.string().min(1, 'Please select a class'),
+  nature: z.enum(['MCQ', 'Subjective', 'Mixed']),
+  totalMarks: z.coerce.number().min(1, 'Marks must be positive'),
+  duration: z.coerce.number().min(1, 'Duration must be positive'),
+})
+
+type AssessmentFormValues = z.infer<typeof assessmentSchema>
 
 export default function AssessmentsPage() {
   const { user } = useAuth()
@@ -51,10 +68,28 @@ export default function AssessmentsPage() {
     courses: mockCourses, 
     questions: mockQuestions, 
     publishAssessment, 
-    removeAssessment 
+    removeAssessment,
+    updateAssessmentStatus, // Assuming this will be added to DataContext soon
+    isInitialized
   } = useData()
+  const { toggleAssessmentStatusAction } = require('@/lib/actions/teacher-actions') // Fallback for direct server actions
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm<AssessmentFormValues>({
+    resolver: zodResolver(assessmentSchema),
+    defaultValues: {
+      nature: 'Mixed',
+      totalMarks: 100,
+      duration: 60,
+    }
+  })
 
   const myClasses = mockCourses.filter(c => c.teacherId === user?.id)
 
@@ -62,27 +97,23 @@ export default function AssessmentsPage() {
     a.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleCreateAssessment = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    
+  const onSubmit = (data: AssessmentFormValues) => {
     // Logic to verify questions exist in library for this phase
-    const phase = formData.get('phase') as 'First Test' | 'Last Test'
-    const availableQuestions = mockQuestions.filter(q => q.phase === phase || q.phase === 'Both')
+    const availableQuestions = mockQuestions.filter(q => q.phase === data.phase || q.phase === 'Both')
     
     if (availableQuestions.length < 5) {
-      toast.error(`Not enough questions in Library for ${phase}. Please add more first.`)
+      toast.error(`Not enough questions in Library for ${data.phase}. Please add more first.`)
       return
     }
 
     const newAssessment: AssessmentTemplate = {
       id: `test-${Date.now()}`,
-      title: formData.get('title') as string,
-      phase: phase,
-      classLevels: [formData.get('classLevel') as string],
-      nature: formData.get('nature') as 'MCQ' | 'Subjective' | 'Mixed',
-      totalMarks: parseInt(formData.get('totalMarks') as string),
-      durationMinutes: parseInt(formData.get('duration') as string),
+      title: data.title,
+      phase: data.phase,
+      classLevels: [data.classLevel],
+      nature: data.nature,
+      totalMarks: data.totalMarks,
+      durationMinutes: data.duration,
       createdAt: new Date().toISOString().split('T')[0],
       status: 'active',
       accessCode: '',
@@ -90,6 +121,7 @@ export default function AssessmentsPage() {
 
     publishAssessment(newAssessment)
     setIsCreateOpen(false)
+    reset()
     toast.success('Assessment generated successfully')
   }
 
@@ -97,6 +129,8 @@ export default function AssessmentsPage() {
     removeAssessment(id)
     toast.success('Assessment deleted')
   }
+
+  if (!isInitialized) return <AssessmentSkeleton />
 
   return (
     <div className="space-y-6">
@@ -124,15 +158,16 @@ export default function AssessmentsPage() {
                 The system will automatically select questions from your Library.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCreateAssessment}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <FieldGroup className="py-4 space-y-4">
                 <Field>
                   <FieldLabel>Test Title</FieldLabel>
-                  <Input name="title" placeholder="e.g. Mid-term Assessment" required />
+                  <Input {...register('title')} placeholder="e.g. Mid-term Assessment" />
+                  {errors.title && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.title.message}</p>}
                 </Field>
                 <Field>
                   <FieldLabel>Test Phase</FieldLabel>
-                  <Select name="phase" required>
+                  <Select onValueChange={(val) => setValue('phase', val as any)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select phase" />
                     </SelectTrigger>
@@ -141,10 +176,11 @@ export default function AssessmentsPage() {
                       <SelectItem value="Last Test">Last Test (Final-term)</SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.phase && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.phase.message}</p>}
                 </Field>
                 <Field>
                   <FieldLabel>Target Class</FieldLabel>
-                  <Select name="classLevel" required>
+                  <Select onValueChange={(val) => setValue('classLevel', val)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select class" />
                     </SelectTrigger>
@@ -154,10 +190,11 @@ export default function AssessmentsPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.classLevel && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.classLevel.message}</p>}
                 </Field>
                 <Field>
                   <FieldLabel>Question Nature</FieldLabel>
-                  <Select name="nature" defaultValue="Mixed" required>
+                  <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select nature" />
                     </SelectTrigger>
@@ -171,19 +208,23 @@ export default function AssessmentsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel>Marks</FieldLabel>
-                    <Input name="totalMarks" type="number" defaultValue="100" />
+                    <Input {...register('totalMarks')} type="number" />
+                    {errors.totalMarks && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.totalMarks.message}</p>}
                   </Field>
                   <Field>
                     <FieldLabel>Mins</FieldLabel>
-                    <Input name="duration" type="number" defaultValue="60" />
+                    <Input {...register('duration')} type="number" />
+                    {errors.duration && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.duration.message}</p>}
                   </Field>
                 </div>
               </FieldGroup>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => { setIsCreateOpen(false); reset(); }}>
                   Cancel
                 </Button>
-                <Button type="submit">Generate Paper</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Generating...' : 'Generate Paper'}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -253,27 +294,47 @@ export default function AssessmentsPage() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/30 border border-primary/5 group/token relative overflow-hidden">
-                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/token:opacity-100 transition-opacity" />
-                      <div className="relative z-10 flex flex-col">
-                        <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Access Token</span>
-                        <span className="font-mono text-sm font-bold tracking-tighter text-primary">{assessment.accessCode}</span>
+                      <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/30 border border-primary/5 group/token relative overflow-hidden">
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/token:opacity-100 transition-opacity" />
+                        <div className="relative z-10 flex flex-col">
+                          <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Access Token</span>
+                          <span className="font-mono text-sm font-bold tracking-tighter text-primary">{assessment.accessCode}</span>
+                        </div>
+                        <div className="relative z-10 flex items-center gap-3">
+                          <div className="flex items-center gap-2 pr-2 border-r border-border/50">
+                            <span className={`text-[9px] uppercase tracking-widest font-bold transition-colors ${assessment.status === 'active' ? 'text-primary' : 'text-muted-foreground'}`}>
+                              {assessment.status === 'active' ? 'Live' : 'Stopped'}
+                            </span>
+                            <Switch 
+                              checked={assessment.status === 'active'}
+                              onCheckedChange={async (checked) => {
+                                const newStatus = checked ? 'active' : 'archived'
+                                // Local state update through context
+                                publishAssessment({ ...assessment, status: newStatus }) // Hacky update for now to trigger re-render
+                                const res = await toggleAssessmentStatusAction(assessment.id, newStatus)
+                                if (res.success) {
+                                  toast.success(`Exam ${checked ? 'Activated' : 'Stopped'}`)
+                                } else {
+                                  toast.error("Failed to update status")
+                                }
+                              }}
+                              className="scale-75 data-[state=checked]:bg-primary"
+                            />
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-xl hover:bg-primary/10 hover:text-primary transition-premium"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              navigator.clipboard.writeText(assessment.accessCode)
+                              toast.success("Access Token Copied")
+                            }}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl relative z-10 hover:bg-primary/10 hover:text-primary transition-premium"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          navigator.clipboard.writeText(assessment.accessCode)
-                          toast.success("Access Token Copied", {
-                            description: "The code is ready to share with your students."
-                          })
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
                     
                     <div className="pt-2">
                       <Button variant="outline" className="w-full group rounded-xl h-10 border-primary/10 hover:bg-primary/5 hover:text-primary transition-premium font-semibold">

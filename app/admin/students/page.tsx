@@ -60,6 +60,20 @@ import {
 import { useData } from '@/contexts/data-context'
 import { cn } from '@/lib/utils'
 import type { Student } from '@/lib/types'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+
+const studentSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  guardianName: z.string().min(2, 'Guardian name must be at least 2 characters'),
+  studentId: z.string().min(3, 'Student ID must be at least 3 characters'),
+  phone: z.string().min(5, 'Enter a valid phone number'),
+  course: z.string().min(1, 'Please select a class'),
+  timing: z.string().min(1, 'Please select a timing'),
+})
+
+type StudentFormValues = z.infer<typeof studentSchema>
 
 const ACADEMY_CLASSES = [
   'Pre-Foundation',
@@ -103,6 +117,16 @@ export default function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm<StudentFormValues>({
+    resolver: zodResolver(studentSchema)
+  })
+
   const filteredStudents = students.filter(student => {
     const matchesSearch = 
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -111,24 +135,23 @@ export default function StudentsPage() {
     return matchesSearch && matchesStatus
   })
 
-  const handleAddStudent = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+  const onSubmit = (data: StudentFormValues) => {
     const newStudent: Student = {
       id: `student-${Date.now()}`,
-      studentId: formData.get('studentId') as string,
-      name: formData.get('name') as string,
-      email: '', // Removed from dialog as requested
-      phone: formData.get('phone') as string,
-      guardianName: formData.get('guardianName') as string,
-      enrolledCourses: [formData.get('course') as string],
-      classTiming: formData.get('timing') as string,
+      studentId: data.studentId,
+      name: data.name,
+      email: `${data.studentId.toLowerCase()}@learnersacademy.com`, // Generated default
+      phone: data.phone,
+      guardianName: data.guardianName,
+      enrolledCourses: [data.course],
+      classTiming: data.timing,
       status: 'active',
       enrolledAt: new Date().toISOString().split('T')[0],
       progress: 0,
     }
     enrollStudent(newStudent)
     setIsAddDialogOpen(false)
+    reset()
     toast.success('Registration successful')
   }
 
@@ -184,38 +207,42 @@ export default function StudentsPage() {
           <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
             <DialogHeader>
               <DialogTitle className="font-serif text-3xl font-bold tracking-tight">Registration Registry</DialogTitle>
-              <DialogDescription className="text-editorial-meta">
+                <DialogDescription className="text-editorial-meta">
                 Onboard a new academic professional into the student database.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleAddStudent}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <FieldGroup className="py-6 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel className="text-editorial-label">Student Name</FieldLabel>
-                    <Input name="name" placeholder="Full name" required className="bg-background/50 h-10" />
+                    <Input {...register('name')} placeholder="Full name" className="bg-background/50 h-10" />
+                    {errors.name && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.name.message}</p>}
                   </Field>
                   <Field>
                     <FieldLabel className="text-editorial-label">Guardian&apos;s Name</FieldLabel>
-                    <Input name="guardianName" placeholder="Full name" required className="bg-background/50 h-10" />
+                    <Input {...register('guardianName')} placeholder="Full name" className="bg-background/50 h-10" />
+                    {errors.guardianName && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.guardianName.message}</p>}
                   </Field>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel className="text-editorial-label">Student ID</FieldLabel>
-                    <Input name="studentId" placeholder="e.g. STU-001" required className="bg-background/50 h-10" />
+                    <Input {...register('studentId')} placeholder="e.g. STU-001" className="bg-background/50 h-10" />
+                    {errors.studentId && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.studentId.message}</p>}
                   </Field>
                   <Field>
                     <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
-                    <Input name="phone" placeholder="+1 (555) 000-0000" className="bg-background/50 h-10" />
+                    <Input {...register('phone')} placeholder="+1 (555) 000-0000" className="bg-background/50 h-10" />
+                    {errors.phone && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.phone.message}</p>}
                   </Field>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel className="text-editorial-label">Registry Class</FieldLabel>
-                    <Select name="course" required>
+                    <Select onValueChange={(val) => setValue('course', val)}>
                       <SelectTrigger className="bg-background/50 h-10">
                         <SelectValue placeholder="Select class level" />
                       </SelectTrigger>
@@ -227,10 +254,11 @@ export default function StudentsPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.course && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.course.message}</p>}
                   </Field>
                   <Field>
                     <FieldLabel className="text-editorial-label">Class Timing</FieldLabel>
-                    <Select name="timing" required>
+                    <Select onValueChange={(val) => setValue('timing', val)}>
                       <SelectTrigger className="bg-background/50 h-10">
                         <SelectValue placeholder="Select session" />
                       </SelectTrigger>
@@ -242,14 +270,17 @@ export default function StudentsPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.timing && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.timing.message}</p>}
                   </Field>
                 </div>
               </FieldGroup>
               <DialogFooter className="pt-2">
-                <Button type="button" variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="text-muted-foreground hover:text-foreground">
+                <Button type="button" variant="ghost" onClick={() => { setIsAddDialogOpen(false); reset(); }} className="text-muted-foreground hover:text-foreground">
                   Cancel
                 </Button>
-                <Button type="submit" className="px-8 font-semibold uppercase tracking-wide">Register Student</Button>
+                <Button type="submit" disabled={isSubmitting} className="px-8 font-semibold uppercase tracking-wide">
+                  {isSubmitting ? 'Registering...' : 'Register Student'}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

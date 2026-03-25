@@ -57,6 +57,7 @@ export default function StudentAccessPage() {
   const handleAccess = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsVerifying(true)
+    const { validateAccessTokenAction } = require('@/lib/actions/student-actions')
     
     const formData = new FormData(e.currentTarget)
     const tokenId = formData.get('accessToken') as string
@@ -64,12 +65,27 @@ export default function StudentAccessPage() {
     const selectedClass = formData.get('class') as string
 
     try {
-      // Validate Token against registry
-      const isValidToken = assessments.some(a => a.accessCode === tokenId && a.classLevels.includes(selectedClass))
+      // Validate Token against registry (Cloud First)
+      let assessment = undefined
+      let isValidToken = false
+
+      if (tokenId !== "LA-DEMO") {
+        const cloudResult = await validateAccessTokenAction(tokenId)
+        if (cloudResult.success) {
+          assessment = cloudResult.data
+          isValidToken = true
+        } else {
+          // Local fallback for now while user is setting up Neon
+          assessment = assessments.find(a => a.accessCode === tokenId && a.classLevels.includes(selectedClass) && a.status === 'active')
+          isValidToken = !!assessment
+        }
+      } else {
+        isValidToken = true
+      }
       
-      if (!isValidToken && tokenId !== "LA-DEMO") {
-        toast.error("Invalid Access Token", {
-          description: "Please check your code with your teacher."
+      if (!isValidToken) {
+        toast.error("Invalid or Inactive Token", {
+          description: "Please check with your teacher. The exam might be paused or closed."
         })
         setIsVerifying(false)
         return

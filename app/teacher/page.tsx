@@ -20,6 +20,7 @@ import {
 import { motion } from 'framer-motion'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 
 export default function TeacherDashboard() {
   const { user } = useAuth()
@@ -28,7 +29,8 @@ export default function TeacherDashboard() {
     assignments: mockAssignments, 
     submissions: mockSubmissions,
     questions: mockQuestions,
-    enrollments: mockEnrollments
+    enrollments: mockEnrollments,
+    isInitialized
   } = useData()
   
   const myCourses = mockCourses.filter(c => c.teacherId === user?.id)
@@ -75,6 +77,8 @@ export default function TeacherDashboard() {
       bgColor: 'bg-destructive/10',
     },
   ]
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   return (
     <div className="space-y-8">

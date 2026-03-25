@@ -61,6 +61,20 @@ export async function gradeSubmissionAction(id: string, grade: number, feedback:
   }
 }
 
+export async function toggleAssessmentStatusAction(id: string, status: 'active' | 'archived' | 'draft') {
+  try {
+    const updated = await db.assessmentTemplate.update({
+      where: { id },
+      data: { status }
+    })
+    revalidatePath('/teacher/assessments')
+    return { success: true, data: updated }
+  } catch (error) {
+    console.error('Failed to toggle assessment status:', error)
+    return { success: false, error: 'Database error' }
+  }
+}
+
 // Library / Questions
 export async function addQuestionAction(question: Question) {
   try {
