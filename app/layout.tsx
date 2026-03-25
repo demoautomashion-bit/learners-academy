@@ -1,17 +1,11 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Cormorant_Garamond } from 'next/font/google'
+import { Cormorant_Garamond } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/auth-context'
 import { DataProvider } from '@/contexts/data-context'
 import { ClerkProvider } from '@clerk/nextjs'
 import './globals.css'
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
 
 const cormorant = Cormorant_Garamond({ 
   subsets: ['latin'],
@@ -47,8 +41,8 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
-        <body className="font-sans antialiased">
+      <html lang="en" className={cormorant.variable}>
+        <body className="antialiased">
           <AuthProvider>
             <DataProvider>
               <div id="root-content">
