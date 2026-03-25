@@ -39,7 +39,6 @@ import {
   Library as LibraryIcon,
   FileText
 } from 'lucide-react'
-import { UploadButton } from '@/lib/uploadthing'
 import Image from 'next/image'
 
 const questionSchema = z.object({
@@ -205,19 +204,10 @@ export default function QuestionLibraryPage() {
                       </button>
                     </div>
                   ) : (
-                    <UploadButton
-                      endpoint="questionImage"
-                      onClientUploadComplete={(res) => {
-                        setValue('imageUrl', res[0].url)
-                        toast.success('Image uploaded')
-                      }}
-                      onUploadError={(error: Error) => {
-                        toast.error(`Upload failed: ${error.message}`)
-                      }}
-                      appearance={{
-                        button: 'bg-primary/10 text-primary hover:bg-primary/20 transition-all text-xs h-9 uppercase font-bold tracking-wider',
-                        allowedContent: 'hidden'
-                      }}
+                    <Input
+                      placeholder="Paste image URL (optional)"
+                      value={imageUrl || ''}
+                      onChange={(e) => setValue('imageUrl', e.target.value)}
                     />
                   )}
                 </Field>

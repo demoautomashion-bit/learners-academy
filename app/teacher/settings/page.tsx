@@ -11,12 +11,25 @@ import {
   ShieldCheck,
   Camera
 } from 'lucide-react'
-import { UploadButton } from '@/lib/uploadthing'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { useRef } from 'react'
 
 export default function TeacherSettingsPage() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        updateUser({ avatar: reader.result as string })
+        toast.success('Avatar updated successfully')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const profileData = [
     {
@@ -90,19 +103,19 @@ export default function TeacherSettingsPage() {
                 </div>
               </div>
             </div>
-            <UploadButton
-              endpoint="userAvatar"
-              onClientUploadComplete={(res) => {
-                // In a real app, you would call an action here to update the user record
-                toast.success('Avatar updated locally. Registrar update pending.')
-              }}
-              appearance={{
-                button: 'bg-primary/10 text-primary h-8 w-8 p-0 rounded-full hover:bg-primary/20',
-                allowedContent: 'hidden'
-              }}
-              content={{
-                button: <Camera className="w-4 h-4" />
-              }}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
             />
           </div>
         </CardHeader>

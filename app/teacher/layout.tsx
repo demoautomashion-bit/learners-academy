@@ -5,8 +5,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { Logo } from '@/components/logo'
-import { Button } from '@/components/ui/button'
-import { UserButton } from '@clerk/nextjs'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Sidebar,
   SidebarContent,
@@ -155,13 +154,12 @@ export default function TeacherLayout({
             <span className="hidden md:inline-block font-medium text-sm text-muted-foreground">
               {user?.name}
             </span>
-            <UserButton 
-              appearance={{
-                elements: {
-                  userButtonAvatarBox: 'h-9 w-9 border border-primary/10 shadow-sm'
-                }
-              }}
-            />
+            <Avatar className="h-9 w-9 border border-primary/10 shadow-sm">
+              <AvatarImage src={user?.avatar} alt={user?.name} />
+              <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+                {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
           </div>
         </header>
 
