@@ -33,6 +33,7 @@ interface DataContextType {
   updateCourseProgress: (courseId: string, progress: number) => void
   addQuestion: (question: Question) => void
   deleteQuestion: (id: string) => void
+  updateQuestion: (id: string, question: Partial<Question>) => void
   
   // Teachers
   addTeacher: (teacher: Teacher) => void
@@ -261,6 +262,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
+  const updateQuestion = useCallback((id: string, updates: Partial<Question>) => {
+    setData(prev => ({
+      ...prev,
+      questions: prev.questions.map(q => q.id === id ? { ...q, ...updates } : q)
+    }))
+  }, [])
+
   const addTeacher = useCallback((teacher: Teacher) => {
     setData(prev => ({
       ...prev,
@@ -371,6 +379,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateCourseProgress,
       addQuestion,
       deleteQuestion,
+      updateQuestion,
       addTeacher,
       updateTeacherStatus,
       removeTeacher,

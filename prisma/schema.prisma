@@ -109,6 +109,7 @@ model Question {
   content       String
   options       String[]
   correctAnswer String?
+  imageUrl      String?
   phase         String // "First Test" | "Last Test" | "Both"
 }
 

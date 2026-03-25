@@ -1,6 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useData } from '@/contexts/data-context'
+import type { Question, QuestionCategory } from '@/lib/types'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,17 +33,14 @@ import { toast } from 'sonner'
 import {
   Plus,
   Search,
-  BookOpen,
-  FileText,
   Trash2,
   Edit,
+  X,
   Library as LibraryIcon,
+  FileText
 } from 'lucide-react'
-import { useData } from '@/contexts/data-context'
-import type { Question, QuestionCategory } from '@/lib/types'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import { UploadButton } from '@/lib/uploadthing'
+import Image from 'next/image'
 
 const questionSchema = z.object({
   category: z.string().min(1, 'Category is required'),
@@ -47,6 +49,7 @@ const questionSchema = z.object({
   content: z.string().min(5, 'Content must be at least 5 characters'),
   options: z.string().optional(),
   correctAnswer: z.string().optional(),
+  imageUrl: z.string().optional(),
 })
 
 type QuestionFormValues = z.infer<typeof questionSchema>
@@ -60,48 +63,49 @@ const CATEGORIES: QuestionCategory[] = [
   'Writing'
 ]
 
-export default function LibraryPage() {
-  const { questions, addQuestion, deleteQuestion } = useData()
+export default function QuestionLibraryPage() {
+  const { questions, addQuestion, deleteQuestion, updateQuestion } = useData()
+  const [activeTab, setActiveTab] = useState<QuestionCategory>('Grammar')
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState<string>('Grammar')
-  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isAddingQuestion, setIsAddingQuestion] = useState(false)
 
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     reset,
-    formState: { errors, isSubmitting }
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
   } = useForm<QuestionFormValues>({
     resolver: zodResolver(questionSchema),
     defaultValues: {
-      category: activeTab,
       type: 'MCQ',
       phase: 'Both',
-    }
+    },
   })
 
   const selectedType = watch('type')
+  const imageUrl = watch('imageUrl')
 
-  const filteredQuestions = questions.filter(q => 
+  const filteredQuestions = questions.filter((q: Question) =>
     q.category === activeTab &&
     q.content.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const onSubmit = (data: QuestionFormValues) => {
     const newQuestion: Question = {
-      id: `q-${Date.now()}`,
+      id: Math.random().toString(36).substr(2, 9),
       category: data.category as QuestionCategory,
       type: data.type,
       content: data.content,
       phase: data.phase,
-      options: (data.type === 'MCQ' && data.options) ? data.options.split(',').map(o => o.trim()) : undefined,
+      options: (data.type === 'MCQ' && data.options) ? data.options.split(',').map((o: string) => o.trim()) : undefined,
       correctAnswer: data.correctAnswer || '',
+      imageUrl: data.imageUrl,
     }
 
     addQuestion(newQuestion)
-    setIsAddOpen(false)
+    setIsAddingQuestion(false)
     reset()
     toast.success('Question added to library')
   }
@@ -122,7 +126,7 @@ export default function LibraryPage() {
             Manage your question bank and content blocks
           </p>
         </div>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <Dialog open={isAddingQuestion} onOpenChange={setIsAddingQuestion}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -182,6 +186,41 @@ export default function LibraryPage() {
                   <Textarea {...register('content')} placeholder="Enter question or prompt" />
                   {errors.content && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.content.message}</p>}
                 </Field>
+                <Field>
+                  <FieldLabel>Visual Aid (Optional Image)</FieldLabel>
+                  {imageUrl ? (
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden border">
+                      <Image 
+                        src={imageUrl} 
+                        alt="Question image" 
+                        fill 
+                        className="object-cover"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setValue('imageUrl', '')}
+                        className="absolute top-1 right-1 bg-destructive text-white p-1 rounded-full shadow-lg"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <UploadButton
+                      endpoint="questionImage"
+                      onClientUploadComplete={(res) => {
+                        setValue('imageUrl', res[0].url)
+                        toast.success('Image uploaded')
+                      }}
+                      onUploadError={(error: Error) => {
+                        toast.error(`Upload failed: ${error.message}`)
+                      }}
+                      appearance={{
+                        button: 'bg-primary/10 text-primary hover:bg-primary/20 transition-all text-xs h-9 uppercase font-bold tracking-wider',
+                        allowedContent: 'hidden'
+                      }}
+                    />
+                  )}
+                </Field>
                 {selectedType === 'MCQ' && (
                   <Field>
                     <FieldLabel>Options (comma separated)</FieldLabel>
@@ -194,11 +233,11 @@ export default function LibraryPage() {
                 </Field>
               </FieldGroup>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => { setIsAddOpen(false); reset(); }}>
+                <Button type="button" variant="outline" onClick={() => { setIsAddingQuestion(false); reset(); }}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : 'Save to Library'}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Adding...' : 'Add to Library'}
                 </Button>
               </DialogFooter>
             </form>
@@ -208,10 +247,10 @@ export default function LibraryPage() {
 
       <div className="grid gap-6 md:grid-cols-[1fr_250px]">
         <div className="space-y-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-muted/50 p-1 w-full justify-start overflow-x-auto no-scrollbar">
+          <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as QuestionCategory)} className="w-full">
+            <TabsList className="bg-muted p-1 w-full justify-start overflow-x-auto no-scrollbar">
               {CATEGORIES.map(cat => (
-                <TabsTrigger key={cat} value={cat} className="flex-1 md:flex-none">
+                <TabsTrigger key={cat} value={cat} className="flex-1 md:flex-none h-10 px-4">
                   {cat}
                 </TabsTrigger>
               ))}
@@ -254,6 +293,16 @@ export default function LibraryPage() {
                             <p className="text-foreground leading-relaxed">
                               {q.content}
                             </p>
+                            {q.imageUrl && (
+                              <div className="relative w-full h-40 rounded-xl overflow-hidden border border-primary/5 shadow-sm mt-3">
+                                <Image 
+                                  src={q.imageUrl} 
+                                  alt="Question visual aid" 
+                                  fill 
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
                             {q.options && (
                               <div className="ml-4 mt-2 space-y-1">
                                 {q.options.map((opt, i) => (

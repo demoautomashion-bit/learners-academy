@@ -127,6 +127,7 @@ export interface Question {
   content: string
   options?: string[] // For MCQ
   correctAnswer?: string
+  imageUrl?: string
   phase: 'First Test' | 'Last Test' | 'Both'
 }
 

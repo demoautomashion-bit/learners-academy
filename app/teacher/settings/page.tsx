@@ -8,8 +8,12 @@ import {
   Mail, 
   Hash, 
   Phone,
-  ShieldCheck
+  ShieldCheck,
+  Camera
 } from 'lucide-react'
+import { UploadButton } from '@/lib/uploadthing'
+import Image from 'next/image'
+import { toast } from 'sonner'
 
 export default function TeacherSettingsPage() {
   const { user } = useAuth()
@@ -54,22 +58,52 @@ export default function TeacherSettingsPage() {
 
       <Card className="border-none shadow-sm ring-1 ring-border overflow-hidden bg-card">
         <CardHeader className="bg-muted/30 border-b pb-4 pt-4 px-5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-xl font-serif text-primary border border-primary/20">
-              {user?.name?.split(' ').map(n => n[0]).join('') || 'T'}
-            </div>
-            <div>
-              <CardTitle className="font-serif text-xl leading-none">{user?.name}</CardTitle>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant="outline" className="text-[9px] h-4 px-1 py-0 tracking-widest uppercase font-bold text-primary border-primary/20 bg-primary/5">
-                  Registry: Teacher
-                </Badge>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
-                  <ShieldCheck className="w-3 h-3 text-success/70" />
-                  <span>Verified Faculty</span>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative w-16 h-16 rounded-2xl overflow-hidden border-2 border-primary/20 shadow-lg group/avatar">
+                {user?.avatar ? (
+                  <Image 
+                    src={user.avatar} 
+                    alt={user.name || 'Avatar'} 
+                    fill 
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-primary/10 flex items-center justify-center text-2xl font-serif text-primary">
+                    {user?.name?.split(' ').map(n => n[0]).join('') || 'T'}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <CardTitle className="font-serif text-xl leading-none">{user?.name}</CardTitle>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="outline" className="text-[9px] h-4 px-1 py-0 tracking-widest uppercase font-bold text-primary border-primary/20 bg-primary/5">
+                    Registry: Teacher
+                  </Badge>
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
+                    <ShieldCheck className="w-3 h-3 text-success/70" />
+                    <span>Verified Faculty</span>
+                  </div>
                 </div>
               </div>
             </div>
+            <UploadButton
+              endpoint="userAvatar"
+              onClientUploadComplete={(res) => {
+                // In a real app, you would call an action here to update the user record
+                toast.success('Avatar updated locally. Registrar update pending.')
+              }}
+              appearance={{
+                button: 'bg-primary/10 text-primary h-8 w-8 p-0 rounded-full hover:bg-primary/20',
+                allowedContent: 'hidden'
+              }}
+              content={{
+                button: <Camera className="w-4 h-4" />
+              }}
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">

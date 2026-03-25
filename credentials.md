@@ -36,16 +36,39 @@ SENTRY_DSN="https://...@...ingest.sentry.io/..."
     - `npx prisma db push` (This creates the tables in the cloud).
     - `npx prisma generate` (This generates the custom database client).
 
-### 2. Clerk Authentication (Phase 4)
-1.  **Sign Up**: Go to [Clerk.com](https://clerk.com/).
-2.  **Create Application**: Name it `Learner's Academy`.
-3.  **Select Providers**: Choose Email and Google.
-4.  **Get Keys**: Copy the Publishable and Secret keys into `.env`.
+### 🔐 Phase 4: Professional Authentication (Clerk)
+To enable secure login and identity:
+1.  Go to [Clerk.com](https://clerk.com) and create a new project.
+2.  Add your keys to `.env`:
+    ```bash
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+    CLERK_SECRET_KEY=sk_test_...
+    ```
+3.  In the Clerk Dashboard:
+    -   Under **User & Auth** -> **Authentication**, enable "Email Address" and "Google" (optional).
+    -   Under **Configure** -> **Redirects**, set:
+        -   Sign In: `/auth/login`
+        -   Sign Up: `/auth/register`
+        -   After Sign In: `/teacher` (or `/student` depending on your role usage)
 
-### 3. Sentry Monitoring (Phase 3)
-1.  **Sign Up**: Go to [Sentry.io](https://sentry.io/).
-2.  **Create Project**: Choose "Next.js" as the platform.
-3.  **Get DSN**: Copy the DSN URL into `.env`.
+### 🖼️ Phase 5: Media & Storage (UploadThing)
+To enable image uploads for assessments:
+1.  Go to [UploadThing.com](https://uploadthing.com) and create a new app.
+2.  Add your keys to `.env`:
+    ```bash
+    UPLOADTHING_SECRET=sk_live_...
+    UPLOADTHING_APP_ID=...
+    ```
+3.  Ensure your `next.config.mjs` allows the `utfs.io` domain for image optimization (I have already configured the code for this, but it requires the server to be restarted after adding keys).
+
+### 📈 Phase 3: Error Monitoring (Sentry)
+1.  Go to [Sentry.io](https://sentry.io).
+2.  Create a Next.js project.
+3.  Add your DSN to `.env`:
+    ```bash
+    NEXT_PUBLIC_SENTRY_DSN=https://...
+    SENTRY_DSN=https://...
+    ```
 
 ---
 

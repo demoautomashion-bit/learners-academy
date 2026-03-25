@@ -6,15 +6,7 @@ import { useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { UserButton } from '@clerk/nextjs'
 import {
   Sidebar,
   SidebarContent,
@@ -103,39 +95,11 @@ export default function TeacherLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const router = useRouter()
-  const { user, logout, isLoading, isAuthenticated } = useAuth()
+  const { user } = useAuth()
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/auth/login')
-    } else if (!isLoading && isAuthenticated && user?.role !== 'teacher') {
-      router.push(`/${user?.role || 'auth/login'}`)
-    }
-  }, [isAuthenticated, isLoading, user, router])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner className="w-8 h-8" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated || user?.role !== 'teacher') {
-    return null
-  }
-
-  const userInitials = (user?.name || 'Teacher')
-    .split(' ')
-    .filter(Boolean)
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || 'T'
+  // Middleware handles route protection now. 
+  // Custom checks for 'teacher' role can be added here if needed, 
+  // or refined in clerkMiddleware.
 
   return (
     <SidebarProvider>
@@ -187,38 +151,18 @@ export default function TeacherLayout({
           
           {/* Notifications removed for minimalist UI */}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-accent text-accent-foreground text-xs">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden md:inline-block font-medium">
-                  {user?.name}
-                </span>
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/teacher/settings">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => logout()}
-                className="text-destructive focus:text-destructive"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-4">
+            <span className="hidden md:inline-block font-medium text-sm text-muted-foreground">
+              {user?.name}
+            </span>
+            <UserButton 
+              appearance={{
+                elements: {
+                  userButtonAvatarBox: 'h-9 w-9 border border-primary/10 shadow-sm'
+                }
+              }}
+            />
+          </div>
         </header>
 
         <main className="flex-1 p-6 text-foreground">
