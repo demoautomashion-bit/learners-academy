@@ -1,14 +1,21 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useTransition, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import type { 
   Teacher, Student, Course, Assignment, Submission, 
-  DashboardStats, ChartData, Schedule, Question, 
+  DashboardStats, Schedule, Question, 
   AssessmentTemplate, StudentTest 
 } from '@/lib/types'
 
-const DATA_STORAGE_KEY = 'learners_academy_data'
+// Server Actions
+import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus } from '@/lib/actions/teachers'
+import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus } from '@/lib/actions/students'
+import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus } from '@/lib/actions/courses'
+import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion } from '@/lib/actions/questions'
+import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment } from '@/lib/actions/assessments'
+import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
+import { getSchedules, addSchedule as dbAddSchedule, updateSchedule as dbUpdateSchedule, removeSchedule as dbRemoveSchedule } from '@/lib/actions/schedules'
 
 interface DataContextType {
   teachers: Teacher[]
@@ -21,361 +28,230 @@ interface DataContextType {
   questions: Question[]
   assessments: AssessmentTemplate[]
   enrollments: any[]
-  
-  // Actions
-  enrollStudent: (student: Student) => void
-  removeStudent: (id: string) => void
-  updateStudentStatus: (id: string, status: Student['status']) => void
-  publishAssessment: (assessment: AssessmentTemplate) => void
-  removeAssessment: (id: string) => void
-  submitTestResult: (result: StudentTest) => void
-  gradeSubmission: (id: string, grade: number, feedback: string) => void
-  updateCourseProgress: (courseId: string, progress: number) => void
-  addQuestion: (question: Question) => void
-  deleteQuestion: (id: string) => void
-  updateQuestion: (id: string, question: Partial<Question>) => void
-  
-  // Teachers
-  addTeacher: (teacher: Teacher) => void
-  updateTeacherStatus: (id: string, status: Teacher['status']) => void
-  removeTeacher: (id: string) => void
-  
-  // Courses
-  addCourse: (course: Course) => void
-  updateCourseStatus: (id: string, status: Course['status']) => void
-  removeCourse: (id: string) => void
-  
-  // Schedule
-  addSchedule: (schedule: Schedule) => void
-  updateSchedule: (id: string, updates: Partial<Schedule>) => void
-  removeSchedule: (id: string) => void
-  
-  // Reset
-  resetToDefaults: () => void
   isInitialized: boolean
+  isLoading: boolean
+
+  // Actions
+  enrollStudent: (student: Student) => Promise<void>
+  removeStudent: (id: string) => Promise<void>
+  updateStudentStatus: (id: string, status: Student['status']) => Promise<void>
+  publishAssessment: (assessment: AssessmentTemplate) => Promise<void>
+  removeAssessment: (id: string) => Promise<void>
+  submitTestResult: (result: StudentTest) => Promise<void>
+  gradeSubmission: (id: string, grade: number, feedback: string) => Promise<void>
+  updateCourseProgress: (courseId: string, progress: number) => void
+  addQuestion: (question: Question) => Promise<void>
+  deleteQuestion: (id: string) => Promise<void>
+  updateQuestion: (id: string, question: Partial<Question>) => Promise<void>
+  addTeacher: (teacher: Teacher) => Promise<void>
+  updateTeacherStatus: (id: string, status: Teacher['status']) => Promise<void>
+  removeTeacher: (id: string) => Promise<void>
+  addCourse: (course: Course) => Promise<void>
+  updateCourseStatus: (id: string, status: Course['status']) => Promise<void>
+  removeCourse: (id: string) => Promise<void>
+  addSchedule: (schedule: Schedule) => Promise<void>
+  updateSchedule: (id: string, updates: Partial<Schedule>) => Promise<void>
+  removeSchedule: (id: string) => Promise<void>
+  resetToDefaults: () => void
+  refresh: () => Promise<void>
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
-export function DataProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<{
-    teachers: Teacher[]
-    students: Student[]
-    courses: Course[]
-    assignments: Assignment[]
-    submissions: Submission[]
-    stats: DashboardStats
-    schedules: Schedule[]
-    questions: Question[]
-    assessments: AssessmentTemplate[]
-    enrollments: any[]
-  }>({
-    teachers: [],
-    students: [],
-    courses: [],
-    assignments: [],
-    submissions: [],
-    stats: { totalStudents: 0, totalTeachers: 0, totalCourses: 0, activeEnrollments: 0, revenue: 0, revenueChange: 0, newEnrollments: 0, completionRate: 0 },
-    schedules: [],
-    questions: [],
-    assessments: [],
-    enrollments: [],
-  })
-
-  const [isInitialized, setIsInitialized] = useState(false)
-
-  // Initialize from localStorage or mockData
-  useEffect(() => {
-    const initializeData = () => {
-      try {
-        const stored = localStorage.getItem(DATA_STORAGE_KEY)
-        if (stored) {
-          setData(JSON.parse(stored))
-          console.log('Restored data from storage')
-        } else {
-          // Fallback to empty initial state
-          const initial = {
-            teachers: [],
-            students: [],
-            courses: [],
-            assignments: [],
-            submissions: [],
-            stats: { totalStudents: 0, totalTeachers: 0, totalCourses: 0, activeEnrollments: 0, revenue: 0, revenueChange: 0, newEnrollments: 0, completionRate: 0 },
-            schedules: [],
-            questions: [],
-            assessments: [],
-            enrollments: [],
-          }
-          setData(initial)
-          localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(initial))
-          console.log('Initialized with mock data')
-        }
-      } catch (error) {
-        console.error('Failed to initialize data:', error)
-      } finally {
-        setIsInitialized(true)
-      }
-    }
-
-    initializeData()
-  }, [])
-
-  // Persist state changes to localStorage
-  useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(data))
-    }
-  }, [data, isInitialized])
-
-  // Helper to generate a unique access code for assessments
-  const generateAccessCode = () => {
-    return Math.random().toString(36).substring(2, 8).toUpperCase()
+function computeStats(teachers: Teacher[], students: Student[], courses: Course[]): DashboardStats {
+  return {
+    totalStudents: students.length,
+    totalTeachers: teachers.length,
+    totalCourses: courses.length,
+    activeEnrollments: students.filter(s => s.status === 'active').length,
+    revenue: 0,
+    revenueChange: 0,
+    newEnrollments: 0,
+    completionRate: 0,
   }
+}
 
-  // Actions
-  const enrollStudent = useCallback((student: Student) => {
-    setData(prev => {
-      // Create actual enrollment records for each enrolled course ID
-      const newEnrollments = student.enrolledCourses.map(courseId => ({
-        id: `enr-${Date.now()}-${courseId}`,
-        studentId: student.id,
-        courseId: courseId,
-        enrolledAt: student.enrolledAt,
-        progress: 0,
-        status: 'active'
-      }))
+export function DataProvider({ children }: { children: ReactNode }) {
+  const [teachers, setTeachers] = useState<Teacher[]>([])
+  const [students, setStudents] = useState<Student[]>([])
+  const [courses, setCourses] = useState<Course[]>([])
+  const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [schedules, setSchedules] = useState<Schedule[]>([])
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [assessments, setAssessments] = useState<AssessmentTemplate[]>([])
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isPending, startTransition] = useTransition()
 
-      // Update enrollment counters on the courses
-      const updatedCourses = prev.courses.map(course => {
-        if (student.enrolledCourses.includes(course.id)) {
-          return { ...course, enrolled: (course.enrolled || 0) + 1 }
-        }
-        return course
-      })
-
-      return {
-        ...prev,
-        students: [...prev.students, student],
-        enrollments: [...prev.enrollments, ...newEnrollments],
-        courses: updatedCourses,
-        stats: {
-          ...prev.stats,
-          totalStudents: prev.stats.totalStudents + 1
-        }
-      }
-    })
-  }, [])
-
-  const removeStudent = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      students: prev.students.filter(s => s.id !== id),
-      stats: {
-        ...prev.stats,
-        totalStudents: Math.max(0, prev.stats.totalStudents - 1)
-      }
-    }))
-  }, [])
-
-  const updateStudentStatus = useCallback((id: string, status: Student['status']) => {
-    setData(prev => ({
-      ...prev,
-      students: prev.students.map(s => s.id === id ? { ...s, status } : s)
-    }))
-  }, [])
-
-  const publishAssessment = useCallback((assessment: AssessmentTemplate) => {
-    const assessmentWithCode = {
-      ...assessment,
-      accessCode: assessment.accessCode || generateAccessCode()
+  const refresh = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const [t, s, c, q, a, sub, sch] = await Promise.all([
+        getTeachers(),
+        getStudents(),
+        getCourses(),
+        getQuestions(),
+        getAssessments(),
+        getSubmissions(),
+        getSchedules(),
+      ])
+      setTeachers(t as unknown as Teacher[])
+      setStudents(s as unknown as Student[])
+      setCourses(c as unknown as Course[])
+      setQuestions(q as unknown as Question[])
+      setAssessments(a as unknown as AssessmentTemplate[])
+      setSubmissions(sub as unknown as Submission[])
+      setSchedules(sch as unknown as Schedule[])
+    } catch (err) {
+      console.error('Failed to load data from DB:', err)
+      toast.error('Failed to connect to database')
+    } finally {
+      setIsLoading(false)
+      setIsInitialized(true)
     }
-    setData(prev => ({
-      ...prev,
-      assessments: [assessmentWithCode, ...prev.assessments]
-    }))
   }, [])
 
-  const removeAssessment = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      assessments: prev.assessments.filter(a => a.id !== id)
-    }))
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
+  const stats = computeStats(teachers, students, courses)
+
+  // --- Teachers ---
+  const addTeacher = useCallback(async (teacher: Teacher) => {
+    await dbAddTeacher(teacher)
+    await refresh()
+  }, [refresh])
+
+  const updateTeacherStatus = useCallback(async (id: string, status: Teacher['status']) => {
+    await dbUpdateTeacherStatus(id, status)
+    setTeachers(prev => prev.map(t => t.id === id ? { ...t, status } : t))
   }, [])
 
-  const submitTestResult = useCallback((result: StudentTest) => {
-    setData(prev => {
-      const template = prev.assessments.find(a => a.id === result.templateId)
-      
-      const newSubmission: Submission = {
-        id: `sub-${Date.now()}`,
-        assignmentId: result.templateId,
-        assignmentTitle: template?.title || 'Test',
-        studentId: result.studentId,
-        studentName: result.studentName,
-        submittedAt: new Date().toISOString(),
-        status: 'pending',
-        grade: result.score,
-        // Rich Metadata Persistence
-        randomizedQuestions: result.randomizedQuestions,
-        answers: result.answers,
-        aiFeedback: result.feedback,
-        aiJustification: "AI evaluation complete. Reviewing content-aware score."
-      }
-
-      return {
-        ...prev,
-        submissions: [newSubmission, ...prev.submissions],
-      }
-    })
-    
-    toast.success('Test submitted successfully')
+  const removeTeacher = useCallback(async (id: string) => {
+    await dbRemoveTeacher(id)
+    setTeachers(prev => prev.filter(t => t.id !== id))
   }, [])
 
-  const gradeSubmission = useCallback((id: string, grade: number, feedback: string) => {
-    setData(prev => ({
-      ...prev,
-      submissions: prev.submissions.map(s => 
-        s.id === id ? { ...s, grade, feedback, status: 'graded' } : s
-      )
-    }))
-    toast.success('Grade published to student')
+  // --- Students ---
+  const enrollStudent = useCallback(async (student: Student) => {
+    await dbEnrollStudent(student)
+    await refresh()
+  }, [refresh])
+
+  const removeStudent = useCallback(async (id: string) => {
+    await dbRemoveStudent(id)
+    setStudents(prev => prev.filter(s => s.id !== id))
+  }, [])
+
+  const updateStudentStatus = useCallback(async (id: string, status: Student['status']) => {
+    await dbUpdateStudentStatus(id, status)
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, status } : s))
+  }, [])
+
+  // --- Courses ---
+  const addCourse = useCallback(async (course: Course) => {
+    await dbAddCourse(course)
+    await refresh()
+  }, [refresh])
+
+  const removeCourse = useCallback(async (id: string) => {
+    await dbRemoveCourse(id)
+    setCourses(prev => prev.filter(c => c.id !== id))
+  }, [])
+
+  const updateCourseStatus = useCallback(async (id: string, status: Course['status']) => {
+    await dbUpdateCourseStatus(id, status)
+    setCourses(prev => prev.map(c => c.id === id ? { ...c, status } : c))
   }, [])
 
   const updateCourseProgress = useCallback((courseId: string, progress: number) => {
-    setData(prev => ({
-      ...prev,
-      courses: prev.courses.map(c => c.id === courseId ? { ...c, progress } : c)
-    }))
+    setCourses(prev => prev.map(c => c.id === courseId ? { ...c, progress } : c))
   }, [])
 
-  const addQuestion = useCallback((question: Question) => {
-    setData(prev => ({
-      ...prev,
-      questions: [question, ...prev.questions]
-    }))
+  // --- Questions ---
+  const addQuestion = useCallback(async (question: Question) => {
+    await dbAddQuestion(question)
+    await refresh()
+  }, [refresh])
+
+  const deleteQuestion = useCallback(async (id: string) => {
+    await dbDeleteQuestion(id)
+    setQuestions(prev => prev.filter(q => q.id !== id))
   }, [])
 
-  const deleteQuestion = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      questions: prev.questions.filter(q => q.id !== id)
-    }))
+  const updateQuestion = useCallback(async (id: string, data: Partial<Question>) => {
+    await dbUpdateQuestion(id, data)
+    setQuestions(prev => prev.map(q => q.id === id ? { ...q, ...data } : q))
   }, [])
 
-  const updateQuestion = useCallback((id: string, updates: Partial<Question>) => {
-    setData(prev => ({
-      ...prev,
-      questions: prev.questions.map(q => q.id === id ? { ...q, ...updates } : q)
-    }))
+  // --- Assessments ---
+  const publishAssessment = useCallback(async (assessment: AssessmentTemplate) => {
+    await dbPublishAssessment(assessment)
+    await refresh()
+  }, [refresh])
+
+  const removeAssessment = useCallback(async (id: string) => {
+    await dbRemoveAssessment(id)
+    setAssessments(prev => prev.filter(a => a.id !== id))
   }, [])
 
-  const addTeacher = useCallback((teacher: Teacher) => {
-    setData(prev => ({
-      ...prev,
-      teachers: [...prev.teachers, teacher],
-    }))
+  // --- Submissions ---
+  const submitTestResult = useCallback(async (result: StudentTest) => {
+    const template = assessments.find(a => a.id === result.templateId)
+    await dbSubmitTestResult(result, template?.title || 'Test')
+    await refresh()
+    toast.success('Test submitted successfully')
+  }, [assessments, refresh])
+
+  const gradeSubmission = useCallback(async (id: string, grade: number, feedback: string) => {
+    await dbGradeSubmission(id, grade, feedback)
+    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, grade, feedback, status: 'graded' } : s))
+    toast.success('Grade published to student')
   }, [])
 
-  const updateTeacherStatus = useCallback((id: string, status: Teacher['status']) => {
-    setData(prev => ({
-      ...prev,
-      teachers: prev.teachers.map(t => t.id === id ? { ...t, status } : t),
-    }))
+  // --- Schedules ---
+  const addSchedule = useCallback(async (schedule: Schedule) => {
+    await dbAddSchedule(schedule)
+    await refresh()
+  }, [refresh])
+
+  const updateSchedule = useCallback(async (id: string, data: Partial<Schedule>) => {
+    await dbUpdateSchedule(id, data)
+    setSchedules(prev => prev.map(s => s.id === id ? { ...s, ...data } : s))
   }, [])
 
-  const removeTeacher = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      teachers: prev.teachers.filter(t => t.id !== id),
-    }))
-  }, [])
-
-  const addCourse = useCallback((course: Course) => {
-    setData(prev => {
-      // Increment teacher's course count if a real teacher is assigned
-      const updatedTeachers = prev.teachers.map(t => 
-        t.id === course.teacherId ? { ...t, coursesCount: (t.coursesCount || 0) + 1 } : t
-      )
-      
-      return {
-        ...prev,
-        teachers: updatedTeachers,
-        courses: [...prev.courses, course],
-      }
-    })
-  }, [])
-
-  const updateCourseStatus = useCallback((id: string, status: Course['status']) => {
-    setData(prev => ({
-      ...prev,
-      courses: prev.courses.map(c => c.id === id ? { ...c, status } : c),
-    }))
-  }, [])
-
-  const removeCourse = useCallback((id: string) => {
-    setData(prev => {
-      const courseToRemove = prev.courses.find(c => c.id === id)
-      // Decrement teacher's course count
-      const updatedTeachers = prev.teachers.map(t => 
-        t.id === courseToRemove?.teacherId ? { ...t, coursesCount: Math.max(0, (t.coursesCount || 0) - 1) } : t
-      )
-
-      return {
-        ...prev,
-        teachers: updatedTeachers,
-        courses: prev.courses.filter(c => c.id !== id),
-      }
-    })
-  }, [])
-
-  const addSchedule = useCallback((schedule: Schedule) => {
-    setData(prev => ({
-      ...prev,
-      schedules: [schedule, ...prev.schedules],
-    }))
-  }, [])
-
-  const updateSchedule = useCallback((id: string, updates: Partial<Schedule>) => {
-    setData(prev => ({
-      ...prev,
-      schedules: prev.schedules.map(s => s.id === id ? { ...s, ...updates } : s),
-    }))
-  }, [])
-
-  const removeSchedule = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      schedules: prev.schedules.filter(s => s.id !== id),
-    }))
+  const removeSchedule = useCallback(async (id: string) => {
+    await dbRemoveSchedule(id)
+    setSchedules(prev => prev.filter(s => s.id !== id))
   }, [])
 
   const resetToDefaults = useCallback(() => {
-    localStorage.removeItem(DATA_STORAGE_KEY)
-    const initial = {
-      teachers: [],
-      students: [],
-      courses: [],
-      assignments: [],
-      submissions: [],
-      stats: { totalStudents: 0, totalTeachers: 0, totalCourses: 0, activeEnrollments: 0, revenue: 0, revenueChange: 0, newEnrollments: 0, completionRate: 0 },
-      schedules: [],
-      questions: [],
-      assessments: [],
-      enrollments: [],
-    }
-    setData(initial)
-    toast.info('Database reset to defaults')
+    toast.info('Reset is not available in database mode')
   }, [])
 
   return (
     <DataContext.Provider value={{
-      ...data,
+      teachers,
+      students,
+      courses,
+      assignments,
+      submissions,
+      stats,
+      schedules,
+      questions,
+      assessments,
+      enrollments: [],
+      isInitialized,
+      isLoading,
       enrollStudent,
       removeStudent,
       updateStudentStatus,
       publishAssessment,
       removeAssessment,
       submitTestResult,
+      gradeSubmission,
       updateCourseProgress,
       addQuestion,
       deleteQuestion,
@@ -389,9 +265,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addSchedule,
       updateSchedule,
       removeSchedule,
-      gradeSubmission,
       resetToDefaults,
-      isInitialized,
+      refresh,
     }}>
       {children}
     </DataContext.Provider>
