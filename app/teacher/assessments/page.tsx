@@ -101,12 +101,10 @@ export default function AssessmentsPage() {
   )
 
   const onSubmit = async (data: AssessmentFormValues) => {
-    // Logic to verify questions exist in library for this phase
+    // Warn (but don't block) if the library has no questions for this phase
     const availableQuestions = mockQuestions.filter(q => q.phase === data.phase || q.phase === 'Both')
-    
-    if (availableQuestions.length < 5) {
-      toast.error(`Not enough questions in Library for ${data.phase}. Please add more first.`)
-      return
+    if (availableQuestions.length === 0) {
+      toast.warning(`No questions in Library for "${data.phase}". The exam will be empty until you add questions.`)
     }
 
     const newAssessment: AssessmentTemplate = {
