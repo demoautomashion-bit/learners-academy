@@ -373,8 +373,12 @@ export default function ClassesPage() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
-            </Table>
+          </Table>
           </div>
 
           {/* Mobile Grid View */}
