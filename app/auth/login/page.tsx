@@ -52,6 +52,13 @@ function LoginContent() {
 
   return (
     <div className="w-full h-full min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-linear-to-b from-background to-muted/30">
+      <Link 
+        href="/" 
+        className="absolute top-8 left-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Home
+      </Link>
 
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
