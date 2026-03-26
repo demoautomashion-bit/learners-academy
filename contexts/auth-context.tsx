@@ -21,11 +21,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
   const [state, setState] = useState<AuthState>({
     user: null,
     isAuthenticated: false,
     isLoading: true,
   })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Initialize auth state from sessionStorage
   useEffect(() => {
@@ -201,6 +206,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { ...prev, user: newUser }
     })
   }, [])
+
+  if (!mounted) return <div id="auth-hydrating" />
 
   return (
     <AuthContext.Provider value={{

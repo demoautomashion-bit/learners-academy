@@ -72,6 +72,7 @@ function computeStats(teachers: Teacher[], students: Student[], courses: Course[
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false)
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [courses, setCourses] = useState<Course[]>([])
@@ -83,6 +84,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const refresh = useCallback(async () => {
     setIsLoading(true)
@@ -268,6 +273,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const resetToDefaults = useCallback(() => {
     toast.info('Reset is not available in database mode')
   }, [])
+
+  if (!mounted) return <div id="data-hydrating" />
 
   return (
     <DataContext.Provider value={{

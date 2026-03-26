@@ -15,10 +15,14 @@ import { toast } from 'sonner'
 export default function RegisterPage() {
   const router = useRouter()
   const { register } = useAuth()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    role: 'teacher' | 'student';
+  }>({
     name: '',
     email: '',
-    role: 'student' as const,
+    role: 'student',
   })
   const [isLoading, setIsLoading] = useState(false)
 
