@@ -118,8 +118,8 @@ export default function ClassesPage() {
       status: 'active',
       schedule: formData.get('schedule') as string,
       duration: 'Term-based',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
       roomNumber: formData.get('roomNumber') as string,
     }
     addCourse(newCourse)

@@ -102,7 +102,7 @@ export default function TeachersPage() {
       subjects: [], // Initializing as empty since we removed the field
       qualifications: [],
       status: 'active',
-      joinedAt: new Date().toISOString().split('T')[0],
+      joinedAt: new Date().toISOString(),
       coursesCount: 0,
       studentsCount: 0,
     }

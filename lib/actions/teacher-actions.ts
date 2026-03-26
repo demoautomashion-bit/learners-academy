@@ -25,7 +25,7 @@ export async function publishAssessmentAction(assessment: AssessmentTemplate) {
     return { success: true, data: newAssessment }
   } catch (error) {
     console.error('Failed to publish assessment:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -38,7 +38,7 @@ export async function removeAssessmentAction(id: string) {
     return { success: true }
   } catch (error) {
     console.error('Failed to remove assessment:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -57,7 +57,7 @@ export async function gradeSubmissionAction(id: string, grade: number, feedback:
     return { success: true }
   } catch (error) {
     console.error('Failed to grade submission:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -71,7 +71,7 @@ export async function toggleAssessmentStatusAction(id: string, status: 'active' 
     return { success: true, data: updated }
   } catch (error) {
     console.error('Failed to toggle assessment status:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -93,7 +93,7 @@ export async function addQuestionAction(question: Question) {
     return { success: true, data: newQuestion }
   } catch (error) {
     console.error('Failed to add question:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -106,6 +106,6 @@ export async function deleteQuestionAction(id: string) {
     return { success: true }
   } catch (error) {
     console.error('Failed to delete question:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }

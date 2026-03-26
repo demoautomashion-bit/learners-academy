@@ -28,7 +28,7 @@ export async function enrollStudentAction(student: Student) {
     return { success: true, data: newStudent }
   } catch (error) {
     console.error('Failed to enroll student:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -41,7 +41,7 @@ export async function removeStudentAction(id: string) {
     return { success: true }
   } catch (error) {
     console.error('Failed to remove student:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -55,7 +55,7 @@ export async function updateStudentStatusAction(id: string, status: string) {
     return { success: true }
   } catch (error) {
     console.error('Failed to update student status:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -82,7 +82,7 @@ export async function addTeacherAction(teacher: Teacher) {
     return { success: true, data: newTeacher }
   } catch (error) {
     console.error('Failed to add teacher:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -95,7 +95,7 @@ export async function removeTeacherAction(id: string) {
     return { success: true }
   } catch (error) {
     console.error('Failed to remove teacher:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -125,7 +125,7 @@ export async function addCourseAction(course: Course) {
     return { success: true, data: newCourse }
   } catch (error) {
     console.error('Failed to add course:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -138,7 +138,7 @@ export async function removeCourseAction(id: string) {
     return { success: true }
   } catch (error) {
     console.error('Failed to remove course:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -160,7 +160,7 @@ export async function addScheduleAction(schedule: Schedule) {
     return { success: true, data: newSchedule }
   } catch (error) {
     console.error('Failed to add schedule:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
@@ -173,6 +173,6 @@ export async function removeScheduleAction(id: string) {
     return { success: true }
   } catch (error) {
     console.error('Failed to remove schedule:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }

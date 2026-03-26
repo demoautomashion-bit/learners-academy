@@ -105,7 +105,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setSchedules(sch as unknown as Schedule[])
     } catch (err) {
       console.error('Failed to load data from DB:', err)
-      toast.error('Failed to connect to database')
+      toast.error(err instanceof Error ? err.message.substring(0, 150) : 'Database operation failed')
     } finally {
       setIsLoading(false)
       setIsInitialized(true)

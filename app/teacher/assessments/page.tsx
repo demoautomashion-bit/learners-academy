@@ -40,10 +40,12 @@ import {
   ArrowRight,
   TrendingUp,
   Copy,
-  CheckCircle2
+  CheckCircle2,
+  RefreshCw
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useData } from '@/contexts/data-context'
+import { generateSecureToken } from '@/lib/utils'
 import { AssessmentSkeleton } from '@/components/dashboard-skeleton'
 import type { AssessmentTemplate } from '@/lib/types'
 import { useForm } from 'react-hook-form'
@@ -57,6 +59,7 @@ const assessmentSchema = z.object({
   nature: z.enum(['MCQ', 'Subjective', 'Mixed']),
   totalMarks: z.coerce.number().min(1, 'Marks must be positive'),
   duration: z.coerce.number().min(1, 'Duration must be positive'),
+  accessCode: z.string().min(5, 'Access code is required').regex(/^[A-Z0-9-]+$/, 'Letters, numbers, and hyphens only'),
 })
 
 type AssessmentFormValues = z.infer<typeof assessmentSchema>
@@ -69,7 +72,6 @@ export default function AssessmentsPage() {
     questions: mockQuestions, 
     publishAssessment, 
     removeAssessment,
-    updateAssessmentStatus, // Assuming this will be added to DataContext soon
     isInitialized
   } = useData()
   const { toggleAssessmentStatusAction } = require('@/lib/actions/teacher-actions') // Fallback for direct server actions
@@ -88,6 +90,7 @@ export default function AssessmentsPage() {
       nature: 'Mixed',
       totalMarks: 100,
       duration: 60,
+      accessCode: generateSecureToken(),
     }
   })
 
@@ -114,9 +117,9 @@ export default function AssessmentsPage() {
       nature: data.nature,
       totalMarks: data.totalMarks,
       durationMinutes: data.duration,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
       status: 'active',
-      accessCode: '',
+      accessCode: data.accessCode,
     }
 
     publishAssessment(newAssessment)
@@ -217,6 +220,25 @@ export default function AssessmentsPage() {
                     {errors.duration && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.duration.message}</p>}
                   </Field>
                 </div>
+                <Field>
+                  <FieldLabel>Access Token (Unique for Class)</FieldLabel>
+                  <div className="flex gap-2">
+                    <Input 
+                      {...register('accessCode')} 
+                      placeholder="LA-XXXX-YY" 
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setValue('accessCode', generateSecureToken())}
+                      className="shrink-0"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {errors.accessCode && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.accessCode.message}</p>}
+                </Field>
               </FieldGroup>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => { setIsCreateOpen(false); reset(); }}>

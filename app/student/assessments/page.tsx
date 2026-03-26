@@ -36,14 +36,15 @@ export default function StudentAssessmentsPage() {
   const { user } = useAuth()
   const { assessments: mockAssessments, questions: mockQuestions, courses: mockCourses, submitTestResult } = useData()
 
-  // Filter assessments by the student's enrolled class level
-  const userEnrolledCourseIds = user?.enrolledCourses || []
-  const userCourseTitles = mockCourses
-    .filter(c => userEnrolledCourseIds.includes(c.id))
-    .map(c => c.title)
+  // 1. Filter assessments by the specific token the student used to enter
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
+  
+  useEffect(() => {
+    setSessionToken(sessionStorage.getItem('current_assessment_code'))
+  }, [])
 
   const availableAssessments = mockAssessments.filter(a => 
-    a.classLevels.some(level => userCourseTitles.includes(level)) || a.classLevels.length === 0
+    a.accessCode === sessionToken && a.status === 'active'
   )
   const [activeTest, setActiveTest] = useState<AssessmentTemplate | null>(null)
   const [isTestEngineOpen, setIsTestEngineOpen] = useState(false)
@@ -58,15 +59,35 @@ export default function StudentAssessmentsPage() {
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [aiAuditResults, setAiAuditResults] = useState<{ feedback: string; justification: string }>({ feedback: "", justification: "" })
 
-  // Test Engine Logic
+  // Test Engine Logic with Anti-Cheating (Seeded Randomization)
   const startTest = (assessment: AssessmentTemplate) => {
-    // Filter questions by phase AND class level (or general questions)
+    // 1. Precise Pooling: Filter library questions by PHASE and CLASS NAME
+    const targetClass = assessment.classLevels[0]
+    
     const pool = mockQuestions.filter(q => 
-      (q.phase === assessment.phase || q.phase === 'Both') 
+      (q.phase === assessment.phase || q.phase === 'Both')
     )
-    const shuffled = [...pool].sort(() => Math.random() - 0.5)
-    // Use assessment specific mark/length if possible, otherwise default to 10
+    
+    // 2. Seeded Shuffle: Use Student ID to ensure unique but stable version for THIS student
+    const seed = user?.id || 'anonymous'
+    const deterministicRandom = (s: string) => {
+      let hash = 0
+      for (let i = 0; i < s.length; i++) {
+        hash = (hash << 5) - hash + s.charCodeAt(i)
+        hash |= 0
+      }
+      return () => {
+        hash = (hash * 16807) % 2147483647
+        return (hash - 1) / 2147483646
+      }
+    }
+    
+    const rand = deterministicRandom(seed)
+    const shuffled = [...pool].sort(() => rand() - 0.5)
+    
+    // 3. Selection: Cap based on total marks or count
     const selected = shuffled.slice(0, 10)     
+    
     setRandomizedQuestions(selected)
     setActiveTest(assessment)
     setTimeLeft(assessment.durationMinutes * 60)
@@ -103,25 +124,50 @@ export default function StudentAssessmentsPage() {
       setStrikes(prev => {
         const next = prev + 1
         if (next >= 3) {
-          toast.error("CRITICAL VIOLATION: Excessive tab switching. Auto-submitting assessment.")
+          toast.error(`CRITICAL VIOLATION: ${reason}. Auto-submitting assessment.`)
           finishTest(true)
           return next
         }
         setIsPaused(true)
         toast.warning(`${reason}: Warning ${next}/3. Please stay on the test screen.`, {
           duration: 5000,
-          icon: <AlertTriangle className="w-5 h-5 text-warning" />
+          style: { backgroundColor: 'oklch(0.577 0.245 27.325)', color: 'white' },
+          icon: <AlertTriangle className="w-5 h-5" />
         })
         return next
       })
     }
 
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        handleViolation("Fullscreen Exit Detected")
+      }
+    }
+
+    const preventCheating = (e: KeyboardEvent) => {
+      // Disable Ctrl+C, Ctrl+V, Ctrl+X, F12
+      if ((e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) || e.key === 'F12') {
+        e.preventDefault()
+        toast.error("Security: Action Disabled during Assessment")
+      }
+    }
+
+    const preventRightClick = (e: MouseEvent) => {
+      e.preventDefault()
+    }
+
     window.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('blur', handleBlur)
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    window.addEventListener('keydown', preventCheating)
+    window.addEventListener('contextmenu', preventRightClick)
     
     return () => {
       window.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('blur', handleBlur)
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      window.removeEventListener('keydown', preventCheating)
+      window.removeEventListener('contextmenu', preventRightClick)
     }
   }, [isTestEngineOpen, showResult])
 
@@ -207,7 +253,9 @@ export default function StudentAssessmentsPage() {
       document.exitFullscreen().catch(() => {})
     }
     if (isAuto) {
-      toast.error("Assessment auto-submitted due to time or violations.")
+      toast.error("Assessment auto-submitted due to proctoring violations.", {
+        style: { backgroundColor: 'oklch(0.577 0.245 27.325)', color: 'white' }
+      })
     }
   }
 

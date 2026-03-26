@@ -33,15 +33,17 @@ export async function submitTestResultAction(result: StudentTest) {
     return { success: true, data: newSubmission }
   } catch (error) {
     console.error('Failed to submit test result:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }
 
-export async function validateAccessTokenAction(token: string) {
+export async function validateAccessTokenAction(token: string, studentId: string, className: string) {
   try {
+    // 1. Verify Assessment Token 
     const assessment = await db.assessmentTemplate.findFirst({
       where: { 
         accessCode: token,
+        classLevels: { has: className },
         status: 'active' 
       }
     })
@@ -49,13 +51,34 @@ export async function validateAccessTokenAction(token: string) {
     if (!assessment) {
       return { 
         success: false, 
-        error: 'Invalid or Inactive Token. Please wait for your instructor to open the assessment.' 
+        error: 'Invalid or Inactive Token for this class. Please wait for your instructor to open the assessment.' 
       }
     }
 
-    return { success: true, data: assessment }
+    // 2. Verify Student exists in our records
+    const student = await db.student.findFirst({
+      where: { 
+        studentId: studentId,
+        status: 'active'
+      }
+    })
+
+    if (!student) {
+      return {
+        success: false,
+        error: `Academic ID "${studentId}" not found in institutional records.`
+      }
+    }
+
+    return { 
+      success: true, 
+      data: {
+        assessment,
+        student
+      }
+    }
   } catch (error) {
     console.error('Failed to validate access token:', error)
-    return { success: false, error: 'Database error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Database error' }
   }
 }

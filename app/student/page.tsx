@@ -65,42 +65,25 @@ export default function StudentAccessPage() {
     const selectedClass = formData.get('class') as string
 
     try {
-      // Validate Token against registry context strictly
-      const assessment = assessments.find(
-        a => a.accessCode === tokenId && 
-             a.classLevels.includes(selectedClass) && 
-             a.status === 'active'
-      )
+      // 1. Perform Secure Server-Side Validation vs live Neon DB
+      const result = await validateAccessTokenAction(tokenId, studentId, selectedClass)
       
-      const isValidToken = !!assessment
-      
-      if (!isValidToken) {
-        toast.error("Invalid or Inactive Token", {
-          description: "Please check with your teacher. The exam might be paused or closed."
-        })
+      if (!result.success || !result.data) {
+        toast.error(result.error || "Verification failed")
         setIsVerifying(false)
         return
       }
 
-      // Search for student in registry to establish context
-      const studentRecord = students.find(s => s.studentId === studentId)
-      
-      if (!studentRecord) {
-        toast.error("Student Not Found", {
-          description: "Please verify your ID with the school administration."
-        })
-        setIsVerifying(false)
-        return
-      }
+      const { assessment, student: studentRecord } = result.data
 
-      // Establish authenticated session with the secure mock credentials
+      // 2. Establish authenticated session
       await login({
-        email: 'student@yahoo.com',
+        email: studentRecord.email || 'student@yahoo.com',
         password: 'StudentAccess!',
         role: 'student',
       })
 
-      // Update session with the actual student record data
+      // 3. Update local session context with the confirmed record
       updateUser({
         id: studentRecord.id,
         name: studentRecord.name,
@@ -108,10 +91,15 @@ export default function StudentAccessPage() {
         enrolledCourses: studentRecord.enrolledCourses,
         avatar: studentRecord.avatar
       })
+
+      // 4. Save the current assessment context for the session
+      sessionStorage.setItem('current_assessment_code', assessment.accessCode)
+      
       toast.success('Access Granted. Entering Assessment Portal...')
       router.push('/student/assessments')
-    } catch {
-      toast.error('Verification failed. Please try again.')
+    } catch (err) {
+      console.error(err)
+      toast.error('Portal connection failed. Please try again.')
       setIsVerifying(false)
     }
   }

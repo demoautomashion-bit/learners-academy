@@ -146,7 +146,7 @@ export default function StudentsPage() {
       enrolledCourses: [data.course],
       classTiming: data.timing,
       status: 'active',
-      enrolledAt: new Date().toISOString().split('T')[0],
+      enrolledAt: new Date().toISOString(),
       progress: 0,
     }
     enrollStudent(newStudent)
