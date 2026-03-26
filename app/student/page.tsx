@@ -42,7 +42,7 @@ const TIMINGS = [
 
 export default function StudentAccessPage() {
   const router = useRouter()
-  const { login, updateUser } = useAuth()
+  const { login, updateUser, setAssessmentSession } = useAuth()
   const { courses, schedules, assessments, students } = useData()
   const [isVerifying, setIsVerifying] = useState(false)
   const [step, setStep] = useState(1)
@@ -76,21 +76,8 @@ export default function StudentAccessPage() {
 
       const { assessment, student: studentRecord } = result.data
 
-      // 2. Establish authenticated session
-      await login({
-        email: studentRecord.email || 'student@yahoo.com',
-        password: 'StudentAccess!',
-        role: 'student',
-      })
-
-      // 3. Update local session context with the confirmed record
-      updateUser({
-        id: studentRecord.id,
-        name: studentRecord.name,
-        email: studentRecord.email,
-        enrolledCourses: studentRecord.enrolledCourses,
-        avatar: studentRecord.avatar
-      })
+      // 2. Establish authenticated session directly from verified student record
+      setAssessmentSession(studentRecord)
 
       // 4. Save the current assessment context for the session
       sessionStorage.setItem('current_assessment_code', assessment.accessCode)

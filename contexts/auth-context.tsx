@@ -39,6 +39,7 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>
   checkAccess: (requiredRole: UserRole) => boolean
   updateUser: (data: Partial<User>) => void
+  setAssessmentSession: (studentRecord: any) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -101,8 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                             pathname.startsWith('/student')
 
     if (!state.isAuthenticated && isProtectedRoute) {
-      // Allow access to the student entry page without authentication
+      // Allow unauthenticated access to student entry and assessment pages
       if (pathname === '/student') return
+      if (pathname.startsWith('/student/assessments')) return
       
       router.push('/auth/login')
       return
@@ -232,6 +234,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  // Directly establishes a student session after token-based validation (bypasses password login)
+  const setAssessmentSession = useCallback((studentRecord: any) => {
+    const user: User = {
+      id: studentRecord.id,
+      email: studentRecord.email,
+      name: studentRecord.name,
+      role: 'student',
+      avatar: studentRecord.avatar || undefined,
+      createdAt: studentRecord.createdAt ? new Date(studentRecord.createdAt).toISOString() : new Date().toISOString(),
+    }
+    const token = btoa(JSON.stringify({ sub: user.id, email: user.email, role: user.role, name: user.name, exp: Date.now() + 24 * 60 * 60 * 1000 }))
+    sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token, user, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() }))
+    setState({ user, isAuthenticated: true, isLoading: false })
+  }, [])
+
   if (!mounted) return <div id="auth-hydrating" />
 
   return (
@@ -242,6 +259,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       checkAccess,
       updateUser,
+      setAssessmentSession,
     }}>
       {children}
     </AuthContext.Provider>
