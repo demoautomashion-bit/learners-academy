@@ -96,12 +96,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
         getSubmissions(),
         getSchedules(),
       ])
-      setTeachers(t as unknown as Teacher[])
-      setStudents(s as unknown as Student[])
-      setCourses(c as unknown as Course[])
+      
+      // Ensure dates are string-compatible for UI components that might expect strings
+      const normalizeDate = (d: any) => (d instanceof Date ? d.toISOString() : d)
+
+      setTeachers((t as unknown as Teacher[]).map(t => ({ ...t, joinedAt: normalizeDate(t.joinedAt) })))
+      setStudents((s as unknown as Student[]).map(s => ({ ...s, enrolledAt: normalizeDate(s.enrolledAt) })))
+      setCourses((c as unknown as Course[]).map(c => ({ 
+        ...c, 
+        startDate: normalizeDate(c.startDate),
+        endDate: normalizeDate(c.endDate)
+      })))
       setQuestions(q as unknown as Question[])
       setAssessments(a as unknown as AssessmentTemplate[])
-      setSubmissions(sub as unknown as Submission[])
+      setSubmissions((sub as unknown as Submission[]).map(s => ({ ...s, submittedAt: normalizeDate(s.submittedAt) })))
       setSchedules(sch as unknown as Schedule[])
     } catch (err) {
       console.error('Failed to load data from DB:', err)
@@ -120,8 +128,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // --- Teachers ---
   const addTeacher = useCallback(async (teacher: Teacher) => {
-    await dbAddTeacher(teacher)
-    await refresh()
+    try {
+      await dbAddTeacher(teacher)
+      await refresh()
+    } catch (err) {
+      console.error('Add teacher error:', err)
+      toast.error('Failed to add teacher to registry')
+      throw err
+    }
   }, [refresh])
 
   const updateTeacherStatus = useCallback(async (id: string, status: Teacher['status']) => {
@@ -136,8 +150,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // --- Students ---
   const enrollStudent = useCallback(async (student: Student) => {
-    await dbEnrollStudent(student)
-    await refresh()
+    try {
+      await dbEnrollStudent(student)
+      await refresh()
+    } catch (err) {
+      console.error('Enroll student error:', err)
+      toast.error('Failed to enroll student')
+      throw err
+    }
   }, [refresh])
 
   const removeStudent = useCallback(async (id: string) => {
@@ -152,8 +172,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // --- Courses ---
   const addCourse = useCallback(async (course: Course) => {
-    await dbAddCourse(course)
-    await refresh()
+    try {
+      await dbAddCourse(course)
+      await refresh()
+    } catch (err) {
+      console.error('Add course error:', err)
+      toast.error('Failed to register course')
+      throw err
+    }
   }, [refresh])
 
   const removeCourse = useCallback(async (id: string) => {
@@ -172,8 +198,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // --- Questions ---
   const addQuestion = useCallback(async (question: Question) => {
-    await dbAddQuestion(question)
-    await refresh()
+    try {
+      await dbAddQuestion(question)
+      await refresh()
+    } catch (err) {
+      console.error('Add question error:', err)
+      toast.error('Failed to save question')
+      throw err
+    }
   }, [refresh])
 
   const deleteQuestion = useCallback(async (id: string) => {
@@ -188,8 +220,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // --- Assessments ---
   const publishAssessment = useCallback(async (assessment: AssessmentTemplate) => {
-    await dbPublishAssessment(assessment)
-    await refresh()
+    try {
+      await dbPublishAssessment(assessment)
+      await refresh()
+    } catch (err) {
+      console.error('Publish assessment error:', err)
+      toast.error(err instanceof Error ? err.message : 'Failed to publish assessment')
+      throw err
+    }
   }, [refresh])
 
   const removeAssessment = useCallback(async (id: string) => {

@@ -8,7 +8,13 @@ export async function getStudents() {
 }
 
 export async function enrollStudent(student: Omit<Student, 'progress'>) {
-  return db.student.create({ data: { ...student, progress: 0 } as any })
+  return db.student.create({ 
+    data: { 
+      ...student, 
+      progress: 0,
+      enrolledAt: student.enrolledAt ? new Date(student.enrolledAt) : new Date()
+    } as any 
+  })
 }
 
 export async function removeStudent(id: string) {

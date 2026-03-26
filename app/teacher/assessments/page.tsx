@@ -100,7 +100,7 @@ export default function AssessmentsPage() {
     a.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const onSubmit = (data: AssessmentFormValues) => {
+  const onSubmit = async (data: AssessmentFormValues) => {
     // Logic to verify questions exist in library for this phase
     const availableQuestions = mockQuestions.filter(q => q.phase === data.phase || q.phase === 'Both')
     
@@ -122,10 +122,14 @@ export default function AssessmentsPage() {
       accessCode: data.accessCode,
     }
 
-    publishAssessment(newAssessment)
-    setIsCreateOpen(false)
-    reset()
-    toast.success('Assessment generated successfully')
+    try {
+      await publishAssessment(newAssessment)
+      setIsCreateOpen(false)
+      reset()
+      toast.success('Assessment generated successfully')
+    } catch (error) {
+      // Error handled by context
+    }
   }
 
   const handleDelete = (id: string) => {

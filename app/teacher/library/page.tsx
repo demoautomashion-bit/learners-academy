@@ -91,7 +91,7 @@ export default function QuestionLibraryPage() {
     q.content.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const onSubmit = (data: QuestionFormValues) => {
+  const onSubmit = async (data: QuestionFormValues) => {
     const newQuestion: Question = {
       id: Math.random().toString(36).substr(2, 9),
       category: data.category as QuestionCategory,
@@ -103,10 +103,14 @@ export default function QuestionLibraryPage() {
       imageUrl: data.imageUrl,
     }
 
-    addQuestion(newQuestion)
-    setIsAddingQuestion(false)
-    reset()
-    toast.success('Question added to library')
+    try {
+      await addQuestion(newQuestion)
+      setIsAddingQuestion(false)
+      reset()
+      toast.success('Question added to library')
+    } catch (error) {
+      // Error handled by context
+    }
   }
 
   const handleDelete = (id: string) => {

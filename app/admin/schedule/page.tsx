@@ -61,7 +61,8 @@ export default function SchedulePage() {
     s.teacherName.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleAddSchedule = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddSchedule = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const slotId = formData.get('slotId') as string
     const slot = ACADEMY_SLOTS.find(s => s.id === slotId)
@@ -76,9 +77,13 @@ export default function SchedulePage() {
       days: ['Mon', 'Wed', 'Fri'], // Default days
     }
 
-    addSchedule(newSchedule)
-    setIsAddOpen(false)
-    toast.success('Schedule created successfully')
+    try {
+      await addSchedule(newSchedule)
+      setIsAddOpen(false)
+      toast.success('Schedule created successfully')
+    } catch (error) {
+      // Error handled by context
+    }
   }
 
   return (

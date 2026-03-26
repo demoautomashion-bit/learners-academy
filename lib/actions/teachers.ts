@@ -8,7 +8,12 @@ export async function getTeachers() {
 }
 
 export async function addTeacher(teacher: Omit<Teacher, 'coursesCount' | 'studentsCount'>) {
-  return db.teacher.create({ data: teacher as any })
+  return db.teacher.create({ 
+    data: { 
+      ...teacher, 
+      joinedAt: teacher.joinedAt ? new Date(teacher.joinedAt) : new Date() 
+    } as any 
+  })
 }
 
 export async function removeTeacher(id: string) {

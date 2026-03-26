@@ -100,7 +100,7 @@ export default function ClassesPage() {
     return matchesSearch && matchesStatus
   })
 
-  const handleAddCourse = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddCourse = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const teacherId = formData.get('teacherId') as string
@@ -122,9 +122,14 @@ export default function ClassesPage() {
       endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
       roomNumber: formData.get('roomNumber') as string,
     }
-    addCourse(newCourse)
-    setIsAddDialogOpen(false)
-    toast.success('Class created successfully')
+
+    try {
+      await addCourse(newCourse)
+      setIsAddDialogOpen(false)
+      toast.success('Class created successfully')
+    } catch (error) {
+      // Error handled by context
+    }
   }
 
   const handleStatusChange = (course: Course, newStatus: Course['status']) => {

@@ -135,12 +135,12 @@ export default function StudentsPage() {
     return matchesSearch && matchesStatus
   })
 
-  const onSubmit = (data: StudentFormValues) => {
+  const onSubmit = async (data: StudentFormValues) => {
     const newStudent: Student = {
       id: `student-${Date.now()}`,
       studentId: data.studentId,
       name: data.name,
-      email: `${data.studentId.toLowerCase()}@learnersacademy.com`, // Generated default
+      email: `${data.studentId.toLowerCase()}@learnersacademy.com`, 
       phone: data.phone,
       guardianName: data.guardianName,
       enrolledCourses: [data.course],
@@ -149,10 +149,15 @@ export default function StudentsPage() {
       enrolledAt: new Date().toISOString(),
       progress: 0,
     }
-    enrollStudent(newStudent)
-    setIsAddDialogOpen(false)
-    reset()
-    toast.success('Registration successful')
+    
+    try {
+      await enrollStudent(newStudent)
+      setIsAddDialogOpen(false)
+      reset()
+      toast.success('Registration successful')
+    } catch (err) {
+      // Error handled by context
+    }
   }
 
   const handleToggleStatus = (student: Student) => {

@@ -55,6 +55,7 @@ import {
   User,
 } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
+import { cn } from '@/lib/utils'
 import type { Teacher } from '@/lib/types'
 
 const CLASS_LEVELS = [
@@ -90,7 +91,7 @@ export default function TeachersPage() {
     (teacher.assignedClass && teacher.assignedClass.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
-  const handleAddTeacher = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddTeacher = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const newTeacher: Teacher = {
@@ -99,16 +100,21 @@ export default function TeachersPage() {
       email: formData.get('email') as string,
       phone: formData.get('phone') as string,
       employeeId: formData.get('employeeId') as string,
-      subjects: [], // Initializing as empty since we removed the field
+      subjects: [], 
       qualifications: [],
       status: 'active',
       joinedAt: new Date().toISOString(),
       coursesCount: 0,
       studentsCount: 0,
     }
-    addTeacher(newTeacher)
-    setIsAddDialogOpen(false)
-    toast.success('Teacher added successfully')
+    
+    try {
+      await addTeacher(newTeacher)
+      setIsAddDialogOpen(false)
+      toast.success('Teacher added successfully')
+    } catch (error) {
+      // Error handled by context toast
+    }
   }
 
   const handleToggleStatus = (teacher: Teacher) => {

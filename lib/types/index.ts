@@ -10,7 +10,7 @@ export interface Teacher {
   qualifications: string[]
   status: 'active' | 'inactive'
   avatar?: string
-  joinedAt: string
+  joinedAt: Date | string
   coursesCount: number
   studentsCount: number
   assignedClass?: string
@@ -27,7 +27,7 @@ export interface Student {
   avatar?: string
   guardianName?: string
   studentId?: string
-  enrolledAt: string
+  enrolledAt: Date | string
   progress: number
   grade?: string
   classTiming?: string
@@ -45,8 +45,8 @@ export interface Course {
   status: 'active' | 'draft' | 'completed' | 'archived'
   schedule: string
   duration: string
-  startDate: string
-  endDate: string
+  startDate: Date | string
+  endDate: Date | string
   roomNumber?: string
   thumbnail?: string
   milestones?: {
@@ -65,11 +65,11 @@ export interface Assignment {
   courseId: string
   courseName: string
   teacherId: string
-  dueDate: string
+  dueDate: Date | string
   status: 'active' | 'closed' | 'draft'
   submissionsCount: number
   totalStudents: number
-  createdAt: string
+  createdAt: Date | string
 }
 
 export interface Submission {
@@ -78,7 +78,7 @@ export interface Submission {
   assignmentTitle: string
   studentId: string
   studentName: string
-  submittedAt: string
+  submittedAt: Date | string
   status: 'pending' | 'graded' | 'late'
   grade?: number
   feedback?: string

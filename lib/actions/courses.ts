@@ -8,7 +8,14 @@ export async function getCourses() {
 }
 
 export async function addCourse(course: Omit<Course, 'enrolled'>) {
-  return db.course.create({ data: { ...course, enrolled: 0 } as any })
+  return db.course.create({ 
+    data: { 
+      ...course, 
+      enrolled: 0,
+      startDate: new Date(course.startDate),
+      endDate: new Date(course.endDate)
+    } as any 
+  })
 }
 
 export async function removeCourse(id: string) {
