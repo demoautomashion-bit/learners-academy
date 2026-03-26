@@ -145,6 +145,10 @@ export default function TeacherDashboard() {
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   <div className="text-3xl font-serif font-bold tracking-tight">{stat.value}</div>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <div className="h-1 w-1 rounded-full bg-primary/40" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium opacity-60">Institutional Data</span>
+                  </div>
                 </CardContent>
               </Card>
             </Link>

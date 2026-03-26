@@ -97,7 +97,7 @@ export default function TeachersPage() {
     const newTeacher: Teacher = {
       id: `teacher-${Date.now()}`,
       name: formData.get('name') as string,
-      email: formData.get('email') as string,
+      email: (formData.get('email') as string).toLowerCase().trim(),
       phone: formData.get('phone') as string,
       employeeId: formData.get('employeeId') as string,
       employeePassword: formData.get('password') as string, // Added this line
@@ -176,6 +176,7 @@ export default function TeachersPage() {
                     <Field>
                       <FieldLabel className="text-editorial-label">Portal Password</FieldLabel>
                       <SecureInput name="password" placeholder="••••••••" required className="bg-background/50" />
+                      <p className="text-[9px] text-muted-foreground mt-1 opacity-70">Institutional policy: Minimum 8 characters.</p>
                     </Field>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
