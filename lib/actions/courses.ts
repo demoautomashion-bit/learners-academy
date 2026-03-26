@@ -4,7 +4,12 @@ import db from '@/lib/db'
 import type { Course } from '@/lib/types'
 
 export async function getCourses() {
-  return db.course.findMany({ orderBy: { startDate: 'desc' } })
+  try {
+    return await db.course.findMany({ orderBy: { startDate: 'desc' } })
+  } catch (error) {
+    console.error('DATABASE_ERROR [getCourses]:', error)
+    throw new Error('Database connection failed. Please check server logs.')
+  }
 }
 
 export async function addCourse(course: Omit<Course, 'enrolled'>) {

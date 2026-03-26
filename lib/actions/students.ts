@@ -4,7 +4,12 @@ import db from '@/lib/db'
 import type { Student } from '@/lib/types'
 
 export async function getStudents() {
-  return db.student.findMany({ orderBy: { enrolledAt: 'desc' } })
+  try {
+    return await db.student.findMany({ orderBy: { enrolledAt: 'desc' } })
+  } catch (error) {
+    console.error('DATABASE_ERROR [getStudents]:', error)
+    throw new Error('Database connection failed. Please check server logs.')
+  }
 }
 
 export async function enrollStudent(student: Omit<Student, 'progress'>) {

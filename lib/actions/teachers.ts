@@ -4,7 +4,12 @@ import db from '@/lib/db'
 import type { Teacher } from '@/lib/types'
 
 export async function getTeachers() {
-  return db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })
+  try {
+    return await db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })
+  } catch (error) {
+    console.error('DATABASE_ERROR [getTeachers]:', error)
+    throw new Error('Database connection failed. Please check server logs.')
+  }
 }
 
 export async function addTeacher(teacher: Omit<Teacher, 'coursesCount' | 'studentsCount'>) {
