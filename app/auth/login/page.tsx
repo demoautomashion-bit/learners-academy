@@ -4,7 +4,7 @@ import { useState, Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Logo } from '@/components/logo'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Mail, Lock, Loader2, UserCircle } from 'lucide-react'
+import { ArrowLeft, Mail, Lock, Loader2, UserCircle, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,8 @@ function LoginContent() {
   const passedRole = searchParams.get('role') as 'admin' | 'teacher' | 'student' | null
   const [role, setRole] = useState<'admin' | 'teacher' | 'student'>(passedRole || 'student')
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [password, setPassword] = useState('')
 
   useEffect(() => {
     if (passedRole && ['admin', 'teacher', 'student'].includes(passedRole)) {
@@ -32,7 +34,7 @@ function LoginContent() {
     setIsLoading(true)
     
     try {
-      await login({ email, role })
+      await login({ email, password, role })
       toast.success('Successfully logged in')
       // Redirect is handled by AuthProvider
     } catch (error: any) {
@@ -65,35 +67,15 @@ function LoginContent() {
         className="w-full max-w-md"
       >
         <Card className="border-none shadow-2xl rounded-2xl overflow-hidden bg-card/50 backdrop-blur-xl">
-          <CardHeader className="space-y-1 text-center pt-8">
+          <CardHeader className="space-y-1 text-center pt-6">
             <CardTitle className="font-serif text-3xl font-bold">Sign In</CardTitle>
             <CardDescription className="text-muted-foreground">
               Enter your academy credentials below
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Account Role</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['admin', 'teacher', 'student'] as const).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setRole(r)}
-                      className={`py-2 px-1 rounded-lg text-xs font-bold capitalize transition-all border-2 ${
-                        role === r 
-                        ? "border-primary bg-primary/5 text-primary shadow-sm" 
-                        : "border-transparent bg-muted/30 text-muted-foreground hover:bg-muted/50"
-                      }`}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="space-y-1">
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input 
@@ -106,15 +88,28 @@ function LoginContent() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"} 
                     placeholder="••••••••" 
                     required 
-                    className="pl-10 h-11 bg-background/50 border-primary/10 rounded-xl focus:ring-primary/20"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10 h-11 bg-background/50 border-primary/10 rounded-xl focus:ring-primary/20"
                   />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
               <Button type="submit" className="w-full h-11 rounded-xl font-bold uppercase tracking-widest transition-premium" disabled={isLoading}>
