@@ -214,15 +214,15 @@ export default function AttendancePage() {
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full border-collapse text-left table-fixed">
             <thead>
-              <tr className="bg-muted/10 border-b border-primary/10">
-                {/* Sticky Side Headers */}
-                <th className="sticky left-0 z-40 bg-card/95 backdrop-blur-md px-6 py-6 w-[180px] sm:w-[220px] border-r border-primary/10 shrink-0">
+              <tr className="bg-muted/10 border-b border-primary/5">
+                {/* Sticky Side Headers (Spanning multiple rows) */}
+                <th rowSpan={2} className="sticky left-0 z-40 bg-card/95 backdrop-blur-md px-6 py-6 w-[180px] sm:w-[220px] border-r border-primary/10 shrink-0">
                   <div className="flex flex-col gap-1">
                     <span className="text-[9px] uppercase tracking-[0.25em] font-black text-muted-foreground/40 leading-none">Registry</span>
                     <span className="font-serif text-lg font-bold leading-tight">Academic Staff</span>
                   </div>
                 </th>
-                <th className="sticky left-[180px] sm:left-[220px] z-40 bg-card/95 backdrop-blur-md px-4 py-6 w-[160px] sm:w-[180px] border-r border-primary/10 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.1)] shrink-0">
+                <th rowSpan={2} className="sticky left-[180px] sm:left-[220px] z-40 bg-card/95 backdrop-blur-md px-4 py-8 w-[160px] sm:w-[180px] border-r border-primary/10 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.1)] shrink-0">
                   <div className="grid grid-cols-4 gap-1 text-center">
                     {['P','A','L','S'].map(l => (
                       <span key={l} className="text-[8px] font-black opacity-20 tracking-tighter" title={l}>{l}</span>
@@ -230,19 +230,32 @@ export default function AttendancePage() {
                   </div>
                   <div className="text-[9px] text-center uppercase tracking-[0.15em] font-black text-muted-foreground pt-1 opacity-30 leading-none">Summary</div>
                 </th>
-                {/* Scrollable Date Headers */}
+                
+                {/* Row 1: Day Labels (MON, TUE...) */}
                 {calendarDays.map(day => {
                    const date = new Date(selectedYear, selectedMonth, day)
                    const isWeekend = date.getDay() === 0 || date.getDay() === 6
                    return (
-                     <th key={day} className={cn(
-                       "px-3 py-6 min-w-[50px] text-center border-r border-primary/5/30",
-                       isWeekend ? "bg-muted/50" : ""
+                     <th key={`day-${day}`} className={cn(
+                       "px-1 py-4 min-w-[50px] text-center border-r border-primary/5/30 transition-colors",
+                       isWeekend ? "bg-muted/40" : ""
                      )}>
-                       <div className="flex flex-col items-center">
-                         <span className="text-[9px] font-black uppercase tracking-tighter opacity-40 mb-1">{DAYS[date.getDay()]}</span>
-                         <span className="font-mono text-base font-bold text-primary/80">{day < 10 ? `0${day}` : day}</span>
-                       </div>
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-30">{DAYS[date.getDay()]}</span>
+                     </th>
+                   )
+                })}
+              </tr>
+              <tr className="bg-muted/5 border-b border-primary/10">
+                {/* Row 2: Date Anchors (01, 02...) */}
+                {calendarDays.map(day => {
+                   const date = new Date(selectedYear, selectedMonth, day)
+                   const isWeekend = date.getDay() === 0 || date.getDay() === 6
+                   return (
+                     <th key={`date-${day}`} className={cn(
+                       "px-1 py-4 min-w-[50px] text-center border-r border-primary/5/30 transition-colors",
+                       isWeekend ? "bg-muted/40" : ""
+                     )}>
+                        <span className="font-mono text-base font-bold text-primary/70">{day < 10 ? `0${day}` : day}</span>
                      </th>
                    )
                 })}
@@ -335,7 +348,7 @@ function TableBodyWrapper({
               return (
                 <td key={day} className={cn(
                   "px-2 py-4 border-r border-primary/5/30 transition-premium",
-                  isWeekend ? "bg-muted/20" : ""
+                  isWeekend ? "bg-muted/10/50" : ""
                 )}>
                   <AttendanceCell 
                     teacherId={teacher.id} 
