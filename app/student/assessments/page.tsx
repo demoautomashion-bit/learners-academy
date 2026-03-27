@@ -153,35 +153,46 @@ export default function StudentAssessmentsPage() {
     const pointsPerQuestion = totalScorable > 0 ? (activeTest?.totalMarks || 100) / totalScorable : 0
     let totalScore = 0
 
-    const autoGraded = randomizedQuestions.filter(q => (AUTO_GRADED_TYPES as readonly string[]).includes(q.type))
-    const aiGraded   = randomizedQuestions.filter(q => (AI_GRADED_TYPES as readonly string[]).includes(q.type))
+    const finalPercentage = await (async () => {
+      const autoGraded = randomizedQuestions.filter(q => (AUTO_GRADED_TYPES as readonly string[]).includes(q.type))
+      const aiGraded   = randomizedQuestions.filter(q => (AI_GRADED_TYPES as readonly string[]).includes(q.type))
 
-    // Auto-graded questions
-    autoGraded.forEach(q => {
-      if (q.type === 'Matching') {
-        try {
-          const studentPairs = JSON.parse(answers[q.id] || '{}')
-          const allCorrect = (q.matchPairs || []).every(p => studentPairs[p.left] === p.right)
-          if (allCorrect) totalScore += pointsPerQuestion
-        } catch {}
-      } else if (q.type === 'Fill in the Blanks') {
-        if (answers[q.id]?.toLowerCase().trim() === q.correctAnswer?.toLowerCase().trim()) totalScore += pointsPerQuestion
-      } else {
-        // MCQ + True/False
-        if (answers[q.id] === q.correctAnswer) totalScore += pointsPerQuestion
-      }
-    })
+      // 1. Auto-graded questions
+      autoGraded.forEach(q => {
+        if (q.type === 'Matching') {
+          try {
+            const studentPairs = JSON.parse(answers[q.id] || '{}')
+            const allCorrect = (q.matchPairs || []).every(p => studentPairs[p.left] === p.right)
+            if (allCorrect) totalScore += pointsPerQuestion
+          } catch {}
+        } else if (q.type === 'Fill in the Blanks') {
+          if (answers[q.id]?.toLowerCase().trim() === q.correctAnswer?.toLowerCase().trim()) totalScore += pointsPerQuestion
+        } else {
+          // MCQ + True/False
+          if (answers[q.id] === q.correctAnswer) totalScore += pointsPerQuestion
+        }
+      })
 
-    // AI-graded questions
-    for (const q of aiGraded) {
-      const audit = await evaluateSubjective(q, answers[q.id] || "")
-      // Convert AI score (0-1) to weighted points
-      totalScore += (audit.score * pointsPerQuestion)
-      aiFeedbackChain += audit.feedback + " "
-      aiJustificationChain += audit.justification + " "
-    }
+      // 2. AI-graded questions (Parallel Execution)
+      let aiFeedbackChain = ""
+      let aiJustificationChain = ""
 
-    const finalPercentage = Math.round(totalScore)
+      const auditPromises = aiGraded.map(q => evaluateSubjective(q, answers[q.id] || ""))
+      const audits = await Promise.all(auditPromises)
+
+      audits.forEach(audit => {
+        totalScore += (audit.score * pointsPerQuestion)
+        aiFeedbackChain += audit.feedback + " "
+        aiJustificationChain += audit.justification + " "
+      })
+
+      setAiAuditResults({
+        feedback: aiFeedbackChain || "Assessment complete. All questions were auto-graded.",
+        justification: aiJustificationChain,
+      })
+
+      return Math.round(totalScore)
+    })()
 
     setFinalScore(finalPercentage)
     setAiAuditResults({
@@ -291,6 +302,7 @@ export default function StudentAssessmentsPage() {
             className="min-h-[300px] sm:min-h-[340px] resize-y text-base p-4 leading-relaxed bg-background/50 border-2 focus:border-primary/40 rounded-xl"
             value={currentAnswer}
             onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
+            spellCheck={false}
           />
           {wordCount > 0 && wordCount < 80 && (
             <p className="text-xs text-warning/80 font-medium">Aim for at least 80 words for a complete academic response.</p>
@@ -304,7 +316,8 @@ export default function StudentAssessmentsPage() {
       const studentPairs: Record<string, string> = (() => {
         try { return JSON.parse(currentAnswer || '{}') } catch { return {} }
       })()
-      const allRights = [...q.matchPairs].map(p => p.right).sort()
+      // Ensure unique options in dropdown
+      const allRights = Array.from(new Set([...q.matchPairs].map(p => p.right))).sort()
 
       return (
         <div className="space-y-3 pt-4">
@@ -388,6 +401,7 @@ export default function StudentAssessmentsPage() {
             className="min-h-[140px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
             value={currentAnswer}
             onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
+            spellCheck={false}
           />
         </div>
       )
@@ -414,6 +428,7 @@ export default function StudentAssessmentsPage() {
             className="min-h-[140px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
             value={currentAnswer}
             onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
+            spellCheck={false}
           />
         </div>
       )
@@ -568,14 +583,19 @@ export default function StudentAssessmentsPage() {
 
                 {/* Question area */}
                 <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-8 lg:px-12 py-6">
-                  <AnimatePresence mode="wait">
+                  <AnimatePresence mode="popLayout" initial={false}>
                     <motion.div
                       key={currentQuestionIndex}
-                      initial={{ opacity: 0, x: 16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -16 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-5 max-w-3xl mx-auto"
+                      initial={{ opacity: 0, x: 20, scale: 0.98 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      exit={{ opacity: 0, x: -20, scale: 0.98 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                        opacity: { duration: 0.2 }
+                      }}
+                      className="space-y-5 max-w-3xl mx-auto w-full"
                     >
                       {randomizedQuestions[currentQuestionIndex] && (
                         <>
