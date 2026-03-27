@@ -140,20 +140,21 @@ export default function AttendancePage() {
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
       {/* Editorial Header */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      {/* Responsive Editorial Header */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between px-1">
         <div className="space-y-1">
-          <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground">
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
             Staff Registry
           </h1>
-          <p className="text-muted-foreground font-sans text-sm tracking-wide opacity-80">
+          <p className="text-muted-foreground font-sans text-xs sm:text-sm tracking-wide opacity-80">
             Professional Attendance & Substitution Tracker — {MONTHS[selectedMonth]} {selectedYear}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex bg-card/50 backdrop-blur-sm border border-primary/5 p-1 rounded-xl shadow-sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex bg-card/60 backdrop-blur-md border border-primary/10 p-1.5 rounded-xl shadow-sm">
              <Select value={selectedMonth.toString()} onValueChange={v => setSelectedMonth(parseInt(v))}>
-                <SelectTrigger className="w-32 border-none bg-transparent h-9 text-xs font-semibold focus:ring-0">
+                <SelectTrigger className="w-full sm:w-32 border-none bg-transparent h-9 text-xs font-semibold focus:ring-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,8 +163,9 @@ export default function AttendancePage() {
                   ))}
                 </SelectContent>
              </Select>
+             <div className="w-px h-4 bg-primary/10 self-center mx-1 hidden sm:block" />
              <Select value={selectedYear.toString()} onValueChange={v => setSelectedYear(parseInt(v))}>
-                <SelectTrigger className="w-24 border-none bg-transparent h-9 text-xs font-semibold focus:ring-0">
+                <SelectTrigger className="w-full sm:w-24 border-none bg-transparent h-9 text-xs font-semibold focus:ring-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,7 +179,7 @@ export default function AttendancePage() {
           <Button 
             onClick={handleMarkAllPresent}
             variant="outline" 
-            className="h-11 px-6 rounded-xl border-primary/20 bg-background hover:bg-primary/5 hover:text-primary transition-premium font-bold text-xs uppercase tracking-widest gap-2"
+            className="h-12 sm:h-11 px-6 rounded-xl border-primary/20 bg-background hover:bg-primary/5 hover:text-primary transition-premium font-bold text-[10px] uppercase tracking-widest gap-2 w-full sm:w-auto"
           >
             <CheckCircle2 className="w-4 h-4" />
             Check-in All Active
@@ -185,48 +187,48 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {/* Stats Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Avg Presence', value: '94%', icon: CheckCircle2, color: 'text-success' },
-          { label: 'Unchecked Today', value: teachers.length - attendanceRecords.filter(r => new Date(r.date).getDate() === new Date().getDate()).length, icon: User, color: 'text-muted-foreground' },
-          { label: 'Late Frequency', value: '4.2%', icon: Clock, color: 'text-warning' },
-          { label: 'Substitutions', value: attendanceRecords.filter(r => r.isSubstitute).length, icon: Star, color: 'text-primary' },
-        ].map((s, i) => (
-          <Card key={i} className="border-primary/5 shadow-sm bg-card/50">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className={cn("p-2 rounded-lg bg-background border border-primary/5", s.color)}>
-                <s.icon className="w-5 h-5" />
+      {/* Unified Analytics Strip (Adaptive Layout) */}
+      <Card className="border-primary/10 shadow-lg bg-card/40 backdrop-blur-xl overflow-hidden rounded-3xl mx-0 sm:mx-1">
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-primary/5">
+          {[
+            { label: 'Avg Presence', value: '94%', icon: CheckCircle2, color: 'text-success' },
+            { label: 'Unchecked', value: teachers.length - attendanceRecords.filter(r => new Date(r.date).getDate() === new Date().getDate()).length, icon: User, color: 'text-muted-foreground' },
+            { label: 'Late Frequency', value: '4.2%', icon: Clock, color: 'text-warning' },
+            { label: 'Substitutions', value: attendanceRecords.filter(r => r.isSubstitute).length, icon: Star, color: 'text-primary' },
+          ].map((s, i) => (
+            <div key={i} className="p-5 sm:p-6 flex items-center justify-between group">
+              <div className="space-y-1">
+                <p className="text-[10px] uppercase tracking-[0.15em] font-extrabold text-muted-foreground/60 transition-colors group-hover:text-muted-foreground">{s.label}</p>
+                <p className="text-2xl sm:text-3xl font-serif font-bold tracking-tight">{s.value}</p>
               </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground opacity-60">{s.label}</p>
-                <p className="text-xl font-serif font-bold">{s.value}</p>
+              <div className={cn("p-2.5 rounded-2xl bg-background/50 border border-primary/5 shadow-inner transition-transform group-hover:scale-110", s.color)}>
+                <s.icon className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* The Master Grid */}
-      <div className="relative border border-primary/10 rounded-3xl bg-card shadow-2xl overflow-hidden">
+      <div className="relative border border-primary/10 rounded-3xl bg-card shadow-2xl overflow-hidden mx-0 sm:mx-1">
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full border-collapse text-left">
+          <table className="w-full border-collapse text-left table-fixed">
             <thead>
-              <tr className="bg-muted/30 border-b border-primary/5">
+              <tr className="bg-muted/10 border-b border-primary/10">
                 {/* Sticky Side Headers */}
-                <th className="sticky left-0 z-40 bg-card/95 backdrop-blur-md px-6 py-6 min-w-[200px] border-r border-primary/5">
+                <th className="sticky left-0 z-40 bg-card/95 backdrop-blur-md px-6 py-6 w-[180px] sm:w-[220px] border-r border-primary/10 shrink-0">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground opacity-50">Personnel Registry</span>
-                    <span className="font-serif text-lg font-bold">Academic Staff</span>
+                    <span className="text-[9px] uppercase tracking-[0.25em] font-black text-muted-foreground/40 leading-none">Registry</span>
+                    <span className="font-serif text-lg font-bold leading-tight">Academic Staff</span>
                   </div>
                 </th>
-                <th className="sticky left-[200px] z-40 bg-card/95 backdrop-blur-md px-4 py-6 min-w-[180px] border-r border-primary/5 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.05)]">
-                  <div className="grid grid-cols-4 gap-2 text-center">
+                <th className="sticky left-[180px] sm:left-[220px] z-40 bg-card/95 backdrop-blur-md px-4 py-6 w-[160px] sm:w-[180px] border-r border-primary/10 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.1)] shrink-0">
+                  <div className="grid grid-cols-4 gap-1 text-center">
                     {['P','A','L','S'].map(l => (
-                      <span key={l} className="text-[9px] font-black opacity-30 tracking-tighter" title={l === 'P' ? 'Presence' : l === 'A' ? 'Absence' : l === 'L' ? 'Late' : 'Substitution'}>{l}</span>
+                      <span key={l} className="text-[8px] font-black opacity-20 tracking-tighter" title={l}>{l}</span>
                     ))}
                   </div>
-                  <div className="text-[10px] text-center uppercase tracking-widest font-bold text-muted-foreground pt-1 opacity-40">Monthly Summary</div>
+                  <div className="text-[9px] text-center uppercase tracking-[0.15em] font-black text-muted-foreground pt-1 opacity-30 leading-none">Summary</div>
                 </th>
                 {/* Scrollable Date Headers */}
                 {calendarDays.map(day => {
@@ -303,21 +305,21 @@ function TableBodyWrapper({
         return (
           <tr key={teacher.id} className="group hover:bg-primary/5 transition-premium border-b border-primary/5/30 h-16">
             {/* Sticky Side 1: Name & ID */}
-            <td className="sticky left-0 z-30 bg-card group-hover:bg-transparent backdrop-blur-md px-6 py-4 border-r border-primary/5 transition-colors">
+            <td className="sticky left-0 z-30 bg-card group-hover:bg-transparent backdrop-blur-md px-6 py-4 w-[180px] sm:w-[220px] border-r border-primary/10 transition-colors shrink-0">
               <div className="flex items-center gap-3">
                  <div className="flex-1 min-w-0">
-                    <p className="font-serif font-bold text-base leading-none truncate mb-1">{teacher.name}</p>
-                    <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-widest opacity-70">ID: {teacher.employeeId}</p>
+                    <p className="font-serif font-bold text-sm sm:text-base leading-tight truncate mb-0.5">{teacher.name}</p>
+                    <p className="font-mono text-[8px] text-muted-foreground uppercase tracking-widest opacity-60">ID: {teacher.employeeId}</p>
                  </div>
               </div>
             </td>
             
             {/* Sticky Side 2: Monthly Stats */}
-            <td className="sticky left-[200px] z-30 bg-card group-hover:bg-transparent backdrop-blur-md px-4 py-4 border-r border-primary/5 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.05)] transition-colors">
-              <div className="grid grid-cols-4 gap-2 text-center">
-                 <span className="text-xs font-bold text-success/80">{stats.present}</span>
-                 <span className="text-xs font-bold text-destructive/60">{stats.absent}</span>
-                 <span className="text-xs font-bold text-warning">{stats.late}</span>
+            <td className="sticky left-[180px] sm:left-[220px] z-30 bg-card group-hover:bg-transparent backdrop-blur-md px-4 py-4 w-[160px] sm:w-[180px] border-r border-primary/10 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.1)] transition-colors shrink-0">
+              <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center">
+                 <span className="text-xs font-bold text-success/70">{stats.present}</span>
+                 <span className="text-xs font-bold text-destructive/50">{stats.absent}</span>
+                 <span className="text-xs font-bold text-warning/90">{stats.late}</span>
                  <span className="text-xs font-bold text-primary flex items-center justify-center">
                     {stats.substitutes > 0 ? <><Star className="w-2.5 h-2.5 mr-0.5 fill-current" />{stats.substitutes}</> : '0'}
                  </span>
