@@ -209,26 +209,33 @@ export default function AttendancePage() {
         </div>
       </Card>
 
-      {/* The Master Grid */}
-      <div className="relative border border-primary/10 rounded-3xl bg-card shadow-2xl overflow-hidden mx-0 sm:mx-1">
+      {/* The Master Registry Grid */}
+      <div className="relative border border-primary/10 rounded-3xl bg-card shadow-2xl overflow-hidden mx-0 sm:mx-1 animate-in zoom-in-95 duration-500">
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full border-collapse text-left table-fixed">
+          <table className="border-collapse text-left w-max">
             <thead>
               <tr className="bg-muted/10 border-b border-primary/5">
-                {/* Sticky Side Headers (Spanning multiple rows) */}
-                <th rowSpan={2} className="sticky left-0 z-40 bg-card/95 backdrop-blur-md px-6 py-6 w-[180px] sm:w-[220px] border-r border-primary/10 shrink-0">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] uppercase tracking-[0.25em] font-black text-muted-foreground/40 leading-none">Registry</span>
-                    <span className="font-serif text-lg font-bold leading-tight">Academic Staff</span>
+                {/* [NEW] Expanded Identity Column Header */}
+                <th rowSpan={2} className="sticky left-0 z-40 bg-card/95 backdrop-blur-md px-6 py-6 w-[240px] border-r border-primary/10 shrink-0">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[9px] uppercase tracking-[0.25em] font-black text-muted-foreground/30 leading-none">Record Section</span>
+                    <div className="flex items-center justify-between group/meta">
+                       <span className="font-serif text-lg font-bold leading-tight">Identity Hub</span>
+                       <Badge variant="outline" className="text-[8px] font-black tracking-widest px-1.5 h-4 border-primary/10 opacity-40">MASTER</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mt-2 pt-2 border-t border-primary/5">
+                       <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">Teacher</span>
+                       <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">ID Registry</span>
+                    </div>
                   </div>
                 </th>
-                <th rowSpan={2} className="sticky left-[180px] sm:left-[220px] z-40 bg-card/95 backdrop-blur-md px-4 py-8 w-[160px] sm:w-[180px] border-r border-primary/10 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.1)] shrink-0">
+                <th rowSpan={2} className="sticky left-[240px] z-40 bg-card/95 backdrop-blur-md px-4 py-8 w-[140px] border-r border-primary/10 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.1)] shrink-0">
                   <div className="grid grid-cols-4 gap-1 text-center">
                     {['P','A','L','S'].map(l => (
                       <span key={l} className="text-[8px] font-black opacity-20 tracking-tighter" title={l}>{l}</span>
                     ))}
                   </div>
-                  <div className="text-[9px] text-center uppercase tracking-[0.15em] font-black text-muted-foreground pt-1 opacity-30 leading-none">Summary</div>
+                  <div className="text-[8px] text-center uppercase tracking-[0.15em] font-black text-muted-foreground pt-1 opacity-20 leading-none">Summary</div>
                 </th>
                 
                 {/* Row 1: Day Labels (MON, TUE...) */}
@@ -237,10 +244,10 @@ export default function AttendancePage() {
                    const isWeekend = date.getDay() === 0 || date.getDay() === 6
                    return (
                      <th key={`day-${day}`} className={cn(
-                       "px-1 py-4 min-w-[50px] text-center border-r border-primary/5/30 transition-colors",
+                       "px-1 py-4 min-w-[64px] text-center border-r border-primary/5/30 transition-colors",
                        isWeekend ? "bg-muted/40" : ""
                      )}>
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-30">{DAYS[date.getDay()]}</span>
+                        <span className="text-[9px] font-black uppercase tracking-[0.15em] opacity-30">{DAYS[date.getDay()]}</span>
                      </th>
                    )
                 })}
@@ -252,7 +259,7 @@ export default function AttendancePage() {
                    const isWeekend = date.getDay() === 0 || date.getDay() === 6
                    return (
                      <th key={`date-${day}`} className={cn(
-                       "px-1 py-4 min-w-[50px] text-center border-r border-primary/5/30 transition-colors",
+                       "px-1 py-4 min-w-[64px] text-center border-r border-primary/5/30 transition-colors",
                        isWeekend ? "bg-muted/40" : ""
                      )}>
                         <span className="font-mono text-base font-bold text-primary/70">{day < 10 ? `0${day}` : day}</span>
@@ -317,23 +324,21 @@ function TableBodyWrapper({
         const stats = statsMap[teacher.id] || { present: 0, absent: 0, late: 0, leave: 0, substitutes: 0 }
         return (
           <tr key={teacher.id} className="group hover:bg-primary/5 transition-premium border-b border-primary/5/30 h-16">
-            {/* Sticky Side 1: Name & ID */}
-            <td className="sticky left-0 z-30 bg-card group-hover:bg-transparent backdrop-blur-md px-6 py-4 w-[180px] sm:w-[220px] border-r border-primary/10 transition-colors shrink-0">
-              <div className="flex items-center gap-3">
-                 <div className="flex-1 min-w-0">
-                    <p className="font-serif font-bold text-sm sm:text-base leading-tight truncate mb-0.5">{teacher.name}</p>
-                    <p className="font-mono text-[8px] text-muted-foreground uppercase tracking-widest opacity-60">ID: {teacher.employeeId}</p>
-                 </div>
-              </div>
+            {/* Sticky Side 1: Persona Hub (Name & ID) */}
+            <td className="sticky left-0 z-30 bg-card group-hover:bg-transparent backdrop-blur-md px-6 py-4 w-[240px] border-r border-primary/10 transition-colors shrink-0">
+               <div className="flex flex-col">
+                  <p className="font-serif font-bold text-base leading-tight truncate mb-0.5 text-foreground/90">{teacher.name}</p>
+                  <p className="font-mono text-[9px] text-muted-foreground/50 uppercase tracking-[0.1em]">ID: {teacher.employeeId}</p>
+               </div>
             </td>
             
-            {/* Sticky Side 2: Monthly Stats */}
-            <td className="sticky left-[180px] sm:left-[220px] z-30 bg-card group-hover:bg-transparent backdrop-blur-md px-4 py-4 w-[160px] sm:w-[180px] border-r border-primary/10 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.1)] transition-colors shrink-0">
-              <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center">
-                 <span className="text-xs font-bold text-success/70">{stats.present}</span>
-                 <span className="text-xs font-bold text-destructive/50">{stats.absent}</span>
-                 <span className="text-xs font-bold text-warning/90">{stats.late}</span>
-                 <span className="text-xs font-bold text-primary flex items-center justify-center">
+            {/* Sticky Side 2: Monthly Summary */}
+            <td className="sticky left-[240px] z-30 bg-card group-hover:bg-transparent backdrop-blur-md px-4 py-4 w-[140px] border-r border-primary/10 shadow-[5px_0_15px_-5px_rgba(0,0,0,0.1)] transition-colors shrink-0">
+              <div className="grid grid-cols-4 gap-2 text-center">
+                 <span className="text-xs font-bold text-success/70 tracking-tighter">{stats.present}</span>
+                 <span className="text-xs font-bold text-destructive/50 tracking-tighter">{stats.absent}</span>
+                 <span className="text-xs font-bold text-warning/90 tracking-tighter">{stats.late}</span>
+                 <span className="text-xs font-bold text-primary flex items-center justify-center tracking-tighter">
                     {stats.substitutes > 0 ? <><Star className="w-2.5 h-2.5 mr-0.5 fill-current" />{stats.substitutes}</> : '0'}
                  </span>
               </div>
