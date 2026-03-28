@@ -13,16 +13,39 @@ export async function getStudents() {
   }
 }
 
-export async function enrollStudent(student: Omit<Student, 'progress'>) {
-  const result = await db.student.create({ 
-    data: { 
-      ...student, 
-      progress: 0,
-      enrolledAt: student.enrolledAt ? new Date(student.enrolledAt) : new Date()
-    } as any 
-  })
-  revalidatePath('/')
-  return result
+export async function enrollStudent(student: any) {
+  try {
+    const result = await db.student.create({ 
+      data: { 
+        ...student, 
+        progress: 0,
+        enrolledAt: student.enrolledAt ? new Date(student.enrolledAt) : new Date()
+      }
+    })
+
+    // Create FeePayment records for enrollment
+    if (student.enrolledCourses && student.enrolledCourses.length > 0) {
+      for (const courseId of student.enrolledCourses) {
+        const course = await db.course.findUnique({ where: { id: courseId } })
+        if (course) {
+          await db.feePayment.create({
+            data: {
+              studentId: result.id,
+              courseId: courseId,
+              totalAmount: course.feeAmount || 0,
+              status: 'Unpaid'
+            }
+          })
+        }
+      }
+    }
+
+    revalidatePath('/')
+    return result
+  } catch (error) {
+    console.error('DATABASE_ERROR [enrollStudent]:', error)
+    throw new Error('Failed to enroll student')
+  }
 }
 
 export async function removeStudent(id: string) {

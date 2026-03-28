@@ -1,180 +1,287 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  DollarSign, 
-  TrendingUp, 
-  ArrowUpRight, 
-  ArrowDownRight, 
   Briefcase, 
   Building2, 
   BookOpen, 
   Megaphone,
   Download,
-  Calendar,
-  ChevronRight,
-  Database
+  TrendingUp,
+  ArrowUpRight,
+  Database,
+  Plus,
+  ArrowRight
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from '@/components/ui/input'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select"
+import { useData } from '@/contexts/data-context'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
-const categories = [
-  { 
-    title: 'Personnel Salaries', 
-    icon: Briefcase,
-    color: 'oklch(0.62 0.17 240)',
-    description: 'Faculty and administrative payroll'
-  },
-  { 
-    title: 'Infrastructure', 
-    icon: Building2,
-    color: 'oklch(0.70 0.14 240)',
-    description: 'Rent, utilities, and maintenance'
-  },
-  { 
-    title: 'Academic Supplies', 
-    icon: BookOpen,
-    color: 'oklch(0.70 0.17 160)',
-    description: 'Books, labs, and classroom tech'
-  },
-  { 
-    title: 'Institutional Marketing', 
-    icon: Megaphone,
-    color: 'oklch(0.78 0.18 75)',
-    description: 'Brand awareness and digital ad spend'
-  },
-]
-
 export default function EconomicsPage() {
+  const { economics, isLoading, addExpenditure } = useData()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [newExp, setNewExp] = useState({
+    amount: '',
+    category: 'Salaries',
+    description: ''
+  })
+
+  const categories = [
+    { title: 'Personnel Salaries', icon: Briefcase, color: 'oklch(0.62 0.17 240)', key: 'Salaries' },
+    { title: 'Infrastructure', icon: Building2, color: 'oklch(0.70 0.14 240)', key: 'Infrastructure' },
+    { title: 'Academic Supplies', icon: BookOpen, color: 'oklch(0.70 0.17 160)', key: 'Supplies' },
+    { title: 'Institutional Marketing', icon: Megaphone, color: 'oklch(0.78 0.18 75)', key: 'Marketing' },
+  ]
+
+  const handleAddExpenditure = async () => {
+    if (!newExp.amount || !newExp.description) {
+      toast.error('Please fill all fields')
+      return
+    }
+    const amount = parseFloat(newExp.amount)
+    if (isNaN(amount)) return
+
+    try {
+      await addExpenditure({ ...newExp, amount })
+      toast.success('Expenditure recorded successfully')
+      setIsModalOpen(false)
+      setNewExp({ amount: '', category: 'Salaries', description: '' })
+    } catch (error) {
+      toast.error('Failed to record expenditure')
+    }
+  }
+
+  if (isLoading) return (
+    <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
+       <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+       <p className="text-[10px] font-black uppercase tracking-widest">Auditing Institutional Ledger...</p>
+    </div>
+  )
+
+  const stats = economics || {
+    totalExpenditure: 0,
+    actualRevenue: 0,
+    projectedRevenue: 0,
+    categoryBreakdown: {},
+    expenditures: []
+  }
+
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20">
+    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2">
       {/* 1. Master Ledger Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground">
-             Institutional Economics
-          </h1>
-          <p className="font-sans text-[10px] tracking-[0.3em] font-black uppercase opacity-30">
-             Financial Performance // Term Cycle • 2026
-          </p>
+          <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground">Institutional Economics</h1>
+          <p className="font-sans text-[10px] tracking-[0.3em] font-black uppercase opacity-30">Financial Performance // Rs. PKR Localization</p>
         </div>
 
         <div className="flex items-center gap-4">
-           <Button variant="outline" className="h-10 px-5 rounded-xl gap-3 border-primary/10 bg-card hover:bg-primary/5 transition-premium font-bold tracking-tight text-sm">
+           <Button variant="outline" className="h-10 px-5 rounded-xl border-primary/10 bg-card hover:bg-primary/5 transition-premium font-bold tracking-tight text-sm gap-2">
               <Download className="w-3.5 h-3.5 opacity-40" />
-              Download Ledger
+              Institutional Audit
            </Button>
-           <Button className="h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm">
-              New Expenditure
+           <Button 
+              onClick={() => setIsModalOpen(true)}
+              className="h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm gap-2"
+           >
+              <Plus className="w-4 h-4" />
+              Record Expenditure
            </Button>
         </div>
       </div>
 
       {/* 2. Global Balance Horizon */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
          <Card className="lg:col-span-2 overflow-hidden border-primary/5 shadow-sm bg-card/60 backdrop-blur-xl flex flex-col h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-primary/5 px-8 py-6">
                <div className="space-y-1">
                   <CardTitle className="font-serif text-xl font-bold">Expenditure Velocity</CardTitle>
                   <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Term-based cumulative spend trend</CardDescription>
                </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4">
-               <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 animate-pulse">
-                  <TrendingUp className="w-8 h-8 text-primary opacity-20" />
+               <div className="text-right">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Total Outflow</p>
+                  <p className="font-serif text-xl font-bold opacity-60">Rs. {stats.totalExpenditure.toLocaleString()}</p>
                </div>
-               <div className="space-y-1">
-                  <p className="font-serif text-lg font-bold opacity-40">Calculating Term Trend</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-black opacity-20">System ready // Waiting for data flow</p>
+            </CardHeader>
+            <CardContent className="flex-1 p-0 relative min-h-[300px] flex items-center justify-center">
+               <div className="flex flex-col items-center gap-4 opacity-20">
+                  <TrendingUp className="w-12 h-12 text-primary" />
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-black">Live Pulse Visualization Active</p>
                </div>
             </CardContent>
          </Card>
 
          <Card className="border-primary/5 bg-primary shadow-[0_40px_100px_-30px_rgba(var(--primary),0.35)] text-primary-foreground relative overflow-hidden group h-full">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl transition-transform group-hover:scale-110 duration-1000" />
-            <CardHeader className="px-8 py-6">
-               <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60 mb-1">Total Managed Capital</span>
-               <CardTitle className="font-serif text-3xl font-bold tracking-tight">Rs. 0.00</CardTitle>
+            <CardHeader className="px-8 py-6 pb-2">
+               <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60 mb-1">Actual Collected Revenue</span>
+               <CardTitle className="font-serif text-3xl font-bold tracking-tight">Rs. {stats.actualRevenue.toLocaleString()}</CardTitle>
                <div className="flex items-center gap-2 mt-4 inline-flex px-3 py-1 bg-white/10 rounded-lg text-[10px] font-bold">
                   <ArrowUpRight className="w-2.5 h-2.5" />
-                  Calculated against Term target
+                  Net Institutional Balance
                </div>
             </CardHeader>
-            <CardContent className="px-8 pb-8 mt-2 space-y-6">
-               <div className="space-y-1">
-                  <div className="flex justify-between text-[9px] font-black uppercase tracking-widest opacity-60">
-                     <span>Budget Utilization</span>
-                     <span>0%</span>
+            <CardContent className="px-8 pb-8 mt-4 space-y-6">
+               <div className="space-y-1.5 pt-4">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest opacity-60">
+                     <span>Collection Compliance</span>
+                     <span>{stats.projectedRevenue > 0 ? Math.round((stats.actualRevenue / stats.projectedRevenue) * 100) : 0}%</span>
                   </div>
                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                     <div className="h-full bg-white/20 w-1/12" />
+                     <div 
+                        className="h-full bg-white w-1/12" 
+                        style={{ width: `${stats.projectedRevenue > 0 ? Math.round((stats.actualRevenue / stats.projectedRevenue) * 100) : 0}%` }}
+                     />
                   </div>
                </div>
-               <p className="text-xs opacity-60 font-medium leading-relaxed font-serif">
-                  Institutional integrity begins with financial transparency. Our economic model remains resilient through strategic term-based allocation.
-               </p>
+               <div className="pt-2">
+                  <p className="text-[10px] uppercase font-black tracking-widest opacity-40 mb-1">Outstanding Receivables</p>
+                  <p className="font-serif text-xl font-bold opacity-80">Rs. {(stats.projectedRevenue - stats.actualRevenue).toLocaleString()}</p>
+               </div>
             </CardContent>
          </Card>
       </div>
 
       {/* 3. Categorical breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-         {categories.map((cat, idx) => (
-            <motion.div
-               key={cat.title}
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               transition={{ delay: 0.1 * idx, duration: 0.6 }}
-               className="h-full"
-            >
-               <Card className="hover-lift transition-premium border-primary/5 shadow-sm group h-full flex flex-col">
-                  <CardContent className="p-6 flex flex-col flex-1">
-                     <div className="flex items-center justify-between mb-6">
-                        <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-500"
-                          style={{ backgroundColor: `${cat.color}20`, color: cat.color }}
-                        >
-                           <cat.icon className="w-5 h-5" />
-                        </div>
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black tracking-widest bg-muted/20 text-muted-foreground/40">
-                           NO DATA
-                        </div>
-                     </div>
-                     <div className="space-y-0.5 mb-6">
-                        <h4 className="font-serif font-bold text-base text-foreground/90">{cat.title}</h4>
-                        <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">{cat.description}</p>
-                     </div>
-                     <div className="mt-auto flex items-baseline gap-2">
-                        <span className="text-xl font-serif font-bold tracking-tight opacity-20">Rs. 0.00</span>
-                        <span className="text-[8px] font-black uppercase tracking-widest opacity-10">Audit Pending</span>
-                     </div>
-                  </CardContent>
-               </Card>
-            </motion.div>
-         ))}
+         {categories.map((cat, idx) => {
+            const amount = stats.categoryBreakdown[cat.key] || 0
+            return (
+              <motion.div key={cat.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * idx }}>
+                 <Card className="hover-lift transition-premium border-primary/5 shadow-sm group h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-1">
+                       <div className="flex items-center justify-between mb-6">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-500" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
+                             <cat.icon className="w-5 h-5" />
+                          </div>
+                          <Badge variant="ghost" className="text-[9px] font-black uppercase tracking-widest opacity-20">Audit V1</Badge>
+                       </div>
+                       <div className="space-y-0.5 mb-6">
+                          <h4 className="font-serif font-bold text-base text-foreground/90">{cat.title}</h4>
+                          <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Institution Category</p>
+                       </div>
+                       <div className="mt-auto">
+                          <span className="text-xl font-serif font-bold tracking-tight text-foreground/80">Rs. {amount.toLocaleString()}</span>
+                       </div>
+                    </CardContent>
+                 </Card>
+              </motion.div>
+            )
+         })}
       </div>
 
       {/* 4. Chronological Ledger */}
       <Card className="border-primary/5 shadow-sm bg-card/60 backdrop-blur-xl">
          <CardHeader className="px-8 py-6 border-b border-primary/5 flex flex-row items-center justify-between">
             <div className="space-y-1">
-               <CardTitle className="font-serif text-xl font-bold">Financial Transactions</CardTitle>
-               <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Real-time expenditure audit feed</CardDescription>
+               <CardTitle className="font-serif text-xl font-bold">Expenditure Ledger</CardTitle>
+               <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Real-time cost auditing record</CardDescription>
             </div>
          </CardHeader>
-         <CardContent className="py-20 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10">
-               <Database className="w-6 h-6 text-primary opacity-20" />
-            </div>
-            <div className="space-y-1">
-               <p className="font-serif text-base font-bold opacity-30">Ledger Empty</p>
-               <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Historical data will appear upon synchronization</p>
-            </div>
+         <CardContent className="p-0">
+            {stats.expenditures.length === 0 ? (
+               <div className="py-24 flex flex-col items-center justify-center text-center space-y-4">
+                  <Database className="w-8 h-8 text-primary opacity-20" />
+                  <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Historical data synchronized // Registry empty</p>
+               </div>
+            ) : (
+               <div className="overflow-x-auto">
+                  <table className="w-full">
+                     <thead>
+                        <tr className="border-b border-primary/5 bg-muted/5 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+                           <th className="px-8 py-4 text-left font-serif lowercase italic text-xs first-letter:uppercase not-italic text-muted-foreground/40">Category Entry</th>
+                           <th className="px-6 py-4 text-left">Description</th>
+                           <th className="px-6 py-4 text-left">Audit Date</th>
+                           <th className="px-8 py-4 text-right">Debit Amount</th>
+                        </tr>
+                     </thead>
+                     <tbody className="divide-y divide-primary/5">
+                        {stats.expenditures.map((exp: any) => (
+                           <tr key={exp.id} className="hover:bg-muted/10 transition-premium group">
+                              <td className="px-8 py-6">
+                                 <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/10 opacity-60">
+                                    {exp.category}
+                                 </Badge>
+                              </td>
+                              <td className="px-6 py-6 font-medium text-sm text-foreground/70">{exp.description}</td>
+                              <td className="px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(exp.date).toLocaleDateString()}</td>
+                              <td className="px-8 py-6 text-right font-serif font-bold text-base text-destructive/80">- Rs. {exp.amount.toLocaleString()}</td>
+                           </tr>
+                        ))}
+                     </tbody>
+                  </table>
+               </div>
+            )}
          </CardContent>
       </Card>
+
+      {/* 5. Record Expenditure Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8">
+          <DialogHeader className="space-y-2 mb-6 text-left">
+            <DialogTitle className="font-serif text-2xl font-bold">Audit Outflow</DialogTitle>
+            <DialogDescription className="text-xs font-sans tracking-tight">Record institutional expenditure for the current term cycle</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5">
+             <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Category Tier</label>
+                <Select value={newExp.category} onValueChange={(v) => setNewExp({...newExp, category: v})}>
+                   <SelectTrigger className="h-12 rounded-xl border-primary/10 bg-white/50">
+                      <SelectValue placeholder="Select category..." />
+                   </SelectTrigger>
+                   <SelectContent className="rounded-xl">
+                      {categories.map(c => <SelectItem key={c.key} value={c.key}>{c.title}</SelectItem>)}
+                      <SelectItem value="Other">Other Institutional Cost</SelectItem>
+                   </SelectContent>
+                </Select>
+             </div>
+             <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Debit Amount (PKR)</label>
+                <Input 
+                   type="number" 
+                   value={newExp.amount}
+                   onChange={(e) => setNewExp({...newExp, amount: e.target.value})}
+                   placeholder="Enter amount..." 
+                   className="h-12 rounded-xl border-primary/10 bg-white/50 font-serif font-bold text-lg"
+                />
+             </div>
+             <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Capital Justification</label>
+                <Input 
+                   value={newExp.description}
+                   onChange={(e) => setNewExp({...newExp, description: e.target.value})}
+                   placeholder="Purpose of spending..." 
+                   className="h-12 rounded-xl border-primary/10 bg-white/50"
+                />
+             </div>
+             <div className="flex flex-col gap-3 pt-6">
+                <Button onClick={handleAddExpenditure} className="h-14 rounded-2xl bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold">
+                   Verify and Record Ledger
+                </Button>
+                <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest opacity-40">Cancel Entry</Button>
+             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

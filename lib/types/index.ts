@@ -49,6 +49,7 @@ export interface Course {
   endDate: Date | string
   roomNumber?: string
   thumbnail?: string
+  feeAmount: number
   milestones?: {
     id: string
     title: string

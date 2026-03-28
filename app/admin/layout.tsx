@@ -44,6 +44,7 @@ import {
   ClipboardCheck,
   DollarSign,
   TrendingUp,
+  Receipt,
 } from 'lucide-react'
 
 const adminNavItems = [
@@ -71,6 +72,11 @@ const adminNavItems = [
     title: 'Growth Reports',
     href: '/admin/students/reports',
     icon: TrendingUp,
+  },
+  {
+    title: 'Fees',
+    href: '/admin/fees',
+    icon: Receipt,
   },
   {
     title: 'Classes',

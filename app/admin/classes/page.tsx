@@ -121,6 +121,7 @@ export default function ClassesPage() {
       startDate: new Date().toISOString(),
       endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
       roomNumber: formData.get('roomNumber') as string,
+      feeAmount: parseFloat(formData.get('feeAmount') as string) || 0,
     }
 
     try {
@@ -243,6 +244,13 @@ export default function ClassesPage() {
                     <Input name="roomNumber" placeholder="e.g. Room 302" required className="bg-background/50 h-10" />
                   </Field>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Tuition Fee (PKR)</FieldLabel>
+                    <Input name="feeAmount" type="number" placeholder="e.g. 5000" required className="bg-background/50 h-10 font-bold font-serif" />
+                  </Field>
+                </div>
               </FieldGroup>
               <DialogFooter className="pt-2">
                 <Button type="button" variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="text-muted-foreground hover:text-foreground">
@@ -305,6 +313,7 @@ export default function ClassesPage() {
                 <TableHead className="font-bold text-foreground">Class</TableHead>
                 <TableHead className="font-bold text-foreground">Class Timing</TableHead>
                 <TableHead className="font-bold text-foreground">Teacher</TableHead>
+                <TableHead className="font-bold text-foreground">Fee (PKR)</TableHead>
                 <TableHead className="w-[70px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -338,8 +347,8 @@ export default function ClassesPage() {
                     <TableCell className="font-medium text-sm text-editorial-meta">
                       {course.schedule}
                     </TableCell>
-                    <TableCell className="font-serif font-bold text-base">
-                      {course.teacherName}
+                    <TableCell className="font-serif font-bold text-base text-primary">
+                      Rs. {(course.feeAmount || 0).toLocaleString()}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
