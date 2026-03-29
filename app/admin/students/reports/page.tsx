@@ -22,12 +22,25 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { useData } from '@/contexts/data-context'
+import { getGrowthAnalytics } from '@/lib/actions/analytics'
 import { cn } from '@/lib/utils'
 
 export default function RegistrationReportsPage() {
   const { students, isLoading, economics } = useData()
+  const [analytics, setAnalytics] = React.useState<any>(null)
+  const [isCalculated, setIsCalculated] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState('')
 
-  if (isLoading) return (
+  React.useEffect(() => {
+    async function load() {
+       const data = await getGrowthAnalytics()
+       setAnalytics(data)
+       setIsCalculated(true)
+    }
+    load()
+  }, [])
+
+  if (isLoading || !isCalculated) return (
     <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
        <p className="text-[10px] font-black uppercase tracking-widest">Compiling Growth Intelligence...</p>
@@ -41,9 +54,23 @@ export default function RegistrationReportsPage() {
   const registrationsToday = students.filter(s => new Date(s.enrolledAt).getTime() >= today).length
   const weeklyTotal = students.filter(s => new Date(s.enrolledAt).getTime() >= sevenDaysAgo).length
   const totalVerified = students.filter(s => s.status === 'active').length
-  
-  // Growth Trend (Mock for now until historical data is deep)
-  const growthTrend = "+12.5%"
+
+  const handleDownloadReport = () => {
+    const headers = ["Name", "Student ID", "Enrollment Date", "Status"]
+    const rows = students.map(s => [s.name, s.studentId || 'N/A', new Date(s.enrolledAt).toLocaleDateString(), s.status])
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n")
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `growth_report_${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+  }
+
+  const filteredLedger = students.filter(s => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (s.studentId && s.studentId.toLowerCase().includes(searchQuery.toLowerCase()))
+  )
 
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2">
@@ -63,13 +90,18 @@ export default function RegistrationReportsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 transition-colors group-focus-within:text-primary" />
               <Input 
                 placeholder="Audit registry..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-64 h-10 pl-10 rounded-xl border-primary/10 bg-card/60 backdrop-blur-md focus-visible:ring-primary/20 transition-all font-medium text-sm"
               />
            </div>
            <Button variant="outline" className="h-10 w-10 rounded-xl p-0 border-primary/10 bg-card hover:bg-primary/5 transition-premium">
               <Filter className="w-4 h-4 opacity-40" />
            </Button>
-           <Button className="h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm gap-2">
+           <Button 
+              onClick={handleDownloadReport}
+              className="h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm gap-2"
+           >
               <Download className="w-3.5 h-3.5" />
               Growth Report
            </Button>
@@ -82,7 +114,7 @@ export default function RegistrationReportsPage() {
             label="Today's Admissions" 
             value={registrationsToday.toString()} 
             sub="24-hour cycle registrations" 
-            trend={growthTrend} 
+            trend={analytics?.growthTrend || "0%"} 
             icon={CalendarDays} 
             color="oklch(0.62 0.17 240)" 
          />
@@ -126,17 +158,22 @@ export default function RegistrationReportsPage() {
                   <BarChart3 className="w-12 h-12 text-primary" />
                   <p className="text-[10px] uppercase tracking-[0.2em] font-black">Growth Density Visualizer Active</p>
                </div>
-               {/* Simplified density bars for premium feel */}
+               {/* Logic-driven density bars */}
                <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between h-20 px-10 gap-4">
-                  {[40, 70, 45, 90, 65, 30, 20].map((h, i) => (
-                    <motion.div 
-                      key={i} 
-                      initial={{ height: 0 }} 
-                      animate={{ height: `${h}%` }} 
-                      transition={{ delay: i * 0.1, duration: 1 }}
-                      className="flex-1 rounded-t-lg bg-primary/10 group-hover:bg-primary/20 transition-all border-t border-primary/5" 
-                    />
-                  ))}
+                  {(analytics?.densityData || []).map((day: any, i: number) => {
+                    const h = day.count > 0 ? Math.min(day.count * 15 + 20, 100) : 10
+                    return (
+                     <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                       <motion.div 
+                         initial={{ height: 0 }} 
+                         animate={{ height: `${h}%` }} 
+                         transition={{ delay: i * 0.1, duration: 1 }}
+                         className="w-full rounded-t-lg bg-primary/10 group-hover:bg-primary/30 transition-all border-t border-primary/5" 
+                       />
+                       <span className="text-[8px] font-black uppercase opacity-20">{day.label}</span>
+                     </div>
+                    )
+                  })}
                </div>
             </CardContent>
          </Card>
@@ -150,13 +187,12 @@ export default function RegistrationReportsPage() {
                </CardHeader>
                <CardContent className="px-8 pb-8 space-y-4">
                   <p className="text-xs font-medium leading-relaxed opacity-60 font-serif">
-                     Institutional growth is currently concentrated in the **Beginner** and **Foundation** levels. 
-                     Recommend scaling faculty deployments for these tiers.
+                     {analytics?.insightsStr}
                   </p>
                   <div className="pt-4 border-t border-white/10">
                      <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
-                        <span>Predicted Sat Volume</span>
-                        <span>{Math.round(weeklyTotal * 0.25)} Registrations</span>
+                        <span>Projected Registry Load</span>
+                        <span>{Math.round(weeklyTotal * 0.25)} Critical Nodes</span>
                      </div>
                   </div>
                </CardContent>
@@ -168,9 +204,14 @@ export default function RegistrationReportsPage() {
                   <CardDescription className="text-[9px] uppercase font-black tracking-widest opacity-30">Lead Source Acquisition</CardDescription>
                </CardHeader>
                <CardContent className="px-8 pb-8 space-y-5 pt-4">
-                  <SourceRow label="Direct Inquiries" percentage={45} color="oklch(0.62 0.17 240)" />
-                  <SourceRow label="Institutional Referral" percentage={30} color="oklch(0.70 0.17 160)" />
-                  <SourceRow label="Digital Presence" percentage={25} color="oklch(0.78 0.18 75)" />
+                  {(analytics?.channels || []).map((chn: any, i: number) => (
+                     <SourceRow 
+                       key={chn.label} 
+                       label={chn.label} 
+                       percentage={chn.percentage} 
+                       color={i === 0 ? "oklch(0.62 0.17 240)" : i === 1 ? "oklch(0.70 0.17 160)" : "oklch(0.78 0.18 75)"} 
+                     />
+                  ))}
                </CardContent>
             </Card>
          </div>
@@ -202,7 +243,7 @@ export default function RegistrationReportsPage() {
                         </tr>
                      </thead>
                      <tbody className="divide-y divide-primary/5">
-                        {students.slice(0, 10).map((student: any) => (
+                        {filteredLedger.slice(0, 10).map((student: any) => (
                            <tr key={student.id} className="hover:bg-muted/10 transition-premium group">
                               <td className="px-8 py-6 font-serif font-bold text-base text-foreground/80">{student.name}</td>
                               <td className="px-6 py-6 font-mono font-bold text-[10px] text-muted-foreground/30">{student.studentId || 'PENDING'}</td>

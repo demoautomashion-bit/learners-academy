@@ -10,7 +10,7 @@ import type {
 
 // Server Actions
 import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus } from '@/lib/actions/teachers'
-import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus } from '@/lib/actions/students'
+import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics } from '@/lib/actions/students'
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus } from '@/lib/actions/courses'
 import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion } from '@/lib/actions/questions'
 import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment } from '@/lib/actions/assessments'
@@ -39,6 +39,8 @@ interface DataContextType {
   enrollStudent: (student: any) => Promise<void>
   removeStudent: (id: string) => Promise<void>
   updateStudentStatus: (id: string, status: Student['status']) => Promise<void>
+  updateStudent: (id: string, data: Partial<Student>) => Promise<void>
+  updateStudentSuccessMetrics: (id: string, progress: number, grade?: string) => Promise<void>
   publishAssessment: (assessment: AssessmentTemplate) => Promise<void>
   removeAssessment: (id: string) => Promise<void>
   submitTestResult: (result: StudentTest) => Promise<void>
@@ -185,6 +187,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await refresh()
   }, [refresh])
 
+  const updateStudent = useCallback(async (id: string, data: Partial<Student>) => {
+    await dbUpdateStudent(id, data)
+    await refresh()
+  }, [refresh])
+
+  const updateStudentSuccessMetrics = useCallback(async (id: string, progress: number, grade?: string) => {
+    await dbUpdateStudentSuccessMetrics(id, progress, grade)
+    await refresh()
+  }, [refresh])
+
   // --- Courses ---
   const addCourse = useCallback(async (course: Course) => {
     await dbAddCourse(course)
@@ -301,6 +313,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       enrollStudent,
       removeStudent,
       updateStudentStatus,
+      updateStudent,
+      updateStudentSuccessMetrics,
       publishAssessment,
       removeAssessment,
       submitTestResult,

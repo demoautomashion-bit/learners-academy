@@ -70,6 +70,23 @@ export default function EconomicsPage() {
     }
   }
 
+  const handleDownloadLedger = () => {
+    const headers = ["Category", "Description", "Date", "Amount (PKR)"]
+    const rows = (economics?.expenditures || []).map((e: any) => [
+      e.category, 
+      e.description, 
+      new Date(e.date).toLocaleDateString(), 
+      e.amount
+    ])
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n")
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ledger_audit_${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+  }
+
   if (isLoading) return (
     <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
@@ -95,10 +112,14 @@ export default function EconomicsPage() {
         </div>
 
         <div className="flex items-center gap-4">
-           <Button variant="outline" className="h-10 px-5 rounded-xl border-primary/10 bg-card hover:bg-primary/5 transition-premium font-bold tracking-tight text-sm gap-2">
-              <Download className="w-3.5 h-3.5 opacity-40" />
-              Institutional Audit
-           </Button>
+            <Button 
+               onClick={handleDownloadLedger}
+               variant="outline" 
+               className="h-10 px-5 rounded-xl border-primary/10 bg-card hover:bg-primary/5 transition-premium font-bold tracking-tight text-sm gap-2"
+            >
+               <Download className="w-3.5 h-3.5 opacity-40" />
+               Institutional Audit
+            </Button>
            <Button 
               onClick={() => setIsModalOpen(true)}
               className="h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm gap-2"
@@ -122,10 +143,29 @@ export default function EconomicsPage() {
                   <p className="font-serif text-xl font-bold opacity-60">Rs. {stats.totalExpenditure.toLocaleString()}</p>
                </div>
             </CardHeader>
-            <CardContent className="flex-1 p-0 relative min-h-[300px] flex items-center justify-center">
-               <div className="flex flex-col items-center gap-4 opacity-20">
+            <CardContent className="flex-1 p-0 relative min-h-[300px] flex items-center justify-center translate-y-2">
+               <div className="flex flex-col items-center gap-4 opacity-10">
                   <TrendingUp className="w-12 h-12 text-primary" />
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-black">Live Pulse Visualization Active</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-black">Expenditure Velocity Analysis Active</p>
+               </div>
+               {/* Logic-driven trend bars */}
+               <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between h-20 px-10 gap-4">
+                  {(stats.historicalData || []).map((data: any, i: number) => {
+                    // Normalize height against max value (or default 100k)
+                    const maxVal = Math.max(...(stats.historicalData || []).map((d: any) => d.expenditure), 100000)
+                    const h = data.expenditure > 0 ? Math.min((data.expenditure / maxVal) * 80 + 20, 100) : 10
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                        <motion.div 
+                          initial={{ height: 0 }} 
+                          animate={{ height: `${h}%` }} 
+                          transition={{ delay: i * 0.1, duration: 1 }}
+                          className="w-full rounded-t-lg bg-primary/10 group-hover:bg-primary/30 transition-all border-t border-primary/5" 
+                        />
+                        <span className="text-[8px] font-black uppercase opacity-20">{data.month}</span>
+                      </div>
+                    )
+                  })}
                </div>
             </CardContent>
          </Card>
@@ -148,7 +188,7 @@ export default function EconomicsPage() {
                   </div>
                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                      <div 
-                        className="h-full bg-white w-1/12" 
+                        className="h-full bg-white transition-all duration-1000" 
                         style={{ width: `${stats.projectedRevenue > 0 ? Math.round((stats.actualRevenue / stats.projectedRevenue) * 100) : 0}%` }}
                      />
                   </div>

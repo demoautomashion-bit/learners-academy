@@ -110,20 +110,18 @@ const CLASS_TIMINGS = [
 ]
 
 export default function StudentsPage() {
-  const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus } = useData()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [metricProgress, setMetricProgress] = useState(0)
+  const [metricGrade, setMetricGrade] = useState('')
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    reset,
-    formState: { errors, isSubmitting }
-  } = useForm<StudentFormValues>({
+  const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics } = useData()
+
+  const enrollForm = useForm<StudentFormValues>({
+    resolver: zodResolver(studentSchema)
+  })
+
+  const editForm = useForm<StudentFormValues>({
     resolver: zodResolver(studentSchema)
   })
 
@@ -135,7 +133,7 @@ export default function StudentsPage() {
     return matchesSearch && matchesStatus
   })
 
-  const onSubmit = async (data: StudentFormValues) => {
+  const onEnrollSubmit = async (data: StudentFormValues) => {
     const newStudent: Student = {
       id: `student-${Date.now()}`,
       studentId: data.studentId,
@@ -153,10 +151,35 @@ export default function StudentsPage() {
     try {
       await enrollStudent(newStudent)
       setIsAddDialogOpen(false)
-      reset()
+      enrollForm.reset()
       toast.success('Registration successful')
     } catch (err) {
       // Error handled by context
+    }
+  }
+
+  const onEditSubmit = async (data: StudentFormValues) => {
+    if (!selectedStudent) return
+    try {
+      await updateStudent(selectedStudent.id, {
+        ...data,
+        enrolledCourses: [data.course],
+        classTiming: data.timing,
+      })
+      setIsEditDialogOpen(false)
+      toast.success('Student record updated')
+    } catch (err) {
+      toast.error('Update failed')
+    }
+  }
+
+  const handleUpdateMetrics = async () => {
+    if (!selectedStudent) return
+    try {
+      await updateStudentSuccessMetrics(selectedStudent.id, metricProgress, metricGrade)
+      toast.success('Academic metrics synced')
+    } catch (err) {
+      toast.error('Metrics update failed')
     }
   }
 
@@ -216,38 +239,38 @@ export default function StudentsPage() {
                 Onboard a new academic professional into the student database.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={enrollForm.handleSubmit(onEnrollSubmit)}>
               <FieldGroup className="py-6 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel className="text-editorial-label">Student Name</FieldLabel>
-                    <Input {...register('name')} placeholder="Full name" className="bg-background/50 h-10" />
-                    {errors.name && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.name.message}</p>}
+                    <Input {...enrollForm.register('name')} placeholder="Full name" className="bg-background/50 h-10" />
+                    {enrollForm.formState.errors.name && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{enrollForm.formState.errors.name.message}</p>}
                   </Field>
                   <Field>
                     <FieldLabel className="text-editorial-label">Guardian&apos;s Name</FieldLabel>
-                    <Input {...register('guardianName')} placeholder="Full name" className="bg-background/50 h-10" />
-                    {errors.guardianName && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.guardianName.message}</p>}
+                    <Input {...enrollForm.register('guardianName')} placeholder="Full name" className="bg-background/50 h-10" />
+                    {enrollForm.formState.errors.guardianName && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{enrollForm.formState.errors.guardianName.message}</p>}
                   </Field>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel className="text-editorial-label">Student ID</FieldLabel>
-                    <Input {...register('studentId')} placeholder="e.g. STU-001" className="bg-background/50 h-10" />
-                    {errors.studentId && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.studentId.message}</p>}
+                    <Input {...enrollForm.register('studentId')} placeholder="e.g. STU-001" className="bg-background/50 h-10" />
+                    {enrollForm.formState.errors.studentId && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{enrollForm.formState.errors.studentId.message}</p>}
                   </Field>
                   <Field>
                     <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
-                    <Input {...register('phone')} placeholder="+1 (555) 000-0000" className="bg-background/50 h-10" />
-                    {errors.phone && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.phone.message}</p>}
+                    <Input {...enrollForm.register('phone')} placeholder="+1 (555) 000-0000" className="bg-background/50 h-10" />
+                    {enrollForm.formState.errors.phone && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{enrollForm.formState.errors.phone.message}</p>}
                   </Field>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel className="text-editorial-label">Registry Class</FieldLabel>
-                    <Select onValueChange={(val) => setValue('course', val)}>
+                    <Select onValueChange={(val) => enrollForm.setValue('course', val)}>
                       <SelectTrigger className="bg-background/50 h-10">
                         <SelectValue placeholder="Select class level" />
                       </SelectTrigger>
@@ -259,11 +282,11 @@ export default function StudentsPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.course && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.course.message}</p>}
+                    {enrollForm.formState.errors.course && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{enrollForm.formState.errors.course.message}</p>}
                   </Field>
                   <Field>
                     <FieldLabel className="text-editorial-label">Class Timing</FieldLabel>
-                    <Select onValueChange={(val) => setValue('timing', val)}>
+                    <Select onValueChange={(val) => enrollForm.setValue('timing', val)}>
                       <SelectTrigger className="bg-background/50 h-10">
                         <SelectValue placeholder="Select session" />
                       </SelectTrigger>
@@ -275,16 +298,16 @@ export default function StudentsPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.timing && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.timing.message}</p>}
+                    {enrollForm.formState.errors.timing && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{enrollForm.formState.errors.timing.message}</p>}
                   </Field>
                 </div>
               </FieldGroup>
               <DialogFooter className="pt-2">
-                <Button type="button" variant="ghost" onClick={() => { setIsAddDialogOpen(false); reset(); }} className="text-muted-foreground hover:text-foreground">
+                <Button type="button" variant="ghost" onClick={() => { setIsAddDialogOpen(false); enrollForm.reset(); }} className="text-muted-foreground hover:text-foreground">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="px-8 font-semibold uppercase tracking-wide">
-                  {isSubmitting ? 'Registering...' : 'Register Student'}
+                <Button type="submit" disabled={enrollForm.formState.isSubmitting} className="px-8 font-semibold uppercase tracking-wide">
+                  {enrollForm.formState.isSubmitting ? 'Registering...' : 'Register Student'}
                 </Button>
               </DialogFooter>
             </form>
@@ -409,7 +432,18 @@ export default function StudentsPage() {
                               <Eye className="w-4 h-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedStudent(student)
+                              editForm.reset({
+                                name: student.name,
+                                guardianName: student.guardianName || '',
+                                studentId: student.studentId || '',
+                                phone: student.phone,
+                                course: student.enrolledCourses[0] || '',
+                                timing: student.classTiming || '',
+                              })
+                              setIsEditDialogOpen(true)
+                            }}>
                               <Edit className="w-4 h-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
@@ -553,7 +587,13 @@ export default function StudentsPage() {
       </Card>
 
       {/* View Student Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+      <Dialog open={isViewDialogOpen} onOpenChange={(open) => {
+        setIsViewDialogOpen(open)
+        if (open && selectedStudent) {
+          setMetricProgress(selectedStudent.progress || 0)
+          setMetricGrade(selectedStudent.grade || '')
+        }
+      }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Student Details</DialogTitle>
@@ -596,8 +636,50 @@ export default function StudentsPage() {
                 </div>
               </div>
 
-              <div>
-                <h4 className="text-sm font-medium mb-3">Overall Progress</h4>
+              {/* Editable Academic Metrics */}
+              <div className="space-y-6 pt-6 border-t border-primary/5">
+                <div className="space-y-3">
+                   <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black uppercase tracking-widest opacity-40">Academic Progress</h4>
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{metricProgress}%</Badge>
+                   </div>
+                   <Input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value={metricProgress} 
+                      onChange={(e) => setMetricProgress(parseInt(e.target.value))}
+                      className="h-2 p-0 cursor-pointer accent-primary" 
+                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                      <h4 className="text-xs font-black uppercase tracking-widest opacity-40">Academic Grade</h4>
+                      <Select value={metricGrade} onValueChange={setMetricGrade}>
+                         <SelectTrigger className="h-10 rounded-xl bg-muted/20">
+                            <SelectValue placeholder="N/A" />
+                         </SelectTrigger>
+                         <SelectContent>
+                            {['A+', 'A', 'B', 'C', 'D', 'F'].map(g => (
+                               <SelectItem key={g} value={g}>{g}</SelectItem>
+                            ))}
+                         </SelectContent>
+                      </Select>
+                   </div>
+                   <div className="flex items-end">
+                      <Button 
+                        onClick={handleUpdateMetrics}
+                        className="w-full h-10 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border-none font-bold text-xs uppercase tracking-widest"
+                      >
+                         Sync Metrics
+                      </Button>
+                   </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t">
+                <h4 className="text-sm font-medium mb-3">Institutional Status</h4>
                 <div className="flex items-center gap-4">
                   <Progress value={selectedStudent.progress} className="flex-1 h-3" />
                   <span className="text-lg font-semibold">{selectedStudent.progress}%</span>
@@ -633,6 +715,78 @@ export default function StudentsPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Student Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-3xl font-bold tracking-tight text-primary">Edit Record</DialogTitle>
+            <DialogDescription className="text-editorial-meta">Modify essential student protocols and enrollment settings.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={editForm.handleSubmit(onEditSubmit)}>
+            <FieldGroup className="py-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel className="text-editorial-label">Student Name</FieldLabel>
+                  <Input {...editForm.register('name')} className="bg-background/50 h-10" />
+                </Field>
+                <Field>
+                  <FieldLabel className="text-editorial-label">Guardian Name</FieldLabel>
+                  <Input {...editForm.register('guardianName')} className="bg-background/50 h-10" />
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel className="text-editorial-label">Student ID</FieldLabel>
+                  <Input {...editForm.register('studentId')} className="bg-background/50 h-10" />
+                </Field>
+                <Field>
+                  <FieldLabel className="text-editorial-label">Phone</FieldLabel>
+                  <Input {...editForm.register('phone')} className="bg-background/50 h-10" />
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel className="text-editorial-label">Registry Class</FieldLabel>
+                  <Select 
+                    onValueChange={(val) => editForm.setValue('course', val)}
+                    defaultValue={selectedStudent?.enrolledCourses[0]}
+                  >
+                    <SelectTrigger className="bg-background/50 h-10">
+                      <SelectValue placeholder="Select class level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockCourses.map((course: any) => (
+                        <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel className="text-editorial-label">Timing</FieldLabel>
+                  <Select 
+                    onValueChange={(val) => editForm.setValue('timing', val)}
+                    defaultValue={selectedStudent?.classTiming}
+                  >
+                    <SelectTrigger className="bg-background/50 h-10">
+                      <SelectValue placeholder="Select session" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CLASS_TIMINGS.map((time) => (
+                        <SelectItem key={time} value={time}>{time}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </FieldGroup>
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={editForm.formState.isSubmitting} className="font-bold">Save Changes</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

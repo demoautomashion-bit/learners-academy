@@ -59,3 +59,34 @@ export async function updateStudentStatus(id: string, status: string) {
   revalidatePath('/')
   return result
 }
+
+export async function updateStudent(id: string, data: Partial<Student>) {
+  try {
+    const result = await db.student.update({
+      where: { id },
+      data: {
+        ...data,
+        enrolledAt: data.enrolledAt ? new Date(data.enrolledAt) : undefined,
+      }
+    })
+    revalidatePath('/')
+    return result
+  } catch (error) {
+    console.error('DATABASE_ERROR [updateStudent]:', error)
+    throw new Error('Failed to update student')
+  }
+}
+
+export async function updateStudentSuccessMetrics(id: string, progress: number, grade?: string) {
+  try {
+    const result = await db.student.update({
+      where: { id },
+      data: { progress, grade }
+    })
+    revalidatePath('/')
+    return result
+  } catch (error) {
+    console.error('DATABASE_ERROR [updateStudentSuccessMetrics]:', error)
+    throw new Error('Failed to update student metrics')
+  }
+}

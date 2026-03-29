@@ -18,11 +18,32 @@ export async function getEconomicStats() {
       return acc
     }, {})
 
+    // Historical Trend (Last 6 months)
+    const now = new Date()
+    const historicalData = Array.from({ length: 6 }, (_, i) => {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+      const monthYear = monthDate.getFullYear()
+      const month = monthDate.getMonth()
+      
+      const monthExp = expenditures
+        .filter(exp => {
+          const d = new Date(exp.date)
+          return d.getFullYear() === monthYear && d.getMonth() === month
+        })
+        .reduce((sum, e) => sum + e.amount, 0)
+
+      return {
+        month: monthDate.toLocaleDateString('en-US', { month: 'short' }),
+        expenditure: monthExp
+      }
+    })
+
     return {
       totalExpenditure,
       actualRevenue,
       projectedRevenue,
       categoryBreakdown,
+      historicalData,
       expenditures,
       feePayments
     }
