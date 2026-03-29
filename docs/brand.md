@@ -8,7 +8,7 @@ This document codifies the "Premium Editorial" design system for The Learners Ac
 | :--- | :--- | :--- |
 | **Headings** | `Cormorant Garamond` | All H1-H6, Card Titles, Dialog Titles |
 | **Body** | `Helvetica Neue` | Paragraphs, Inputs, Buttons, Generic Text |
-| **Data/Tech**| `Geist Mono` | Access Codes, Timers, IDs (Strictly for data) |
+| **Data/Tech**| `Helvetica Neue` | Access Codes, Timers, IDs (Unified with Body) |
 
 ## 2. Structural Hierarchy
 
