@@ -187,14 +187,16 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col gap-6 max-w-[1700px] mx-auto animate-in fade-in zoom-in-95 duration-700 overflow-hidden" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+    <div className="h-[calc(100vh-140px)] flex flex-col gap-6 max-w-[1700px] mx-auto animate-in fade-in zoom-in-95 duration-700 overflow-hidden" 
+         style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+      
       {/* 1. Analytics Horizon (The Premium Header) */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between px-2 shrink-0">
         <div className="space-y-0.5">
           <h1 className="font-serif font-bold text-3xl tracking-tight text-foreground">
             Attendance Registry
           </h1>
-          <p className="text-muted-foreground text-[10px] tracking-[0.2em] font-bold opacity-30 uppercase">
+          <p className="font-sans text-muted-foreground text-[10px] tracking-[0.2em] font-black opacity-30 uppercase">
              {MONTHS[selectedMonth]} {selectedYear} // Global Panel
           </p>
         </div>
@@ -203,21 +205,21 @@ export default function AttendancePage() {
            {/* Global Metric Summary */}
            <div className="flex items-center gap-8 px-6 py-2.5 rounded-2xl bg-card border border-primary/5 shadow-sm">
               <div className="flex flex-col border-r border-primary/5 pr-8">
-                 <span className="text-xl font-bold tracking-tight">{overallStats.presence}</span>
+                 <span className="font-sans text-xl font-bold tracking-tight">{overallStats.presence}</span>
                  <span className="font-sans text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/30 leading-none mt-1">Global Presence</span>
               </div>
               <div className="flex flex-col">
-                 <span className="text-xl font-bold tracking-tight text-destructive/60">{overallStats.uncheckedToday}</span>
+                 <span className="font-sans text-xl font-bold tracking-tight text-destructive/60">{overallStats.uncheckedToday}</span>
                  <span className="font-sans text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/30 leading-none mt-1">Pending</span>
               </div>
            </div>
 
            <div className="flex bg-card/60 backdrop-blur-md border border-primary/10 p-1 rounded-xl shadow-sm h-fit">
              <Select value={selectedMonth.toString()} onValueChange={v => setSelectedMonth(parseInt(v))}>
-                <SelectTrigger className="w-32 border-none bg-transparent h-8 text-[11px] font-bold focus:ring-0">
+                <SelectTrigger className="font-sans w-32 border-none bg-transparent h-8 text-[11px] font-bold focus:ring-0">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="font-sans">
                   {MONTHS.map((m, i) => (
                     <SelectItem key={m} value={i.toString()} className="text-xs">{m}</SelectItem>
                   ))}
@@ -225,10 +227,10 @@ export default function AttendancePage() {
              </Select>
              <div className="w-px h-3 bg-primary/10 self-center mx-1" />
              <Select value={selectedYear.toString()} onValueChange={v => setSelectedYear(parseInt(v))}>
-                <SelectTrigger className="w-24 border-none bg-transparent h-8 text-[11px] font-bold focus:ring-0">
+                <SelectTrigger className="font-sans w-24 border-none bg-transparent h-8 text-[11px] font-bold focus:ring-0">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="font-sans">
                   {[2024, 2025, 2026].map(y => (
                     <SelectItem key={y} value={y.toString()} className="text-xs">{y}</SelectItem>
                   ))}
@@ -242,12 +244,12 @@ export default function AttendancePage() {
          {/* 2. Personnel Sidebar (The Registry) */}
          <div className="w-[400px] flex flex-col gap-4 overflow-hidden">
             <div className="flex items-center justify-between px-2">
-               <span className="text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground/40">Staff Registry // {teachers.length} Entries</span>
+               <span className="font-sans text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground/40">Staff Registry // {teachers.length} Entries</span>
                <Button 
                   onClick={handleMarkAllPresent}
                   variant="ghost" 
                   size="sm"
-                  className="h-7 px-3 text-[9px] uppercase tracking-widest font-black hover:bg-success/5 hover:text-success gap-2 border border-primary/5 rounded-lg"
+                  className="font-sans h-7 px-3 text-[9px] uppercase tracking-widest font-black hover:bg-success/5 hover:text-success gap-2 border border-primary/5 rounded-lg"
                >
                   <Check className="w-3 h-3" />
                   Mark All
@@ -271,7 +273,7 @@ export default function AttendancePage() {
                       )}
                     >
                        {isSelected && (
-                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-primary/40 rounded-r-full shadow-[0_0_20px_rgba(var(--primary),0.3)]" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-primary/40 rounded-r-full shadow-[0_0_20px_rgba(var(--primary),0.3)]" />
                        )}
                        
                        <div className="flex items-start justify-between">
@@ -282,33 +284,33 @@ export default function AttendancePage() {
                                    <span className="w-2 h-2 rounded-full bg-success/40 animate-pulse" />
                                 )}
                              </div>
-                             <p className="text-[9px] text-muted-foreground/40 uppercase tracking-widest uppercase">ID // {teacher.employeeId}</p>
+                             <p className="font-sans text-[9px] text-muted-foreground/40 uppercase tracking-widest uppercase">ID // {teacher.employeeId}</p>
                           </div>
-                          <Badge variant="outline" className="text-[8px] font-black tracking-widest border-primary/10 opacity-40">
+                          <Badge variant="outline" className="font-sans text-[8px] font-black tracking-widest border-primary/10 opacity-40 px-2 py-0.5">
                              {teacher.position || 'Lecturer'}
                           </Badge>
                        </div>
 
                        <div className="mt-5 pt-4 border-t border-primary/5 grid grid-cols-5 gap-1.5">
                           <div className="flex flex-col items-center">
-                             <span className="text-[10px] font-bold text-success/60">{stats.present}</span>
-                             <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">P</span>
+                             <span className="font-sans text-[10px] font-bold text-success/60">{stats.present}</span>
+                             <span className="font-sans text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">P</span>
                           </div>
                           <div className="flex flex-col items-center">
-                             <span className="text-[10px] font-bold text-destructive/50">{stats.absent}</span>
-                             <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">A</span>
+                             <span className="font-sans text-[10px] font-bold text-destructive/50">{stats.absent}</span>
+                             <span className="font-sans text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">A</span>
                           </div>
                           <div className="flex flex-col items-center">
-                             <span className="text-[10px] font-bold text-warning/70">{stats.late}</span>
-                             <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">L</span>
+                             <span className="font-sans text-[10px] font-bold text-warning/70">{stats.late}</span>
+                             <span className="font-sans text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">L</span>
                           </div>
                           <div className="flex flex-col items-center">
-                             <span className="text-[10px] font-bold text-primary/80">{stats.extraClasses}</span>
-                             <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">Sub</span>
+                             <span className="font-sans text-[10px] font-bold text-primary/80">{stats.extraClasses}</span>
+                             <span className="font-sans text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">Sub</span>
                           </div>
                           <div className="flex flex-col items-center">
-                             <span className="text-[10px] font-bold text-primary/40">{stats.leave}</span>
-                             <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">LV</span>
+                             <span className="font-sans text-[10px] font-bold text-primary/40">{stats.leave}</span>
+                             <span className="font-sans text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">LV</span>
                           </div>
                        </div>
                     </div>
@@ -328,7 +330,7 @@ export default function AttendancePage() {
                         <h3 className="font-serif text-4xl font-bold tracking-tight">
                            {teachers.find(t => t.id === selectedTeacherId)?.name}
                         </h3>
-                        <p className="text-[11px] text-muted-foreground/40 leading-none">Detailed Personnel Summary for {MONTHS[selectedMonth]} {selectedYear}</p>
+                        <p className="font-sans text-[11px] text-muted-foreground/40 leading-none">Detailed Personnel Summary for {MONTHS[selectedMonth]} {selectedYear}</p>
                      </div>
 
                      <div className="flex flex-wrap gap-4">
@@ -369,7 +371,7 @@ export default function AttendancePage() {
                                  >
                                     <div className="absolute top-4 left-5">
                                        <span className={cn(
-                                          "text-xl font-bold transition-colors",
+                                          "font-sans text-xl font-bold transition-colors",
                                           isWeekend ? "text-muted-foreground/20" : "text-primary/20 group-hover/cell:text-primary/60"
                                        )}>{day < 10 ? `0${day}` : day}</span>
                                     </div>
@@ -388,7 +390,7 @@ export default function AttendancePage() {
                                     
                                     {isWeekend && (
                                       <div className="absolute bottom-2 right-4 opacity-5">
-                                         <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Institutional Weekend</span>
+                                         <span className="font-sans text-[8px] font-black uppercase tracking-widest text-muted-foreground">Institutional Weekend</span>
                                       </div>
                                     )}
                                  </div>
@@ -400,35 +402,35 @@ export default function AttendancePage() {
                </>
             ) : (
                <div className="flex-1 flex flex-col items-center justify-center opacity-20 space-y-4">
-                  <CalendarIcon className="w-16 h-16 stroke-1" />
-                  <p className="text-xl">Select a teacher record to begin audit</p>
+                  <CalendarIcon className="w-16 h-16 stroke-1 text-primary" />
+                  <p className="font-sans text-xl font-bold">Select a teacher record to begin audit</p>
                </div>
             )}
          </div>
       </div>
 
-      {/* 3. Footer Legend & Status Pane */}
+      {/* 4. Footer Legend & Status Pane */}
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-12 px-6 pt-4 border-t border-primary/5 shrink-0">
          <div className="flex flex-wrap items-center gap-8 animate-in slide-in-from-left-8 duration-1000">
             <div className="flex items-center gap-3">
                <div className="w-2.5 h-2.5 rounded-full bg-success ring-4 ring-success/[0.05]" />
-               <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Presence</span>
+               <span className="font-sans text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Presence</span>
             </div>
             <div className="flex items-center gap-3">
                <div className="w-2.5 h-2.5 rounded-full bg-destructive/60 ring-4 ring-destructive/[0.05]" />
-               <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Absence</span>
+               <span className="font-sans text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Absence</span>
             </div>
             <div className="flex items-center gap-3">
                <div className="w-2.5 h-2.5 rounded-full bg-warning ring-4 ring-warning/[0.05]" />
-               <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Late</span>
+               <span className="font-sans text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Late</span>
             </div>
             <div className="flex items-center gap-3">
                <Star className="w-3 h-3 text-primary/40 fill-primary/10" />
-               <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Substitution</span>
+               <span className="font-sans text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Substitution</span>
             </div>
          </div>
 
-         <div className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/20 text-center lg:text-right">
+         <div className="font-sans text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/20 text-center lg:text-right">
             Registry Master System<br/>
             Ref // TLA-GRID-V2
          </div>
@@ -451,7 +453,7 @@ function MetricPill({ label, value, color }: { label: string, value: number, col
         colorMap[color]
      )}>
         <span className="font-sans text-[10px] font-black uppercase tracking-[0.2em] opacity-60 leading-none mb-1">{label}</span>
-        <span className="text-2xl font-bold tracking-tight">{value}</span>
+        <span className="font-sans text-2xl font-bold tracking-tight">{value}</span>
      </div>
   )
 }
@@ -499,9 +501,9 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
       <PopoverContent className="w-64 p-4 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border-primary/10 backdrop-blur-3xl bg-card/90">
         <div className="px-3 py-2 border-b border-primary/5 mb-4">
            <p className="font-sans text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/50 leading-none mb-2">Dual Audit // Day {day}</p>
-           <p className="text-[9px] text-muted-foreground/30 leading-none">Status & Extra Coverage</p>
+           <p className="font-sans text-[9px] text-muted-foreground/30 leading-none">Status & Extra Coverage</p>
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid gap-1.5 font-sans">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -577,4 +579,3 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
     </Popover>
   )
 }
-

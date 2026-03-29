@@ -88,9 +88,9 @@ export default function EconomicsPage() {
   }
 
   if (isLoading) return (
-    <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
+    <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20 font-sans">
        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-       <p className="font-sans text-[10px] font-black uppercase tracking-widest">Auditing Institutional Ledger...</p>
+       <p className="text-[10px] font-black uppercase tracking-widest">Auditing Institutional Ledger...</p>
     </div>
   )
 
@@ -115,14 +115,14 @@ export default function EconomicsPage() {
             <Button 
                onClick={handleDownloadLedger}
                variant="outline" 
-               className="h-10 px-5 rounded-xl border-primary/10 bg-card hover:bg-primary/5 transition-premium font-bold tracking-tight text-sm gap-2"
+               className="font-sans h-10 px-5 rounded-xl border-primary/10 bg-card hover:bg-primary/5 transition-premium font-bold tracking-tight text-sm gap-2"
             >
                <Download className="w-3.5 h-3.5 opacity-40" />
                Institutional Audit
             </Button>
            <Button 
               onClick={() => setIsModalOpen(true)}
-              className="h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm gap-2"
+              className="font-sans h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm gap-2"
            >
               <Plus className="w-4 h-4" />
               Record Expenditure
@@ -144,14 +144,13 @@ export default function EconomicsPage() {
                </div>
             </CardHeader>
             <CardContent className="flex-1 p-0 relative min-h-[300px] flex items-center justify-center translate-y-2">
-               <div className="flex flex-col items-center gap-4 opacity-10">
+               <div className="flex flex-col items-center gap-4 opacity-10 font-sans">
                   <TrendingUp className="w-12 h-12 text-primary" />
-                  <p className="font-sans text-[10px] uppercase tracking-[0.2em] font-black">Expenditure Velocity Analysis Active</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-black">Expenditure Velocity Analysis Active</p>
                </div>
                {/* Logic-driven trend bars */}
                <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between h-20 px-10 gap-4">
                   {(stats.historicalData || []).map((data: any, i: number) => {
-                    // Normalize height against max value (or default 100k)
                     const maxVal = Math.max(...(stats.historicalData || []).map((d: any) => d.expenditure), 100000)
                     const h = data.expenditure > 0 ? Math.min((data.expenditure / maxVal) * 80 + 20, 100) : 10
                     return (
@@ -213,14 +212,14 @@ export default function EconomicsPage() {
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-500" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
                              <cat.icon className="w-5 h-5" />
                           </div>
-                          <Badge variant="ghost" className="font-sans text-[9px] font-black uppercase tracking-widest opacity-20">Audit V1</Badge>
+                          <Badge variant="ghost" className="font-sans text-[9px] font-black uppercase tracking-widest opacity-20 px-2 py-0.5">Audit V1</Badge>
                        </div>
                        <div className="space-y-0.5 mb-6">
                           <h4 className="font-serif font-bold text-base text-foreground/90">{cat.title}</h4>
                           <p className="font-sans text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Institution Category</p>
                        </div>
                        <div className="mt-auto">
-                          <span className="text-xl font-serif font-bold tracking-tight text-foreground/80">Rs. {amount.toLocaleString()}</span>
+                          <span className="font-serif text-xl font-bold tracking-tight text-foreground/80">Rs. {amount.toLocaleString()}</span>
                        </div>
                     </CardContent>
                  </Card>
@@ -237,8 +236,8 @@ export default function EconomicsPage() {
                <CardDescription className="font-sans text-[9px] uppercase tracking-widest font-black opacity-30">Real-time consolidated cash flow</CardDescription>
             </div>
             <div className="flex gap-2">
-               <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-success/20 text-success bg-success/5">Credit: Fees</Badge>
-               <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-destructive/20 text-destructive bg-destructive/5">Debit: Expenses</Badge>
+               <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-success/20 text-success bg-success/5 px-2 py-0.5">Credit: Fees</Badge>
+               <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-destructive/20 text-destructive bg-destructive/5 px-2 py-0.5">Debit: Expenses</Badge>
             </div>
          </CardHeader>
          <CardContent className="p-0">
@@ -269,7 +268,7 @@ export default function EconomicsPage() {
                                     </Badge>
                                  </div>
                               </td>
-                              <td className="px-6 py-6 font-medium text-sm text-foreground/60">{tx.description}</td>
+                              <td className="px-6 py-6 font-sans font-medium text-sm text-foreground/60">{tx.description}</td>
                               <td className="font-sans px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(tx.date).toLocaleDateString()}</td>
                               <td className={cn(
                                  "px-8 py-6 text-right font-serif font-bold text-base",
@@ -288,48 +287,48 @@ export default function EconomicsPage() {
 
       {/* 5. Record Expenditure Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8">
+        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
           <DialogHeader className="space-y-2 mb-6 text-left">
             <DialogTitle className="font-serif text-2xl font-bold">Audit Outflow</DialogTitle>
-            <DialogDescription className="text-xs font-sans tracking-tight">Record institutional expenditure for the current term cycle</DialogDescription>
+            <DialogDescription className="font-sans text-xs tracking-tight">Record institutional expenditure for the current term cycle</DialogDescription>
           </DialogHeader>
-          <div className="space-y-5">
+          <div className="space-y-5 font-sans">
              <div className="space-y-2">
-                <label className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Category Tier</label>
+                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Category Tier</label>
                 <Select value={newExp.category} onValueChange={(v) => setNewExp({...newExp, category: v})}>
-                   <SelectTrigger className="h-12 rounded-xl border-primary/10 bg-white/50">
+                   <SelectTrigger className="h-12 rounded-xl border-primary/10 bg-white/50 font-sans text-sm font-bold">
                       <SelectValue placeholder="Select category..." />
                    </SelectTrigger>
-                   <SelectContent className="rounded-xl">
+                   <SelectContent className="rounded-xl font-sans">
                       {categories.map(c => <SelectItem key={c.key} value={c.key}>{c.title}</SelectItem>)}
                       <SelectItem value="Other">Other Institutional Cost</SelectItem>
                    </SelectContent>
                 </Select>
              </div>
              <div className="space-y-2">
-                <label className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Debit Amount (PKR)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Debit Amount (PKR)</label>
                 <Input 
                    type="number" 
                    value={newExp.amount}
                    onChange={(e) => setNewExp({...newExp, amount: e.target.value})}
                    placeholder="Enter amount..." 
-                   className="h-12 rounded-xl border-primary/10 bg-white/50 font-serif font-bold text-lg"
+                   className="font-serif h-12 rounded-xl border-primary/10 bg-white/50 font-bold text-lg"
                 />
              </div>
              <div className="space-y-2">
-                <label className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Capital Justification</label>
+                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Capital Justification</label>
                 <Input 
                    value={newExp.description}
                    onChange={(e) => setNewExp({...newExp, description: e.target.value})}
                    placeholder="Purpose of spending..." 
-                   className="h-12 rounded-xl border-primary/10 bg-white/50"
+                   className="font-sans h-12 rounded-xl border-primary/10 bg-white/50 text-sm"
                 />
              </div>
              <div className="flex flex-col gap-3 pt-6">
-                <Button onClick={handleAddExpenditure} className="h-14 rounded-2xl bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold">
+                <Button onClick={handleAddExpenditure} className="h-14 rounded-2xl bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-base">
                    Verify and Record Ledger
                 </Button>
-                <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40">Cancel Entry</Button>
+                <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest opacity-40 font-sans">Cancel Entry</Button>
              </div>
           </div>
         </DialogContent>

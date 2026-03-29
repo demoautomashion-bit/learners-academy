@@ -103,7 +103,7 @@ export default function EconomicsPage() {
   }
 
   return (
-    <div className="font-sans space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2">
+    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
       {/* 1. Master Ledger Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">

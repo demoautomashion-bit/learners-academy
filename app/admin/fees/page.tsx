@@ -107,10 +107,10 @@ export default function FeeRegistryPage() {
                 placeholder="Search student or class..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 h-11 pl-10 rounded-xl border-primary/10 bg-card/60 backdrop-blur-md focus-visible:ring-primary/20 transition-all font-medium text-sm"
+                className="font-sans w-64 h-11 pl-10 rounded-xl border-primary/10 bg-card/60 backdrop-blur-md focus-visible:ring-primary/20 transition-all font-medium text-sm"
               />
            </div>
-           <Button variant="outline" className="h-11 px-5 rounded-xl border-primary/10 bg-card hover:bg-primary/5 transition-premium font-bold tracking-tight text-sm">
+           <Button variant="outline" className="font-sans h-11 px-5 rounded-xl border-primary/10 bg-card hover:bg-primary/5 transition-premium font-bold tracking-tight text-sm">
               <Download className="w-3.5 h-3.5 opacity-40 mr-2" />
               Export Reports
            </Button>
@@ -137,9 +137,9 @@ export default function FeeRegistryPage() {
          </CardHeader>
          <CardContent className="p-0">
             {loading ? (
-              <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
+              <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20 font-sans">
                  <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                 <p className="font-sans text-[10px] font-black uppercase tracking-widest">Parsing Registry...</p>
+                 <p className="text-[10px] font-black uppercase tracking-widest">Parsing Registry...</p>
               </div>
             ) : filteredPayments.length === 0 ? (
               <div className="py-40 flex flex-col items-center justify-center space-y-4">
@@ -170,20 +170,20 @@ export default function FeeRegistryPage() {
                         <tr key={p.id} className="hover:bg-muted/10 transition-premium group">
                            <td className="px-8 py-6">
                               <div className="flex items-center gap-4">
-                                 <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                                    <span className="font-sans text-xs font-black tracking-tighter">{p.student.name.split(' ').map((n: string) => n[0]).join('')}</span>
+                                 <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:bg-primary group-hover:text-white transition-all duration-500 font-sans">
+                                    <span className="text-xs font-black tracking-tighter">{p.student.name.split(' ').map((n: string) => n[0]).join('')}</span>
                                  </div>
                                  <div className="space-y-0.5">
                                     <p className="font-serif font-bold text-base text-foreground/80">{p.student.name}</p>
-                                    <p className="text-[10px] font-sans font-bold text-muted-foreground/30 uppercase tracking-widest">{p.student.studentId || 'No ID'}</p>
+                                    <p className="font-sans text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">{p.student.studentId || 'No ID'}</p>
                                  </div>
                               </div>
                            </td>
-                           <td className="px-6 py-6 font-medium text-sm text-foreground/70">{p.course.title}</td>
+                           <td className="px-6 py-6 font-sans font-medium text-sm text-foreground/70">{p.course.title}</td>
                            <td className="px-6 py-6 font-serif font-bold text-base opacity-40">Rs. {p.totalAmount.toLocaleString()}</td>
                            <td className="px-6 py-6 font-serif font-bold text-base text-primary">Rs. {p.amountPaid.toLocaleString()}</td>
                            <td className="px-6 py-6 font-serif font-bold text-base text-destructive/50">Rs. {(p.totalAmount - p.amountPaid).toLocaleString()}</td>
-                           <td className="px-6 py-6 text-center">
+                           <td className="px-6 py-6">
                               <div className="flex items-center gap-2">
                                  <div className={cn(
                                     "w-1.5 h-1.5 rounded-full",
@@ -201,7 +201,7 @@ export default function FeeRegistryPage() {
                                 }}
                                 variant="ghost" 
                                 size="sm" 
-                                className="h-9 px-4 rounded-xl border border-primary/5 font-bold text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-premium gap-2"
+                                className="font-sans h-9 px-4 rounded-xl border border-primary/5 font-bold text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-premium gap-2"
                               >
                                  Record Payment
                                  <ArrowRight className="w-3 h-3" />
@@ -218,13 +218,13 @@ export default function FeeRegistryPage() {
 
       {/* Record Payment Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8">
+        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
           <DialogHeader className="space-y-2 mb-6">
             <div className="flex items-center justify-between">
                <DialogTitle className="font-serif text-2xl font-bold">Registry Audit</DialogTitle>
                <HandCoins className="w-6 h-6 text-primary opacity-30" />
             </div>
-            <DialogDescription className="text-xs font-sans tracking-tight">
+            <DialogDescription className="font-sans text-xs tracking-tight">
                Recording institutional fees for <span className="font-bold text-foreground">{(selectedPayment as any)?.student?.name}</span>
             </DialogDescription>
           </DialogHeader>
@@ -242,7 +242,7 @@ export default function FeeRegistryPage() {
                 <div className="h-px bg-primary/10 w-full" />
                 <div className="flex justify-between items-center text-[11px] font-bold">
                    <span className="font-sans opacity-40 uppercase tracking-widest">Already Collected</span>
-                   <span className="text-success">Rs. {(selectedPayment as any)?.amountPaid?.toLocaleString()}</span>
+                   <span className="font-serif text-success">Rs. {(selectedPayment as any)?.amountPaid?.toLocaleString()}</span>
                 </div>
              </div>
 
@@ -256,12 +256,12 @@ export default function FeeRegistryPage() {
                    value={paymentAmount}
                    onChange={(e) => setPaymentAmount(e.target.value)}
                    onKeyDown={(e) => e.key === 'Enter' && handleRecordPayment()}
-                   className="h-14 rounded-2xl text-lg font-serif font-bold border-primary/10 bg-white/50 focus:ring-primary/20 transition-all"
+                   className="font-serif h-14 rounded-2xl text-lg font-bold border-primary/10 bg-white/50 focus:ring-primary/20 transition-all"
                  />
                </div>
              </div>
 
-             <div className="flex flex-col gap-3 pt-4">
+             <div className="flex flex-col gap-3 pt-4 font-sans">
                 <Button 
                    onClick={handleRecordPayment}
                    className="h-14 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-base tracking-tight"

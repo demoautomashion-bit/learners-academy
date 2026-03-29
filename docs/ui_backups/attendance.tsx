@@ -187,11 +187,11 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col gap-6 max-w-[1700px] mx-auto animate-in fade-in zoom-in-95 duration-700 overflow-hidden font-sans">
+    <div className="h-[calc(100vh-140px)] flex flex-col gap-6 max-w-[1700px] mx-auto animate-in fade-in zoom-in-95 duration-700 overflow-hidden" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
       {/* 1. Analytics Horizon (The Premium Header) */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between px-2 shrink-0">
         <div className="space-y-0.5">
-          <h1 className="font-bold text-3xl tracking-tight text-foreground">
+          <h1 className="font-serif font-bold text-3xl tracking-tight text-foreground">
             Attendance Registry
           </h1>
           <p className="text-muted-foreground text-[10px] tracking-[0.2em] font-bold opacity-30 uppercase">
@@ -277,7 +277,7 @@ export default function AttendancePage() {
                        <div className="flex items-start justify-between">
                           <div className="space-y-1">
                              <div className="flex items-center gap-3">
-                                <h4 className="font-bold text-lg leading-tight text-foreground/90">{teacher.name}</h4>
+                                <h4 className="font-serif font-bold text-lg leading-tight text-foreground/90">{teacher.name}</h4>
                                 {teacher.status === 'active' && (
                                    <span className="w-2 h-2 rounded-full bg-success/40 animate-pulse" />
                                 )}
@@ -325,7 +325,7 @@ export default function AttendancePage() {
                   <div className="px-12 py-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12 bg-muted/5 border-b border-primary/5">
                      <div className="space-y-2">
                         <span className="font-sans text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/30 leading-none">Attendance Record</span>
-                        <h3 className="text-4xl font-bold tracking-tight">
+                        <h3 className="font-serif text-4xl font-bold tracking-tight">
                            {teachers.find(t => t.id === selectedTeacherId)?.name}
                         </h3>
                         <p className="text-[11px] text-muted-foreground/40 leading-none">Detailed Personnel Summary for {MONTHS[selectedMonth]} {selectedYear}</p>

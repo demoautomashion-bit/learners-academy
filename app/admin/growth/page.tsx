@@ -41,9 +41,9 @@ export default function RegistrationReportsPage() {
   }, [])
 
   if (isLoading || !isCalculated) return (
-    <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
+    <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20 font-sans">
        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-       <p className="font-sans text-[10px] font-black uppercase tracking-widest">Compiling Growth Intelligence...</p>
+       <p className="text-[10px] font-black uppercase tracking-widest">Compiling Growth Intelligence...</p>
     </div>
   )
 
@@ -92,15 +92,15 @@ export default function RegistrationReportsPage() {
                 placeholder="Audit registry..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64 h-10 pl-10 rounded-xl border-primary/10 bg-card/60 backdrop-blur-md focus-visible:ring-primary/20 transition-all font-medium text-sm"
+                className="font-sans w-64 h-10 pl-10 rounded-xl border-primary/10 bg-card/60 backdrop-blur-md focus-visible:ring-primary/20 transition-all font-medium text-sm"
               />
            </div>
            <Button variant="outline" className="h-10 w-10 rounded-xl p-0 border-primary/10 bg-card hover:bg-primary/5 transition-premium">
-              <Filter className="w-4 h-4 opacity-40" />
+              <Filter className="w-4 h-4 opacity-40 shrink-0" />
            </Button>
            <Button 
               onClick={handleDownloadReport}
-              className="h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm gap-2"
+              className="font-sans h-10 px-6 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-premium font-bold tracking-tight text-sm gap-2"
            >
               <Download className="w-3.5 h-3.5" />
               Growth Report
@@ -154,9 +154,9 @@ export default function RegistrationReportsPage() {
                </div>
             </CardHeader>
             <CardContent className="flex-1 p-0 relative min-h-[300px] flex items-center justify-center translate-y-2">
-               <div className="flex flex-col items-center gap-4 opacity-10">
+               <div className="flex flex-col items-center gap-4 opacity-10 font-sans">
                   <BarChart3 className="w-12 h-12 text-primary" />
-                  <p className="font-sans text-[10px] uppercase tracking-[0.2em] font-black">Growth Density Visualizer Active</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-black">Growth Density Visualizer Active</p>
                </div>
                {/* Logic-driven density bars */}
                <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between h-20 px-10 gap-4">
@@ -227,9 +227,9 @@ export default function RegistrationReportsPage() {
          </CardHeader>
          <CardContent className="p-0">
             {students.length === 0 ? (
-               <div className="py-24 flex flex-col items-center justify-center text-center space-y-4">
+               <div className="py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
                   <Users className="w-8 h-8 text-primary opacity-20" />
-                  <p className="font-sans text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Academy registry is currently empty</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Academy registry is currently empty</p>
                </div>
             ) : (
                <div className="overflow-x-auto">
@@ -237,7 +237,7 @@ export default function RegistrationReportsPage() {
                      <thead>
                         <tr className="font-sans border-b border-primary/5 bg-muted/5 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
                            <th className="px-8 py-4 text-left">Personnel Personnel</th>
-                           <th className="font-sans px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Student Protocol ID</th>
+                           <th className="px-6 py-4 text-left">Student Protocol ID</th>
                            <th className="px-6 py-4 text-left">Audit Date</th>
                            <th className="px-6 py-4 text-left">Registry Status</th>
                         </tr>
@@ -246,10 +246,10 @@ export default function RegistrationReportsPage() {
                         {filteredLedger.slice(0, 10).map((student: any) => (
                            <tr key={student.id} className="hover:bg-muted/10 transition-premium group">
                               <td className="px-8 py-6 font-serif font-bold text-base text-foreground/80">{student.name}</td>
-                              <td className="px-6 py-6 font-sans font-bold text-[10px] text-muted-foreground/30">{student.studentId || 'PENDING'}</td>
+                              <td className="font-sans px-6 py-6 font-bold text-[10px] text-muted-foreground/30">{student.studentId || 'PENDING'}</td>
                               <td className="font-sans px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(student.enrolledAt).toLocaleDateString()}</td>
                               <td className="px-6 py-6">
-                                 <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-primary/10 opacity-60">
+                                 <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-primary/10 opacity-60 px-2 py-0.5">
                                     {student.status}
                                  </Badge>
                               </td>
@@ -291,9 +291,9 @@ function MetricCard({ label, value, sub, trend, icon: Icon, color }: any) {
 function SourceRow({ label, percentage, color }: any) {
    return (
       <div className="space-y-2">
-         <div className="flex items-center justify-between transition-premium">
-            <span className="font-sans text-[10px] font-bold text-foreground/50">{label}</span>
-            <span className="font-sans text-[10px] font-black text-muted-foreground/30">{percentage}%</span>
+         <div className="flex items-center justify-between transition-premium font-sans">
+            <span className="text-[10px] font-bold text-foreground/50">{label}</span>
+            <span className="text-[10px] font-black text-muted-foreground/30">{percentage}%</span>
          </div>
          <div className="h-1.5 w-full bg-muted/20 rounded-full overflow-hidden">
             <motion.div 
