@@ -74,7 +74,7 @@ export default function RegistrationReportsPage() {
 
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2" 
-         style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+         style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       
       {/* 1. Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">

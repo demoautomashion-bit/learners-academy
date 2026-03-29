@@ -129,7 +129,7 @@ export default function AdminLayout({
   // Middleware handles route protection now.
 
   return (
-    <SidebarProvider>
+    <SidebarProvider style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <Sidebar className="border-r border-white/5 bg-sidebar transition-premium">
         <AdminSidebarHeader />
 

@@ -104,7 +104,7 @@ export default function EconomicsPage() {
 
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2" 
-         style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+         style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       
       {/* 1. Master Ledger Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
@@ -289,7 +289,7 @@ export default function EconomicsPage() {
 
       {/* 5. Record Expenditure Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
           <DialogHeader className="space-y-2 mb-6 text-left">
             <DialogTitle className="font-serif text-2xl font-bold">Audit Outflow</DialogTitle>
             <DialogDescription className="font-sans text-xs tracking-tight">Record institutional expenditure for the current term cycle</DialogDescription>
