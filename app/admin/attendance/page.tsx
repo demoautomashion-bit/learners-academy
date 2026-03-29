@@ -138,8 +138,8 @@ export default function AttendancePage() {
   }, [teachers, attendanceMap])
 
   const overallStats = useMemo(() => {
-    const totalPresent = Object.values(statsMap).reduce((acc, curr) => acc + curr.present, 0)
-    const totalSubstituted = attendanceRecords.filter(r => r.isSubstitute).length
+    const totalPresent = Object.values(statsMap).reduce((acc, curr: any) => acc + (curr.present || 0), 0)
+    const totalSubstituted = attendanceRecords.reduce((acc, curr) => acc + (curr.substituteCount || 0), 0)
     const uncheckedToday = teachers.length - attendanceRecords.filter(r => new Date(r.date).getDate() === new Date().getDate()).length
     
     return {
@@ -150,17 +150,17 @@ export default function AttendancePage() {
     }
   }, [statsMap, attendanceRecords, teachers])
 
-  const handleUpdateStatus = async (teacherId: string, day: number, status: AttendanceStatus, isSubstitute: boolean) => {
+  const handleUpdateStatus = async (teacherId: string, day: number, status: AttendanceStatus, subCount: number) => {
     const date = new Date(selectedYear, selectedMonth, day).toISOString()
     try {
       // Optimistic update
-      const newRecord = { teacherId, date, status, isSubstitute }
+      const newRecord = { teacherId, date, status, substituteCount: subCount }
       setAttendanceRecords(prev => {
         const filtered = prev.filter(r => !(r.teacherId === teacherId && new Date(r.date).getDate() === day))
         return [...filtered, newRecord]
       })
       
-      await markAttendance(teacherId, date, status, isSubstitute)
+      await markAttendance(teacherId, date, status, subCount)
     } catch (error) {
       toast.error('Sync failed')
       fetchAttendance() // Revert
