@@ -88,7 +88,9 @@ export default function FeeRegistryPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2" 
+         style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+      
       {/* 1. Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
         <div className="space-y-1">
@@ -100,7 +102,7 @@ export default function FeeRegistryPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 font-sans">
            <div className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 transition-colors group-focus-within:text-primary" />
               <Input 
@@ -137,18 +139,18 @@ export default function FeeRegistryPage() {
          </CardHeader>
          <CardContent className="p-0">
             {loading ? (
-              <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
+              <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20 font-sans">
                  <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                 <p className="font-sans text-[10px] font-black uppercase tracking-widest">Parsing Registry...</p>
+                 <p className="text-[10px] font-black uppercase tracking-widest">Parsing Registry...</p>
               </div>
             ) : filteredPayments.length === 0 ? (
               <div className="py-40 flex flex-col items-center justify-center space-y-4">
                  <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10">
                     <Receipt className="w-6 h-6 text-primary opacity-20" />
                  </div>
-                 <div className="text-center space-y-1">
+                 <div className="text-center space-y-1 font-sans">
                     <p className="font-serif text-lg font-bold opacity-30">No Billing Records Found</p>
-                    <p className="font-sans text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Records will appear upon student enrollment in classes</p>
+                    <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Records will appear upon student enrollment in classes</p>
                  </div>
               </div>
             ) : (
@@ -173,27 +175,27 @@ export default function FeeRegistryPage() {
                                  <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:bg-primary group-hover:text-white transition-all duration-500">
                                     <span className="font-sans text-xs font-black tracking-tighter">{p.student.name.split(' ').map((n: string) => n[0]).join('')}</span>
                                  </div>
-                                 <div className="space-y-0.5">
-                                    <p className="font-serif font-bold text-base text-foreground/80">{p.student.name}</p>
-                                    <p className="text-[10px] font-sans font-bold text-muted-foreground/30 uppercase tracking-widest">{p.student.studentId || 'No ID'}</p>
+                                 <div className="space-y-0.5 font-sans">
+                                    <p className="font-serif font-bold text-base text-foreground/80 leading-tight">{p.student.name}</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest leading-none">ID // {p.student.studentId || 'No ID'}</p>
                                  </div>
                               </div>
                            </td>
-                           <td className="px-6 py-6 font-medium text-sm text-foreground/70">{p.course.title}</td>
+                           <td className="px-6 py-6 font-sans font-medium text-sm text-foreground/70 leading-tight">{p.course.title}</td>
                            <td className="px-6 py-6 font-serif font-bold text-base opacity-40">Rs. {p.totalAmount.toLocaleString()}</td>
                            <td className="px-6 py-6 font-serif font-bold text-base text-primary">Rs. {p.amountPaid.toLocaleString()}</td>
                            <td className="px-6 py-6 font-serif font-bold text-base text-destructive/50">Rs. {(p.totalAmount - p.amountPaid).toLocaleString()}</td>
-                           <td className="px-6 py-6 text-center">
-                              <div className="flex items-center gap-2">
+                           <td className="px-6 py-6">
+                              <div className="flex items-center gap-2 font-sans">
                                  <div className={cn(
                                     "w-1.5 h-1.5 rounded-full",
                                     p.status === 'Paid' ? "bg-success shadow-[0_0_10px_rgba(var(--success),0.6)]" : 
                                     p.status === 'Partial' ? "bg-warning" : "bg-destructive/40"
                                  )} />
-                                 <span className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40">{p.status}</span>
+                                 <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{p.status}</span>
                               </div>
                            </td>
-                           <td className="px-8 py-6 text-right">
+                           <td className="px-8 py-6 text-right font-sans">
                               <Button 
                                 onClick={() => {
                                   setSelectedPayment(p)
@@ -218,7 +220,7 @@ export default function FeeRegistryPage() {
 
       {/* Record Payment Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8">
+        <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-primary/10 bg-card/95 backdrop-blur-3xl p-8" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
           <DialogHeader className="space-y-2 mb-6">
             <div className="flex items-center justify-between">
                <DialogTitle className="font-serif text-2xl font-bold">Registry Audit</DialogTitle>
@@ -229,9 +231,9 @@ export default function FeeRegistryPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6 pt-4">
+          <div className="space-y-6 pt-4 font-sans">
              <div className="p-5 rounded-2xl bg-primary/5 border border-primary/5 space-y-3">
-                <div className="font-sans flex justify-between text-[10px] font-black uppercase tracking-widest opacity-40">
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest opacity-40">
                    <span>Enrolled Class</span>
                    <span>Fee Amount</span>
                 </div>
@@ -241,14 +243,14 @@ export default function FeeRegistryPage() {
                 </div>
                 <div className="h-px bg-primary/10 w-full" />
                 <div className="flex justify-between items-center text-[11px] font-bold">
-                   <span className="font-sans opacity-40 uppercase tracking-widest">Already Collected</span>
+                   <span className="opacity-40 uppercase tracking-widest">Already Collected</span>
                    <span className="text-success">Rs. {(selectedPayment as any)?.amountPaid?.toLocaleString()}</span>
                 </div>
              </div>
 
              <div className="space-y-4">
                <div className="space-y-2">
-                 <label className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Payment Amount (PKR)</label>
+                 <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Payment Amount (PKR)</label>
                  <Input 
                    type="number" 
                    autoFocus
@@ -285,13 +287,13 @@ export default function FeeRegistryPage() {
 
 function SummaryCard({ label, value, icon: Icon, color }: any) {
    return (
-      <Card className="border-primary/5 shadow-sm hover-lift transition-premium group overflow-hidden">
+      <Card className="border-primary/5 shadow-sm hover-lift transition-premium group overflow-hidden h-full">
          <CardContent className="p-8 relative">
             <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-1000">
                <Icon className="w-24 h-24" style={{ color }} />
             </div>
-            <div className="space-y-1 relative z-10">
-               <span className="font-sans text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{label}</span>
+            <div className="space-y-1 relative z-10 font-sans">
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 leading-none mb-1">{label}</span>
                <div className="flex items-center gap-3">
                   <h2 className="font-serif text-2xl font-bold tracking-tight text-foreground/90">{value}</h2>
                   <div className="p-1.5 rounded-lg border border-primary/5 bg-card/40">
