@@ -175,6 +175,7 @@
     @apply bg-background text-foreground shrink-0 overflow-x-hidden;
     /* Safe Area support for modern phones */
     padding-bottom: env(safe-area-inset-bottom);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
   }
   
   /* Custom Premium Scrollbar */
@@ -216,6 +217,11 @@
 }
 
 @layer utilities {
+  /* Override ANY monospace defaults */
+  .font-mono {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  }
+
   /* Shimmer Animation */
   @keyframes shimmer {
     0% { transform: translateX(-100%); }

@@ -90,7 +90,7 @@ export default function EconomicsPage() {
   if (isLoading) return (
     <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-       <p className="text-[10px] font-black uppercase tracking-widest">Auditing Institutional Ledger...</p>
+       <p className="font-sans text-[10px] font-black uppercase tracking-widest">Auditing Institutional Ledger...</p>
     </div>
   )
 
@@ -103,7 +103,7 @@ export default function EconomicsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2">
+    <div className="font-sans space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2">
       {/* 1. Master Ledger Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
@@ -136,17 +136,17 @@ export default function EconomicsPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-primary/5 px-8 py-6">
                <div className="space-y-1">
                   <CardTitle className="font-serif text-xl font-bold">Expenditure Velocity</CardTitle>
-                  <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Term-based cumulative spend trend</CardDescription>
+                  <CardDescription className="font-sans text-[9px] uppercase tracking-widest font-black opacity-30">Term-based cumulative spend trend</CardDescription>
                </div>
                <div className="text-right">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Total Outflow</p>
+                  <p className="font-sans text-[10px] font-black uppercase tracking-widest opacity-30">Total Outflow</p>
                   <p className="font-serif text-xl font-bold opacity-60">Rs. {stats.totalExpenditure.toLocaleString()}</p>
                </div>
             </CardHeader>
             <CardContent className="flex-1 p-0 relative min-h-[300px] flex items-center justify-center translate-y-2">
                <div className="flex flex-col items-center gap-4 opacity-10">
                   <TrendingUp className="w-12 h-12 text-primary" />
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-black">Expenditure Velocity Analysis Active</p>
+                  <p className="font-sans text-[10px] uppercase tracking-[0.2em] font-black">Expenditure Velocity Analysis Active</p>
                </div>
                {/* Logic-driven trend bars */}
                <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between h-20 px-10 gap-4">
@@ -162,7 +162,7 @@ export default function EconomicsPage() {
                           transition={{ delay: i * 0.1, duration: 1 }}
                           className="w-full rounded-t-lg bg-primary/10 group-hover:bg-primary/30 transition-all border-t border-primary/5" 
                         />
-                        <span className="text-[8px] font-black uppercase opacity-20">{data.month}</span>
+                        <span className="font-sans text-[8px] font-black uppercase opacity-20">{data.month}</span>
                       </div>
                     )
                   })}
@@ -173,16 +173,16 @@ export default function EconomicsPage() {
          <Card className="border-primary/5 bg-primary shadow-[0_40px_100px_-30px_rgba(var(--primary),0.35)] text-primary-foreground relative overflow-hidden group h-full">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl transition-transform group-hover:scale-110 duration-1000" />
             <CardHeader className="px-8 py-6 pb-2">
-               <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60 mb-1">Actual Collected Revenue</span>
+               <span className="font-sans text-[9px] font-black uppercase tracking-[0.3em] opacity-60 mb-1">Actual Collected Revenue</span>
                <CardTitle className="font-serif text-3xl font-bold tracking-tight">Rs. {stats.actualRevenue.toLocaleString()}</CardTitle>
-               <div className="flex items-center gap-2 mt-4 inline-flex px-3 py-1 bg-white/10 rounded-lg text-[10px] font-bold">
+               <div className="font-sans flex items-center gap-2 mt-4 inline-flex px-3 py-1 bg-white/10 rounded-lg text-[10px] font-bold">
                   <ArrowUpRight className="w-2.5 h-2.5" />
                   Net Institutional Balance
                </div>
             </CardHeader>
             <CardContent className="px-8 pb-8 mt-4 space-y-6">
                <div className="space-y-1.5 pt-4">
-                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest opacity-60">
+                  <div className="font-sans flex justify-between text-[10px] font-black uppercase tracking-widest opacity-60">
                      <span>Collection Compliance</span>
                      <span>{stats.projectedRevenue > 0 ? Math.round((stats.actualRevenue / stats.projectedRevenue) * 100) : 0}%</span>
                   </div>
@@ -194,7 +194,7 @@ export default function EconomicsPage() {
                   </div>
                </div>
                <div className="pt-2">
-                  <p className="text-[10px] uppercase font-black tracking-widest opacity-40 mb-1">Outstanding Receivables</p>
+                  <p className="font-sans text-[10px] uppercase font-black tracking-widest opacity-40 mb-1">Outstanding Receivables</p>
                   <p className="font-serif text-xl font-bold opacity-80">Rs. {(stats.projectedRevenue - stats.actualRevenue).toLocaleString()}</p>
                </div>
             </CardContent>
@@ -213,11 +213,11 @@ export default function EconomicsPage() {
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-500" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
                              <cat.icon className="w-5 h-5" />
                           </div>
-                          <Badge variant="ghost" className="text-[9px] font-black uppercase tracking-widest opacity-20">Audit V1</Badge>
+                          <Badge variant="ghost" className="font-sans text-[9px] font-black uppercase tracking-widest opacity-20">Audit V1</Badge>
                        </div>
                        <div className="space-y-0.5 mb-6">
                           <h4 className="font-serif font-bold text-base text-foreground/90">{cat.title}</h4>
-                          <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Institution Category</p>
+                          <p className="font-sans text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Institution Category</p>
                        </div>
                        <div className="mt-auto">
                           <span className="text-xl font-serif font-bold tracking-tight text-foreground/80">Rs. {amount.toLocaleString()}</span>
@@ -234,24 +234,24 @@ export default function EconomicsPage() {
          <CardHeader className="px-8 py-6 border-b border-primary/5 flex flex-row items-center justify-between">
             <div className="space-y-1">
                <CardTitle className="font-serif text-xl font-bold">Institutional Ledger</CardTitle>
-               <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Real-time consolidated cash flow</CardDescription>
+               <CardDescription className="font-sans text-[9px] uppercase tracking-widest font-black opacity-30">Real-time consolidated cash flow</CardDescription>
             </div>
             <div className="flex gap-2">
-               <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-success/20 text-success bg-success/5">Credit: Fees</Badge>
-               <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-destructive/20 text-destructive bg-destructive/5">Debit: Expenses</Badge>
+               <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-success/20 text-success bg-success/5">Credit: Fees</Badge>
+               <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-destructive/20 text-destructive bg-destructive/5">Debit: Expenses</Badge>
             </div>
          </CardHeader>
          <CardContent className="p-0">
             {stats.transactions?.length === 0 ? (
                <div className="py-24 flex flex-col items-center justify-center text-center space-y-4">
                   <Database className="w-8 h-8 text-primary opacity-20" />
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Historical data synchronized // Registry empty</p>
+                  <p className="font-sans text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Historical data synchronized // Registry empty</p>
                </div>
             ) : (
                <div className="overflow-x-auto">
                   <table className="w-full">
                      <thead>
-                        <tr className="border-b border-primary/5 bg-muted/5 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+                        <tr className="font-sans border-b border-primary/5 bg-muted/5 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
                            <th className="px-8 py-4 text-left">Entity / Source</th>
                            <th className="px-6 py-4 text-left">Description</th>
                            <th className="px-6 py-4 text-left">Date</th>
@@ -264,13 +264,13 @@ export default function EconomicsPage() {
                               <td className="px-8 py-6">
                                  <div className="space-y-0.5">
                                     <p className="font-serif font-bold text-base text-foreground/80">{tx.person}</p>
-                                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-primary/10 opacity-60">
+                                    <Badge variant="outline" className="font-sans text-[8px] font-black uppercase tracking-widest border-primary/10 opacity-60">
                                        {tx.category}
                                     </Badge>
                                  </div>
                               </td>
                               <td className="px-6 py-6 font-medium text-sm text-foreground/60">{tx.description}</td>
-                              <td className="px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(tx.date).toLocaleDateString()}</td>
+                              <td className="font-sans px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(tx.date).toLocaleDateString()}</td>
                               <td className={cn(
                                  "px-8 py-6 text-right font-serif font-bold text-base",
                                  tx.type === 'Credit' ? "text-success" : "text-destructive/80"
@@ -295,7 +295,7 @@ export default function EconomicsPage() {
           </DialogHeader>
           <div className="space-y-5">
              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Category Tier</label>
+                <label className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Category Tier</label>
                 <Select value={newExp.category} onValueChange={(v) => setNewExp({...newExp, category: v})}>
                    <SelectTrigger className="h-12 rounded-xl border-primary/10 bg-white/50">
                       <SelectValue placeholder="Select category..." />
@@ -307,7 +307,7 @@ export default function EconomicsPage() {
                 </Select>
              </div>
              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Debit Amount (PKR)</label>
+                <label className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Debit Amount (PKR)</label>
                 <Input 
                    type="number" 
                    value={newExp.amount}
@@ -317,7 +317,7 @@ export default function EconomicsPage() {
                 />
              </div>
              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Capital Justification</label>
+                <label className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Capital Justification</label>
                 <Input 
                    value={newExp.description}
                    onChange={(e) => setNewExp({...newExp, description: e.target.value})}
@@ -329,7 +329,7 @@ export default function EconomicsPage() {
                 <Button onClick={handleAddExpenditure} className="h-14 rounded-2xl bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold">
                    Verify and Record Ledger
                 </Button>
-                <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest opacity-40">Cancel Entry</Button>
+                <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40">Cancel Entry</Button>
              </div>
           </div>
         </DialogContent>

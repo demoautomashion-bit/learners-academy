@@ -204,11 +204,11 @@ export default function AttendancePage() {
            <div className="flex items-center gap-8 px-6 py-2.5 rounded-2xl bg-card border border-primary/5 shadow-sm">
               <div className="flex flex-col border-r border-primary/5 pr-8">
                  <span className="text-xl font-bold tracking-tight">{overallStats.presence}</span>
-                 <span className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/30 leading-none mt-1">Global Presence</span>
+                 <span className="font-sans text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/30 leading-none mt-1">Global Presence</span>
               </div>
               <div className="flex flex-col">
                  <span className="text-xl font-bold tracking-tight text-destructive/60">{overallStats.uncheckedToday}</span>
-                 <span className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/30 leading-none mt-1">Pending</span>
+                 <span className="font-sans text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/30 leading-none mt-1">Pending</span>
               </div>
            </div>
 
@@ -324,7 +324,7 @@ export default function AttendancePage() {
                   {/* Top Canvas Stats */}
                   <div className="px-12 py-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12 bg-muted/5 border-b border-primary/5">
                      <div className="space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/30 leading-none">Attendance Record</span>
+                        <span className="font-sans text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/30 leading-none">Attendance Record</span>
                         <h3 className="text-4xl font-bold tracking-tight">
                            {teachers.find(t => t.id === selectedTeacherId)?.name}
                         </h3>
@@ -345,7 +345,7 @@ export default function AttendancePage() {
                         {/* Headers */}
                         {DAYS.map(day => (
                            <div key={day} className="h-10 border-b border-primary/10 flex items-center justify-center">
-                              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/30">{day}</span>
+                              <span className="font-sans text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/30">{day}</span>
                            </div>
                         ))}
                         
@@ -450,7 +450,7 @@ function MetricPill({ label, value, color }: { label: string, value: number, col
         "px-6 py-3 rounded-2xl border flex flex-col items-center min-w-[120px] transition-all duration-500 hover:scale-105",
         colorMap[color]
      )}>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 leading-none mb-1">{label}</span>
+        <span className="font-sans text-[10px] font-black uppercase tracking-[0.2em] opacity-60 leading-none mb-1">{label}</span>
         <span className="text-2xl font-bold tracking-tight">{value}</span>
      </div>
   )
@@ -498,7 +498,7 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
       </PopoverTrigger>
       <PopoverContent className="w-64 p-4 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border-primary/10 backdrop-blur-3xl bg-card/90">
         <div className="px-3 py-2 border-b border-primary/5 mb-4">
-           <p className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/50 leading-none mb-2">Dual Audit // Day {day}</p>
+           <p className="font-sans text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/50 leading-none mb-2">Dual Audit // Day {day}</p>
            <p className="text-[9px] text-muted-foreground/30 leading-none">Status & Extra Coverage</p>
         </div>
         <div className="grid gap-1.5">

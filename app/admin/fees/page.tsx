@@ -88,7 +88,7 @@ export default function FeeRegistryPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20">
+    <div className="font-sans space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20">
       {/* 1. Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
         <div className="space-y-1">
@@ -129,9 +129,9 @@ export default function FeeRegistryPage() {
          <CardHeader className="px-8 py-6 border-b border-primary/5 flex flex-row items-center justify-between">
             <div className="space-y-1">
                <CardTitle className="font-serif text-xl font-bold">Billing Registry</CardTitle>
-               <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Active Student-Course Payment states</CardDescription>
+               <CardDescription className="font-sans text-[9px] uppercase tracking-widest font-black opacity-30">Active Student-Course Payment states</CardDescription>
             </div>
-            <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/10 opacity-40 px-3 py-1">
+            <Badge variant="outline" className="font-sans text-[10px] font-black uppercase tracking-widest border-primary/10 opacity-40 px-3 py-1">
                System Live // Term Auto-Audit
             </Badge>
          </CardHeader>
@@ -139,7 +139,7 @@ export default function FeeRegistryPage() {
             {loading ? (
               <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
                  <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                 <p className="text-[10px] font-black uppercase tracking-widest">Parsing Registry...</p>
+                 <p className="font-sans text-[10px] font-black uppercase tracking-widest">Parsing Registry...</p>
               </div>
             ) : filteredPayments.length === 0 ? (
               <div className="py-40 flex flex-col items-center justify-center space-y-4">
@@ -148,14 +148,14 @@ export default function FeeRegistryPage() {
                  </div>
                  <div className="text-center space-y-1">
                     <p className="font-serif text-lg font-bold opacity-30">No Billing Records Found</p>
-                    <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Records will appear upon student enrollment in classes</p>
+                    <p className="font-sans text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Records will appear upon student enrollment in classes</p>
                  </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                    <thead>
-                      <tr className="border-b border-primary/5 bg-muted/5">
+                      <tr className="font-sans border-b border-primary/5 bg-muted/5">
                          <th className="px-8 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Student Personnel</th>
                          <th className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Enrolled Course</th>
                          <th className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Total Fee</th>
@@ -171,7 +171,7 @@ export default function FeeRegistryPage() {
                            <td className="px-8 py-6">
                               <div className="flex items-center gap-4">
                                  <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                                    <span className="text-xs font-black tracking-tighter">{p.student.name.split(' ').map((n: string) => n[0]).join('')}</span>
+                                    <span className="font-sans text-xs font-black tracking-tighter">{p.student.name.split(' ').map((n: string) => n[0]).join('')}</span>
                                  </div>
                                  <div className="space-y-0.5">
                                     <p className="font-serif font-bold text-base text-foreground/80">{p.student.name}</p>
@@ -190,7 +190,7 @@ export default function FeeRegistryPage() {
                                     p.status === 'Paid' ? "bg-success shadow-[0_0_10px_rgba(var(--success),0.6)]" : 
                                     p.status === 'Partial' ? "bg-warning" : "bg-destructive/40"
                                  )} />
-                                 <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{p.status}</span>
+                                 <span className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40">{p.status}</span>
                               </div>
                            </td>
                            <td className="px-8 py-6 text-right">
@@ -231,7 +231,7 @@ export default function FeeRegistryPage() {
           
           <div className="space-y-6 pt-4">
              <div className="p-5 rounded-2xl bg-primary/5 border border-primary/5 space-y-3">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest opacity-40">
+                <div className="font-sans flex justify-between text-[10px] font-black uppercase tracking-widest opacity-40">
                    <span>Enrolled Class</span>
                    <span>Fee Amount</span>
                 </div>
@@ -241,14 +241,14 @@ export default function FeeRegistryPage() {
                 </div>
                 <div className="h-px bg-primary/10 w-full" />
                 <div className="flex justify-between items-center text-[11px] font-bold">
-                   <span className="opacity-40 uppercase tracking-widest">Already Collected</span>
+                   <span className="font-sans opacity-40 uppercase tracking-widest">Already Collected</span>
                    <span className="text-success">Rs. {(selectedPayment as any)?.amountPaid?.toLocaleString()}</span>
                 </div>
              </div>
 
              <div className="space-y-4">
                <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Payment Amount (PKR)</label>
+                 <label className="font-sans text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Payment Amount (PKR)</label>
                  <Input 
                    type="number" 
                    autoFocus
@@ -291,7 +291,7 @@ function SummaryCard({ label, value, icon: Icon, color }: any) {
                <Icon className="w-24 h-24" style={{ color }} />
             </div>
             <div className="space-y-1 relative z-10">
-               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{label}</span>
+               <span className="font-sans text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{label}</span>
                <div className="flex items-center gap-3">
                   <h2 className="font-serif text-2xl font-bold tracking-tight text-foreground/90">{value}</h2>
                   <div className="p-1.5 rounded-lg border border-primary/5 bg-card/40">

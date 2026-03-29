@@ -43,7 +43,7 @@ export default function RegistrationReportsPage() {
   if (isLoading || !isCalculated) return (
     <div className="py-40 flex flex-col items-center justify-center space-y-4 opacity-20">
        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-       <p className="text-[10px] font-black uppercase tracking-widest">Compiling Growth Intelligence...</p>
+       <p className="font-sans text-[10px] font-black uppercase tracking-widest">Compiling Growth Intelligence...</p>
     </div>
   )
 
@@ -73,7 +73,7 @@ export default function RegistrationReportsPage() {
   )
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2">
+    <div className="font-sans space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-2">
       {/* 1. Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
         <div className="space-y-1">
@@ -150,13 +150,13 @@ export default function RegistrationReportsPage() {
             <CardHeader className="px-8 py-6 border-b border-primary/5 flex flex-row items-center justify-between">
                <div className="space-y-1">
                   <CardTitle className="font-serif text-xl font-bold">Strategic Density</CardTitle>
-                  <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Registration Volume per Weekday</CardDescription>
+                  <CardDescription className="font-sans text-[9px] uppercase tracking-widest font-black opacity-30">Registration Volume per Weekday</CardDescription>
                </div>
             </CardHeader>
             <CardContent className="flex-1 p-0 relative min-h-[300px] flex items-center justify-center translate-y-2">
                <div className="flex flex-col items-center gap-4 opacity-10">
                   <BarChart3 className="w-12 h-12 text-primary" />
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-black">Growth Density Visualizer Active</p>
+                  <p className="font-sans text-[10px] uppercase tracking-[0.2em] font-black">Growth Density Visualizer Active</p>
                </div>
                {/* Logic-driven density bars */}
                <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between h-20 px-10 gap-4">
@@ -170,7 +170,7 @@ export default function RegistrationReportsPage() {
                          transition={{ delay: i * 0.1, duration: 1 }}
                          className="w-full rounded-t-lg bg-primary/10 group-hover:bg-primary/30 transition-all border-t border-primary/5" 
                        />
-                       <span className="text-[8px] font-black uppercase opacity-20">{day.label}</span>
+                       <span className="font-sans text-[8px] font-black uppercase opacity-20">{day.label}</span>
                      </div>
                     )
                   })}
@@ -190,7 +190,7 @@ export default function RegistrationReportsPage() {
                      {analytics?.insightsStr}
                   </p>
                   <div className="pt-4 border-t border-white/10">
-                     <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
+                     <div className="font-sans flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
                         <span>Projected Registry Load</span>
                         <span>{Math.round(weeklyTotal * 0.25)} Critical Nodes</span>
                      </div>
@@ -201,7 +201,7 @@ export default function RegistrationReportsPage() {
             <Card className="border-primary/5 shadow-sm flex-1">
                <CardHeader className="pb-2 px-8 pt-8">
                   <CardTitle className="font-serif text-base font-bold">Registration Channels</CardTitle>
-                  <CardDescription className="text-[9px] uppercase font-black tracking-widest opacity-30">Lead Source Acquisition</CardDescription>
+                  <CardDescription className="font-sans text-[9px] uppercase font-black tracking-widest opacity-30">Lead Source Acquisition</CardDescription>
                </CardHeader>
                <CardContent className="px-8 pb-8 space-y-5 pt-4">
                   {(analytics?.channels || []).map((chn: any, i: number) => (
@@ -222,22 +222,22 @@ export default function RegistrationReportsPage() {
          <CardHeader className="px-8 py-6 border-b border-primary/5 flex flex-row items-center justify-between">
             <div className="space-y-1">
                <CardTitle className="font-serif text-xl font-bold">Enrollment Ledger</CardTitle>
-               <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Most recent institutional registrations</CardDescription>
+               <CardDescription className="font-sans text-[9px] uppercase tracking-widest font-black opacity-30">Most recent institutional registrations</CardDescription>
             </div>
          </CardHeader>
          <CardContent className="p-0">
             {students.length === 0 ? (
                <div className="py-24 flex flex-col items-center justify-center text-center space-y-4">
                   <Users className="w-8 h-8 text-primary opacity-20" />
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Academy registry is currently empty</p>
+                  <p className="font-sans text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Academy registry is currently empty</p>
                </div>
             ) : (
                <div className="overflow-x-auto">
                   <table className="w-full">
                      <thead>
-                        <tr className="border-b border-primary/5 bg-muted/5 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+                        <tr className="font-sans border-b border-primary/5 bg-muted/5 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
                            <th className="px-8 py-4 text-left">Personnel Personnel</th>
-                           <th className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Student Protocol ID</th>
+                           <th className="font-sans px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Student Protocol ID</th>
                            <th className="px-6 py-4 text-left">Audit Date</th>
                            <th className="px-6 py-4 text-left">Registry Status</th>
                         </tr>
@@ -247,9 +247,9 @@ export default function RegistrationReportsPage() {
                            <tr key={student.id} className="hover:bg-muted/10 transition-premium group">
                               <td className="px-8 py-6 font-serif font-bold text-base text-foreground/80">{student.name}</td>
                               <td className="px-6 py-6 font-sans font-bold text-[10px] text-muted-foreground/30">{student.studentId || 'PENDING'}</td>
-                              <td className="px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(student.enrolledAt).toLocaleDateString()}</td>
+                              <td className="font-sans px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(student.enrolledAt).toLocaleDateString()}</td>
                               <td className="px-6 py-6">
-                                 <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/10 opacity-60">
+                                 <Badge variant="outline" className="font-sans text-[9px] font-black uppercase tracking-widest border-primary/10 opacity-60">
                                     {student.status}
                                  </Badge>
                               </td>
@@ -273,15 +273,15 @@ function MetricCard({ label, value, sub, trend, icon: Icon, color }: any) {
                <Icon className="w-24 h-24" style={{ color }} />
             </div>
             <div className="space-y-1 relative z-10">
-               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{label}</span>
+               <span className="font-sans text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{label}</span>
                <div className="flex items-center gap-2">
                   <h2 className="font-serif text-2xl font-bold tracking-tight text-foreground/90">{value}</h2>
-                  <div className="flex items-center gap-1 text-[8px] font-black text-success tracking-widest">
+                  <div className="font-sans flex items-center gap-1 text-[8px] font-black text-success tracking-widest">
                      <TrendingUp className="w-2 h-2" />
                      {trend}
                   </div>
                </div>
-               <p className="text-[9px] font-medium text-muted-foreground/30 pt-1 leading-none">{sub}</p>
+               <p className="font-sans text-[9px] font-medium text-muted-foreground/30 pt-1 leading-none">{sub}</p>
             </div>
          </CardContent>
       </Card>
@@ -292,8 +292,8 @@ function SourceRow({ label, percentage, color }: any) {
    return (
       <div className="space-y-2">
          <div className="flex items-center justify-between transition-premium">
-            <span className="text-[10px] font-bold text-foreground/50">{label}</span>
-            <span className="text-[10px] font-black text-muted-foreground/30">{percentage}%</span>
+            <span className="font-sans text-[10px] font-bold text-foreground/50">{label}</span>
+            <span className="font-sans text-[10px] font-black text-muted-foreground/30">{percentage}%</span>
          </div>
          <div className="h-1.5 w-full bg-muted/20 rounded-full overflow-hidden">
             <motion.div 
