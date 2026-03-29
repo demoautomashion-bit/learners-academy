@@ -29,7 +29,7 @@ export async function getTeacherAttendance(month: number, year: number) {
   })
 }
 
-export async function markAttendance(teacherId: string, date: string, status: string, isSubstitute: boolean = false) {
+export async function markAttendance(teacherId: string, date: string, status: string, substituteCount: number = 0) {
   const targetDate = new Date(date)
   // Ensure we operate on the date without time components for the unique check
   targetDate.setHours(0, 0, 0, 0)
@@ -43,13 +43,13 @@ export async function markAttendance(teacherId: string, date: string, status: st
     },
     update: {
       status,
-      isSubstitute
+      substituteCount
     },
     create: {
       teacherId,
       date: targetDate,
       status,
-      isSubstitute
+      substituteCount
     }
   })
 

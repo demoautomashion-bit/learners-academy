@@ -119,7 +119,7 @@ export default function StudentsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
-  const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics } = useData()
+  const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, feePayments } = useData()
 
   const enrollForm = useForm<StudentFormValues>({
     resolver: zodResolver(studentSchema)

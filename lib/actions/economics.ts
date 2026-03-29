@@ -38,6 +38,30 @@ export async function getEconomicStats() {
       }
     })
 
+    // Unified Transaction Stream (Combine Expenditures and Paid Fees)
+    const transactions = [
+      ...expenditures.map(e => ({
+        id: e.id,
+        amount: e.amount,
+        type: 'Debit' as const,
+        category: e.category,
+        description: e.description,
+        date: e.date,
+        person: 'Institutional Outflow'
+      })),
+      ...feePayments
+        .filter(pay => pay.amountPaid > 0)
+        .map(pay => ({
+          id: pay.id,
+          amount: pay.amountPaid,
+          type: 'Credit' as const,
+          category: 'Tuition Fee',
+          description: `Fee Payment for ${pay.course.title}`,
+          date: pay.paymentDate || pay.updatedAt,
+          person: pay.student.name
+        }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
     return {
       totalExpenditure,
       actualRevenue,
@@ -45,7 +69,8 @@ export async function getEconomicStats() {
       categoryBreakdown,
       historicalData,
       expenditures,
-      feePayments
+      feePayments,
+      transactions
     }
   } catch (error) {
     console.error('DATABASE_ERROR [getEconomicStats]:', error)

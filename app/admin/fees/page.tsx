@@ -160,6 +160,7 @@ export default function FeeRegistryPage() {
                          <th className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Enrolled Course</th>
                          <th className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Total Fee</th>
                          <th className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Amount Paid</th>
+                         <th className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Remaining</th>
                          <th className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Status</th>
                          <th className="px-8 py-4 text-right text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Audit Action</th>
                       </tr>
@@ -181,7 +182,8 @@ export default function FeeRegistryPage() {
                            <td className="px-6 py-6 font-medium text-sm text-foreground/70">{p.course.title}</td>
                            <td className="px-6 py-6 font-serif font-bold text-base opacity-40">Rs. {p.totalAmount.toLocaleString()}</td>
                            <td className="px-6 py-6 font-serif font-bold text-base text-primary">Rs. {p.amountPaid.toLocaleString()}</td>
-                           <td className="px-6 py-6">
+                           <td className="px-6 py-6 font-serif font-bold text-base text-destructive/50">Rs. {(p.totalAmount - p.amountPaid).toLocaleString()}</td>
+                           <td className="px-6 py-6 text-center">
                               <div className="flex items-center gap-2">
                                  <div className={cn(
                                     "w-1.5 h-1.5 rounded-full",

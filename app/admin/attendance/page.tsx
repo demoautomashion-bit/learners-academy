@@ -119,18 +119,19 @@ export default function AttendancePage() {
     const stats: Record<string, { present: number, absent: number, late: number, leave: number, substitutes: number }> = {}
     
     teachers.forEach(teacher => {
-      stats[teacher.id] = { present: 0, absent: 0, late: 0, leave: 0, substitutes: 0 }
+      stats[teacher.id] = { present: 0, absent: 0, late: 0, leave: 0, substitutes: 0, extraClasses: 0 }
       const teacherAttendance = attendanceMap[teacher.id] || {}
       
       Object.values(teacherAttendance).forEach((rec: any) => {
-        // Only count as 'Present' if not acting as a substitute (to separate them)
-        if (rec.status === 'Present' && !rec.isSubstitute) stats[teacher.id].present++
-        
-        if (rec.status === 'Absent') stats[teacher.id].absent++
+        if (rec.status === 'Present') stats[teacher.id].present++
+        else if (rec.status === 'Absent') stats[teacher.id].absent++
         else if (rec.status === 'Late') stats[teacher.id].late++
         else if (rec.status === 'Leave') stats[teacher.id].leave++
         
-        if (rec.isSubstitute) stats[teacher.id].substitutes++
+        if (rec.substituteCount > 0) {
+           stats[teacher.id].substitutes++
+           stats[teacher.id].extraClasses += rec.substituteCount
+        }
       })
     })
     return stats
@@ -300,8 +301,8 @@ export default function AttendancePage() {
                              <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">L</span>
                           </div>
                           <div className="flex flex-col items-center">
-                             <span className="text-[10px] font-bold text-primary/80">{stats.substitutes}</span>
-                             <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">S</span>
+                             <span className="text-[10px] font-bold text-primary/80">{stats.extraClasses}</span>
+                             <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30">Sub</span>
                           </div>
                           <div className="flex flex-col items-center">
                              <span className="text-[10px] font-bold text-primary/40">{stats.leave}</span>
@@ -456,7 +457,7 @@ function MetricPill({ label, value, color }: { label: string, value: number, col
 function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any) {
   const [open, setOpen] = useState(false)
   const currentStatus = record?.status || null
-  const isSubstitute = record?.isSubstitute || false
+  const subCount = record?.substituteCount || 0
 
   if (isWeekend) {
      return (
@@ -464,8 +465,8 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
      )
   }
 
-  const handleSelect = (status: AttendanceStatus, sub = isSubstitute) => {
-    onUpdate(teacherId, day, status, sub)
+  const handleSelect = (status: AttendanceStatus, count = subCount) => {
+    onUpdate(teacherId, day, status, count)
     setOpen(false)
   }
 
@@ -477,7 +478,6 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
           <div className="relative">
              <div className={cn(
                "w-5 h-5 rounded-full transition-all duration-500 border-2",
-               isSubstitute ? "bg-primary border-primary shadow-[0_0_20px_rgba(var(--primary),0.4)]" : 
                currentStatus === 'Present' ? "bg-success border-success" :
                currentStatus === 'Absent' ? "bg-destructive/10 border-destructive/40" :
                currentStatus === 'Late' ? "bg-warning/10 border-warning/40" :
@@ -485,10 +485,10 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
                "bg-primary/[0.03] border-primary/5 group-hover/cell:border-primary/40 group-hover/cell:bg-primary/5"
              )} />
              
-             {/* Service Star Overlay */}
-             {isSubstitute && (
-               <div className="absolute -top-3 -right-3 p-1 animate-in zoom-in duration-700">
-                  <Star className="w-3 h-3 text-white fill-white drop-shadow-sm" />
+             {/* Sub Session Counter Badge */}
+             {subCount > 0 && (
+               <div className="absolute -top-3 -right-3 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-primary text-[8px] font-black text-white border-2 border-white shadow-sm ring-1 ring-primary/20">
+                  +{subCount}
                </div>
              )}
           </div>
@@ -496,52 +496,66 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
       </PopoverTrigger>
       <PopoverContent className="w-64 p-4 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border-primary/10 backdrop-blur-3xl bg-card/90">
         <div className="px-3 py-2 border-b border-primary/5 mb-4">
-           <p className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/50 leading-none mb-2">Institutional Audit // Day {day}</p>
-           <p className="text-[9px] text-muted-foreground/30 leading-none">Security Protocol Enforced</p>
+           <p className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/50 leading-none mb-2">Dual Audit // Day {day}</p>
+           <p className="text-[9px] text-muted-foreground/30 leading-none">Status & Extra Coverage</p>
         </div>
         <div className="grid gap-1.5">
           <Button 
             variant="ghost" 
             size="sm" 
-            className="justify-start gap-4 h-12 rounded-2xl hover:bg-success/10 hover:text-success transition-all duration-300 px-5 group/item"
-            onClick={() => handleSelect('Present', false)}
+            className="justify-start gap-4 h-11 rounded-2xl hover:bg-success/10 hover:text-success px-5 group/item"
+            onClick={() => handleSelect('Present')}
           >
-            <div className="w-3 h-3 rounded-full bg-success shadow-[0_0_10px_rgba(0,255,100,0.3)] transition-transform group-hover/item:scale-125" />
-            <span className="text-[11px] font-black uppercase tracking-widest text-foreground/70">Regular Present</span>
-            {currentStatus === 'Present' && !isSubstitute && <Check className="w-4 h-4 ml-auto text-success" />}
+            <div className="w-3 h-3 rounded-full bg-success shadow-[0_0_10px_rgba(0,255,100,0.3)]" />
+            <span className="text-[11px] font-black uppercase tracking-widest text-foreground/70">Mark Present</span>
+            {currentStatus === 'Present' && <Check className="w-4 h-4 ml-auto text-success" />}
           </Button>
           
+          <div className="my-2 border-t border-primary/5" />
+
           <Button 
             variant="ghost" 
             size="sm" 
-            className="justify-start gap-4 h-12 rounded-2xl hover:bg-primary/10 hover:text-primary transition-all duration-300 px-5 group/item"
-            onClick={() => handleSelect('Present', true)}
+            className="justify-start gap-4 h-11 rounded-2xl hover:bg-primary/10 hover:text-primary px-5 group/item"
+            onClick={() => handleSelect(currentStatus || 'Present', subCount + 1)}
           >
             <div className="relative">
-               <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.2)] transition-transform group-hover/item:scale-125" />
-               <Star className="absolute -top-1 -right-1 w-2 h-2 text-white fill-white" />
+               <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.2)]" />
+               <Plus className="absolute -top-1 -right-1 w-2 h-2 text-white" />
             </div>
-            <span className="text-[11px] font-black uppercase tracking-widest text-foreground/70">Substitution</span>
-            {isSubstitute && <Check className="w-4 h-4 ml-auto text-primary" />}
+            <span className="text-[11px] font-black uppercase tracking-widest text-foreground/70">Add Substitute Class</span>
+            <Badge variant="secondary" className="ml-auto text-[9px] font-black bg-primary/20">{subCount}</Badge>
           </Button>
 
           <Button 
             variant="ghost" 
             size="sm" 
-            className="justify-start gap-4 h-11 rounded-2xl hover:bg-destructive/10 hover:text-destructive transition-all duration-300 px-5 group/item"
-            onClick={() => handleSelect('Absent', false)}
+            className="justify-start gap-4 h-11 rounded-2xl hover:bg-destructive/10 hover:text-destructive px-5 group/item text-muted-foreground/40"
+            onClick={() => handleSelect(currentStatus || 'Present', 0)}
           >
-            <div className="w-3 h-3 rounded-full bg-destructive shadow-[0_0_10px_rgba(255,50,50,0.2)] transition-transform group-hover/item:scale-125" />
+            <X className="w-3 h-3" />
+            <span className="text-[11px] font-black uppercase tracking-widest">Clear Subsitutes</span>
+          </Button>
+
+          <div className="my-2 border-t border-primary/5" />
+
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="justify-start gap-4 h-11 rounded-2xl hover:bg-destructive/10 hover:text-destructive px-5 group/item"
+            onClick={() => handleSelect('Absent')}
+          >
+            <div className="w-3 h-3 rounded-full bg-destructive" />
             <span className="text-[11px] font-black uppercase tracking-widest text-foreground/70">Absent</span>
             {currentStatus === 'Absent' && <Check className="w-4 h-4 ml-auto text-destructive" />}
           </Button>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="justify-start gap-4 h-11 rounded-2xl hover:bg-warning/10 hover:text-warning transition-all duration-300 px-5 group/item"
-            onClick={() => handleSelect('Late', false)}
+            className="justify-start gap-4 h-11 rounded-2xl hover:bg-warning/10 hover:text-warning px-5 group/item"
+            onClick={() => handleSelect('Late')}
           >
-            <div className="w-3 h-3 rounded-full bg-warning shadow-[0_0_10px_rgba(255,200,0,0.2)] transition-transform group-hover/item:scale-125" />
+            <div className="w-3 h-3 rounded-full bg-warning" />
             <span className="text-[11px] font-black uppercase tracking-widest text-foreground/70">Late Entry</span>
             {currentStatus === 'Late' && <Check className="w-4 h-4 ml-auto text-warning" />}
           </Button>
@@ -549,10 +563,10 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
           <Button 
             variant="ghost" 
             size="sm" 
-            className="justify-start gap-4 h-11 rounded-2xl hover:bg-muted-foreground/10 hover:text-foreground transition-all duration-300 px-5 group/item"
-            onClick={() => handleSelect('Leave', false)}
+            className="justify-start gap-4 h-11 rounded-2xl hover:bg-muted-foreground/10 hover:text-foreground px-5 group/item"
+            onClick={() => handleSelect('Leave')}
           >
-            <div className="w-3 h-3 rounded-full bg-muted-foreground/40 transition-transform group-hover/item:scale-125" />
+            <div className="w-3 h-3 rounded-full bg-muted-foreground/40" />
             <span className="text-[11px] font-black uppercase tracking-widest text-foreground/70">Leave / Off</span>
             {currentStatus === 'Leave' && <Check className="w-4 h-4 ml-auto text-foreground" />}
           </Button>

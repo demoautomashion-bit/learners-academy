@@ -229,16 +229,20 @@ export default function EconomicsPage() {
          })}
       </div>
 
-      {/* 4. Chronological Ledger */}
+      {/* 4. Institutional Transaction Ledger */}
       <Card className="border-primary/5 shadow-sm bg-card/60 backdrop-blur-xl">
          <CardHeader className="px-8 py-6 border-b border-primary/5 flex flex-row items-center justify-between">
             <div className="space-y-1">
-               <CardTitle className="font-serif text-xl font-bold">Expenditure Ledger</CardTitle>
-               <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Real-time cost auditing record</CardDescription>
+               <CardTitle className="font-serif text-xl font-bold">Institutional Ledger</CardTitle>
+               <CardDescription className="text-[9px] uppercase tracking-widest font-black opacity-30">Real-time consolidated cash flow</CardDescription>
+            </div>
+            <div className="flex gap-2">
+               <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-success/20 text-success bg-success/5">Credit: Fees</Badge>
+               <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-destructive/20 text-destructive bg-destructive/5">Debit: Expenses</Badge>
             </div>
          </CardHeader>
          <CardContent className="p-0">
-            {stats.expenditures.length === 0 ? (
+            {stats.transactions?.length === 0 ? (
                <div className="py-24 flex flex-col items-center justify-center text-center space-y-4">
                   <Database className="w-8 h-8 text-primary opacity-20" />
                   <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-10">Historical data synchronized // Registry empty</p>
@@ -248,23 +252,31 @@ export default function EconomicsPage() {
                   <table className="w-full">
                      <thead>
                         <tr className="border-b border-primary/5 bg-muted/5 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
-                           <th className="px-8 py-4 text-left font-serif lowercase italic text-xs first-letter:uppercase not-italic text-muted-foreground/40">Category Entry</th>
+                           <th className="px-8 py-4 text-left">Entity / Source</th>
                            <th className="px-6 py-4 text-left">Description</th>
-                           <th className="px-6 py-4 text-left">Audit Date</th>
-                           <th className="px-8 py-4 text-right">Debit Amount</th>
+                           <th className="px-6 py-4 text-left">Date</th>
+                           <th className="px-8 py-4 text-right">Adjustment</th>
                         </tr>
                      </thead>
                      <tbody className="divide-y divide-primary/5">
-                        {stats.expenditures.map((exp: any) => (
-                           <tr key={exp.id} className="hover:bg-muted/10 transition-premium group">
+                        {stats.transactions.map((tx: any) => (
+                           <tr key={tx.id} className="hover:bg-muted/10 transition-premium group">
                               <td className="px-8 py-6">
-                                 <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/10 opacity-60">
-                                    {exp.category}
-                                 </Badge>
+                                 <div className="space-y-0.5">
+                                    <p className="font-serif font-bold text-base text-foreground/80">{tx.person}</p>
+                                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-primary/10 opacity-60">
+                                       {tx.category}
+                                    </Badge>
+                                 </div>
                               </td>
-                              <td className="px-6 py-6 font-medium text-sm text-foreground/70">{exp.description}</td>
-                              <td className="px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(exp.date).toLocaleDateString()}</td>
-                              <td className="px-8 py-6 text-right font-serif font-bold text-base text-destructive/80">- Rs. {exp.amount.toLocaleString()}</td>
+                              <td className="px-6 py-6 font-medium text-sm text-foreground/60">{tx.description}</td>
+                              <td className="px-6 py-6 text-[10px] font-bold text-muted-foreground/30">{new Date(tx.date).toLocaleDateString()}</td>
+                              <td className={cn(
+                                 "px-8 py-6 text-right font-serif font-bold text-base",
+                                 tx.type === 'Credit' ? "text-success" : "text-destructive/80"
+                              )}>
+                                 {tx.type === 'Credit' ? '+' : '-'} Rs. {tx.amount.toLocaleString()}
+                              </td>
                            </tr>
                         ))}
                      </tbody>
