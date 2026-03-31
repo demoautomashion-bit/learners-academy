@@ -199,10 +199,10 @@ export default function ClassesPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="font-serif text-3xl font-normal text-foreground">
-            Classes
+            Academic Batches
           </h1>
           <p className="text-muted-foreground mt-1">
-            Create and manage academic sessions and educational registry
+            Manage explicit class batches, active sessions, and room schedules.
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -293,13 +293,13 @@ export default function ClassesPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-primary/5 shadow-premium">
           <CardHeader className="pb-2">
-            <CardDescription>Total Classes</CardDescription>
+            <CardDescription>Total Batches</CardDescription>
             <CardTitle className="text-3xl">{courses.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-primary/5 shadow-premium">
           <CardHeader className="pb-2">
-            <CardDescription>Active Classes</CardDescription>
+            <CardDescription>Active Batches</CardDescription>
             <CardTitle className="text-3xl text-success">
               {courses.filter(c => c.status === 'active').length}
             </CardTitle>
@@ -315,7 +315,7 @@ export default function ClassesPage() {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Classes</SelectItem>
+              <SelectItem value="all">All Batches</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
@@ -326,7 +326,7 @@ export default function ClassesPage() {
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search classes..."
+            placeholder="Search batches..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"

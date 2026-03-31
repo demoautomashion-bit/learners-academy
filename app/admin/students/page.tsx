@@ -272,15 +272,15 @@ export default function StudentsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
-                    <FieldLabel className="text-editorial-label">Registry Class</FieldLabel>
+                    <FieldLabel className="text-editorial-label">Assigned Batch</FieldLabel>
                     <Select onValueChange={(val) => enrollForm.setValue('course', val)}>
                       <SelectTrigger className="bg-background/50 h-10">
-                        <SelectValue placeholder="Select class level" />
+                        <SelectValue placeholder="Select specific batch" />
                       </SelectTrigger>
                       <SelectContent>
                         {mockCourses.map((course) => (
                           <SelectItem key={course.id} value={course.id}>
-                            {course.title}
+                            {course.title} ({course.schedule} • {course.teacherName})
                           </SelectItem>
                         ))}
                       </SelectContent>

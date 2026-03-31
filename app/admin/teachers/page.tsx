@@ -53,6 +53,10 @@ import {
   UserCheck,
   UserX,
   User,
+  Wallet,
+  Calculator,
+  CheckCircle,
+  Clock,
 } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
 import { cn } from '@/lib/utils'
@@ -78,11 +82,14 @@ const CLASS_LEVELS = [
 ]
 
 export default function TeachersPage() {
-  const { teachers, addTeacher, removeTeacher, updateTeacherStatus } = useData()
+  const { teachers, addTeacher, removeTeacher, updateTeacherStatus, courses, students, feePayments } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [isFinanceViewOpen, setIsFinanceViewOpen] = useState(false)
+  const [compensationModel, setCompensationModel] = useState<'fixed' | 'percentage'>('fixed')
+  const [compensationRate, setCompensationRate] = useState<number>(0)
 
   const filteredTeachers = teachers.filter(teacher =>
     teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -127,6 +134,48 @@ export default function TeachersPage() {
     removeTeacher(teacher.id)
     toast.success('Teacher removed successfully')
   }
+
+  const getTeacherFinancials = () => {
+    if (!selectedTeacher) return { roster: [], paidCount: 0, unpaidCount: 0, totalPaidRevenue: 0 }
+    const tCourses = courses.filter(c => c.teacherId === selectedTeacher.id)
+    
+    let paidCount = 0
+    let unpaidCount = 0
+    let totalPaidRevenue = 0
+    let roster: any[] = []
+
+    tCourses.forEach(course => {
+      // Find students strictly enrolled in this specific batch/course ID
+      const courseStudents = students.filter(s => s.enrolledCourses?.includes(course.id))
+      courseStudents.forEach(student => {
+        const payment = feePayments.find((fp: any) => fp.studentId === student.id && fp.courseId === course.id)
+        const isPaid = payment && (payment.status === 'paid' || payment.status === 'partial')
+        if (isPaid) {
+          paidCount++
+          totalPaidRevenue += (payment.amountPaid || 0)
+        } else {
+          unpaidCount++
+        }
+        roster.push({
+          studentName: student.name,
+          courseName: course.title,
+          timing: course.schedule,
+          status: isPaid ? 'Paid' : 'Due',
+          amount: isPaid ? payment.amountPaid : 0
+        })
+      })
+    })
+
+    return { roster, paidCount, unpaidCount, totalPaidRevenue }
+  }
+
+  const { roster, paidCount, unpaidCount, totalPaidRevenue } = selectedTeacher && isFinanceViewOpen 
+    ? getTeacherFinancials() 
+    : { roster: [], paidCount: 0, unpaidCount: 0, totalPaidRevenue: 0 }
+
+  const computedSalary = compensationModel === 'fixed' 
+    ? paidCount * compensationRate 
+    : totalPaidRevenue * (compensationRate / 100)
 
   return (
     <div className="space-y-6">
@@ -309,6 +358,13 @@ export default function TeachersPage() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => {
                               setSelectedTeacher(teacher)
+                              setIsFinanceViewOpen(true)
+                            }}>
+                              <Wallet className="w-4 h-4 mr-2" />
+                              Payroll & Roster
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedTeacher(teacher)
                               setIsViewDialogOpen(true)
                             }}>
                               <Eye className="w-4 h-4 mr-2" />
@@ -421,6 +477,13 @@ export default function TeachersPage() {
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation()
                           setSelectedTeacher(teacher)
+                          setIsFinanceViewOpen(true)
+                        }}>
+                          <Wallet className="w-4 h-4 mr-2" /> Payroll & Roster
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedTeacher(teacher)
                           setIsViewDialogOpen(true)
                         }}>
                           <Eye className="w-4 h-4 mr-2" /> View Details
@@ -512,6 +575,121 @@ export default function TeachersPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Financial Roster Dialog */}
+      <Dialog open={isFinanceViewOpen} onOpenChange={setIsFinanceViewOpen}>
+        <DialogContent className="max-w-4xl bg-card/90 backdrop-blur-xl border-primary/10 rounded-[2.5rem]">
+          <DialogHeader className="pt-4">
+            <DialogTitle className="font-serif text-3xl font-normal tracking-tight">Unified Roster & Payroll</DialogTitle>
+            <DialogDescription className="text-editorial-meta mt-1">
+              Financial and enrollment payload strictly bound to {selectedTeacher?.name}'s specific batches.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6">
+            <div className="space-y-6 md:col-span-1">
+              <Card className="bg-primary/5 border border-primary/10 shadow-inner-premium rounded-[2rem] overflow-hidden">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-normal text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                    <Calculator className="w-4 h-4" />
+                    Salary Engine
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Compensation Model</label>
+                    <Select value={compensationModel} onValueChange={(val: any) => setCompensationModel(val)}>
+                      <SelectTrigger className="h-10 bg-background/50 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fixed">Fixed Rate (Per Head)</SelectItem>
+                        <SelectItem value="percentage">Revenue Share (%)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Rate Input</label>
+                    <Input 
+                      type="number" 
+                      value={compensationRate}
+                      onChange={(e) => setCompensationRate(Number(e.target.value) || 0)}
+                      className="bg-background/50 h-10 font-serif" 
+                      placeholder={compensationModel === 'fixed' ? 'e.g. 1000' : 'e.g. 50'} 
+                    />
+                  </div>
+                  <div className="pt-4 mt-2 border-t border-primary/10">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Generated Payout</p>
+                    <p className="text-3xl font-serif text-primary tracking-tight font-normal">Rs. {computedSalary.toLocaleString()}</p>
+                    <p className="text-[9px] text-muted-foreground mt-1 leading-normal">
+                      *Calculated exclusively from {paidCount} students marked as fully or partially paid.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-success/5 border border-success/20 rounded-2xl p-4 text-center text-success">
+                  <CheckCircle className="w-5 h-5 mx-auto mb-1 opacity-70" />
+                  <p className="font-serif text-2xl">{paidCount}</p>
+                  <p className="text-[9px] uppercase tracking-widest">Paid Students</p>
+                </div>
+                <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-4 text-center text-destructive">
+                  <Clock className="w-5 h-5 mx-auto mb-1 opacity-70" />
+                  <p className="font-serif text-2xl">{unpaidCount}</p>
+                  <p className="text-[9px] uppercase tracking-widest">Unpaid & Due</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-2 bg-background/50 rounded-[2rem] border border-border/50 overflow-hidden flex flex-col h-[60vh] max-h-[600px]">
+              <div className="p-4 bg-muted/20 border-b border-border/50 flex items-center justify-between sticky top-0">
+                <h4 className="font-normal uppercase tracking-widest text-xs">Assigned Batch Ledger</h4>
+                <Badge variant="outline" className="text-[10px] font-normal tracking-wider">Total: {roster.length} Students</Badge>
+              </div>
+              <div className="overflow-y-auto p-0 flex-1">
+                {roster.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center p-12 text-muted-foreground text-center">
+                    <p>No students enrolled in this instructor's batches yet.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="font-normal uppercase tracking-widest text-[9px] h-10">Student</TableHead>
+                        <TableHead className="font-normal uppercase tracking-widest text-[9px] h-10">Batch Info</TableHead>
+                        <TableHead className="font-normal uppercase tracking-widest text-[9px] h-10 text-right">Fee Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {roster.map((r, i) => (
+                        <TableRow key={i} className="group hover:bg-muted/10">
+                          <TableCell className="font-serif text-sm py-3 font-normal">{r.studentName}</TableCell>
+                          <TableCell className="py-3">
+                            <p className="font-normal text-xs">{r.courseName}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{r.timing}</p>
+                          </TableCell>
+                          <TableCell className="text-right py-3">
+                            <Badge 
+                              variant="outline" 
+                              className={cn(
+                                "text-[9px] tracking-widest uppercase font-normal",
+                                r.status === 'Paid' ? 'bg-success/5 text-success border-success/20' : 'bg-destructive/5 text-destructive border-destructive/20'
+                              )}
+                            >
+                              {r.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
