@@ -83,7 +83,9 @@ export default function AttendancePage() {
       setIsLoading(true)
       try {
         const data = await getTeacherAttendance(currentRange.start, currentRange.end)
-        setAttendanceData(data)
+        // Sanitize incoming data: ensure date is valid and teacherId exists
+        const sanitized = data.filter(a => a.date && !isNaN(new Date(a.date).getTime()) && a.teacherId)
+        setAttendanceData(sanitized)
       } catch (error) {
         console.error('Failed to fetch attendance:', error)
       } finally {
@@ -137,7 +139,8 @@ export default function AttendancePage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.setAttribute("href", url)
-    link.setAttribute("download", `attendance_registry_${selectedTeacher?.name.replace(/ /g, '_')}_${format(currentDate, 'MMM_yyyy')}.csv`)
+    const safeName = (selectedTeacher?.name || 'teacher').replace(/ /g, '_')
+    link.setAttribute("download", `attendance_registry_${safeName}_${format(currentDate, 'MMM_yyyy')}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -149,13 +152,15 @@ export default function AttendancePage() {
   }
 
   const getAttendanceForDay = (teacherId: string, day: Date) => {
+    if (!teacherId || !day) return null
     return attendanceData.find(a => 
       a.teacherId === teacherId && 
-      isSameDay(new Date(a.date), day)
+      a.date && isSameDay(new Date(a.date), day)
     )
   }
 
   const getTeacherStats = (teacherId: string) => {
+    if (!teacherId) return { present: 0, absent: 0, late: 0, leave: 0, substitutions: 0 }
     const teacherRecords = attendanceData.filter(a => a.teacherId === teacherId)
     return {
       present: teacherRecords.filter(r => r.status === 'Present').length,
@@ -316,7 +321,9 @@ export default function AttendancePage() {
                   <div className="flex flex-col items-center gap-1.5">
                     <span className="text-[9px] text-muted-foreground uppercase font-normal tracking-widest">Attendance Share</span>
                     <span className="text-3xl font-serif text-success font-normal">
-                      {Math.round((getTeacherStats(selectedTeacher.id).present / daysInRange.length) * 100 || 0)}%
+                      {daysInRange.length > 0 
+                        ? Math.round((getTeacherStats(selectedTeacher.id).present / daysInRange.length) * 100) 
+                        : 0}%
                     </span>
                   </div>
                   <div className="flex flex-col items-center gap-1.5">
