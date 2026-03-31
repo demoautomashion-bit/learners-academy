@@ -37,6 +37,7 @@ model TeacherAttendance {
   date         DateTime @default(now())
   status       String   // "Present", "Absent", "Late", "Leave"
   substituteCount Int      @default(0)
+  details      Json?    // Array of granular objects: { type: string, time: string, label: string, info?: string }
   note         String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
