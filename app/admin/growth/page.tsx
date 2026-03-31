@@ -14,7 +14,12 @@ import {
   GraduationCap,
   Waves,
   History,
-  Target
+  Target,
+  Sparkle,
+  Zap,
+  Flame,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { 
@@ -47,16 +52,27 @@ export default function GrowthPage() {
 
   const stats = useMemo(() => {
     const today = new Date()
-    
     const daily = students.filter(s => s.enrolledAt && isSameDay(new Date(s.enrolledAt), today)).length
     const weekly = students.filter(s => s.enrolledAt && isSameWeek(new Date(s.enrolledAt), today)).length
     const monthly = students.filter(s => s.enrolledAt && isSameMonth(new Date(s.enrolledAt), today)).length
     
-    // Retention / Conversion mocks
     const totalStudents = students.length
-    const activeRate = (students.filter(s => s.status === 'active').length / totalStudents) * 100
+    const activeRate = (students.filter(s => s.status === 'active').length / (totalStudents || 1)) * 100
+    
+    // Last week vs Current week (for sparkline mock)
+    const lastWeekly = students.filter(s => s.enrolledAt && isSameWeek(new Date(s.enrolledAt), subDays(today, 7))).length
+    const growthDelta = weekly > lastWeekly ? ((weekly - lastWeekly) / (lastWeekly || 1)) * 100 : (-(lastWeekly - weekly) / (lastWeekly || 1)) * 100
 
-    return { daily, weekly, monthly, totalStudents, activeRate }
+    // Term Progress (3-month cycle)
+    const currentMonth = today.getMonth()
+    const termSeason = currentMonth < 3 ? 'Spring' : currentMonth < 6 ? 'Summer' : currentMonth < 9 ? 'Autumn' : 'Winter'
+    const daysInTerm = 90
+    const termStartMonth = currentMonth < 3 ? 0 : currentMonth < 6 ? 3 : currentMonth < 9 ? 6 : 9
+    const termStartDate = new Date(today.getFullYear(), termStartMonth, 1)
+    const daysPassed = Math.floor((today.getTime() - termStartDate.getTime()) / (1000 * 60 * 60 * 24))
+    const termProgress = Math.min((daysPassed / daysInTerm) * 100, 100)
+
+    return { daily, weekly, monthly, totalStudents, activeRate, growthDelta, termSeason, termProgress }
   }, [students])
 
   const trendData = useMemo(() => {
@@ -75,15 +91,20 @@ export default function GrowthPage() {
   }, [students])
 
   const levelBreakdown = useMemo(() => {
-    const levels = ['pre-foundation', 'foundation', 'beginner', 'intermediate', 'advanced']
-    const counts = levels.map(level => ({
-      name: level.toUpperCase(),
-      count: courses
-        .filter(c => c.level.toLowerCase().includes(level))
-        .reduce((sum, c) => sum + c.enrolled, 0)
+    const tiers = [
+      { name: 'Foundation', match: ['foundation', 'pre-foundation'] },
+      { name: 'Core Tier', match: ['beginner', 'level 1', 'level 2', 'level 3', 'level 4', 'level 5', 'level 6'] },
+      { name: 'Advanced', match: ['advanced'] },
+      { name: 'Specialized', match: ['ielts', 'speaking', 'grammar'] }
+    ]
+
+    return tiers.map(tier => ({
+      name: tier.name.toUpperCase(),
+      count: students.filter(s => 
+        tier.match.some(m => s.class?.toLowerCase().includes(m))
+      ).length
     }))
-    return counts
-  }, [courses])
+  }, [students])
 
   if (isLoading) return null
 
@@ -116,29 +137,33 @@ export default function GrowthPage() {
       {/* Primary Conversion Row */}
       <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: 'Daily Admissions', value: stats.daily, context: 'Registry Log (24h)', icon: UserPlus, color: 'text-primary' },
-          { label: 'Weekly Growth', value: stats.weekly, context: 'Market Cycle (7d)', icon: TrendingUp, color: 'text-success' },
-          { label: 'Monthly Delta', value: stats.monthly, context: 'Strategic Phase (30d)', icon: Activity, color: 'text-primary' },
-          { label: 'Effective Reach', value: stats.totalStudents, context: 'Cumulative Registry', icon: Users, color: 'text-indigo-400' },
+          { label: 'Daily Admissions', value: stats.daily, context: 'Active Registry', icon: UserPlus, color: 'text-primary' },
+          { label: 'Weekly Growth', value: stats.weekly, context: 'Market Cycle', icon: TrendingUp, color: 'text-success' },
+          { label: 'Momentum Index', value: `${stats.growthDelta.toFixed(0)}%`, context: 'Growth Delta', icon: Zap, color: 'text-primary' },
+          { label: 'Effective Reach', value: stats.totalStudents, context: 'Institutional Scale', icon: GraduationCap, color: 'text-indigo-400' },
         ].map((stat, i) => (
-          <Card key={i} className="border-primary/5 shadow-premium rounded-[1.75rem] bg-card/40 backdrop-blur-md group hover:bg-card/60 transition-all">
-            <CardContent className="pt-10 pb-8 relative">
-              <div className="flex flex-col gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <stat.icon className={cn("w-5 h-5", stat.color, "opacity-70")} />
-                </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-2 font-normal opacity-60">{stat.label}</p>
-                  <h3 className="font-serif text-2xl font-normal tracking-tight mb-3">
-                    {stat.value}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-primary/5">
-                    <History className="w-3 h-3 text-muted-foreground opacity-30" />
-                    <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-[0.2em] font-normal">{stat.context}</span>
+          <Card key={i} className="border-primary/5 shadow-premium rounded-[2.5rem] bg-card/40 backdrop-blur-3xl group relative overflow-hidden flex flex-col justify-between h-56">
+            <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardContent className="pt-10 pb-6 relative z-10">
+              <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mb-4 font-normal opacity-50">{stat.label}</p>
+              <div className="flex items-baseline gap-3">
+                <h3 className="font-serif text-3xl font-normal tracking-tight">
+                  {stat.value}
+                </h3>
+                {i === 2 && (
+                  <div className={cn("flex items-center gap-1 text-[10px] uppercase font-normal tracking-widest", stats.growthDelta >= 0 ? "text-success" : "text-destructive")}>
+                    {stats.growthDelta >= 0 ? <ArrowUp className="w-2 h-2" /> : <ArrowDown className="w-2 h-2" />} 
+                    {Math.abs(stats.growthDelta).toFixed(0)}%
                   </div>
-                </div>
+                )}
               </div>
             </CardContent>
+            <div className="px-10 pb-8 relative z-10 mt-auto">
+              <div className="flex items-center gap-3">
+                <div className={cn("w-1.5 h-1.5 rounded-full", stat.color.replace('text-', 'bg-'))} />
+                <span className="text-[9px] text-muted-foreground opacity-40 uppercase tracking-[0.2em] font-normal">{stat.context}</span>
+              </div>
+            </div>
           </Card>
         ))}
       </motion.div>
@@ -213,13 +238,35 @@ export default function GrowthPage() {
         </Card>
 
         {/* Level Distribution Bar Chart */}
-        <Card className="lg:col-span-2 border-primary/5 shadow-premium rounded-[2.5rem] overflow-hidden bg-muted/[0.01]">
-          <CardHeader className="bg-muted/10 border-b border-primary/5 p-10 text-center">
-            <h3 className="font-serif text-3xl font-normal">Registry Composition</h3>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-60 mt-1">Cross-sectional study by academic tier.</p>
+        <Card className="lg:col-span-2 border-primary/5 shadow-premium rounded-[2.5rem] overflow-hidden bg-card/40 backdrop-blur-3xl">
+          <CardHeader className="bg-muted/10 border-b border-primary/5 p-10 text-center relative overflow-hidden">
+            <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5 rounded-full blur-3xl opacity-20" />
+            <h3 className="font-serif text-3xl font-normal">Tiers Composition</h3>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-60 mt-1">Cross-sectional study by institutional rank.</p>
           </CardHeader>
           <CardContent className="p-10 flex flex-col items-center justify-center gap-12 min-h-[400px]">
-            <div className="w-full h-[280px]">
+            {/* Term Lifecycle Progress */}
+            <div className="relative w-40 h-40 group mb-4">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle cx="80" cy="80" r="70" className="stroke-primary/5 fill-none" strokeWidth="8" />
+                <circle 
+                  cx="80" 
+                  cy="80" 
+                  r="70" 
+                  className="stroke-primary fill-none transition-all duration-1000 ease-out" 
+                  strokeWidth="8" 
+                  strokeDasharray={`${2 * Math.PI * 70}`}
+                  strokeDashoffset={`${2 * Math.PI * 70 * (1 - stats.termProgress / 100)}`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                 <span className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground opacity-50 font-normal">{stats.termSeason} Term</span>
+                 <span className="font-serif text-3xl font-normal leading-none mt-1">{Math.round(stats.termProgress)}%</span>
+              </div>
+            </div>
+
+            <div className="w-full h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ReBarChart data={levelBreakdown} layout="vertical" margin={{ left: 20, right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--muted-foreground))" opacity={0.06} />
@@ -232,7 +279,6 @@ export default function GrowthPage() {
                     tick={{ fontSize: 10, opacity: 0.5, letterSpacing: '0.1em' }}
                     width={100}
                   />
-                  <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', background: 'hsl(var(--card))', fontSize: '10px' }} />
                   <Bar dataKey="count" radius={[0, 10, 10, 0]} barSize={24}>
                     {levelBreakdown.map((entry, index) => (
                       <Cell key={index} fill={`oklch(0.62 0.17 ${240 + (index * 30)})`} />
@@ -241,63 +287,27 @@ export default function GrowthPage() {
                 </ReBarChart>
               </ResponsiveContainer>
             </div>
-            <div className="grid grid-cols-2 gap-10 w-full border-t border-primary/5 pt-10">
-              <div className="text-center">
-                <span className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-50 font-normal">Retention Index</span>
-                <p className="font-serif text-2xl font-normal text-success mt-2">{stats.activeRate.toFixed(1)}%</p>
-                <div className="flex items-center justify-center gap-1.5 mt-2">
-                  <ArrowUpRight className="w-3 h-3 text-success opacity-40" />
-                  <span className="text-[8px] uppercase tracking-tighter text-muted-foreground opacity-40 font-normal">Strategic Benchmark</span>
-                </div>
-              </div>
-              <div className="text-center">
-                <span className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-50 font-normal">Active Curriculum</span>
-                <p className="font-serif text-2xl font-normal text-foreground mt-2">{courses.length}</p>
-                <div className="flex items-center justify-center gap-1.5 mt-2">
-                  <Target className="w-3 h-3 text-primary opacity-40" />
-                  <span className="text-[8px] uppercase tracking-tighter text-muted-foreground opacity-40 font-normal">Educational Scale</span>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </motion.div>
 
       {/* Detailed Insights / Narrative */}
       <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <Card className="border-primary/5 shadow-inner bg-card">
-          <CardContent className="p-8 flex items-center gap-6">
-             <div className="w-14 h-14 rounded-2xl bg-success/5 border border-success/5 flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-success opacity-60" />
+        {[
+          { label: 'Strategic Momentum', description: stats.growthDelta > 0 ? "Institutional growth velocity has hit peak metrics for the current cycle." : "Admission cadence is stabilizing after a high-volume registration window.", icon: Sparkle, color: 'text-success' },
+          { label: 'Operational Scale', description: `Cross-institutional reach has successfully expanded to ${stats.totalStudents} active student identifiers.`, icon: GraduationCap, color: 'text-primary' },
+          { label: 'Tier Saturation', description: `The Specialized Tier (IELTS/Speaking) currently accounts for ${((levelBreakdown.find(t => t.name.includes('SPECIALIZED'))?.count || 0) / (stats.totalStudents || 1) * 100).toFixed(0)}% of momentum.`, icon: Flame, color: 'text-indigo-400' },
+        ].map((insight, i) => (
+          <Card key={i} className="border-primary/5 shadow-premium rounded-[1.75rem] bg-card/40 backdrop-blur-3xl p-8 flex items-center gap-6 group hover:translate-y-[-4px] transition-all">
+             <div className="w-14 h-14 rounded-2xl bg-primary/5 border border-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <insight.icon className={cn("w-6 h-6", insight.color, "opacity-60")} />
              </div>
              <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-50 mb-1">Academic Proficiency</p>
-                <p className="text-sm font-normal text-foreground leading-tight">Advanced level enrollment has exceeded forecasted targets for the Spring cycle.</p>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-50 mb-1">{insight.label}</p>
+                <p className="text-sm font-normal text-foreground leading-tight">{insight.description}</p>
              </div>
-          </CardContent>
-        </Card>
-        <Card className="border-primary/5 shadow-inner bg-card">
-          <CardContent className="p-8 flex items-center gap-6">
-             <div className="w-14 h-14 rounded-2xl bg-primary/5 border border-primary/5 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-primary opacity-60" />
-             </div>
-             <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-50 mb-1">Operational Cadence</p>
-                <p className="text-sm font-normal text-foreground leading-tight">Registry processing time for new candidates has been optimized to sub-24h levels.</p>
-             </div>
-          </CardContent>
-        </Card>
-        <Card className="border-primary/5 shadow-inner bg-card">
-          <CardContent className="p-8 flex items-center gap-6">
-             <div className="w-14 h-14 rounded-2xl bg-indigo-400/5 border border-indigo-400/5 flex items-center justify-center">
-                <Target className="w-6 h-6 text-indigo-400 opacity-60" />
-             </div>
-             <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-50 mb-1">Strategic Scaling</p>
-                <p className="text-sm font-normal text-foreground leading-tight">Expansion of specialized classes (IELTS/Speaking) is fueling 40% of Q1 growth.</p>
-             </div>
-          </CardContent>
-        </Card>
+          </Card>
+        ))}
       </motion.div>
     </motion.div>
   )
