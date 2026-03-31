@@ -188,7 +188,7 @@ export default function AttendancePage() {
 
   return (
     <div className="h-[calc(100vh-140px)] flex flex-col gap-6 max-w-[1700px] mx-auto animate-in fade-in zoom-in-95 duration-700 overflow-hidden" 
-         style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+         style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, var(--font-inter), Inter, sans-serif' }}>
       
       {/* 1. Analytics Horizon (The Premium Header) */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between px-2 shrink-0">
@@ -499,7 +499,7 @@ function AttendanceGridCell({ teacherId, day, record, onUpdate, isWeekend }: any
         </button>
       </PopoverTrigger>
       <PopoverContent className="font-sans w-64 p-4 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border-primary/10 backdrop-blur-3xl bg-card/90" 
-                      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+                      style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, var(--font-inter), Inter, sans-serif' }}>
         <div className="px-3 py-2 border-b border-primary/5 mb-4">
            <p className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/50 leading-none mb-2">Dual Audit // Day {day}</p>
            <p className="text-[9px] text-muted-foreground/30 leading-none">Status & Extra Coverage</p>
