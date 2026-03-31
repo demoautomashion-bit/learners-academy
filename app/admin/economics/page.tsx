@@ -217,6 +217,7 @@ export default function EconomicsPage() {
           <p className="text-muted-foreground mt-2 text-sm font-normal max-w-2xl opacity-80">
             Comprehensive audit of institutional capital deployment, operational costs, and faculty expenditure tracking.
           </p>
+        </div>
         <div className="flex gap-3">
           <Dialog open={isAddExpenseOpen} onOpenChange={setIsAddExpenseOpen}>
             <DialogTrigger asChild>
