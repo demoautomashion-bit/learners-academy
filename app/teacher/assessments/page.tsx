@@ -41,7 +41,9 @@ import {
   TrendingUp,
   Copy,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  AlertCircle,
+  Info,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useData } from '@/contexts/data-context'
@@ -74,8 +76,13 @@ export default function AssessmentsPage() {
     questions: mockQuestions, 
     publishAssessment, 
     removeAssessment,
+    teachers,
     isInitialized
   } = useData()
+
+  // Find current teacher's requiresReview flag
+  const currentTeacher = teachers.find(t => t.id === user?.id)
+  const requiresReview = !!currentTeacher?.requiresReview
   // toggleAssessmentStatusAction is imported at the top of the file
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -120,15 +127,20 @@ export default function AssessmentsPage() {
       durationMinutes: data.duration,
       questionCount: data.questionCount,
       createdAt: new Date().toISOString(),
-      status: 'active',
+      status: requiresReview ? 'pending_review' : 'active',
       accessCode: data.accessCode,
+      submittedByTeacherId: user?.id,
+      submittedByTeacherName: user?.name,
     }
 
     try {
       await publishAssessment(newAssessment)
       setIsCreateOpen(false)
       reset()
-      toast.success('Assessment generated successfully')
+      toast.success(requiresReview
+        ? 'Paper submitted for admin review'
+        : 'Assessment generated successfully'
+      )
     } catch (error) {
       // Error handled by context
     }
@@ -157,7 +169,7 @@ export default function AssessmentsPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Generate Test
+              {requiresReview ? 'Submit for Review' : 'Generate Test'}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -260,11 +272,26 @@ export default function AssessmentsPage() {
                 </Field>
               </FieldGroup>
               <DialogFooter>
+                {/* Review notice for flagged teachers */}
+                {requiresReview && (
+                  <div className="w-full mb-3 flex items-start gap-3 bg-warning/5 border border-warning/20 rounded-xl px-4 py-3">
+                    <Info className="w-4 h-4 text-warning mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-medium text-warning">This paper will be reviewed before going live</p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">
+                        Your exam will be visible to the admin for approval. Students cannot access it until it is approved.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <Button type="button" variant="outline" onClick={() => { setIsCreateOpen(false); reset(); }}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Generating...' : 'Generate Paper'}
+                  {isSubmitting
+                    ? (requiresReview ? 'Submitting...' : 'Generating...')
+                    : (requiresReview ? 'Submit for Review' : 'Generate Paper')
+                  }
                 </Button>
               </DialogFooter>
             </form>
@@ -335,6 +362,7 @@ export default function AssessmentsPage() {
                       </div>
                     </div>
                     
+                    {/* Status + Token strip */}
                       <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/30 border border-primary/5 group/token relative overflow-hidden">
                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/token:opacity-100 transition-opacity" />
                         <div className="relative z-10 flex flex-col">
@@ -342,40 +370,82 @@ export default function AssessmentsPage() {
                           <span className="font-sans text-sm font-bold tracking-tighter text-primary">{assessment.accessCode}</span>
                         </div>
                         <div className="relative z-10 flex items-center gap-3">
-                          <div className="flex items-center gap-2 pr-2 border-r border-border/50">
-                            <span className={`text-[9px] uppercase tracking-widest font-bold transition-colors ${assessment.status === 'active' ? 'text-primary' : 'text-muted-foreground'}`}>
-                              {assessment.status === 'active' ? 'Live' : 'Stopped'}
-                            </span>
-                            <Switch 
-                              checked={assessment.status === 'active'}
-                              onCheckedChange={async (checked) => {
-                                const newStatus = checked ? 'active' : 'archived'
-                                // Local state update through context
-                                publishAssessment({ ...assessment, status: newStatus }) // Hacky update for now to trigger re-render
-                                const res = await toggleAssessmentStatusAction(assessment.id, newStatus)
-                                if (res.success) {
-                                  toast.success(`Exam ${checked ? 'Activated' : 'Stopped'}`)
-                                } else {
-                                  toast.error("Failed to update status")
-                                }
+                          {/* Status chip */}
+                          {assessment.status === 'active' && (
+                            <div className="flex items-center gap-2 pr-2 border-r border-border/50">
+                              <span className="text-[9px] uppercase tracking-widest font-bold text-primary">Live</span>
+                              <Switch 
+                                checked={true}
+                                onCheckedChange={async (checked) => {
+                                  const newStatus = checked ? 'active' : 'archived'
+                                  publishAssessment({ ...assessment, status: newStatus })
+                                  const res = await toggleAssessmentStatusAction(assessment.id, newStatus)
+                                  if (res.success) {
+                                    toast.success(`Exam ${checked ? 'Activated' : 'Stopped'}`)
+                                  } else {
+                                    toast.error("Failed to update status")
+                                  }
+                                }}
+                                className="scale-75 data-[state=checked]:bg-primary"
+                              />
+                            </div>
+                          )}
+                          {assessment.status === 'archived' && (
+                            <div className="flex items-center gap-2 pr-2 border-r border-border/50">
+                              <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Stopped</span>
+                              <Switch 
+                                checked={false}
+                                onCheckedChange={async (checked) => {
+                                  const newStatus = checked ? 'active' : 'archived'
+                                  publishAssessment({ ...assessment, status: newStatus })
+                                  const res = await toggleAssessmentStatusAction(assessment.id, newStatus)
+                                  if (res.success) {
+                                    toast.success(`Exam ${checked ? 'Activated' : 'Stopped'}`)
+                                  } else {
+                                    toast.error("Failed to update status")
+                                  }
+                                }}
+                                className="scale-75 data-[state=checked]:bg-primary"
+                              />
+                            </div>
+                          )}
+                          {assessment.status === 'pending_review' && (
+                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-warning/10 border border-warning/20">
+                              <Clock className="w-3 h-3 text-warning" />
+                              <span className="text-[9px] uppercase tracking-widest font-bold text-warning">Awaiting Admin Review</span>
+                            </div>
+                          )}
+                          {assessment.status === 'draft' && assessment.adminFeedback && (
+                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-destructive/10 border border-destructive/20">
+                              <AlertCircle className="w-3 h-3 text-destructive" />
+                              <span className="text-[9px] uppercase tracking-widest font-bold text-destructive">Revision Required</span>
+                            </div>
+                          )}
+                          {/* Copy token — only when not pending */}
+                          {assessment.status !== 'pending_review' && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-xl hover:bg-primary/10 hover:text-primary transition-premium"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                navigator.clipboard.writeText(assessment.accessCode)
+                                toast.success("Access Token Copied")
                               }}
-                              className="scale-75 data-[state=checked]:bg-primary"
-                            />
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-xl hover:bg-primary/10 hover:text-primary transition-premium"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              navigator.clipboard.writeText(assessment.accessCode)
-                              toast.success("Access Token Copied")
-                            }}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
+
+                      {/* Admin feedback block — shown when revision is required */}
+                      {assessment.status === 'draft' && assessment.adminFeedback && (
+                        <div className="border-l-4 border-warning/60 bg-warning/5 rounded-r-xl p-4">
+                          <p className="text-[9px] uppercase tracking-widest font-bold text-warning mb-1">Admin Feedback</p>
+                          <p className="text-sm italic text-muted-foreground leading-relaxed">{assessment.adminFeedback}</p>
+                        </div>
+                      )}
                     
                     <div className="pt-2">
                       <Button variant="outline" className="w-full group rounded-xl h-10 border-primary/10 hover:bg-primary/5 hover:text-primary transition-premium font-semibold">

@@ -57,7 +57,9 @@ import {
   Calculator,
   CheckCircle,
   Clock,
+  ShieldCheck,
 } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import { useData } from '@/contexts/data-context'
 import { cn } from '@/lib/utils'
 import type { Teacher } from '@/lib/types'
@@ -82,7 +84,7 @@ const CLASS_LEVELS = [
 ]
 
 export default function TeachersPage() {
-  const { teachers, addTeacher, removeTeacher, updateTeacherStatus, courses, students, feePayments } = useData()
+  const { teachers, addTeacher, removeTeacher, updateTeacherStatus, courses, students, feePayments, updateTeacherReviewFlag } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
@@ -325,7 +327,12 @@ export default function TeachersPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-normal">{teacher.name}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-normal">{teacher.name}</p>
+                              {teacher.requiresReview && (
+                                <ShieldCheck className="w-3.5 h-3.5 text-warning" />
+                              )}
+                            </div>
                             <p className="text-sm text-muted-foreground">{teacher.email}</p>
                           </div>
                         </div>
@@ -388,6 +395,27 @@ export default function TeachersPage() {
                               )}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="flex items-center justify-between cursor-default focus:bg-warning/5"
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-warning" />
+                                <span className="text-warning">Paper Review Mode</span>
+                              </div>
+                              <Switch
+                                checked={!!teacher.requiresReview}
+                                onCheckedChange={(checked) => {
+                                  updateTeacherReviewFlag(teacher.id, checked)
+                                  toast.success(checked
+                                    ? `${teacher.name.split(' ')[0]}'s papers will require review`
+                                    : `${teacher.name.split(' ')[0]} can now publish directly`
+                                  )
+                                }}
+                                className="scale-75 data-[state=checked]:bg-warning"
+                              />
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-destructive focus:text-destructive"
                               onClick={() => handleDelete(teacher)}
@@ -429,7 +457,12 @@ export default function TeachersPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h4 className="font-serif font-normal text-base leading-none mb-1">{teacher.name}</h4>
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="font-serif font-normal text-base leading-none mb-1">{teacher.name}</h4>
+                          {teacher.requiresReview && (
+                            <ShieldCheck className="w-3.5 h-3.5 text-warning" />
+                          )}
+                        </div>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-normal opacity-60">
                           {teacher.employeeId}
                         </p>
@@ -496,8 +529,29 @@ export default function TeachersPage() {
                           {teacher.status === 'active' ? 'Deactivate' : 'Activate'}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="flex items-center justify-between cursor-default focus:bg-warning/5 rounded-xl"
+                          onSelect={(e) => { e.stopPropagation(); e.preventDefault() }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4 text-warning" />
+                            <span className="text-warning text-xs">Review Mode</span>
+                          </div>
+                          <Switch
+                            checked={!!teacher.requiresReview}
+                            onCheckedChange={(checked) => {
+                              updateTeacherReviewFlag(teacher.id, checked)
+                              toast.success(checked
+                                ? `${teacher.name.split(' ')[0]}'s papers will require review`
+                                : `${teacher.name.split(' ')[0]} can now publish directly`
+                              )
+                            }}
+                            className="scale-75 data-[state=checked]:bg-warning"
+                          />
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem 
-                          className="text-destructive focus:text-destructive"
+                          className="text-destructive focus:text-destructive rounded-xl"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleDelete(teacher)

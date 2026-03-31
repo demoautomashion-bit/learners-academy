@@ -63,6 +63,9 @@ interface DataContextType {
   recordPayment: (id: string, amount: number) => Promise<void>
   addFeeAccount: (data: any) => Promise<void>
   updateClassFee: (id: string, amount: number) => Promise<void>
+  updateTeacherReviewFlag: (id: string, flag: boolean) => void
+  approveAssessment: (id: string) => void
+  rejectAssessment: (id: string, feedback: string) => void
   resetToDefaults: () => void
   refresh: () => Promise<void>
 }
@@ -240,7 +243,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await refresh()
   }, [refresh])
 
-  // --- Assessments ---
   const publishAssessment = useCallback(async (assessment: AssessmentTemplate) => {
     await dbPublishAssessment(assessment)
     await refresh()
@@ -250,6 +252,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await dbRemoveAssessment(id)
     await refresh()
   }, [refresh])
+
+  // --- Review System (local state only, backend phase later) ---
+  const updateTeacherReviewFlag = useCallback((id: string, flag: boolean) => {
+    setTeachers(prev => prev.map(t => t.id === id ? { ...t, requiresReview: flag } : t))
+  }, [])
+
+  const approveAssessment = useCallback((id: string) => {
+    setAssessments(prev => prev.map(a =>
+      a.id === id ? { ...a, status: 'active' as const, adminFeedback: undefined } : a
+    ))
+  }, [])
+
+  const rejectAssessment = useCallback((id: string, feedback: string) => {
+    setAssessments(prev => prev.map(a =>
+      a.id === id ? { ...a, status: 'draft' as const, adminFeedback: feedback } : a
+    ))
+  }, [])
 
   // --- Submissions ---
   const submitTestResult = useCallback(async (result: StudentTest) => {
@@ -349,6 +368,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       recordPayment,
       addFeeAccount,
       updateClassFee,
+      updateTeacherReviewFlag,
+      approveAssessment,
+      rejectAssessment,
       resetToDefaults,
       refresh,
     }}>

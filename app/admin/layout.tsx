@@ -44,7 +44,9 @@ import {
   DollarSign,
   TrendingUp,
   BarChart,
+  ShieldCheck,
 } from 'lucide-react'
+import { useData } from '@/contexts/data-context'
 
 const adminNavItems = [
   {
@@ -88,6 +90,11 @@ const adminNavItems = [
     icon: BookOpen,
   },
   {
+    title: 'Test Reviews',
+    href: '/admin/test-reviews',
+    icon: ShieldCheck,
+  },
+  {
     title: 'Schedule',
     href: '/admin/schedule',
     icon: CalendarDays,
@@ -124,6 +131,8 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
+  const { assessments } = useData()
+  const pendingReviewCount = assessments.filter(a => a.status === 'pending_review').length
 
   // Middleware handles route protection now.
 
@@ -141,6 +150,7 @@ export default function AdminLayout({
                 {adminNavItems.map((item) => {
                   const isActive = pathname === item.href || 
                     (item.href !== '/admin' && pathname.startsWith(item.href))
+                  const isReviewItem = item.href === '/admin/test-reviews'
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton 
@@ -156,7 +166,12 @@ export default function AdminLayout({
                       >
                         <Link href={item.href} className="flex items-center gap-3">
                           <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground")} />
-                          <span className="tracking-tight font-medium">{item.title}</span>
+                          <span className="tracking-tight font-medium flex-1">{item.title}</span>
+                          {isReviewItem && pendingReviewCount > 0 && (
+                            <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-warning/20 text-warning text-[10px] font-bold">
+                              {pendingReviewCount}
+                            </span>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

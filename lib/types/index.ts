@@ -15,6 +15,7 @@ export interface Teacher {
   studentsCount: number
   assignedClass?: string
   employeePassword?: string
+  requiresReview?: boolean
 }
 
 export interface Student {
@@ -145,8 +146,11 @@ export interface AssessmentTemplate {
   durationMinutes: number
   questionCount: number
   createdAt: string
-  status: 'active' | 'draft' | 'archived'
+  status: 'active' | 'draft' | 'archived' | 'pending_review'
   accessCode: string
+  adminFeedback?: string
+  submittedByTeacherId?: string
+  submittedByTeacherName?: string
 }
 
 export interface StudentTest {
