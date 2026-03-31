@@ -41,10 +41,6 @@ import {
   LogOut,
   Bell,
   ChevronDown,
-  ClipboardCheck,
-  DollarSign,
-  TrendingUp,
-  Receipt,
 } from 'lucide-react'
 
 const adminNavItems = [
@@ -59,34 +55,14 @@ const adminNavItems = [
     icon: Users,
   },
   {
-    title: 'Attendance',
-    href: '/admin/attendance',
-    icon: ClipboardCheck,
-  },
-  {
     title: 'Students',
     href: '/admin/students',
     icon: GraduationCap,
   },
   {
-    title: 'Growth Reports',
-    href: '/admin/growth',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Fees',
-    href: '/admin/fees',
-    icon: Receipt,
-  },
-  {
     title: 'Classes',
     href: '/admin/classes',
     icon: BookOpen,
-  },
-  {
-    title: 'Economics',
-    href: '/admin/economics',
-    icon: DollarSign,
   },
   {
     title: 'Schedule',
