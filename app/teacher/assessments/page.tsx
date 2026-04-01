@@ -467,7 +467,7 @@ export default function AssessmentsPage() {
               </motion.div>
             ))
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   )
