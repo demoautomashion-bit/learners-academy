@@ -22,6 +22,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { toast } from 'sonner'
 import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen } from 'lucide-react'
 import Image from 'next/image'
@@ -65,7 +66,10 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
 }
 
 export default function QuestionLibraryPage() {
-  const { questions, addQuestion, deleteQuestion } = useData()
+  const { questions, addQuestion, deleteQuestion, isInitialized } = useData()
+  
+  if (!isInitialized) return <DashboardSkeleton />
+
   const [activeTab, setActiveTab] = useState<QuestionCategory>('Grammar')
   const [searchQuery, setSearchQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -370,7 +374,7 @@ export default function QuestionLibraryPage() {
                 className="grid gap-4"
                 variants={STAGGER_CONTAINER}
                 initial="hidden"
-                animate="show"
+                animate="visible"
               >
                 {filteredQuestions.length === 0 ? (
                   <Card className="border-dashed border-primary/10 py-16 bg-muted/5 rounded-[2rem]">

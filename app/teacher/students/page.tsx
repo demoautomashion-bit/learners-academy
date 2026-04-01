@@ -25,11 +25,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import { STAGGER_CONTAINER, STAGGER_ITEM } from "@/lib/premium-motion"
 import { Progress } from "@/components/ui/progress"
+import { DashboardSkeleton } from "@/components/dashboard-skeleton"
 import { Search, Users, TrendingUp, Award, Mail, Phone, Calendar, ArrowRight } from "lucide-react"
 
 export default function TeacherStudentsPage() {
   const { user } = useAuth()
-  const { students: mockStudents, courses: mockCourses, enrollments: mockEnrollments } = useData()
+  const { students: mockStudents, courses: mockCourses, enrollments: mockEnrollments, isInitialized } = useData()
+  
+  if (!isInitialized) return <DashboardSkeleton />
   const [searchQuery, setSearchQuery] = useState("")
   const [courseFilter, setCourseFilter] = useState("all")
   const [selectedStudent, setSelectedStudent] = useState<typeof mockStudents[0] | null>(null)
@@ -74,7 +77,7 @@ export default function TeacherStudentsPage() {
       <motion.div 
         variants={STAGGER_CONTAINER}
         initial="hidden"
-        animate="show"
+        animate="visible"
       >
         <motion.h1 variants={STAGGER_ITEM} className="font-serif text-3xl font-normal text-foreground">My Student Registry</motion.h1>
         <motion.p variants={STAGGER_ITEM} className="mt-1 text-muted-foreground text-editorial-meta opacity-70">
@@ -111,7 +114,7 @@ export default function TeacherStudentsPage() {
         className="grid gap-4 sm:grid-cols-3"
         variants={STAGGER_CONTAINER}
         initial="hidden"
-        animate="show"
+        animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
@@ -180,7 +183,7 @@ export default function TeacherStudentsPage() {
               className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
               variants={STAGGER_CONTAINER}
               initial="hidden"
-              animate="show"
+              animate="visible"
             >
               {filteredStudents.map((student) => {
                 const enrollment = mockEnrollments.find(e => e.studentId === student.id)

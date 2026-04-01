@@ -320,7 +320,7 @@ export default function AssessmentsPage() {
           className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
           variants={STAGGER_CONTAINER}
           initial="hidden"
-          animate="show"
+          animate="visible"
         >
           {filteredAssessments.length === 0 ? (
             <div className="col-span-full py-12 text-center text-muted-foreground">

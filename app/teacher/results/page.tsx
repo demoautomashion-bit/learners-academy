@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { 
   Search, 
   FileCheck, 
@@ -40,7 +41,10 @@ import { useAuth } from '@/contexts/auth-context'
 
 export default function ResultsPage() {
   const { user } = useAuth()
-  const { submissions, students, assessments, courses, gradeSubmission } = useData()
+  const { submissions, students, assessments, courses, gradeSubmission, isInitialized } = useData()
+  
+  if (!isInitialized) return <DashboardSkeleton />
+
   const myCourses = courses.filter(c => c.teacherId === user?.id)
   const [searchQuery, setSearchQuery] = useState('')
   const [phaseFilter, setPhaseFilter] = useState('all')
@@ -95,7 +99,7 @@ export default function ResultsPage() {
         className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
         variants={STAGGER_CONTAINER}
         initial="hidden"
-        animate="show"
+        animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
           <h1 className="font-serif text-3xl font-normal text-foreground">
@@ -117,7 +121,7 @@ export default function ResultsPage() {
         className="grid gap-4 md:grid-cols-4"
         variants={STAGGER_CONTAINER}
         initial="hidden"
-        animate="show"
+        animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
