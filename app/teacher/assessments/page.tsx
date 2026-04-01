@@ -201,7 +201,7 @@ export default function AssessmentsPage() {
                       <SelectItem value="Last Test">Last Test (Final-term)</SelectItem>
                     </SelectContent>
                   </Select>
-                  {errors.phase && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.phase.message}</p>}
+                  {errors.phase && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.phase.message}</p>}
                 </Field>
                 <Field>
                   <FieldLabel>Target Class</FieldLabel>
@@ -215,7 +215,7 @@ export default function AssessmentsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.classLevel && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.classLevel.message}</p>}
+                  {errors.classLevel && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.classLevel.message}</p>}
                 </Field>
                 <Field>
                   <FieldLabel className="text-xs">Question Nature</FieldLabel>
@@ -241,19 +241,19 @@ export default function AssessmentsPage() {
                   <Field>
                     <FieldLabel className="text-xs">Questions</FieldLabel>
                     <Input {...register('questionCount', { valueAsNumber: true })} type="number" className="h-9" />
-                    {errors.questionCount && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.questionCount.message}</p>}
+                    {errors.questionCount && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.questionCount.message}</p>}
                   </Field>
                   <Field>
                     <FieldLabel className="text-xs">Total Marks</FieldLabel>
                     <Input {...register('totalMarks', { valueAsNumber: true })} type="number" className="h-9" />
-                    {errors.totalMarks && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.totalMarks.message}</p>}
+                    {errors.totalMarks && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.totalMarks.message}</p>}
                   </Field>
                 </div>
                 
                 <Field>
                   <FieldLabel className="text-xs">Duration (Mins)</FieldLabel>
                   <Input {...register('duration', { valueAsNumber: true })} type="number" className="h-9" />
-                  {errors.duration && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.duration.message}</p>}
+                  {errors.duration && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.duration.message}</p>}
                 </Field>
                 <Field>
                   <FieldLabel>Access Token (Unique for Class)</FieldLabel>
@@ -272,7 +272,7 @@ export default function AssessmentsPage() {
                       <RefreshCw className="w-4 h-4" />
                     </Button>
                   </div>
-                  {errors.accessCode && <p className="text-[10px] text-destructive font-bold uppercase mt-1">{errors.accessCode.message}</p>}
+                  {errors.accessCode && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.accessCode.message}</p>}
                   </Field>
                 </FieldGroup>
               </div>
