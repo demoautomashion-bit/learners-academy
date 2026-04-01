@@ -17,6 +17,7 @@ import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessm
 import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
 import { getSchedules, addSchedule as dbAddSchedule, updateSchedule as dbUpdateSchedule, removeSchedule as dbRemoveSchedule } from '@/lib/actions/schedules'
 import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount } from '@/lib/actions/fees'
+import { getEconomicStats, addExpenditure as dbAddExpenditure } from '@/lib/actions/economics'
 import { getInitialData } from '@/lib/actions/get-data'
 
 interface DataContextType {
@@ -158,6 +159,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       })
     } catch (err) {
       console.error('Critical failure in data refresh:', err)
+      setIsInitialized(true) // Ensure UI doesn't hang even on critical error
       setIsLoading(false)
     }
   }, [])
