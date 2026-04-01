@@ -176,110 +176,109 @@ export default function AssessmentsPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-xl border-primary/5 shadow-22xl p-0 overflow-hidden">
-            <DialogHeader className="p-8 bg-muted/5 border-b border-primary/5">
+            <DialogHeader className="p-6 bg-muted/5 border-b border-primary/5">
               <DialogTitle className="font-serif text-2xl font-normal">Generate New Test</DialogTitle>
               <DialogDescription className="text-editorial-meta text-xs">
                 The system will automatically select questions from your Library block.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="p-8 space-y-6">
+              <div className="max-h-[min(600px,60vh)] overflow-y-auto px-6 py-4 space-y-4 premium-scrollbar">
                 <FieldGroup className="space-y-4">
-                <Field>
-                  <FieldLabel>Test Title</FieldLabel>
-                  <Input {...register('title')} placeholder="e.g. Mid-term Assessment" />
-                  {errors.title && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.title.message}</p>}
-                </Field>
-                <Field>
-                  <FieldLabel>Test Phase</FieldLabel>
-                  <Select onValueChange={(val) => setValue('phase', val as any)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select phase" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="First Test">First Test (Mid-term)</SelectItem>
-                      <SelectItem value="Last Test">Last Test (Final-term)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.phase && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.phase.message}</p>}
-                </Field>
-                <Field>
-                  <FieldLabel>Target Class</FieldLabel>
-                  <Select onValueChange={(val) => setValue('classLevel', val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {myClasses.map(c => (
-                        <SelectItem key={c.id} value={c.title}>{c.title}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.classLevel && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.classLevel.message}</p>}
-                </Field>
-                <Field>
-                  <FieldLabel className="text-xs">Question Nature</FieldLabel>
-                  <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select nature" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Mixed">Mixed (All Types)</SelectItem>
-                      <SelectItem value="MCQ">MCQ Only</SelectItem>
-                      <SelectItem value="Subjective">Subjective Only</SelectItem>
-                      <SelectItem value="True/False">True / False Only</SelectItem>
-                      <SelectItem value="Fill in the Blanks">Fill / Blank Only</SelectItem>
-                      <SelectItem value="Matching">Matching Only</SelectItem>
-                      <SelectItem value="Writing">Writing Only</SelectItem>
-                      <SelectItem value="Reading">Reading Analysis</SelectItem>
-                      <SelectItem value="Listening">Listening Focus</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
+                  <Field>
+                    <FieldLabel>Test Title</FieldLabel>
+                    <Input {...register('title')} placeholder="e.g. Mid-term Assessment" />
+                    {errors.title && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.title.message}</p>}
+                  </Field>
+                  <Field>
+                    <FieldLabel>Test Phase</FieldLabel>
+                    <Select onValueChange={(val) => setValue('phase', val as any)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select phase" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="First Test">First Test (Mid-term)</SelectItem>
+                        <SelectItem value="Last Test">Last Test (Final-term)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.phase && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.phase.message}</p>}
+                  </Field>
+                  <Field>
+                    <FieldLabel>Target Class</FieldLabel>
+                    <Select onValueChange={(val) => setValue('classLevel', val)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {myClasses.map(c => (
+                          <SelectItem key={c.id} value={c.title}>{c.title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.classLevel && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.classLevel.message}</p>}
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-xs">Question Nature</FieldLabel>
+                    <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select nature" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Mixed">Mixed (All Types)</SelectItem>
+                        <SelectItem value="MCQ">MCQ Only</SelectItem>
+                        <SelectItem value="Subjective">Subjective Only</SelectItem>
+                        <SelectItem value="True/False">True / False Only</SelectItem>
+                        <SelectItem value="Fill in the Blanks">Fill / Blank Only</SelectItem>
+                        <SelectItem value="Matching">Matching Only</SelectItem>
+                        <SelectItem value="Writing">Writing Only</SelectItem>
+                        <SelectItem value="Reading">Reading Analysis</SelectItem>
+                        <SelectItem value="Listening">Listening Focus</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel className="text-xs">Questions</FieldLabel>
-                    <Input {...register('questionCount', { valueAsNumber: true })} type="number" className="h-9" />
-                    {errors.questionCount && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.questionCount.message}</p>}
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-xs">Total Marks</FieldLabel>
-                    <Input {...register('totalMarks', { valueAsNumber: true })} type="number" className="h-9" />
-                    {errors.totalMarks && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.totalMarks.message}</p>}
-                  </Field>
-                </div>
-                
-                <Field>
-                  <FieldLabel className="text-xs">Duration (Mins)</FieldLabel>
-                  <Input {...register('duration', { valueAsNumber: true })} type="number" className="h-9" />
-                  {errors.duration && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.duration.message}</p>}
-                </Field>
-                <Field>
-                  <FieldLabel>Access Token (Unique for Class)</FieldLabel>
-                  <div className="flex gap-2">
-                    <Input 
-                      {...register('accessCode')} 
-                      placeholder="LA-XXXX-YY" 
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => setValue('accessCode', generateSecureToken())}
-                      className="shrink-0"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </Button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field>
+                      <FieldLabel className="text-xs">Questions</FieldLabel>
+                      <Input {...register('questionCount', { valueAsNumber: true })} type="number" className="h-9" />
+                      {errors.questionCount && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.questionCount.message}</p>}
+                    </Field>
+                    <Field>
+                      <FieldLabel className="text-xs">Total Marks</FieldLabel>
+                      <Input {...register('totalMarks', { valueAsNumber: true })} type="number" className="h-9" />
+                      {errors.totalMarks && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.totalMarks.message}</p>}
+                    </Field>
                   </div>
-                  {errors.accessCode && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.accessCode.message}</p>}
+                  
+                  <Field>
+                    <FieldLabel className="text-xs">Duration (Mins)</FieldLabel>
+                    <Input {...register('duration', { valueAsNumber: true })} type="number" className="h-9" />
+                    {errors.duration && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.duration.message}</p>}
+                  </Field>
+                  <Field>
+                    <FieldLabel>Access Token (Unique for Class)</FieldLabel>
+                    <div className="flex gap-2">
+                      <Input 
+                        {...register('accessCode')} 
+                        placeholder="LA-XXXX-YY" 
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setValue('accessCode', generateSecureToken())}
+                        className="shrink-0"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {errors.accessCode && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.accessCode.message}</p>}
                   </Field>
                 </FieldGroup>
-              </div>
-              <DialogFooter className="p-8 bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
+
                 {/* Review notice for flagged teachers */}
                 {requiresReview && (
-                  <div className="w-full mb-3 flex items-start gap-3 bg-warning/5 border border-warning/20 rounded-xl px-4 py-3">
+                  <div className="w-full flex items-start gap-3 bg-warning/5 border border-warning/20 rounded-xl px-4 py-3">
                     <Info className="w-4 h-4 text-warning mt-0.5 shrink-0" />
                     <div>
                       <p className="text-xs font-medium text-warning">This paper will be reviewed before going live</p>
@@ -289,6 +288,8 @@ export default function AssessmentsPage() {
                     </div>
                   </div>
                 )}
+              </div>
+              <DialogFooter className="p-6 bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
                 <Button type="button" variant="outline" onClick={() => { setIsCreateOpen(false); reset(); }}>
                   Cancel
                 </Button>

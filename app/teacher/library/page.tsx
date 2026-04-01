@@ -156,7 +156,7 @@ export default function QuestionLibraryPage() {
           </DialogTrigger>
 
           <DialogContent className="max-w-xl border-primary/5 shadow-22xl p-0 overflow-hidden">
-            <DialogHeader className="p-8 bg-muted/5 border-b border-primary/5 text-left items-start">
+            <DialogHeader className="p-6 bg-muted/5 border-b border-primary/5 text-left items-start">
               <DialogTitle className="font-serif text-2xl font-normal">Add to Library</DialogTitle>
               <DialogDescription className="text-editorial-meta text-xs">
                 Fields adapt to the selected block type for institutional precision.
@@ -164,181 +164,179 @@ export default function QuestionLibraryPage() {
             </DialogHeader>
 
             <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="p-8 space-y-6">
+              <div className="max-h-[min(500px,50vh)] overflow-y-auto px-6 py-4 space-y-4 premium-scrollbar">
                 <FieldGroup className="space-y-4">
+                  {/* Category + Phase row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field>
+                      <FieldLabel className="text-xs">Category</FieldLabel>
+                      <Select value={watch('category')} onValueChange={(v) => setValue('category', v)}>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Category" /></SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {errors.category && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.category.message}</p>}
+                    </Field>
+                    <Field>
+                      <FieldLabel className="text-xs">Phase</FieldLabel>
+                      <Select defaultValue="Both" onValueChange={(v) => setValue('phase', v as any)}>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="First Test" className="text-xs">First Test</SelectItem>
+                          <SelectItem value="Last Test" className="text-xs">Last Test</SelectItem>
+                          <SelectItem value="Both" className="text-xs">Both</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </div>
 
-                {/* Category + Phase row */}
-                <div className="grid grid-cols-2 gap-3">
+                  {/* Type */}
                   <Field>
-                    <FieldLabel className="text-xs">Category</FieldLabel>
-                    <Select value={watch('category')} onValueChange={(v) => setValue('category', v)}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Category" /></SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    {errors.category && <p className="text-[10px] text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.category.message}</p>}
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-xs">Phase</FieldLabel>
-                    <Select defaultValue="Both" onValueChange={(v) => setValue('phase', v as any)}>
+                    <FieldLabel className="text-xs">Question Type</FieldLabel>
+                    <Select defaultValue="MCQ" onValueChange={(v) => setValue('type', v as any)}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="First Test" className="text-xs">First Test</SelectItem>
-                        <SelectItem value="Last Test" className="text-xs">Last Test</SelectItem>
-                        <SelectItem value="Both" className="text-xs">Both</SelectItem>
+                        {TYPE_OPTIONS.map(t => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </Field>
-                </div>
 
-                {/* Type */}
-                <Field>
-                  <FieldLabel className="text-xs">Question Type</FieldLabel>
-                  <Select defaultValue="MCQ" onValueChange={(v) => setValue('type', v as any)}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {TYPE_OPTIONS.map(t => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </Field>
+                  {/* Reading passage — shown only when category === Reading */}
+                  {selectedCategory === 'Reading' && (
+                    <Field>
+                      <FieldLabel className="text-xs flex items-center gap-1.5">
+                        <BookOpen className="w-3 h-3" /> Reading Passage
+                      </FieldLabel>
+                      <Textarea
+                        {...register('passageText')}
+                        rows={4}
+                        className="text-xs resize-none"
+                        placeholder="Paste the full reading passage here. Students read this before answering."
+                      />
+                    </Field>
+                  )}
 
-                {/* Reading passage — shown only when category === Reading */}
-                {selectedCategory === 'Reading' && (
+                  {/* Audio URL — shown only when category === Listening */}
+                  {selectedCategory === 'Listening' && (
+                    <Field>
+                      <FieldLabel className="text-xs flex items-center gap-1.5">
+                        <Volume2 className="w-3 h-3" /> Audio Clip URL
+                      </FieldLabel>
+                      <Input
+                        {...register('audioUrl')}
+                        className="h-8 text-xs"
+                        placeholder="https://... (.mp3, .wav, .ogg)"
+                      />
+                    </Field>
+                  )}
+
+                  {/* Content — label and placeholder adapt to type */}
                   <Field>
-                    <FieldLabel className="text-xs flex items-center gap-1.5">
-                      <BookOpen className="w-3 h-3" /> Reading Passage
+                    <FieldLabel className="text-xs">
+                      {selectedType === 'True/False'        ? 'Statement to evaluate'
+                      : selectedType === 'Fill in the Blanks' ? 'Sentence (use ____ for the blank)'
+                      : selectedType === 'Writing'          ? 'Essay Prompt / Title'
+                      : selectedType === 'Matching'         ? 'Instructions (optional)'
+                      : 'Question / Prompt'}
                     </FieldLabel>
                     <Textarea
-                      {...register('passageText')}
-                      rows={4}
-                      className="text-xs resize-none"
-                      placeholder="Paste the full reading passage here. Students read this before answering."
+                      {...register('content')}
+                      rows={selectedType === 'Matching' ? 1 : 2}
+                      className="text-sm resize-none"
+                      placeholder={
+                        selectedType === 'True/False'         ? '"The sun rises in the west."'
+                        : selectedType === 'Fill in the Blanks' ? '"The capital of France is ____."'
+                        : selectedType === 'Writing'           ? '"Write about the effects of social media on youth."'
+                        : selectedType === 'Matching'          ? 'Match each term in Column A to its definition in Column B.'
+                        : 'Enter your question here...'
+                      }
                     />
+                    {errors.content && <p className="text-[10px] text-destructive font-bold mt-0.5">{errors.content.message}</p>}
                   </Field>
-                )}
 
-                {/* Audio URL — shown only when category === Listening */}
-                {selectedCategory === 'Listening' && (
-                  <Field>
-                    <FieldLabel className="text-xs flex items-center gap-1.5">
-                      <Volume2 className="w-3 h-3" /> Audio Clip URL
-                    </FieldLabel>
-                    <Input
-                      {...register('audioUrl')}
-                      className="h-8 text-xs"
-                      placeholder="https://... (.mp3, .wav, .ogg)"
-                    />
-                  </Field>
-                )}
-
-                {/* Content — label and placeholder adapt to type */}
-                <Field>
-                  <FieldLabel className="text-xs">
-                    {selectedType === 'True/False'        ? 'Statement to evaluate'
-                    : selectedType === 'Fill in the Blanks' ? 'Sentence (use ____ for the blank)'
-                    : selectedType === 'Writing'          ? 'Essay Prompt / Title'
-                    : selectedType === 'Matching'         ? 'Instructions (optional)'
-                    : 'Question / Prompt'}
-                  </FieldLabel>
-                  <Textarea
-                    {...register('content')}
-                    rows={selectedType === 'Matching' ? 1 : 2}
-                    className="text-sm resize-none"
-                    placeholder={
-                      selectedType === 'True/False'         ? '"The sun rises in the west."'
-                      : selectedType === 'Fill in the Blanks' ? '"The capital of France is ____."'
-                      : selectedType === 'Writing'           ? '"Write about the effects of social media on youth."'
-                      : selectedType === 'Matching'          ? 'Match each term in Column A to its definition in Column B.'
-                      : 'Enter your question here...'
-                    }
-                  />
-                  {errors.content && <p className="text-[10px] text-destructive font-bold mt-0.5">{errors.content.message}</p>}
-                </Field>
-
-                {/* Image URL — all types except Listening */}
-                {selectedCategory !== 'Listening' && (
-                  <Field>
-                    <FieldLabel className="text-xs">Visual Aid (Optional)</FieldLabel>
-                    {imageUrl ? (
-                      <div className="relative w-full h-24 rounded-lg overflow-hidden border">
-                        <Image src={imageUrl} alt="Preview" fill className="object-cover" />
-                        <button type="button" onClick={() => setValue('imageUrl', '')}
-                          className="absolute top-1 right-1 bg-destructive text-white p-0.5 rounded-full shadow">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <Input className="h-8 text-xs" placeholder="Paste image URL (optional)"
-                        value={watch('imageUrl') || ''}
-                        onChange={(e) => setValue('imageUrl', e.target.value)} />
-                    )}
-                  </Field>
-                )}
-
-                {/* MCQ options */}
-                {selectedType === 'MCQ' && (
-                  <Field>
-                    <FieldLabel className="text-xs">Options (comma-separated)</FieldLabel>
-                    <Input {...register('options')} className="h-8 text-xs" placeholder="Option A, Option B, Option C, Option D" />
-                  </Field>
-                )}
-
-                {/* Matching pair builder */}
-                {selectedType === 'Matching' && (
-                  <Field>
-                    <FieldLabel className="text-xs">Match Pairs</FieldLabel>
-                    <div className="space-y-1.5">
-                      <div className="grid grid-cols-[1fr_1fr_20px] gap-1.5 px-0.5">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Column A</span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Column B</span>
-                        <span />
-                      </div>
-                      {matchPairs.map((pair, i) => (
-                        <div key={i} className="grid grid-cols-[1fr_1fr_20px] gap-1.5 items-center">
-                          <Input value={pair.left} onChange={e => updatePair(i, 'left', e.target.value)}
-                            className="h-7 text-xs" placeholder={`Term ${i + 1}`} />
-                          <Input value={pair.right} onChange={e => updatePair(i, 'right', e.target.value)}
-                            className="h-7 text-xs" placeholder={`Match ${i + 1}`} />
-                          <button type="button" onClick={() => setMatchPairs(p => p.filter((_, idx) => idx !== i))}
-                            disabled={matchPairs.length <= 2}
-                            className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-30 transition-premium">
+                  {/* Image URL — all types except Listening */}
+                  {selectedCategory !== 'Listening' && (
+                    <Field>
+                      <FieldLabel className="text-xs">Visual Aid (Optional)</FieldLabel>
+                      {imageUrl ? (
+                        <div className="relative w-full h-24 rounded-lg overflow-hidden border">
+                          <Image src={imageUrl} alt="Preview" fill className="object-cover" />
+                          <button type="button" onClick={() => setValue('imageUrl', '')}
+                            className="absolute top-1 right-1 bg-destructive text-white p-0.5 rounded-full shadow">
                             <X className="w-3 h-3" />
                           </button>
                         </div>
-                      ))}
-                      <Button type="button" variant="ghost" size="sm"
-                        onClick={() => setMatchPairs(p => [...p, { left: '', right: '' }])}
-                        className="h-7 text-xs gap-1 text-primary/70 hover:text-primary hover:bg-primary/5 w-full">
-                        <Plus className="w-3 h-3" /> Add Pair
-                      </Button>
-                    </div>
-                  </Field>
-                )}
+                      ) : (
+                        <Input className="h-8 text-xs" placeholder="Paste image URL (optional)"
+                          value={watch('imageUrl') || ''}
+                          onChange={(e) => setValue('imageUrl', e.target.value)} />
+                      )}
+                    </Field>
+                  )}
 
-                {/* Correct Answer — MCQ, True/False, Fill in the Blanks */}
-                {(selectedType === 'MCQ' || selectedType === 'True/False' || selectedType === 'Fill in the Blanks') && (
-                  <Field>
-                    <FieldLabel className="text-xs">Correct Answer</FieldLabel>
-                    {selectedType === 'True/False' ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        {['True', 'False'].map(opt => (
-                          <button key={opt} type="button" onClick={() => setValue('correctAnswer', opt)}
-                            className={`h-8 rounded-lg border-2 text-xs font-bold transition-premium ${correctAnswer === opt ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/30'}`}>
-                            {opt}
-                          </button>
+                  {/* MCQ options */}
+                  {selectedType === 'MCQ' && (
+                    <Field>
+                      <FieldLabel className="text-xs">Options (comma-separated)</FieldLabel>
+                      <Input {...register('options')} className="h-8 text-xs" placeholder="Option A, Option B, Option C, Option D" />
+                    </Field>
+                  )}
+
+                  {/* Matching pair builder */}
+                  {selectedType === 'Matching' && (
+                    <Field>
+                      <FieldLabel className="text-xs">Match Pairs</FieldLabel>
+                      <div className="space-y-1.5">
+                        <div className="grid grid-cols-[1fr_1fr_20px] gap-1.5 px-0.5">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Column A</span>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Column B</span>
+                          <span />
+                        </div>
+                        {matchPairs.map((pair, i) => (
+                          <div key={i} className="grid grid-cols-[1fr_1fr_20px] gap-1.5 items-center">
+                            <Input value={pair.left} onChange={e => updatePair(i, 'left', e.target.value)}
+                              className="h-7 text-xs" placeholder={`Term ${i + 1}`} />
+                            <Input value={pair.right} onChange={e => updatePair(i, 'right', e.target.value)}
+                              className="h-7 text-xs" placeholder={`Match ${i + 1}`} />
+                            <button type="button" onClick={() => setMatchPairs(p => p.filter((_, idx) => idx !== i))}
+                              disabled={matchPairs.length <= 2}
+                              className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-30 transition-premium">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
                         ))}
+                        <Button type="button" variant="ghost" size="sm"
+                          onClick={() => setMatchPairs(p => [...p, { left: '', right: '' }])}
+                          className="h-7 text-xs gap-1 text-primary/70 hover:text-primary hover:bg-primary/5 w-full">
+                          <Plus className="w-3 h-3" /> Add Pair
+                        </Button>
                       </div>
-                    ) : (
-                      <Input {...register('correctAnswer')} className="h-8 text-xs" placeholder="Exact correct answer" />
-                    )}
-                </Field>
-              )}
+                    </Field>
+                  )}
 
+                  {/* Correct Answer — MCQ, True/False, Fill in the Blanks */}
+                  {(selectedType === 'MCQ' || selectedType === 'True/False' || selectedType === 'Fill in the Blanks') && (
+                    <Field>
+                      <FieldLabel className="text-xs">Correct Answer</FieldLabel>
+                      {selectedType === 'True/False' ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {['True', 'False'].map(opt => (
+                            <button key={opt} type="button" onClick={() => setValue('correctAnswer', opt)}
+                              className={`h-8 rounded-lg border-2 text-xs font-bold transition-premium ${correctAnswer === opt ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/30'}`}>
+                              {opt}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <Input {...register('correctAnswer')} className="h-8 text-xs" placeholder="Exact correct answer" />
+                      )}
+                    </Field>
+                  )}
                 </FieldGroup>
               </div>
 
-              <DialogFooter className="p-8 bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
+              <DialogFooter className="p-6 bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
                 <Button type="button" variant="outline" onClick={handleClose} className="rounded-xl px-6 h-11">
                   <span className="text-[10px] uppercase tracking-widest font-normal">Cancel</span>
                 </Button>
