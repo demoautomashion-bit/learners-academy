@@ -109,29 +109,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     setIsLoading(true)
-    
-    async function safeFetch<T>(fn: () => Promise<T>, label: string, fallback: T): Promise<T> {
-      try {
-        return await fn() as T
-      } catch (err) {
-        console.error(`Failed to fetch ${label}:`, err)
-        return fallback
-      }
-    }
-
     const normalizeDate = (d: any) => (d instanceof Date ? d.toISOString() : d)
 
     try {
-      const t = await safeFetch(getTeachers, 'teachers', [])
-      const s = await safeFetch(getStudents, 'students', [])
-      const c = await safeFetch(getCourses, 'courses', [])
-      const q = await safeFetch(getQuestions, 'questions', [])
-      const a = await safeFetch(getAssessments, 'assessments', [])
-      const sub = await safeFetch(getSubmissions, 'submissions', [])
-      const sch = await safeFetch(getSchedules, 'schedules', [])
-      const econ = await safeFetch(getEconomicStats, 'economics', null)
-      const fees = await safeFetch(getFeePayments, 'feePayments', [])
-      const asgn = await safeFetch(getInitialData, 'initialData', { success: true, data: { assignments: [], enrollments: [] } })
+      // 1. Single consolidated fetch for core data
+      const initRes = await getInitialData()
+      const econData = await getEconomicStats().catch(err => {
+        console.error("Failed to fetch secondary economics:", err)
+        return null
+      })
+
+      if (!initRes.success || !initRes.data) {
+        throw new Error(initRes.error || "Initialization failed")
+      }
+
+      const { 
+        teachers: t, students: s, courses: c, questions: q, 
+        assessments: a, submissions: sub, schedules: sch, 
+        assignments: asgn, enrollments: enr 
+      } = initRes.data
 
       startTransition(() => {
         setTeachers(t.map((item: any) => ({ ...item, joinedAt: normalizeDate(item.joinedAt) })) as unknown as Teacher[])
@@ -145,21 +141,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setAssessments(a as unknown as AssessmentTemplate[])
         setSubmissions(sub.map((item: any) => ({ ...item, submittedAt: normalizeDate(item.submittedAt) })) as unknown as Submission[])
         setSchedules(sch as unknown as Schedule[])
-        setEconomics(econ)
-        setFeePayments(fees)
+        setAssignments(asgn as Assignment[])
+        setEnrollments(enr as any[])
         
-        // Update assignments and enrollments from the aggregated fetch
-        if (asgn.success && asgn.data) {
-          setAssignments(asgn.data.assignments as Assignment[])
-          setEnrollments(asgn.data.enrollments as any[])
+        if (econData) {
+          setEconomics(econData)
+          setFeePayments(econData.feePayments || [])
         }
-        
-        setIsInitialized(true)
-        setIsLoading(false)
       })
     } catch (err) {
-      console.error('Critical failure in data refresh:', err)
-      setIsInitialized(true) // Ensure UI doesn't hang even on critical error
+      console.error('CRITICAL_INITIALIZATION_ERROR:', err)
+      toast.error("Cloud connection unstable. Using local bridge.")
+    } finally {
+      // Ensure the UI flag is always flipped to clear the skeleton
+      setIsInitialized(true)
       setIsLoading(false)
     }
   }, [])

@@ -89,7 +89,7 @@ export default function TeacherDashboard() {
         className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
         variants={STAGGER_CONTAINER}
         initial="hidden"
-        animate="show"
+        animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
           <h1 className="font-serif text-3xl tracking-tight text-foreground font-normal">
@@ -118,7 +118,7 @@ export default function TeacherDashboard() {
       <motion.div 
         className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
         initial="hidden"
-        animate="show"
+        animate="visible"
         variants={STAGGER_CONTAINER}
       >
         {stats.map((stat) => (
@@ -240,7 +240,7 @@ export default function TeacherDashboard() {
         className="grid gap-6 md:grid-cols-2"
         variants={STAGGER_CONTAINER}
         initial="hidden"
-        animate="show"
+        animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
           <Card className="hover-lift border-l-4 border-l-primary/40 bg-card/40 backdrop-blur-md border-primary/5 shadow-premium rounded-[1.5rem] overflow-hidden">
