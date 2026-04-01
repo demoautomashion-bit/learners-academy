@@ -141,7 +141,7 @@ export default function QuestionLibraryPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-normal text-foreground">Assessment Library</h1>
+          <h1 className="text-3xl font-normal text-foreground">Assessment Library</h1>
           <p className="text-muted-foreground mt-1 text-editorial-meta opacity-70">
             Curate your institutional question bank across {CATEGORIES.length} academic categories.
           </p>
@@ -157,7 +157,7 @@ export default function QuestionLibraryPage() {
 
           <DialogContent className="max-w-xl border-primary/5 shadow-22xl p-0 overflow-hidden">
             <DialogHeader className="p-6 bg-muted/5 border-b border-primary/5 text-left items-start">
-              <DialogTitle className="font-serif text-2xl font-normal">Add to Library</DialogTitle>
+              <DialogTitle className="text-2xl font-normal">Add to Library</DialogTitle>
               <DialogDescription className="text-editorial-meta text-xs">
                 Fields adapt to the selected block type for institutional precision.
               </DialogDescription>
@@ -380,7 +380,7 @@ export default function QuestionLibraryPage() {
                       <div className="bg-primary/5 p-4 rounded-full mb-4">
                         <LibraryIcon className="w-8 h-8 text-primary/30" />
                       </div>
-                      <p className="font-serif text-lg font-normal">Empty Category</p>
+                      <p className="font-sans text-lg font-normal">Empty Category</p>
                       <p className="text-editorial-meta opacity-60 text-sm mt-1">No blocks found in the {activeTab} registry.</p>
                     </div>
                   </Card>
@@ -412,7 +412,7 @@ export default function QuestionLibraryPage() {
                             </div>
 
                             {/* Content */}
-                            <p className="text-base text-foreground/80 leading-relaxed font-serif font-normal">{q.content}</p>
+                            <p className="text-base text-foreground/80 leading-relaxed font-sans font-normal">{q.content}</p>
 
                             {/* Match pairs preview */}
                             {q.type === 'Matching' && q.matchPairs && (
@@ -480,7 +480,7 @@ export default function QuestionLibraryPage() {
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-end">
                 <span className="text-[10px] uppercase tracking-widest font-normal opacity-50">Total Blocks</span>
-                <span className="text-3xl font-serif font-normal text-primary">{questions.length}</span>
+                <span className="text-3xl font-sans font-normal text-primary">{questions.length}</span>
               </div>
               <div className="pt-4 border-t border-primary/5 space-y-2.5">
                 <p className="text-[8px] uppercase tracking-[0.2em] font-normal opacity-40">By Taxonomy</p>

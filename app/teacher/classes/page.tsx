@@ -85,7 +85,7 @@ export default function TeacherClassesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="font-serif text-3xl font-normal text-foreground">
+        <h1 className="text-3xl font-normal text-foreground">
           My Classes
         </h1>
         <p className="text-muted-foreground mt-1 text-editorial-meta opacity-70">
@@ -98,13 +98,13 @@ export default function TeacherClassesPage() {
         <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
           <CardHeader className="pb-2">
             <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Total Assigned Classes</CardDescription>
-            <CardTitle className="text-3xl font-serif font-normal">{myCourses.length}</CardTitle>
+            <CardTitle className="text-3xl font-sans font-normal">{myCourses.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
           <CardHeader className="pb-2">
             <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Total Enrolled Students</CardDescription>
-            <CardTitle className="text-3xl font-serif font-normal">
+            <CardTitle className="text-3xl font-sans font-normal">
               {myCourses.reduce((acc, c) => acc + c.enrolled, 0)}
             </CardTitle>
           </CardHeader>
@@ -116,7 +116,7 @@ export default function TeacherClassesPage() {
         <CardHeader className="border-b border-primary/5 p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="font-serif text-2xl font-normal">Student Registry</CardTitle>
+              <CardTitle className="text-2xl font-normal">Student Registry</CardTitle>
               <CardDescription className="text-editorial-meta opacity-70">
                 Active roster management for your assigned academic sessions.
               </CardDescription>
@@ -174,7 +174,7 @@ export default function TeacherClassesPage() {
                           {student.studentId || 'N/A'}
                         </TableCell>
                         <TableCell className="py-4 px-8">
-                          <p className="font-serif font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">
+                          <p className="font-sans font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">
                             {student.name}
                           </p>
                         </TableCell>
@@ -203,7 +203,7 @@ export default function TeacherClassesPage() {
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-3xl border-primary/5 shadow-22xl p-0 overflow-hidden">
           <DialogHeader className="p-8 bg-muted/5 border-b border-primary/5">
-            <DialogTitle className="font-serif text-2xl font-normal">Class Registry Intelligence</DialogTitle>
+            <DialogTitle className="text-2xl font-normal">Class Registry Intelligence</DialogTitle>
             <DialogDescription className="text-editorial-meta text-xs">
               Granular view of academic enrollment and term performance.
             </DialogDescription>
@@ -240,7 +240,7 @@ export default function TeacherClassesPage() {
                         <Users className="w-3 h-3 text-muted-foreground" />
                         <span className="text-[10px] uppercase tracking-widest font-normal opacity-60">Enrollment</span>
                       </div>
-                      <p className="text-2xl font-serif font-normal">{selectedCourse.enrolled}/{selectedCourse.capacity}</p>
+                      <p className="text-2xl font-sans font-normal">{selectedCourse.enrolled}/{selectedCourse.capacity}</p>
                       <Progress value={(selectedCourse.enrolled / selectedCourse.capacity) * 100} className="h-1 mt-3" />
                     </div>
                     <div className="p-6 rounded-2xl border border-primary/5 bg-card/40">
@@ -248,7 +248,7 @@ export default function TeacherClassesPage() {
                         <Clock className="w-3 h-3 text-muted-foreground" />
                         <span className="text-[10px] uppercase tracking-widest font-normal opacity-60">Duration</span>
                       </div>
-                      <p className="text-2xl font-serif font-normal">{selectedCourse.duration}</p>
+                      <p className="text-2xl font-sans font-normal">{selectedCourse.duration}</p>
                     </div>
                   </div>
 
@@ -257,7 +257,7 @@ export default function TeacherClassesPage() {
                       <Calendar className="w-3 h-3 text-muted-foreground" />
                       <span className="text-[10px] uppercase tracking-widest font-normal opacity-60">Schedule</span>
                     </div>
-                    <p className="font-serif font-normal text-lg">{selectedCourse.schedule}</p>
+                    <p className="font-sans font-normal text-lg">{selectedCourse.schedule}</p>
                     <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest font-normal opacity-50">
                       Term: {new Date(selectedCourse.startDate).toLocaleDateString()} — {new Date(selectedCourse.endDate).toLocaleDateString()}
                     </p>
@@ -279,7 +279,7 @@ export default function TeacherClassesPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-serif font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">{student.name}</p>
+                              <p className="font-sans font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">{student.name}</p>
                               <p className="text-[10px] text-muted-foreground font-normal tracking-widest uppercase opacity-60">{student.email}</p>
                             </div>
                           </div>
@@ -311,7 +311,7 @@ export default function TeacherClassesPage() {
                               <ClipboardList className="w-4 h-4" />
                             </div>
                             <div>
-                              <p className="font-serif font-normal text-lg group-hover:text-primary transition-colors">{assignment.title}</p>
+                              <p className="font-sans font-normal text-lg group-hover:text-primary transition-colors">{assignment.title}</p>
                               <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-normal opacity-50">Due: {new Date(assignment.dueDate).toLocaleDateString()}</p>
                             </div>
                           </div>

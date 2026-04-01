@@ -92,7 +92,7 @@ export default function TeacherDashboard() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="font-serif text-3xl tracking-tight text-foreground font-normal">
+          <h1 className="text-3xl tracking-tight text-foreground font-normal">
             Welcome, {user?.name?.split(' ')[0] || 'Teacher'}
           </h1>
           <p className="text-editorial-meta text-lg mt-1 opacity-70">
@@ -137,7 +137,7 @@ export default function TeacherDashboard() {
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <div className="text-3xl font-serif tracking-tight font-normal">{stat.value}</div>
+                  <div className="text-3xl font-sans tracking-tight font-normal">{stat.value}</div>
                   <div className="flex items-center gap-1.5 mt-1">
                     <div className="h-1 w-1 rounded-full bg-primary/40" />
                     <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-normal opacity-60">Institutional Data</span>
@@ -156,7 +156,7 @@ export default function TeacherDashboard() {
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[2rem] h-full flex flex-col overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
               <div>
-                <CardTitle className="font-serif text-2xl font-normal">Active Assessments</CardTitle>
+                <CardTitle className="text-2xl font-normal">Active Assessments</CardTitle>
                 <CardDescription className="text-editorial-meta opacity-60">Track ongoing test participation</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild className="text-primary hover:bg-primary/10 rounded-xl transition-premium group">
@@ -176,7 +176,7 @@ export default function TeacherDashboard() {
                   <div key={assignment.id} className="p-4 rounded-2xl bg-muted/10 border border-primary/5 hover:bg-muted/20 transition-premium group cursor-pointer hover:shadow-premium">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-serif text-lg font-normal group-hover:text-primary transition-colors">{assignment.title}</p>
+                        <p className="font-sans text-lg font-normal group-hover:text-primary transition-colors">{assignment.title}</p>
                         <p className="text-editorial-meta text-[10px] mt-0.5 opacity-60 uppercase tracking-widest">{assignment.courseName}</p>
                       </div>
                       <Badge variant="outline" className="text-[9px] tracking-widest uppercase font-normal text-primary border-primary/20 bg-primary/5">
@@ -202,7 +202,7 @@ export default function TeacherDashboard() {
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[2rem] h-full flex flex-col overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
               <div>
-                <CardTitle className="font-serif text-2xl font-normal">Class Performance</CardTitle>
+                <CardTitle className="text-2xl font-normal">Class Performance</CardTitle>
                 <CardDescription className="text-editorial-meta opacity-60">Success metrics & average tracking</CardDescription>
               </div>
               <TrendingUp className="w-5 h-5 text-primary opacity-40" />
@@ -222,7 +222,7 @@ export default function TeacherDashboard() {
                   return (
                     <div key={course.id} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-serif text-base font-normal">{course.title}</span>
+                        <span className="font-sans text-base font-normal">{course.title}</span>
                         <span className="text-[10px] uppercase tracking-widest font-normal text-primary">Avg. {avgProgress}%</span>
                       </div>
                       <Progress value={avgProgress} className="h-1 bg-primary/10" />

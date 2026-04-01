@@ -102,7 +102,7 @@ export default function ResultsPage() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="font-serif text-3xl font-normal text-foreground">
+          <h1 className="text-3xl font-normal text-foreground">
             Test Results
           </h1>
           <p className="text-muted-foreground mt-1 text-editorial-meta opacity-70">
@@ -129,7 +129,7 @@ export default function ResultsPage() {
               <CardDescription className="flex items-center gap-2 text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">
                 <TrendingUp className="w-3 h-3" /> Average Score
               </CardDescription>
-              <CardTitle className="text-3xl font-serif font-normal">{totalAvg > 0 ? `${totalAvg}%` : '--'}</CardTitle>
+              <CardTitle className="text-3xl font-sans font-normal">{totalAvg > 0 ? `${totalAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
@@ -137,7 +137,7 @@ export default function ResultsPage() {
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
             <CardHeader className="pb-2">
               <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Pending Evaluation</CardDescription>
-              <CardTitle className="text-3xl font-serif font-normal text-warning">{pendingCount > 0 ? pendingCount : '--'}</CardTitle>
+              <CardTitle className="text-3xl font-sans font-normal text-warning">{pendingCount > 0 ? pendingCount : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
@@ -145,7 +145,7 @@ export default function ResultsPage() {
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
             <CardHeader className="pb-2">
               <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">First Test Avg</CardDescription>
-              <CardTitle className="text-3xl font-serif font-normal">{firstTestAvg > 0 ? `${firstTestAvg}%` : '--'}</CardTitle>
+              <CardTitle className="text-3xl font-sans font-normal">{firstTestAvg > 0 ? `${firstTestAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
@@ -153,7 +153,7 @@ export default function ResultsPage() {
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
             <CardHeader className="pb-2">
               <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Last Test Avg</CardDescription>
-              <CardTitle className="text-3xl font-serif font-normal">{lastTestAvg > 0 ? `${lastTestAvg}%` : '--'}</CardTitle>
+              <CardTitle className="text-3xl font-sans font-normal">{lastTestAvg > 0 ? `${lastTestAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
@@ -224,7 +224,7 @@ export default function ResultsPage() {
                       }}>
                         <td className="px-8 py-5">
                           <div className="flex flex-col">
-                            <span className="font-serif font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">
+                            <span className="font-sans font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">
                               {result.studentName || 'Student Registry'}
                             </span>
                             <span className="text-[10px] text-muted-foreground/60 font-normal uppercase tracking-widest">
@@ -234,14 +234,14 @@ export default function ResultsPage() {
                         </td>
                         <td className="px-8 py-5">
                           <div className="flex flex-col">
-                            <span className="font-normal text-sm text-foreground/70">{studentCourse?.title || 'Registry Level'}</span>
+                            <span className="font-sans font-normal text-sm text-foreground/70">{studentCourse?.title || 'Registry Level'}</span>
                             <span className="text-[10px] text-muted-foreground/50 tracking-widest font-normal uppercase">
                               {student?.classTiming || 'Timing TBC'}
                             </span>
                           </div>
                         </td>
                         <td className="px-8 py-5 space-y-2">
-                          <p className="font-normal text-sm text-foreground/80">{assessment?.title}</p>
+                          <p className="font-sans font-normal text-sm text-foreground/80">{assessment?.title}</p>
                           <Badge variant="outline" className="text-[9px] h-5 px-2 py-0 uppercase tracking-widest font-normal text-primary/70 border-primary/10 bg-primary/5">
                             {assessment?.phase}
                           </Badge>
@@ -249,7 +249,7 @@ export default function ResultsPage() {
                         <td className="px-8 py-5">
                           {absoluteScore !== null ? (
                             <div className="flex flex-col">
-                              <span className="text-base font-normal text-foreground font-serif">
+                              <span className="text-base font-normal text-foreground font-sans">
                                 {absoluteScore} <span className="text-muted-foreground/20 font-sans">/ {assessment?.totalMarks}</span>
                               </span>
                               <span className="text-[10px] font-normal text-success/70 uppercase tracking-widest mt-0.5">
@@ -303,7 +303,7 @@ export default function ResultsPage() {
                           <span className="text-[9px] text-success font-normal uppercase tracking-widest">Key: {q.correctAnswer}</span>
                         )}
                       </div>
-                      <p className="text-base font-serif font-normal text-foreground/80 leading-relaxed">{q.content}</p>
+                      <p className="text-base font-sans font-normal text-foreground/80 leading-relaxed">{q.content}</p>
                       <div className="p-4 rounded-2xl bg-muted/20 border border-primary/5 text-sm font-normal">
                         <span className="text-muted-foreground/40 mr-3 text-[10px] uppercase tracking-widest">Entry:</span>
                         {selectedResult?.answers?.[q.id] || 'No response captured.'}
@@ -332,7 +332,7 @@ export default function ResultsPage() {
                   value={gradeInput}
                   onChange={(e) => setGradeInput(e.target.value)}
                   max="100" 
-                  className="h-12 bg-card border-primary/10 rounded-xl text-lg font-serif"
+                  className="h-12 bg-card border-primary/10 rounded-xl text-lg font-sans"
                 />
               </div>
               <div className="space-y-3">

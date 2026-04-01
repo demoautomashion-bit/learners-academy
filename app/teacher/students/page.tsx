@@ -79,7 +79,7 @@ export default function TeacherStudentsPage() {
         initial="hidden"
         animate="visible"
       >
-        <motion.h1 variants={STAGGER_ITEM} className="font-serif text-3xl font-normal text-foreground">My Student Registry</motion.h1>
+        <motion.h1 variants={STAGGER_ITEM} className="text-3xl font-normal text-foreground">My Student Registry</motion.h1>
         <motion.p variants={STAGGER_ITEM} className="mt-1 text-muted-foreground text-editorial-meta opacity-70">
           Monitor academic progress and institutional engagement of your enrolled pupils.
         </motion.p>
@@ -123,7 +123,7 @@ export default function TeacherStudentsPage() {
                 <Users className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-3xl font-serif font-normal text-foreground">{studentsInTeacherCourses.length}</p>
+                <p className="text-3xl font-sans font-normal text-foreground">{studentsInTeacherCourses.length}</p>
                 <p className="text-[10px] uppercase tracking-widest font-normal opacity-50">Total Registry</p>
               </div>
             </CardContent>
@@ -136,7 +136,7 @@ export default function TeacherStudentsPage() {
                 <TrendingUp className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-3xl font-serif font-normal text-foreground">
+                <p className="text-3xl font-sans font-normal text-foreground">
                   {Math.round(studentsInTeacherCourses.reduce((acc, s) => acc + (mockEnrollments.find(e => e.studentId === s.id)?.progress || 0), 0) / (studentsInTeacherCourses.length || 1))}%
                 </p>
                 <p className="text-[10px] uppercase tracking-widest font-normal opacity-50">Average Mastery</p>
@@ -151,7 +151,7 @@ export default function TeacherStudentsPage() {
                 <Award className="h-5 w-5 text-warning" />
               </div>
               <div>
-                <p className="text-3xl font-serif font-normal text-foreground">
+                <p className="text-3xl font-sans font-normal text-foreground">
                   {studentsInTeacherCourses.filter(s => {
                     const enrollment = mockEnrollments.find(e => e.studentId === s.id)
                     return enrollment && enrollment.progress >= 80
@@ -167,7 +167,7 @@ export default function TeacherStudentsPage() {
       {/* Students Grid */}
       <Card className="border-primary/5 bg-card/60 backdrop-blur-xl shadow-premium rounded-[2.5rem] overflow-hidden">
         <CardHeader className="p-8 border-b border-primary/5">
-          <CardTitle className="font-serif text-2xl font-normal">Pupil Intelligence Report</CardTitle>
+          <CardTitle className="text-2xl font-normal">Pupil Intelligence Report</CardTitle>
           <CardDescription className="text-editorial-meta opacity-60">Monitor detailed mastery and engagement across the registry.</CardDescription>
         </CardHeader>
         <CardContent className="p-8">
@@ -176,7 +176,7 @@ export default function TeacherStudentsPage() {
               <div className="bg-primary/5 p-6 rounded-full w-fit mx-auto mb-6">
                 <Users className="w-10 h-10 text-primary/30" />
               </div>
-              <p className="font-serif text-lg opacity-60">No students found in the current selection.</p>
+              <p className="font-sans text-lg opacity-60">No students found in the current selection.</p>
             </div>
           ) : (
             <motion.div 
@@ -203,7 +203,7 @@ export default function TeacherStudentsPage() {
                           <div className="flex items-center justify-between">
                             <Avatar className="h-14 w-14 ring-4 ring-primary/5 shadow-premium">
                               <AvatarImage src={student.avatar} alt={student.name} />
-                              <AvatarFallback className="bg-primary/5 text-primary text-xl font-serif">
+                              <AvatarFallback className="bg-primary/5 text-primary text-xl font-sans">
                                 {student.name.split(" ").map(n => n[0]).join("")}
                               </AvatarFallback>
                             </Avatar>
@@ -213,7 +213,7 @@ export default function TeacherStudentsPage() {
                           </div>
                           
                           <div className="space-y-1">
-                            <p className="font-serif text-lg font-normal text-foreground/80 group-hover:text-primary transition-colors">{student.name}</p>
+                            <p className="font-sans text-lg font-normal text-foreground/80 group-hover:text-primary transition-colors">{student.name}</p>
                             <p className="text-[10px] text-muted-foreground/60 font-normal uppercase tracking-widest truncate">{student.email}</p>
                           </div>
                           
@@ -254,7 +254,7 @@ export default function TeacherStudentsPage() {
               <div className="flex items-center gap-6">
                 <Avatar className="h-24 w-24 ring-4 ring-primary/5 shadow-premium">
                   <AvatarImage src={selectedStudent.avatar} alt={selectedStudent.name} />
-                  <AvatarFallback className="bg-primary/5 text-3xl font-serif text-primary">
+                  <AvatarFallback className="bg-primary/5 text-3xl font-sans text-primary">
                     {selectedStudent.name.split(" ").map(n => n[0]).join("")}
                   </AvatarFallback>
                 </Avatar>
@@ -304,7 +304,7 @@ export default function TeacherStudentsPage() {
                       return (
                         <div key={enrollment.id} className="rounded-[1.5rem] border border-primary/5 bg-muted/10 p-5 space-y-4">
                           <div className="flex items-center justify-between">
-                            <p className="font-serif text-base font-normal">{course?.title}</p>
+                            <p className="font-sans text-base font-normal">{course?.title}</p>
                             <Badge variant="outline" className="text-[9px] uppercase tracking-widest font-normal border-primary/10 bg-card px-2 h-5">{enrollment.progress}% Mastery</Badge>
                           </div>
                           <Progress value={enrollment.progress} className="h-1.5 bg-primary/5" />

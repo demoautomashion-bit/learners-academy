@@ -159,7 +159,7 @@ export default function AssessmentsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-normal text-foreground">
+          <h1 className="text-3xl font-normal text-foreground">
             Assessments
           </h1>
           <p className="text-muted-foreground mt-1 text-editorial-meta opacity-70">
@@ -177,7 +177,7 @@ export default function AssessmentsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-xl border-primary/5 shadow-22xl p-0 overflow-hidden">
             <DialogHeader className="p-6 bg-muted/5 border-b border-primary/5">
-              <DialogTitle className="font-serif text-2xl font-normal">Generate New Test</DialogTitle>
+              <DialogTitle className="text-2xl font-normal">Generate New Test</DialogTitle>
               <DialogDescription className="text-editorial-meta text-xs">
                 The system will automatically select questions from your Library block.
               </DialogDescription>
@@ -341,7 +341,7 @@ export default function AssessmentsPage() {
                       <Badge variant={assessment.phase === 'First Test' ? 'outline' : 'secondary'} className="text-[10px] uppercase tracking-widest font-normal border-primary/20 bg-primary/5 text-primary">
                         {assessment.phase}
                       </Badge>
-                      <CardTitle className="font-serif text-xl tracking-tight leading-none pt-1 font-normal group-hover:text-primary transition-colors">{assessment.title}</CardTitle>
+                      <CardTitle className="text-xl tracking-tight leading-none pt-1 font-normal group-hover:text-primary transition-colors">{assessment.title}</CardTitle>
                     </div>
                     <Button 
                       variant="ghost" 
