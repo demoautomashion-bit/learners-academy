@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,37 +8,38 @@ datasource db {
 }
 
 model Teacher {
-  id               String       @id @default(cuid())
+  id               String              @id @default(cuid())
   name             String
-  email            String       @unique
+  email            String              @unique
   phone            String
-  employeeId       String       @unique
+  employeeId       String              @unique
   subjects         String[]
   qualifications   String[]
-  status           String       @default("active")
+  status           String              @default("active")
   avatar           String?
-  joinedAt         DateTime     @default(now())
-  coursesCount     Int          @default(0)
-  studentsCount    Int          @default(0)
+  joinedAt         DateTime            @default(now())
+  coursesCount     Int                 @default(0)
+  studentsCount    Int                 @default(0)
   assignedClass    String?
-  salary           Float        @default(0)
   employeePassword String?
-  courses          Course[]
+  salary           Float               @default(0)
+  requiresReview   Boolean             @default(false)
   assignments      Assignment[]
+  courses          Course[]
   attendance       TeacherAttendance[]
 }
 
 model TeacherAttendance {
-  id           String   @id @default(cuid())
-  teacherId    String
-  teacher      Teacher  @relation(fields: [teacherId], references: [id])
-  date         DateTime @default(now())
-  status       String   // "Present", "Absent", "Late", "Leave"
+  id              String   @id @default(cuid())
+  teacherId       String
+  date            DateTime @default(now())
+  status          String
+  note            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  details         Json?
   substituteCount Int      @default(0)
-  details      Json?    // Array of granular objects: { type: string, time: string, label: string, info?: string }
-  note         String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  teacher         Teacher  @relation(fields: [teacherId], references: [id])
 
   @@unique([teacherId, date])
 }
@@ -60,7 +58,6 @@ model Student {
   name            String
   email           String       @unique
   phone           String
-  password        String?      // Added for DB auth
   enrolledCourses String[]
   status          String       @default("active")
   avatar          String?
@@ -70,8 +67,9 @@ model Student {
   progress        Float        @default(0)
   grade           String?
   classTiming     String?
-  submissions     Submission[]
+  password        String?
   feePayments     FeePayment[]
+  submissions     Submission[]
 }
 
 model Course {
@@ -81,7 +79,6 @@ model Course {
   level       String
   teacherId   String
   teacherName String
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
   capacity    Int
   enrolled    Int          @default(0)
   status      String       @default("active")
@@ -93,21 +90,22 @@ model Course {
   thumbnail   String?
   feeAmount   Float        @default(0)
   assignments Assignment[]
+  teacher     Teacher      @relation(fields: [teacherId], references: [id])
   feePayments FeePayment[]
 }
 
 model FeePayment {
-  id           String    @id @default(cuid())
-  studentId    String
-  courseId     String
-  amountPaid   Float     @default(0)
-  totalAmount  Float     @default(0)
-  status       String    @default("Unpaid") // "Paid", "Partial", "Unpaid"
-  paymentDate  DateTime?
-  updatedAt    DateTime  @updatedAt
-  createdAt    DateTime  @updatedAt
-  student      Student   @relation(fields: [studentId], references: [id])
-  course       Course    @relation(fields: [courseId], references: [id])
+  id          String    @id @default(cuid())
+  studentId   String
+  courseId    String
+  amountPaid  Float     @default(0)
+  totalAmount Float     @default(0)
+  status      String    @default("Unpaid")
+  paymentDate DateTime?
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @updatedAt
+  course      Course    @relation(fields: [courseId], references: [id])
+  student     Student   @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, courseId])
 }
@@ -115,7 +113,7 @@ model FeePayment {
 model Expenditure {
   id          String   @id @default(cuid())
   amount      Float
-  category    String   // "Salaries", "Infrastructure", "Supplies", "Marketing", "Other"
+  category    String
   description String
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
@@ -127,70 +125,73 @@ model Assignment {
   description      String
   courseId         String
   courseName       String
-  course           Course       @relation(fields: [courseId], references: [id])
   teacherId        String
-  teacher          Teacher      @relation(fields: [teacherId], references: [id])
   dueDate          DateTime
   status           String       @default("active")
   submissionsCount Int          @default(0)
   totalStudents    Int          @default(0)
   createdAt        DateTime     @default(now())
+  course           Course       @relation(fields: [courseId], references: [id])
+  teacher          Teacher      @relation(fields: [teacherId], references: [id])
   submissions      Submission[]
 }
 
 model Submission {
-  id               String     @id @default(cuid())
-  assignmentId     String
-  assignmentTitle  String
-  assignment       Assignment @relation(fields: [assignmentId], references: [id])
-  studentId        String
-  studentName      String
-  student          Student    @relation(fields: [studentId], references: [id])
-  submittedAt      DateTime   @default(now())
-  status           String     @default("pending")
-  grade            Float?
-  feedback         String?
-  fileUrl          String?
+  id                  String     @id @default(cuid())
+  assignmentId        String
+  assignmentTitle     String
+  studentId           String
+  studentName         String
+  submittedAt         DateTime   @default(now())
+  status              String     @default("pending")
+  grade               Float?
+  feedback            String?
+  fileUrl             String?
   randomizedQuestions Json?
-  answers          Json?
-  aiFeedback       String?
-  aiJustification  String?
+  answers             Json?
+  aiFeedback          String?
+  aiJustification     String?
+  assignment          Assignment @relation(fields: [assignmentId], references: [id])
+  student             Student    @relation(fields: [studentId], references: [id])
 }
 
 model Question {
   id            String   @id @default(cuid())
   category      String
-  type          String   // "MCQ" | "Subjective" | "True/False" | "Fill in the Blanks" | "Writing" | "Matching"
+  type          String
   content       String
   options       String[]
   correctAnswer String?
   imageUrl      String?
-  phase         String   // "First Test" | "Last Test" | "Both"
-  passageText   String?  // Reading: full passage text shown above the question
-  audioUrl      String?  // Listening: audio clip URL auto-played on question load
-  matchPairs    Json?    // Matching: [{left: "term", right: "definition"}, ...]
+  phase         String
+  audioUrl      String?
+  matchPairs    Json?
+  passageText   String?
 }
 
 model AssessmentTemplate {
-  id              String   @id @default(cuid())
-  title           String
-  phase           String // "First Test" | "Last Test"
-  classLevels     String[]
-  nature          String // "MCQ" | "Subjective" | "Mixed"
-  totalMarks      Int
-  durationMinutes Int
-  questionCount   Int      @default(10)
-  createdAt       DateTime @default(now())
-  status          String   @default("active")
-  accessCode      String
+  id                     String   @id @default(cuid())
+  title                  String
+  phase                  String
+  classLevels            String[]
+  nature                 String
+  totalMarks             Int
+  durationMinutes        Int
+  createdAt              DateTime @default(now())
+  status                 String   @default("active")
+  accessCode             String
+  questionCount          Int      @default(10)
+  adminFeedback          String?
+  submittedByTeacherId   String?
+  submittedByTeacherName String?
 }
 
 model Schedule {
-  id         String   @id @default(cuid())
-  classTitle String
+  id          String   @id @default(cuid())
+  classTitle  String
   teacherName String
-  timing     String
-  roomNumber String
-  days       String[]
-  slotId     String?
+  timing      String
+  roomNumber  String
+  days        String[]
+  slotId      String?
 }
