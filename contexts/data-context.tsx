@@ -9,7 +9,7 @@ import type {
 } from '@/lib/types'
 
 // Server Actions
-import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus, updateTeacherReviewFlag as dbUpdateTeacherReviewFlag } from '@/lib/actions/teachers'
+import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus, updateTeacherReviewFlag as dbUpdateTeacherReviewFlag, updateTeacher as dbUpdateTeacher } from '@/lib/actions/teachers'
 import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics } from '@/lib/actions/students'
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse } from '@/lib/actions/courses'
 import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion } from '@/lib/actions/questions'
@@ -64,6 +64,7 @@ interface DataContextType {
   recordPayment: (id: string, amount: number) => Promise<void>
   addFeeAccount: (data: any) => Promise<void>
   updateClassFee: (id: string, amount: number) => Promise<void>
+  updateTeacher: (id: string, data: Partial<Teacher>) => Promise<void>
   updateTeacherReviewFlag: (id: string, flag: boolean) => Promise<void>
   approveQuestion: (id: string, flag: boolean) => Promise<void>
   approveAssessment: (id: string) => Promise<void>
@@ -259,6 +260,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await refresh()
   }, [refresh])
 
+  const updateTeacher = useCallback(async (id: string, data: Partial<Teacher>) => {
+    try {
+      await dbUpdateTeacher(id, data)
+      await refresh()
+    } catch (err) {
+      toast.error("Failed to update teacher")
+    }
+  }, [refresh])
+
   // --- Review System ---
   const updateTeacherReviewFlag = useCallback(async (id: string, flag: boolean) => {
     try {
@@ -394,6 +404,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       recordPayment,
       addFeeAccount,
       updateClassFee,
+      updateTeacher,
       updateTeacherReviewFlag,
       approveQuestion,
       approveAssessment,

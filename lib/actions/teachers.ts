@@ -44,3 +44,12 @@ export async function updateTeacherReviewFlag(id: string, flag: boolean) {
   revalidatePath('/')
   return result
 }
+
+export async function updateTeacher(id: string, data: Partial<Teacher>) {
+  const result = await db.teacher.update({ 
+    where: { id }, 
+    data: data as any 
+  })
+  revalidatePath('/')
+  return result
+}

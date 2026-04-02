@@ -84,9 +84,10 @@ const CLASS_LEVELS = [
 ]
 
 export default function TeachersPage() {
-  const { teachers, addTeacher, removeTeacher, updateTeacherStatus, courses, students, feePayments, updateTeacherReviewFlag } = useData()
+  const { teachers, addTeacher, removeTeacher, updateTeacherStatus, updateTeacher, courses, students, feePayments, updateTeacherReviewFlag } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [isFinanceViewOpen, setIsFinanceViewOpen] = useState(false)
@@ -132,9 +133,38 @@ export default function TeachersPage() {
     toast.success(`Teacher ${teacher.status === 'active' ? 'deactivated' : 'activated'}`)
   }
 
-  const handleDelete = (teacher: Teacher) => {
-    removeTeacher(teacher.id)
-    toast.success('Teacher removed successfully')
+  const handleEditTeacher = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!selectedTeacher) return
+    const formData = new FormData(e.currentTarget)
+    const updatedData: Partial<Teacher> = {
+      name: formData.get('name') as string,
+      email: (formData.get('email') as string).toLowerCase().trim(),
+      phone: formData.get('phone') as string,
+      employeeId: formData.get('employeeId') as string,
+      assignedClass: formData.get('assignedClass') as string,
+    }
+    
+    // Only update password if provided
+    const password = formData.get('password') as string
+    if (password) {
+      updatedData.employeePassword = password
+    }
+
+    try {
+      await updateTeacher(selectedTeacher.id, updatedData)
+      setIsEditDialogOpen(false)
+      setSelectedTeacher(null)
+      toast.success('Teacher record updated')
+    } catch (error) {
+      // Handled by context
+    }
+  }
+
+  const handleDelete = async (teacher: Teacher) => {
+    if (!confirm('Are you sure you want to permanently remove this professional from the registry?')) return
+    await removeTeacher(teacher.id)
+    toast.success('Teacher removed from registry')
   }
 
   const getTeacherFinancials = () => {
@@ -377,10 +407,13 @@ export default function TeachersPage() {
                               <Eye className="w-4 h-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => {
+                               setSelectedTeacher(teacher)
+                               setIsEditDialogOpen(true)
+                             }}>
+                               <Edit className="w-4 h-4 mr-2" />
+                               Edit
+                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleToggleStatus(teacher)}>
                               {teacher.status === 'active' ? (
                                 <>
@@ -514,20 +547,27 @@ export default function TeachersPage() {
                         }}>
                           <Wallet className="w-4 h-4 mr-2" /> Payroll & Roster
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedTeacher(teacher)
-                          setIsViewDialogOpen(true)
-                        }}>
-                          <Eye className="w-4 h-4 mr-2" /> View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation()
-                          handleToggleStatus(teacher)
-                        }}>
-                          <UserX className="w-4 h-4 mr-2" /> 
-                          {teacher.status === 'active' ? 'Deactivate' : 'Activate'}
-                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={(e) => {
+                           e.stopPropagation()
+                           setSelectedTeacher(teacher)
+                           setIsEditDialogOpen(true)
+                         }}>
+                           <Edit className="w-4 h-4 mr-2" /> Edit
+                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={(e) => {
+                           e.stopPropagation()
+                           setSelectedTeacher(teacher)
+                           setIsViewDialogOpen(true)
+                         }}>
+                           <Eye className="w-4 h-4 mr-2" /> View Details
+                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={(e) => {
+                           e.stopPropagation()
+                           handleToggleStatus(teacher)
+                         }}>
+                           <UserX className="w-4 h-4 mr-2" /> 
+                           {teacher.status === 'active' ? 'Deactivate' : 'Activate'}
+                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="flex items-center justify-between cursor-default focus:bg-warning/5 rounded-xl"
@@ -571,7 +611,7 @@ export default function TeachersPage() {
 
       {/* View Teacher Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-lg bg-card/80 backdrop-blur-xl border-primary/10">
+        <DialogContent className="max-w-xl bg-card/80 backdrop-blur-xl border-primary/10 rounded-[2rem] shadow-22xl">
           <DialogHeader>
             <DialogTitle>Teacher Details</DialogTitle>
           </DialogHeader>
@@ -634,7 +674,7 @@ export default function TeachersPage() {
 
       {/* Financial Roster Dialog */}
       <Dialog open={isFinanceViewOpen} onOpenChange={setIsFinanceViewOpen}>
-        <DialogContent className="max-w-4xl bg-card/90 backdrop-blur-xl border-primary/10 rounded-[2.5rem]">
+        <DialogContent className="max-w-5xl bg-card/90 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl overflow-hidden p-0 md:p-6">
           <DialogHeader className="pt-4">
             <DialogTitle className="font-serif text-3xl font-normal tracking-tight">Unified Roster & Payroll</DialogTitle>
             <DialogDescription className="text-editorial-meta mt-1">
@@ -698,7 +738,7 @@ export default function TeachersPage() {
               </div>
             </div>
 
-            <div className="md:col-span-2 bg-background/50 rounded-[2rem] border border-border/50 overflow-hidden flex flex-col h-[60vh] max-h-[600px]">
+            <div className="md:col-span-2 bg-background/50 rounded-[2rem] border border-border/50 overflow-hidden flex flex-col h-full min-h-[400px] max-h-[70vh]">
               <div className="p-4 bg-muted/20 border-b border-border/50 flex items-center justify-between sticky top-0">
                 <h4 className="font-normal uppercase tracking-widest text-xs">Assigned Batch Ledger</h4>
                 <Badge variant="outline" className="text-[10px] font-normal tracking-wider">Total: {roster.length} Students</Badge>
@@ -744,6 +784,74 @@ export default function TeachersPage() {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Teacher Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md bg-card/80 backdrop-blur-xl border-primary/10 rounded-[2.5rem] shadow-22xl">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl">Modify Teacher Record</DialogTitle>
+            <DialogDescription className="text-editorial-meta">
+              Update institutional credentials and assignments for the academic faculty.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditTeacher}>
+            <div className="flex gap-6 items-start py-6 px-1">
+              <div className="pt-2">
+                <Avatar className="h-16 w-16 ring-2 ring-primary/10 transition-premium">
+                  <AvatarFallback className="bg-primary/5 text-primary/40">
+                    <User className="h-8 w-8" />
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              <FieldGroup className="flex-1 space-y-4">
+                <Field>
+                  <FieldLabel className="text-editorial-label">Teacher Full Name</FieldLabel>
+                  <Input name="name" defaultValue={selectedTeacher?.name} required className="bg-background/50" />
+                </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Employee ID</FieldLabel>
+                    <Input name="employeeId" defaultValue={selectedTeacher?.employeeId} required className="bg-background/50" />
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Update Password</FieldLabel>
+                    <SecureInput name="password" placeholder="Leave blank to keep" className="bg-background/50" />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
+                    <Input name="phone" defaultValue={selectedTeacher?.phone} required className="bg-background/50" />
+                  </Field>
+                  <Field>
+                    <FieldLabel className="text-editorial-label">Academic Email</FieldLabel>
+                    <Input name="email" type="email" defaultValue={selectedTeacher?.email} required className="bg-background/50 text-[10px]" />
+                  </Field>
+                </div>
+                <Field>
+                  <FieldLabel className="text-editorial-label">Assigned Batch/Class</FieldLabel>
+                  <Select name="assignedClass" defaultValue={selectedTeacher?.assignedClass || ''}>
+                    <SelectTrigger className="h-10 bg-background/50">
+                      <SelectValue placeholder="Select class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CLASS_LEVELS.map(level => (
+                        <SelectItem key={level} value={level}>{level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </FieldGroup>
+            </div>
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-muted-foreground hover:text-foreground">
+                Cancel
+              </Button>
+              <Button type="submit" className="px-8 font-normal uppercase tracking-wide">Save Changes</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
