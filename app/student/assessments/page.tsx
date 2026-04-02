@@ -154,55 +154,48 @@ export default function StudentAssessmentsPage() {
     const pointsPerQuestion = totalScorable > 0 ? (activeTest?.totalMarks || 100) / totalScorable : 0
     let totalScore = 0
 
-    const finalPercentage = await (async () => {
-      const autoGraded = randomizedQuestions.filter(q => (AUTO_GRADED_TYPES as readonly string[]).includes(q.type))
-      const aiGraded   = randomizedQuestions.filter(q => (AI_GRADED_TYPES as readonly string[]).includes(q.type))
+    // 1. Auto-graded questions evaluation
+    const autoGraded = randomizedQuestions.filter(q => (AUTO_GRADED_TYPES as readonly string[]).includes(q.type))
+    const aiGraded   = randomizedQuestions.filter(q => (AI_GRADED_TYPES as readonly string[]).includes(q.type))
 
-      // 1. Auto-graded questions
-      autoGraded.forEach(q => {
-        if (q.type === 'Matching') {
-          try {
-            const studentPairs = JSON.parse(answers[q.id] || '{}')
-            const allCorrect = (q.matchPairs || []).every(p => studentPairs[p.left] === p.right)
-            if (allCorrect) totalScore += pointsPerQuestion
-          } catch {}
-        } else if (q.type === 'Fill in the Blanks') {
-          if (answers[q.id]?.toLowerCase().trim() === q.correctAnswer?.toLowerCase().trim()) totalScore += pointsPerQuestion
-        } else {
-          // MCQ + True/False
-          if (answers[q.id] === q.correctAnswer) totalScore += pointsPerQuestion
-        }
-      })
-
-      // 2. AI-graded questions (Parallel Execution)
-      let aiFeedbackChain = ""
-      let aiJustificationChain = ""
-
-      const auditPromises = aiGraded.map(q => evaluateSubjective(q, answers[q.id] || ""))
-      const audits = await Promise.all(auditPromises)
-
-      audits.forEach(audit => {
-        totalScore += (audit.score * pointsPerQuestion)
-        aiFeedbackChain += audit.feedback + " "
-        aiJustificationChain += audit.justification + " "
-      })
-
-      setAiAuditResults({
-        feedback: aiFeedbackChain || "Assessment complete. All questions were auto-graded.",
-        justification: aiJustificationChain,
-      })
-
-      return Math.round(totalScore)
-    })()
-
-    setFinalScore(finalPercentage)
-    setAiAuditResults({
-      feedback: aiFeedbackChain || "Assessment complete. All questions were auto-graded.",
-      justification: aiJustificationChain,
+    autoGraded.forEach(q => {
+      if (q.type === 'Matching') {
+        try {
+          const studentPairs = JSON.parse(answers[q.id] || '{}')
+          const allCorrect = (q.matchPairs || []).every(p => studentPairs[p.left] === p.right)
+          if (allCorrect) totalScore += pointsPerQuestion
+        } catch {}
+      } else if (q.type === 'Fill in the Blanks') {
+        if (answers[q.id]?.toLowerCase().trim() === q.correctAnswer?.toLowerCase().trim()) totalScore += pointsPerQuestion
+      } else {
+        if (answers[q.id] === q.correctAnswer) totalScore += pointsPerQuestion
+      }
     })
 
+    // 2. AI-graded questions evaluation
+    const auditPromises = aiGraded.map(q => evaluateSubjective(q, answers[q.id] || ""))
+    const audits = await Promise.all(auditPromises)
+
+    let aiFeedbackChain = ""
+    let aiJustificationChain = ""
+
+    audits.forEach(audit => {
+      totalScore += (audit.score * pointsPerQuestion)
+      aiFeedbackChain += audit.feedback + " "
+      aiJustificationChain += audit.justification + " "
+    })
+
+    const finalPercentage = Math.round(totalScore)
+    
+    // 3. Final State Update & Persistance
+    setAiAuditResults({
+      feedback: aiFeedbackChain || "Assessment complete. All questions were auto-graded.",
+      justification: aiJustificationChain || "All criteria met.",
+    })
+    setFinalScore(finalPercentage)
+
     if (activeTest && user) {
-      submitTestResult({
+      await submitTestResult({
         id: `test-res-${Date.now()}`,
         templateId: activeTest.id,
         studentId: user.id,

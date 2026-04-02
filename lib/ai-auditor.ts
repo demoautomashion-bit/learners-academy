@@ -14,9 +14,6 @@ export async function evaluateSubjective(
   question: Question,
   answer: string
 ): Promise<AuditResult> {
-  // Simulate network latency (250-500ms) for high-fidelity feel
-  await new Promise(resolve => setTimeout(resolve, Math.random() * 250 + 250))
-
   const cleanAnswer = answer.trim().toLowerCase()
   
   if (!cleanAnswer || cleanAnswer.length < 5) {
