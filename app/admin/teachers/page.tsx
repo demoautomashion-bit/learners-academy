@@ -393,65 +393,68 @@ export default function TeachersPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => {
-                              setSelectedTeacher(teacher)
-                              setIsFinanceViewOpen(true)
-                            }}>
-                              <Wallet className="w-4 h-4 mr-2" />
-                              Payroll & Roster
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => {
-                              setSelectedTeacher(teacher)
-                              setIsViewDialogOpen(true)
-                            }}>
-                              <Eye className="w-4 h-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => {
+                            <DropdownMenuItem onSelect={(e) => {
+                               e.preventDefault()
+                               setSelectedTeacher(teacher)
+                               setIsFinanceViewOpen(true)
+                             }}>
+                               <Wallet className="w-4 h-4 mr-2" />
+                               Payroll & Roster
+                             </DropdownMenuItem>
+                             <DropdownMenuItem onSelect={(e) => {
+                               e.preventDefault()
+                               setSelectedTeacher(teacher)
+                               setIsViewDialogOpen(true)
+                             }}>
+                               <Eye className="w-4 h-4 mr-2" />
+                               View Details
+                             </DropdownMenuItem>
+                             <DropdownMenuItem onSelect={(e) => {
+                               e.preventDefault()
                                setSelectedTeacher(teacher)
                                setIsEditDialogOpen(true)
                              }}>
                                <Edit className="w-4 h-4 mr-2" />
                                Edit
                              </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleStatus(teacher)}>
-                              {teacher.status === 'active' ? (
-                                <>
-                                  <UserX className="w-4 h-4 mr-2" />
-                                  Deactivate
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="w-4 h-4 mr-2" />
-                                  Activate
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="flex items-center justify-between cursor-default focus:bg-warning/5"
-                              onSelect={(e) => e.preventDefault()}
-                            >
-                              <div className="flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-warning" />
-                                <span className="text-warning">Paper Review Mode</span>
-                              </div>
-                              <Switch
-                                checked={!!teacher.requiresReview}
-                                onCheckedChange={async (checked) => {
-                                  await updateTeacherReviewFlag(teacher.id, checked)
-                                  toast.success(checked
-                                    ? `${teacher.name.split(' ')[0]}'s papers will require review`
-                                    : `${teacher.name.split(' ')[0]} can now publish directly`
-                                  )
-                                }}
-                                className="scale-75 data-[state=checked]:bg-warning"
-                              />
-                            </DropdownMenuItem>
+                             <DropdownMenuItem onSelect={() => handleToggleStatus(teacher)}>
+                               {teacher.status === 'active' ? (
+                                 <>
+                                   <UserX className="w-4 h-4 mr-2" />
+                                   Deactivate
+                                 </>
+                               ) : (
+                                 <>
+                                   <UserCheck className="w-4 h-4 mr-2" />
+                                   Activate
+                                 </>
+                               )}
+                             </DropdownMenuItem>
+                             <DropdownMenuSeparator />
+                             <DropdownMenuItem
+                               className="flex items-center justify-between cursor-default focus:bg-warning/5"
+                               onSelect={(e) => {
+                                 e.preventDefault()
+                                 updateTeacherReviewFlag(teacher.id, !teacher.requiresReview)
+                                 toast.success(!teacher.requiresReview
+                                   ? `${teacher.name.split(' ')[0]}'s papers will require review`
+                                   : `${teacher.name.split(' ')[0]} can now publish directly`
+                                 )
+                               }}
+                             >
+                               <div className="flex items-center gap-2">
+                                 <ShieldCheck className="w-4 h-4 text-warning" />
+                                 <span className="text-warning">Paper Review Mode</span>
+                               </div>
+                               <Switch
+                                 checked={!!teacher.requiresReview}
+                                 className="scale-75 data-[state=checked]:bg-warning pointer-events-none"
+                               />
+                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-destructive focus:text-destructive"
-                              onClick={() => handleDelete(teacher)}
+                              onSelect={() => handleDelete(teacher)}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Remove
@@ -540,38 +543,42 @@ export default function TeachersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48 rounded-xl p-1">
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation()
+                        <DropdownMenuItem onSelect={(e) => {
+                          e.preventDefault()
                           setSelectedTeacher(teacher)
                           setIsFinanceViewOpen(true)
                         }}>
                           <Wallet className="w-4 h-4 mr-2" /> Payroll & Roster
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={(e) => {
-                           e.stopPropagation()
+                         <DropdownMenuItem onSelect={(e) => {
+                           e.preventDefault()
                            setSelectedTeacher(teacher)
                            setIsEditDialogOpen(true)
                          }}>
                            <Edit className="w-4 h-4 mr-2" /> Edit
                          </DropdownMenuItem>
-                         <DropdownMenuItem onClick={(e) => {
-                           e.stopPropagation()
+                         <DropdownMenuItem onSelect={(e) => {
+                           e.preventDefault()
                            setSelectedTeacher(teacher)
                            setIsViewDialogOpen(true)
                          }}>
                            <Eye className="w-4 h-4 mr-2" /> View Details
                          </DropdownMenuItem>
-                         <DropdownMenuItem onClick={(e) => {
-                           e.stopPropagation()
-                           handleToggleStatus(teacher)
-                         }}>
+                         <DropdownMenuItem onSelect={() => handleToggleStatus(teacher)}>
                            <UserX className="w-4 h-4 mr-2" /> 
                            {teacher.status === 'active' ? 'Deactivate' : 'Activate'}
                          </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="flex items-center justify-between cursor-default focus:bg-warning/5 rounded-xl"
-                          onSelect={(e) => { e.stopPropagation(); e.preventDefault() }}
+                          onSelect={(e) => {
+                            e.preventDefault()
+                            updateTeacherReviewFlag(teacher.id, !teacher.requiresReview)
+                            toast.success(!teacher.requiresReview
+                              ? `${teacher.name.split(' ')[0]}'s papers will require review`
+                              : `${teacher.name.split(' ')[0]} can now publish directly`
+                            )
+                          }}
                         >
                           <div className="flex items-center gap-2">
                             <ShieldCheck className="w-4 h-4 text-warning" />
@@ -579,23 +586,13 @@ export default function TeachersPage() {
                           </div>
                           <Switch
                             checked={!!teacher.requiresReview}
-                            onCheckedChange={async (checked) => {
-                              await updateTeacherReviewFlag(teacher.id, checked)
-                              toast.success(checked
-                                ? `${teacher.name.split(' ')[0]}'s papers will require review`
-                                : `${teacher.name.split(' ')[0]} can now publish directly`
-                              )
-                            }}
-                            className="scale-75 data-[state=checked]:bg-warning"
+                            className="scale-75 data-[state=checked]:bg-warning pointer-events-none"
                           />
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
                           className="text-destructive focus:text-destructive rounded-xl"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDelete(teacher)
-                          }}
+                          onSelect={() => handleDelete(teacher)}
                         >
                           <Trash2 className="w-4 h-4 mr-2" /> Remove Professional
                         </DropdownMenuItem>
@@ -611,7 +608,7 @@ export default function TeachersPage() {
 
       {/* View Teacher Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-xl bg-card/80 backdrop-blur-xl border-primary/10 rounded-[2rem] shadow-22xl">
+        <DialogContent className="max-w-2xl bg-card/80 backdrop-blur-xl border-primary/10 rounded-[2rem] shadow-22xl">
           <DialogHeader>
             <DialogTitle>Teacher Details</DialogTitle>
           </DialogHeader>
@@ -674,7 +671,7 @@ export default function TeachersPage() {
 
       {/* Financial Roster Dialog */}
       <Dialog open={isFinanceViewOpen} onOpenChange={setIsFinanceViewOpen}>
-        <DialogContent className="max-w-5xl bg-card/90 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl overflow-hidden p-0 md:p-6">
+        <DialogContent className="max-w-4xl bg-card/90 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl overflow-hidden p-0 md:p-6">
           <DialogHeader className="pt-4">
             <DialogTitle className="font-serif text-3xl font-normal tracking-tight">Unified Roster & Payroll</DialogTitle>
             <DialogDescription className="text-editorial-meta mt-1">
@@ -789,7 +786,7 @@ export default function TeachersPage() {
 
       {/* Edit Teacher Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md bg-card/80 backdrop-blur-xl border-primary/10 rounded-[2.5rem] shadow-22xl">
+        <DialogContent className="max-w-2xl bg-card/80 backdrop-blur-xl border-primary/10 rounded-[2.5rem] shadow-22xl">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl">Modify Teacher Record</DialogTitle>
             <DialogDescription className="text-editorial-meta">
