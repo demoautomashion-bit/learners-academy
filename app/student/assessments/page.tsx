@@ -52,7 +52,8 @@ export default function StudentAssessmentsPage() {
     const pool = mockQuestions.filter(q => {
       const phaseMatch = q.phase === assessment.phase || q.phase === 'Both'
       const natureMatch = assessment.nature === 'Mixed' || q.type === assessment.nature
-      return phaseMatch && natureMatch
+      const approvalMatch = q.isApproved === true
+      return phaseMatch && natureMatch && approvalMatch
     })
 
     const seed = user?.id || 'anonymous'

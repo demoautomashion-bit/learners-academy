@@ -9,10 +9,10 @@ import type {
 } from '@/lib/types'
 
 // Server Actions
-import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus } from '@/lib/actions/teachers'
+import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus, updateTeacherReviewFlag as dbUpdateTeacherReviewFlag } from '@/lib/actions/teachers'
 import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics } from '@/lib/actions/students'
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse } from '@/lib/actions/courses'
-import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion } from '@/lib/actions/questions'
+import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion } from '@/lib/actions/questions'
 import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction } from '@/lib/actions/assessments'
 import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
 import { getSchedules, addSchedule as dbAddSchedule, updateSchedule as dbUpdateSchedule, removeSchedule as dbRemoveSchedule } from '@/lib/actions/schedules'
@@ -64,7 +64,8 @@ interface DataContextType {
   recordPayment: (id: string, amount: number) => Promise<void>
   addFeeAccount: (data: any) => Promise<void>
   updateClassFee: (id: string, amount: number) => Promise<void>
-  updateTeacherReviewFlag: (id: string, flag: boolean) => void
+  updateTeacherReviewFlag: (id: string, flag: boolean) => Promise<void>
+  approveQuestion: (id: string, flag: boolean) => Promise<void>
   approveAssessment: (id: string) => Promise<void>
   rejectAssessment: (id: string, feedback: string) => Promise<void>
   resetToDefaults: () => void
@@ -258,10 +259,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await refresh()
   }, [refresh])
 
-  // --- Review System (local state only, backend phase later) ---
-  const updateTeacherReviewFlag = useCallback((id: string, flag: boolean) => {
-    setTeachers(prev => prev.map(t => t.id === id ? { ...t, requiresReview: flag } : t))
-  }, [])
+  // --- Review System ---
+  const updateTeacherReviewFlag = useCallback(async (id: string, flag: boolean) => {
+    try {
+      await dbUpdateTeacherReviewFlag(id, flag)
+      await refresh()
+    } catch (err) {
+      toast.error("Failed to update review flag")
+    }
+  }, [refresh])
+
+  const approveQuestion = useCallback(async (id: string, flag: boolean) => {
+    try {
+      await dbApproveQuestion(id, flag)
+      await refresh()
+    } catch (err) {
+      toast.error("Failed to update question status")
+    }
+  }, [refresh])
 
   const approveAssessment = useCallback(async (id: string) => {
     try {
@@ -380,6 +395,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addFeeAccount,
       updateClassFee,
       updateTeacherReviewFlag,
+      approveQuestion,
       approveAssessment,
       rejectAssessment,
       resetToDefaults,

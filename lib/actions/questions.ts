@@ -25,3 +25,20 @@ export async function updateQuestion(id: string, data: Partial<Question>) {
   revalidatePath('/')
   return result
 }
+
+export async function toggleQuestionApproval(id: string, isApproved: boolean) {
+  const result = await db.question.update({
+    where: { id },
+    data: { isApproved }
+  })
+  revalidatePath('/')
+  return result
+}
+
+export async function approveAllExistingQuestions() {
+  const result = await db.question.updateMany({
+    data: { isApproved: true }
+  })
+  revalidatePath('/')
+  return result
+}

@@ -35,3 +35,12 @@ export async function updateTeacherStatus(id: string, status: string) {
     revalidatePath('/')
     return result
 }
+
+export async function updateTeacherReviewFlag(id: string, flag: boolean) {
+  const result = await db.teacher.update({ 
+    where: { id }, 
+    data: { requiresReview: flag } 
+  })
+  revalidatePath('/')
+  return result
+}

@@ -19,13 +19,31 @@ import {
   AlertCircle,
   Send,
   X,
+  Search,
+  Eye,
+  Info
 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { useData } from '@/contexts/data-context'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 
 export default function TestReviewsPage() {
   const { assessments, teachers, approveAssessment, rejectAssessment } = useData()
   const [expandedRejectId, setExpandedRejectId] = useState<string | null>(null)
+  const [inspectPoolId, setInspectPoolId] = useState<string | null>(null)
   const [feedbackMap, setFeedbackMap] = useState<Record<string, string>>({})
 
   const pendingAssessments = assessments.filter(a => a.status === 'pending_review')
@@ -74,6 +92,21 @@ export default function TestReviewsPage() {
       toast.error("Failed to sync feedback")
     }
   }
+
+  const getPoolStrength = (assessment: any) => {
+    const { questions } = useData()
+    const pool = questions.filter(q => {
+      const phaseMatch = q.phase === assessment.phase || q.phase === 'Both'
+      const natureMatch = assessment.nature === 'Mixed' || q.type === assessment.nature
+      return phaseMatch && natureMatch && q.isApproved
+    })
+    return { count: pool.length, questions: pool }
+  }
+
+  const selectedAssessmentForPool = pendingAssessments.find(a => a.id === inspectPoolId)
+  const { count: poolCount, questions: poolQuestions } = selectedAssessmentForPool 
+    ? getPoolStrength(selectedAssessmentForPool)
+    : { count: 0, questions: [] }
 
   return (
     <div className="space-y-8">
@@ -237,12 +270,35 @@ export default function TestReviewsPage() {
                     </div>
 
                     {/* Access code preview */}
-                    <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/30 border border-primary/5">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Access Token</span>
-                        <span className="font-sans text-sm font-bold tracking-tighter text-primary">{assessment.accessCode}</span>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/30 border border-primary/5">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Access Token</span>
+                          <span className="font-sans text-sm font-bold tracking-tighter text-primary">{assessment.accessCode}</span>
+                        </div>
+                        <span className="text-[9px] uppercase tracking-widest text-muted-foreground">Locked</span>
                       </div>
-                      <span className="text-[9px] uppercase tracking-widest text-muted-foreground">Inactive until approved</span>
+
+                      {/* Pool Strength Indicator */}
+                      <div className="flex items-center justify-between p-3 rounded-2xl bg-primary/[0.02] border border-primary/10">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] uppercase tracking-widest font-bold text-primary/60">Library Strength</span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <LibraryIcon className="w-3 h-3 text-primary" />
+                            <span className="font-sans text-sm font-bold text-foreground">
+                              {getPoolStrength(assessment).count} Approved <span className="font-normal text-muted-foreground">Questions</span>
+                            </span>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 group hover:bg-primary/5 text-primary text-[10px] uppercase tracking-widest font-bold gap-1.5 px-3 rounded-xl"
+                          onClick={() => setInspectPoolId(assessment.id)}
+                        >
+                          Inspect Pool <Eye className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Action area — pushed to bottom */}
@@ -311,6 +367,100 @@ export default function TestReviewsPage() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      {/* Pool Inspection Dialog */}
+      <Dialog open={!!inspectPoolId} onOpenChange={(open) => !open && setInspectPoolId(null)}>
+        <DialogContent className="max-w-2xl bg-card/80 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl p-0 overflow-hidden">
+          {selectedAssessmentForPool && (
+            <>
+              <DialogHeader className="p-8 pb-6 border-b border-primary/5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Badge variant="outline" className="text-[9px] uppercase tracking-[0.2em] font-bold text-primary mb-2 border-primary/20">{selectedAssessmentForPool.phase}</Badge>
+                    <DialogTitle className="font-serif text-3xl font-normal">Content Selection Pool</DialogTitle>
+                    <DialogDescription className="text-editorial-meta mt-1">
+                      Showing all approved questions eligible for the randomized <b>{selectedAssessmentForPool.questionCount}</b> question slots.
+                    </DialogDescription>
+                  </div>
+                  <div className="hidden sm:flex flex-col items-end">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Pool Strength</span>
+                    <span className="text-3xl font-serif text-primary">{poolQuestions.length}</span>
+                  </div>
+                </div>
+              </DialogHeader>
+              
+              <div className="px-2">
+                <ScrollArea className="h-[50vh] p-6 pt-2">
+                  <div className="space-y-4">
+                    {poolQuestions.length === 0 ? (
+                      <div className="py-12 text-center">
+                        <AlertCircle className="w-12 h-12 text-destructive/20 mx-auto mb-4" />
+                        <p className="text-muted-foreground">Crucial Error: No approved questions found for this criteria.</p>
+                      </div>
+                    ) : (
+                      poolQuestions.map((q, i) => (
+                        <div key={q.id} className="group relative bg-muted/20 hover:bg-muted/40 border border-primary/5 rounded-2xl p-4 transition-premium">
+                           <div className="flex items-start gap-4">
+                             <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-background border flex items-center justify-center text-[10px] font-bold text-muted-foreground/40">{i+1}</span>
+                             <div className="space-y-2 flex-1">
+                               <div className="flex items-center gap-2">
+                                 <Badge variant="secondary" className="text-[8px] px-1.5 h-4 font-bold uppercase tracking-tighter bg-primary/10 text-primary border-none">{q.type}</Badge>
+                                 <Badge variant="outline" className="text-[8px] px-1.5 h-4 font-normal uppercase tracking-tighter border-muted-foreground/20 text-muted-foreground">{q.category}</Badge>
+                               </div>
+                               <p className="text-sm font-normal leading-relaxed text-foreground/80">{q.content}</p>
+                               {q.options && q.options.length > 0 && (
+                                 <div className="flex flex-wrap gap-1.5 pt-1">
+                                   {q.options.map((opt, idx) => (
+                                     <span key={idx} className={`text-[9px] px-2 py-0.5 rounded-full ${opt === q.correctAnswer ? 'bg-success/10 text-success' : 'bg-background text-muted-foreground'}`}>
+                                       {opt}
+                                     </span>
+                                   ))}
+                                 </div>
+                               )}
+                             </div>
+                           </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              <div className="p-8 pt-6 border-t border-primary/5 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-warning">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span className="text-[10px] uppercase tracking-widest font-bold">Encrypted Audit Trail</span>
+                </div>
+                <Button variant="outline" className="rounded-xl h-11 px-8 text-xs uppercase tracking-widest font-normal" onClick={() => setInspectPoolId(null)}>
+                  Close Audit
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
+  )
+}
+
+function LibraryIcon(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m16 6 4 14" />
+      <path d="M12 6v14" />
+      <path d="M8 8v12" />
+      <path d="M4 4v16" />
+    </svg>
   )
 }

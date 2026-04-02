@@ -134,6 +134,7 @@ export interface Question {
   passageText?: string   // For Reading: passage shown above question
   audioUrl?: string      // For Listening: audio clip URL
   matchPairs?: { left: string; right: string }[] // For Matching: column pairs
+  isApproved: boolean
 }
 
 export interface AssessmentTemplate {

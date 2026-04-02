@@ -140,7 +140,7 @@ export default function AssessmentsPage() {
       reset()
       toast.success(requiresReview
         ? 'Paper submitted for admin review'
-        : 'Assessment generated successfully'
+        : 'Assessment generated and is now LIVE'
       )
     } catch (error) {
       // Error handled by context

@@ -405,8 +405,8 @@ export default function TeachersPage() {
                               </div>
                               <Switch
                                 checked={!!teacher.requiresReview}
-                                onCheckedChange={(checked) => {
-                                  updateTeacherReviewFlag(teacher.id, checked)
+                                onCheckedChange={async (checked) => {
+                                  await updateTeacherReviewFlag(teacher.id, checked)
                                   toast.success(checked
                                     ? `${teacher.name.split(' ')[0]}'s papers will require review`
                                     : `${teacher.name.split(' ')[0]} can now publish directly`
@@ -539,8 +539,8 @@ export default function TeachersPage() {
                           </div>
                           <Switch
                             checked={!!teacher.requiresReview}
-                            onCheckedChange={(checked) => {
-                              updateTeacherReviewFlag(teacher.id, checked)
+                            onCheckedChange={async (checked) => {
+                              await updateTeacherReviewFlag(teacher.id, checked)
                               toast.success(checked
                                 ? `${teacher.name.split(' ')[0]}'s papers will require review`
                                 : `${teacher.name.split(' ')[0]} can now publish directly`
