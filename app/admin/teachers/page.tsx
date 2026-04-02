@@ -608,60 +608,84 @@ export default function TeachersPage() {
 
       {/* View Teacher Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl bg-card/80 backdrop-blur-xl border-primary/10 rounded-[2rem] shadow-22xl">
-          <DialogHeader>
-            <DialogTitle>Teacher Details</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl bg-card/85 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl p-0 overflow-hidden">
           {selectedTeacher && (
-            <div className="space-y-6 py-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="w-16 h-16">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xl">
-                    {selectedTeacher.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-lg font-normal">{selectedTeacher.name}</h3>
-                  <Badge 
-                    variant={selectedTeacher.status === 'active' ? 'default' : 'secondary'}
-                    className={selectedTeacher.status === 'active' ? 'bg-success hover:bg-success/90' : ''}
-                  >
-                    {selectedTeacher.status}
-                  </Badge>
+            <div className="flex flex-col h-full max-h-[85vh]">
+              {/* Header Splash */}
+              <div className="bg-primary/5 p-8 pb-12 relative overflow-hidden h-40">
+                <div className="absolute top-0 right-0 p-8 opacity-20">
+                  <User className="h-40 w-40 -mr-16 -mt-16 text-primary rotate-12" />
+                </div>
+                <div className="flex items-center gap-6 relative z-10">
+                  <Avatar className="w-24 h-24 ring-4 ring-background shadow-xl">
+                    <AvatarFallback className="bg-primary/10 text-primary text-3xl font-serif">
+                      {selectedTeacher.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1">
+                    <h3 className="text-3xl font-serif font-normal tracking-tight">{selectedTeacher.name}</h3>
+                    <div className="flex gap-2">
+                      <Badge 
+                        variant={selectedTeacher.status === 'active' ? 'default' : 'secondary'}
+                        className={cn("px-3 py-0.5 uppercase tracking-[0.1em] text-[8px]", selectedTeacher.status === 'active' ? 'bg-success' : '')}
+                      >
+                        {selectedTeacher.status}
+                      </Badge>
+                      <Badge variant="outline" className="px-3 py-0.5 uppercase tracking-[0.1em] text-[8px] bg-background/50">
+                        ID: {selectedTeacher.employeeId}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="w-4 h-4 text-muted-foreground" />
-                  <span>{selectedTeacher.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
-                  <span>{selectedTeacher.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Badge variant="outline">ID: {selectedTeacher.employeeId}</Badge>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Badge variant="secondary">Class: {selectedTeacher.assignedClass || 'None'}</Badge>
-                </div>
-              </div>
+              {/* Content Grid */}
+              <div className="p-8 space-y-8 -mt-6 bg-background rounded-t-[2.5rem] relative z-20 flex-1 overflow-y-auto">
+                <div className="grid gap-8 md:grid-cols-2">
+                  <div className="space-y-4">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal">Institutional Payload</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 text-sm p-3 bg-muted/20 rounded-xl">
+                        <Mail className="w-4 h-4 text-primary opacity-60" />
+                        <span className="font-normal opacity-80">{selectedTeacher.email}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm p-3 bg-muted/20 rounded-xl">
+                        <Phone className="w-4 h-4 text-primary opacity-60" />
+                        <span className="font-normal opacity-80">{selectedTeacher.phone}</span>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="grid gap-4 grid-cols-3 pt-4 border-t">
-                <div className="text-center">
-                  <p className="text-2xl font-normal">{selectedTeacher.coursesCount}</p>
-                  <p className="text-sm text-muted-foreground">Classes</p>
+                  <div className="space-y-4">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal">Primary Assignment</p>
+                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="text-xs font-normal opacity-60">Designated Level</p>
+                        <p className="font-serif text-lg">{selectedTeacher.assignedClass || 'Unassigned'}</p>
+                      </div>
+                      <ShieldCheck className="w-8 h-8 text-primary opacity-20" />
+                    </div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-2xl font-normal">{selectedTeacher.studentsCount}</p>
-                  <p className="text-sm text-muted-foreground">Students</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold">
-                    {new Date(selectedTeacher.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Joined</p>
+
+                <div className="pt-8 border-t border-border/50">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal mb-6">Performance Metrics</p>
+                  <div className="grid gap-4 grid-cols-3">
+                    <div className="bg-muted/10 p-6 rounded-2xl text-center shadow-inner-premium">
+                      <p className="text-4xl font-serif font-normal text-primary leading-none mb-2">{selectedTeacher.coursesCount}</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] opacity-40">Active Batches</p>
+                    </div>
+                    <div className="bg-muted/10 p-6 rounded-2xl text-center shadow-inner-premium">
+                      <p className="text-4xl font-serif font-normal text-primary leading-none mb-2">{selectedTeacher.studentsCount}</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] opacity-40">Enrolled Pupils</p>
+                    </div>
+                    <div className="bg-muted/10 p-6 rounded-2xl text-center shadow-inner-premium">
+                      <p className="text-xl font-serif font-normal mt-3 leading-none mb-2">
+                        {new Date(selectedTeacher.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] opacity-40">Registration</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -671,15 +695,15 @@ export default function TeachersPage() {
 
       {/* Financial Roster Dialog */}
       <Dialog open={isFinanceViewOpen} onOpenChange={setIsFinanceViewOpen}>
-        <DialogContent className="max-w-4xl bg-card/90 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl overflow-hidden p-0 md:p-6">
-          <DialogHeader className="pt-4">
+        <DialogContent className="max-w-4xl bg-card/90 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl overflow-hidden p-0 md:p-6 max-h-[90vh] flex flex-col">
+          <DialogHeader className="pt-4 flex-shrink-0">
             <DialogTitle className="font-serif text-3xl font-normal tracking-tight">Unified Roster & Payroll</DialogTitle>
             <DialogDescription className="text-editorial-meta mt-1">
               Financial and enrollment payload strictly bound to {selectedTeacher?.name}'s specific batches.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6 overflow-y-auto flex-1 h-full pr-1">
             <div className="space-y-6 md:col-span-1">
               <Card className="bg-primary/5 border border-primary/10 shadow-inner-premium rounded-[2rem] overflow-hidden">
                 <CardHeader className="pb-2">
@@ -794,44 +818,44 @@ export default function TeachersPage() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditTeacher}>
-            <div className="flex gap-6 items-start py-6 px-1">
+            <div className="flex gap-6 items-start py-4 px-1">
               <div className="pt-2">
-                <Avatar className="h-16 w-16 ring-2 ring-primary/10 transition-premium">
-                  <AvatarFallback className="bg-primary/5 text-primary/40">
-                    <User className="h-8 w-8" />
+                <Avatar className="h-16 w-16 ring-2 ring-primary/10 transition-premium shadow-lg">
+                  <AvatarFallback className="bg-primary/5 text-primary/40 font-serif">
+                    {selectedTeacher?.name.split(' ').map(n => n[0]).join('') || <User className="h-8 w-8" />}
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <FieldGroup className="flex-1 space-y-4">
+              <FieldGroup className="flex-1 space-y-3">
                 <Field>
-                  <FieldLabel className="text-editorial-label">Teacher Full Name</FieldLabel>
-                  <Input name="name" defaultValue={selectedTeacher?.name} required className="bg-background/50" />
+                  <FieldLabel className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5 h-auto">Legal Identity</FieldLabel>
+                  <Input name="name" defaultValue={selectedTeacher?.name} required className="bg-background/50 h-10" placeholder="Full name as per registry" />
                 </Field>
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
-                    <FieldLabel className="text-editorial-label">Employee ID</FieldLabel>
-                    <Input name="employeeId" defaultValue={selectedTeacher?.employeeId} required className="bg-background/50" />
+                    <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Employee ID</FieldLabel>
+                    <Input name="employeeId" defaultValue={selectedTeacher?.employeeId} required className="bg-background/50 h-10 font-mono" />
                   </Field>
                   <Field>
-                    <FieldLabel className="text-editorial-label">Update Password</FieldLabel>
-                    <SecureInput name="password" placeholder="Leave blank to keep" className="bg-background/50" />
+                    <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Portal Access</FieldLabel>
+                    <SecureInput name="password" placeholder="••••••••" className="bg-background/50 h-10" />
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
-                    <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
-                    <Input name="phone" defaultValue={selectedTeacher?.phone} required className="bg-background/50" />
+                    <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Registry Contact</FieldLabel>
+                    <Input name="phone" defaultValue={selectedTeacher?.phone} required className="bg-background/50 h-10" />
                   </Field>
                   <Field>
-                    <FieldLabel className="text-editorial-label">Academic Email</FieldLabel>
-                    <Input name="email" type="email" defaultValue={selectedTeacher?.email} required className="bg-background/50 text-[10px]" />
+                    <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Institutional Mail</FieldLabel>
+                    <Input name="email" type="email" defaultValue={selectedTeacher?.email} required className="bg-background/50 h-10 text-[11px]" />
                   </Field>
                 </div>
                 <Field>
-                  <FieldLabel className="text-editorial-label">Assigned Batch/Class</FieldLabel>
+                  <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Current Batch Level</FieldLabel>
                   <Select name="assignedClass" defaultValue={selectedTeacher?.assignedClass || ''}>
-                    <SelectTrigger className="h-10 bg-background/50">
-                      <SelectValue placeholder="Select class" />
+                    <SelectTrigger className="h-10 bg-background/50 font-normal">
+                      <SelectValue placeholder="No level assigned" />
                     </SelectTrigger>
                     <SelectContent>
                       {CLASS_LEVELS.map(level => (
@@ -842,11 +866,11 @@ export default function TeachersPage() {
                 </Field>
               </FieldGroup>
             </div>
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-muted-foreground hover:text-foreground">
+            <DialogFooter className="pt-2 mt-4 border-t border-border/50 pt-4">
+              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-muted-foreground hover:text-foreground h-11 px-8 text-xs uppercase tracking-widest">
                 Cancel
               </Button>
-              <Button type="submit" className="px-8 font-normal uppercase tracking-wide">Save Changes</Button>
+              <Button type="submit" className="h-11 px-10 font-normal uppercase tracking-widest text-xs shadow-xl shadow-primary/20">Save Changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>

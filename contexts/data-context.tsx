@@ -173,9 +173,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await refresh()
   }, [refresh])
 
-  const updateTeacherStatus = useCallback(async (id: string, status: Teacher['status']) => {
-    await dbUpdateTeacherStatus(id, status)
-    await refresh()
+  const updateTeacherStatus = useCallback(async (id: string, status: 'active' | 'inactive') => {
+    // Optimistic Update
+    setTeachers(prev => prev.map(t => t.id === id ? { ...t, status } : t))
+    
+    try {
+      await dbUpdateTeacherStatus(id, status)
+      await refresh()
+    } catch (err) {
+      toast.error("Failed to update teacher status")
+      await refresh() // Rollback
+    }
   }, [refresh])
 
   const removeTeacher = useCallback(async (id: string) => {
@@ -271,11 +279,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // --- Review System ---
   const updateTeacherReviewFlag = useCallback(async (id: string, flag: boolean) => {
+    // Optimistic Update
+    setTeachers(prev => prev.map(t => t.id === id ? { ...t, requiresReview: flag } : t))
+    
     try {
       await dbUpdateTeacherReviewFlag(id, flag)
       await refresh()
     } catch (err) {
       toast.error("Failed to update review flag")
+      await refresh() // Rollback
     }
   }, [refresh])
 
