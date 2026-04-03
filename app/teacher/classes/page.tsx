@@ -53,6 +53,14 @@ export default function TeacherClassesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [classFilter, setClassFilter] = useState('all')
 
+  const [evalStudent, setEvalStudent] = useState<any | null>(null)
+  const [evalScores, setEvalScores] = useState({ attendance: 60, participation: 20, discipline: 10, extra: 10 })
+
+  const validDossierClasses = [
+    'Pre-Foundation', 'Foundation One', 'Foundation Two', 'Foundation Three', 
+    'Beginners', 'Level One', 'Level Two', 'Level Three', 'Level Four', 'Level Five'
+  ]
+
   const filteredStudents = mockStudents.filter(student => {
     // Check if student is in any of the teacher's classes
     const isMyStudent = student.enrolledCourses.some(studentCourseId => 
@@ -293,9 +301,24 @@ export default function TeacherClassesPage() {
                                 <span className="text-[10px] font-normal">{progress}%</span>
                               </div>
                             </div>
-                            <Badge variant={student.status === 'active' ? 'default' : 'secondary'} className="text-[9px] uppercase tracking-widest font-normal h-5 border-none shadow-premium">
-                              {student.grade || '-'}
-                            </Badge>
+                            <div className="flex items-center gap-3">
+                              <Badge variant={student.status === 'active' ? 'default' : 'secondary'} className="text-[9px] uppercase tracking-widest font-normal h-5 border-none shadow-premium">
+                                {student.grade || '-'}
+                              </Badge>
+                              {selectedCourse && validDossierClasses.includes(selectedCourse.title) && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="h-7 px-3 text-[9px] uppercase tracking-widest bg-primary/5 border-primary/10 hover:bg-primary/20 text-primary transition-premium rounded-lg"
+                                  onClick={() => {
+                                    setEvalStudent(student)
+                                    setEvalScores({ attendance: 60, participation: 20, discipline: 10, extra: 10 })
+                                  }}
+                                >
+                                  Draft Dossier
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )
@@ -348,6 +371,164 @@ export default function TeacherClassesPage() {
               </div>
             </Tabs>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Student Term Dossier Dialog */}
+      <Dialog open={!!evalStudent} onOpenChange={(open) => !open && setEvalStudent(null)}>
+        <DialogContent className="max-w-2xl border-primary/5 shadow-22xl p-0 overflow-hidden bg-card/95 backdrop-blur-3xl">
+          {evalStudent && selectedCourse && (() => {
+            const studentMidterms = mockSubmissions.filter(s => s.studentId === evalStudent.id && mockAssessments.find(a => a.id === s.assignmentId && a.phase === 'First Test' && (a.classLevels || []).includes(selectedCourse.title)))
+            const midtermScore = studentMidterms.length > 0 && studentMidterms[0].grade ? studentMidterms[0].grade : 0 
+            
+            const studentFinals = mockSubmissions.filter(s => s.studentId === evalStudent.id && mockAssessments.find(a => a.id === s.assignmentId && a.phase === 'Last Test' && (a.classLevels || []).includes(selectedCourse.title)))
+            const finalScore = studentFinals.length > 0 && studentFinals[0].grade ? studentFinals[0].grade : 0
+            
+            const grandTotal = midtermScore + finalScore + evalScores.attendance + evalScores.participation + evalScores.discipline + evalScores.extra
+            const percentage = Math.round((grandTotal / 300) * 100)
+            
+            let grade = 'F'
+            let eligibility = 'Not qualified/fail'
+
+            if (percentage >= 85) { grade = 'A+'; eligibility = 'Promoted' }
+            else if (percentage >= 75) { grade = 'A'; eligibility = 'Promoted' }
+            else if (percentage >= 65) { grade = 'B'; eligibility = 'Promoted' }
+            else if (percentage >= 55) { grade = 'C'; eligibility = 'Promoted' }
+            else if (percentage >= 45) { grade = 'D'; eligibility = 'Promoted' }
+            else if (percentage >= 40) { grade = 'E'; eligibility = 'Eligible for next level' }
+            else if (percentage >= 36) { grade = 'E'; eligibility = 'Promoted' }
+
+            return (
+              <div className="flex flex-col h-full">
+                <DialogHeader className="p-8 pb-6 border-b border-primary/5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <DialogTitle className="font-serif text-3xl font-normal">{evalStudent.name}</DialogTitle>
+                      <DialogDescription className="text-[10px] uppercase tracking-widest opacity-60 mt-2">
+                        {evalStudent.guardianName || 'Guardian Record'} • {selectedCourse.title}
+                      </DialogDescription>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-widest bg-primary/5 text-primary border-primary/20">Term Dossier</Badge>
+                  </div>
+                </DialogHeader>
+
+                <div className="p-8 grid md:grid-cols-2 gap-8 overflow-y-auto premium-scrollbar max-h-[60vh]">
+                  
+                  {/* Left Column: Input Panel */}
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <ClipboardList className="w-4 h-4 text-primary/50" />
+                        <h4 className="text-[10px] uppercase tracking-widest font-normal text-muted-foreground opacity-80">Institutional Assessments</h4>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-4 rounded-xl bg-muted/20 border border-primary/5">
+                          <p className="text-[9px] uppercase tracking-widest font-normal text-muted-foreground mb-1">Midterm</p>
+                          <p className="font-sans text-xl font-normal text-foreground/80">{midtermScore} <span className="text-xs text-muted-foreground opacity-50">/100</span></p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-muted/20 border border-primary/5">
+                          <p className="text-[9px] uppercase tracking-widest font-normal text-muted-foreground mb-1">Final Test</p>
+                          <p className="font-sans text-xl font-normal text-foreground/80">{finalScore} <span className="text-xs text-muted-foreground opacity-50">/100</span></p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-2">
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-primary/50" />
+                        <h4 className="text-[10px] uppercase tracking-widest font-normal text-muted-foreground opacity-80">Subjective Scoring</h4>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <label className="text-xs uppercase tracking-widest font-normal w-32">Attendance</label>
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input 
+                              type="number" max={60} min={0} 
+                              value={evalScores.attendance} 
+                              onChange={e => setEvalScores(prev => ({ ...prev, attendance: Math.min(60, Math.max(0, Number(e.target.value) || 0)) }))}
+                              className="h-9 bg-background/50 border-primary/10 focus-visible:ring-primary text-sm font-medium"
+                            />
+                            <span className="text-[10px] text-muted-foreground opacity-50 w-8 text-right">/60</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <label className="text-xs uppercase tracking-widest font-normal w-32">Participation</label>
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input 
+                              type="number" max={20} min={0} 
+                              value={evalScores.participation} 
+                              onChange={e => setEvalScores(prev => ({ ...prev, participation: Math.min(20, Math.max(0, Number(e.target.value) || 0)) }))}
+                              className="h-9 bg-background/50 border-primary/10 focus-visible:ring-primary text-sm font-medium"
+                            />
+                            <span className="text-[10px] text-muted-foreground opacity-50 w-8 text-right">/20</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <label className="text-xs uppercase tracking-widest font-normal w-32">Discipline</label>
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input 
+                              type="number" max={10} min={0} 
+                              value={evalScores.discipline} 
+                              onChange={e => setEvalScores(prev => ({ ...prev, discipline: Math.min(10, Math.max(0, Number(e.target.value) || 0)) }))}
+                              className="h-9 bg-background/50 border-primary/10 focus-visible:ring-primary text-sm font-medium"
+                            />
+                            <span className="text-[10px] text-muted-foreground opacity-50 w-8 text-right">/10</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <label className="text-xs uppercase tracking-widest font-normal w-32">Activities</label>
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input 
+                              type="number" max={10} min={0} 
+                              value={evalScores.extra} 
+                              onChange={e => setEvalScores(prev => ({ ...prev, extra: Math.min(10, Math.max(0, Number(e.target.value) || 0)) }))}
+                              className="h-9 bg-background/50 border-primary/10 focus-visible:ring-primary text-sm font-medium"
+                            />
+                            <span className="text-[10px] text-muted-foreground opacity-50 w-8 text-right">/10</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Engine */}
+                  <div className="flex flex-col items-center justify-center p-8 bg-muted/10 border border-primary/5 rounded-3xl h-full">
+                    <div className="text-center space-y-6">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Term Grand Total</p>
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className="font-sans text-6xl font-normal text-primary">{grandTotal}</span>
+                          <span className="text-xl text-muted-foreground opacity-40">/300</span>
+                        </div>
+                      </div>
+
+                      <Progress value={percentage} className="h-1.5 w-48 mx-auto bg-primary/10" />
+
+                      <div className="flex items-center justify-center gap-4 pt-2">
+                        <div className="text-center">
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-60 mb-1">Percentage</p>
+                          <p className="font-sans text-xl font-normal">{percentage}%</p>
+                        </div>
+                        <div className="w-px h-8 bg-border/50" />
+                        <div className="text-center">
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-60 mb-1">Grade Mark</p>
+                          <p className="font-sans text-xl font-normal text-primary">{grade}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2">
+                        <Badge variant="outline" className={`text-[10px] uppercase tracking-widest font-normal px-4 py-1.5 ${percentage >= 36 ? 'bg-success/10 text-success border-success/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
+                          {eligibility}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )
+          })()}
         </DialogContent>
       </Dialog>
     </div>
