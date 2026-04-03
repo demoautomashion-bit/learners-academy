@@ -167,232 +167,169 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   const stats = computeStats(teachers, students, courses)
+  const [isRefreshing, startTransitionAction] = useTransition()
 
-  // --- Teachers ---
-  const addTeacher = useCallback(async (teacher: Teacher) => {
-    await dbAddTeacher(teacher)
-    await refresh()
-  }, [refresh])
-
-  const updateTeacherStatus = useCallback(async (id: string, status: 'active' | 'inactive') => {
-    // Optimistic Update
-    setTeachers(prev => prev.map(t => t.id === id ? { ...t, status } : t))
-    
+  const executeAction = useCallback(async (
+    action: () => Promise<any>, 
+    successMsg?: string, 
+    errorMsg?: string
+  ) => {
     try {
-      await dbUpdateTeacherStatus(id, status)
+      await action()
       await refresh()
+      if (successMsg) toast.success(successMsg)
     } catch (err) {
-      toast.error("Failed to update teacher status")
-      await refresh() // Rollback
+      console.error('ACTION_ERROR:', err)
+      toast.error(errorMsg || (err instanceof Error ? err.message : 'Database operation failed'))
+      await refresh()
     }
   }, [refresh])
 
+  // --- Teachers ---
+  const addTeacher = useCallback(async (teacher: Teacher) => {
+    await executeAction(() => dbAddTeacher(teacher), "Teacher added to registry", "Failed to add teacher")
+  }, [executeAction])
+
+  const updateTeacherStatus = useCallback(async (id: string, status: 'active' | 'inactive') => {
+    setTeachers(prev => prev.map(t => t.id === id ? { ...t, status } : t))
+    await executeAction(() => dbUpdateTeacherStatus(id, status))
+  }, [executeAction])
+
   const removeTeacher = useCallback(async (id: string) => {
-    await dbRemoveTeacher(id)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbRemoveTeacher(id), "Teacher removed", "Failed to remove teacher")
+  }, [executeAction])
 
   // --- Students ---
   const enrollStudent = useCallback(async (student: any) => {
-    await dbEnrollStudent(student)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbEnrollStudent(student), "Student enrolled successfully", "Enrollment failed")
+  }, [executeAction])
 
   const removeStudent = useCallback(async (id: string) => {
-    await dbRemoveStudent(id)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbRemoveStudent(id), "Student registry purged")
+  }, [executeAction])
 
   const updateStudentStatus = useCallback(async (id: string, status: Student['status']) => {
-    await dbUpdateStudentStatus(id, status)
-    await refresh()
-  }, [refresh])
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, status } : s))
+    await executeAction(() => dbUpdateStudentStatus(id, status))
+  }, [executeAction])
 
   const updateStudent = useCallback(async (id: string, data: Partial<Student>) => {
-    await dbUpdateStudent(id, data)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbUpdateStudent(id, data), "Academic profile updated")
+  }, [executeAction])
 
   const updateStudentSuccessMetrics = useCallback(async (id: string, progress: number, grade?: string) => {
-    await dbUpdateStudentSuccessMetrics(id, progress, grade)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbUpdateStudentSuccessMetrics(id, progress, grade))
+  }, [executeAction])
+
 
   // --- Courses ---
   const addCourse = useCallback(async (course: Course) => {
-    await dbAddCourse(course)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbAddCourse(course), "Course created")
+  }, [executeAction])
 
   const removeCourse = useCallback(async (id: string) => {
-    await dbRemoveCourse(id)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbRemoveCourse(id), "Course deleted")
+  }, [executeAction])
 
   const updateCourseStatus = useCallback(async (id: string, status: Course['status']) => {
-    await dbUpdateCourseStatus(id, status)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbUpdateCourseStatus(id, status))
+  }, [executeAction])
 
   const updateCourse = useCallback(async (id: string, data: Partial<Course>) => {
-    await dbUpdateCourse(id, data)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbUpdateCourse(id, data), "Course curriculum updated")
+  }, [executeAction])
 
   const updateCourseProgress = useCallback((courseId: string, progress: number) => {
-    setCourses(prev => prev.map(c => c.id === courseId ? { ...c, progress } : c))
+    setCourses(prev => prev.map(c => c.id === courseId ? { ...c, enrolled: progress } : c))
   }, [])
 
   // --- Questions ---
   const addQuestion = useCallback(async (question: Question) => {
-    await dbAddQuestion(question)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbAddQuestion(question), "Block added to library")
+  }, [executeAction])
 
   const deleteQuestion = useCallback(async (id: string) => {
-    await dbDeleteQuestion(id)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbDeleteQuestion(id), "Block removed")
+  }, [executeAction])
 
   const updateQuestion = useCallback(async (id: string, data: Partial<Question>) => {
-    await dbUpdateQuestion(id, data)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbUpdateQuestion(id, data), "Block updated")
+  }, [executeAction])
 
+  // --- Assessments & Tests ---
   const publishAssessment = useCallback(async (assessment: AssessmentTemplate) => {
-    await dbPublishAssessment(assessment)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbPublishAssessment(assessment), "Assessment published successfully")
+  }, [executeAction])
 
   const updateAssessmentStatus = useCallback(async (id: string, status: AssessmentTemplate['status']) => {
-    await dbUpdateAssessmentStatus(id, status)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbUpdateAssessmentStatus(id, status), "Assessment status updated")
+  }, [executeAction])
 
   const removeAssessment = useCallback(async (id: string) => {
-    await dbRemoveAssessment(id)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbRemoveAssessment(id), "Test permanently deleted")
+  }, [executeAction])
 
   const updateTeacher = useCallback(async (id: string, data: Partial<Teacher>) => {
-    try {
-      await dbUpdateTeacher(id, data)
-      await refresh()
-    } catch (err) {
-      toast.error("Failed to update teacher")
-    }
-  }, [refresh])
+    await executeAction(() => dbUpdateTeacher(id, data), "Institutional record updated")
+  }, [executeAction])
 
   // --- Review System ---
   const updateTeacherReviewFlag = useCallback(async (id: string, flag: boolean) => {
-    // Optimistic Update
     setTeachers(prev => prev.map(t => t.id === id ? { ...t, requiresReview: flag } : t))
-    
-    try {
-      await dbUpdateTeacherReviewFlag(id, flag)
-      await refresh()
-    } catch (err) {
-      toast.error("Failed to update review flag")
-      await refresh() // Rollback
-    }
-  }, [refresh])
+    await executeAction(() => dbUpdateTeacherReviewFlag(id, flag))
+  }, [executeAction])
 
   const approveQuestion = useCallback(async (id: string, flag: boolean) => {
-    try {
-      await dbApproveQuestion(id, flag)
-      await refresh()
-    } catch (err) {
-      toast.error("Failed to update question status")
-    }
-  }, [refresh])
+    await executeAction(() => dbApproveQuestion(id, flag))
+  }, [executeAction])
 
   const approveAssessment = useCallback(async (id: string) => {
-    try {
-      await updateAssessmentReviewAction(id, 'active')
-      await refresh()
-    } catch (err) {
-      toast.error("Failed to approve assessment")
-    }
-  }, [refresh])
+    await executeAction(() => updateAssessmentReviewAction(id, 'active'), "Assessment approved")
+  }, [executeAction])
 
   const rejectAssessment = useCallback(async (id: string, feedback: string) => {
-    try {
-      await updateAssessmentReviewAction(id, 'draft', feedback)
-      await refresh()
-    } catch (err) {
-      toast.error("Failed to send feedback")
-    }
-  }, [refresh])
+    await executeAction(() => updateAssessmentReviewAction(id, 'draft', feedback), "Assessment sent back for revision")
+  }, [executeAction])
 
   // --- Submissions ---
   const submitTestResult = useCallback(async (result: StudentTest) => {
     const template = assessments.find(a => a.id === result.templateId)
-    await dbSubmitTestResult(result, template?.title || 'Test')
-    // We intentionally SKIP the global refresh() here so the student's browser 
-    // isn't forced to re-download the entire institutional database.
-    // Instead we do a soft update to the local state so the data sits cleanly in cache.
-    setSubmissions(prev => {
-      const newSub = {
-        id: result.id,
-        assignmentId: result.templateId,
-        assignmentTitle: template?.title || 'Test',
-        studentId: result.studentId,
-        studentName: result.studentName,
-        submittedAt: new Date().toISOString(),
-        status: 'graded',
-        grade: result.score,
-        feedback: result.feedback,
-        fileUrl: null,
-        randomizedQuestions: result.randomizedQuestions,
-        answers: result.answers,
-        aiFeedback: result.feedback,
-        aiJustification: "AI evaluation complete."
-      } as unknown as Submission
-      return [newSub, ...prev]
-    })
-  }, [assessments])
+    await executeAction(() => dbSubmitTestResult(result, template?.title || 'Test'), "Results stored in registry")
+  }, [assessments, executeAction])
 
   const gradeSubmission = useCallback(async (id: string, grade: number, feedback: string) => {
-    await dbGradeSubmission(id, grade, feedback)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbGradeSubmission(id, grade, feedback), "Institutional score recorded")
+  }, [executeAction])
 
   // --- Schedules ---
   const addSchedule = useCallback(async (schedule: Schedule) => {
-    await dbAddSchedule(schedule)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbAddSchedule(schedule), "Schedule updated")
+  }, [executeAction])
 
   const updateSchedule = useCallback(async (id: string, data: Partial<Schedule>) => {
-    await dbUpdateSchedule(id, data)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbUpdateSchedule(id, data), "Schedule entry modified")
+  }, [executeAction])
 
   const removeSchedule = useCallback(async (id: string) => {
-    await dbRemoveSchedule(id)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbRemoveSchedule(id), "Schedule entry deleted")
+  }, [executeAction])
 
   // --- Economics & Fees ---
   const addExpenditure = useCallback(async (data: any) => {
-    await dbAddExpenditure(data)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbAddExpenditure(data), "Institutional outflow recorded")
+  }, [executeAction])
 
   const recordPayment = useCallback(async (id: string, amount: number) => {
-    await dbRecordPayment(id, amount)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbRecordPayment(id, amount), "Payment captured")
+  }, [executeAction])
 
   const addFeeAccount = useCallback(async (data: any) => {
-    await dbAddFeeAccount(data)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbAddFeeAccount(data), "Student fee account initialized")
+  }, [executeAction])
 
   const updateClassFee = useCallback(async (id: string, amount: number) => {
-    await dbUpdateClassFee(id, amount)
-    await refresh()
-  }, [refresh])
+    await executeAction(() => dbUpdateClassFee(id, amount), "Class tuition fee modified")
+  }, [executeAction])
 
   const resetToDefaults = useCallback(() => {
     toast.info('Reset is not available in database mode')

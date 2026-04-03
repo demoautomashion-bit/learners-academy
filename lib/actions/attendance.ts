@@ -79,7 +79,7 @@ export async function markAttendance(
     }
   })
 
-  revalidatePath('/admin/attendance')
+  revalidatePath('/')
   return result
 }
 
@@ -125,6 +125,6 @@ export async function addAttendanceEvent(
     }
   })
 
-  revalidatePath('/admin/attendance')
+  revalidatePath('/')
   return result
 }
