@@ -61,7 +61,7 @@ const assessmentSchema = z.object({
   phase: z.enum(['First Test', 'Last Test']),
   classLevel: z.string().min(1, 'Please select a class'),
   nature: z.enum(['MCQ', 'Subjective', 'Mixed', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening']),
-  totalMarks: z.coerce.number().min(1, 'Marks must be positive'),
+  totalMarks: z.coerce.number().optional(),
   markAllocation: z.object({
     MCQ: z.coerce.number().min(0).default(0),
     Subjective: z.coerce.number().min(0).default(0),
@@ -152,7 +152,7 @@ export default function AssessmentsPage() {
       phase: data.phase,
       classLevels: [data.classLevel],
       nature: data.nature,
-      totalMarks: computedTotal > 0 ? computedTotal : data.totalMarks,
+      totalMarks: computedTotal > 0 ? computedTotal : (data.totalMarks || 100),
       markAllocation: data.markAllocation,
       durationMinutes: data.duration,
       questionCount: data.questionCount,
@@ -278,7 +278,6 @@ export default function AssessmentsPage() {
                         <span>{computedTotal}</span>
                         <span className="text-[10px] uppercase text-muted-foreground opacity-60">Marks</span>
                       </div>
-                      <input type="hidden" {...register('totalMarks', { valueAsNumber: true })} value={computedTotal} />
                     </Field>
                   </div>
 
