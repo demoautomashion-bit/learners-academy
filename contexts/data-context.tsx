@@ -322,8 +322,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const submitTestResult = useCallback(async (result: StudentTest) => {
     const template = assessments.find(a => a.id === result.templateId)
     await dbSubmitTestResult(result, template?.title || 'Test')
-    await refresh()
-  }, [assessments, refresh])
+    // We intentionally SKIP the global refresh() here so the student's browser 
+    // isn't forced to re-download the entire institutional database.
+    // Instead we do a soft update to the local state so the data sits cleanly in cache.
+    setSubmissions(prev => {
+      const newSub = {
+        id: result.id,
+        assignmentId: result.templateId,
+        assignmentTitle: template?.title || 'Test',
+        studentId: result.studentId,
+        studentName: result.studentName,
+        submittedAt: new Date().toISOString(),
+        status: 'graded',
+        grade: result.score,
+        feedback: result.feedback,
+        fileUrl: null,
+        randomizedQuestions: result.randomizedQuestions,
+        answers: result.answers,
+        aiFeedback: result.feedback,
+        aiJustification: "AI evaluation complete."
+      } as unknown as Submission
+      return [newSub, ...prev]
+    })
+  }, [assessments])
 
   const gradeSubmission = useCallback(async (id: string, grade: number, feedback: string) => {
     await dbGradeSubmission(id, grade, feedback)

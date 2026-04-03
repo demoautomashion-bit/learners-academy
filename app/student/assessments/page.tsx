@@ -194,8 +194,16 @@ export default function StudentAssessmentsPage() {
     })
     setFinalScore(finalPercentage)
 
+    // Stop evaluating and show results instantly
+    setIsEvaluating(false)
+    setShowResult(true)
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {})
+    if (isAuto) toast.error("Assessment auto-submitted due to proctoring violations.", {
+      style: { backgroundColor: 'oklch(0.577 0.245 27.325)', color: 'white' },
+    })
+
     if (activeTest && user) {
-      await submitTestResult({
+      submitTestResult({
         id: `test-res-${Date.now()}`,
         templateId: activeTest.id,
         studentId: user.id,
@@ -207,15 +215,8 @@ export default function StudentAssessmentsPage() {
         answers,
         score: finalPercentage,
         feedback: aiFeedbackChain,
-      })
+      }).catch(console.error)
     }
-
-    setIsEvaluating(false)
-    setShowResult(true)
-    if (document.exitFullscreen) document.exitFullscreen().catch(() => {})
-    if (isAuto) toast.error("Assessment auto-submitted due to proctoring violations.", {
-      style: { backgroundColor: 'oklch(0.577 0.245 27.325)', color: 'white' },
-    })
   }
 
   const formatTime = (s: number) =>
