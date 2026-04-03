@@ -9,7 +9,21 @@ export async function getQuestions() {
 }
 
 export async function addQuestion(question: Omit<Question, 'id'>) {
-  const result = await db.question.create({ data: question as any })
+  const result = await db.question.create({
+    data: {
+      category: question.category,
+      type: question.type,
+      content: question.content,
+      options: question.options || [],
+      correctAnswer: question.correctAnswer || '',
+      imageUrl: question.imageUrl,
+      phase: question.phase,
+      passageText: question.passageText,
+      audioUrl: question.audioUrl,
+      matchPairs: question.matchPairs as any,
+      isApproved: question.isApproved ?? false
+    }
+  })
   revalidatePath('/')
   return result
 }

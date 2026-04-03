@@ -31,6 +31,7 @@ export async function publishAssessment(assessment: Omit<AssessmentTemplate, 'id
       classLevels: assessment.classLevels,
       nature: assessment.nature,
       totalMarks: assessment.totalMarks,
+      markAllocation: assessment.markAllocation as any,
       durationMinutes: assessment.durationMinutes,
       questionCount: assessment.questionCount || 0,
       status: assessment.status || 'active',
