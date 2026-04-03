@@ -40,8 +40,9 @@ import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
 
 export default function ResultsPage() {
+  const router = useRouter()
   const { user } = useAuth()
-  const { submissions, students, assessments, courses, gradeSubmission, isInitialized } = useData()
+  const { submissions, assessments, courses, isInitialized } = useData()
   
   if (!isInitialized) return <DashboardSkeleton />
 
@@ -49,49 +50,32 @@ export default function ResultsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [phaseFilter, setPhaseFilter] = useState('all')
   const [classFilter, setClassFilter] = useState('all')
-  const [selectedResult, setSelectedResult] = useState<any>(null)
-  const [isGradeOpen, setIsGradeOpen] = useState(false)
-  const [gradeInput, setGradeInput] = useState('')
-  const [feedbackInput, setFeedbackInput] = useState('')
 
-  const filteredResults = submissions.filter(result => {
-    const student = students.find(s => s.id === result.studentId)
-    const assessment = assessments.find(a => a.id === result.assignmentId)
+  // Grouping logic: We want to see a list of Assessments that have submissions
+  const teacherAssessments = assessments.filter(a => {
+    const isOwner = a.submittedByTeacherId === user?.id
+    const isAssignedLevel = a.classLevels.some(level => myCourses.some(c => c.title === level))
+    return isOwner || isAssignedLevel
+  })
 
-    // Check if this submission belongs to one of the teacher's assessments
-    const assessmentClassLevels = assessment?.classLevels || []
-    const isMyAssessment = assessment?.submittedByTeacherId === user?.id || assessmentClassLevels.some(level =>
-      myCourses.some(c => c.title === level)
-    )
-    if (!isMyAssessment) return false
-
-    // Safely pull from result.studentName to avoid broken join query exceptions
-    const safeStudentName = result.studentName || student?.name || 'Unknown Student'
-    const safeAssessmentTitle = assessment?.title || 'Unknown Assessment'
+  const filteredAssessments = teacherAssessments.filter(assessment => {
+    const matchesSearch = assessment.title.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesPhase = phaseFilter === 'all' || assessment.phase === phaseFilter
     
-    const searchTarget = `${safeStudentName} ${safeAssessmentTitle}`.toLowerCase()
-    const safeSearchQuery = (searchQuery || '').toLowerCase().trim()
-    const matchesSearch = safeSearchQuery === '' ? true : searchTarget.includes(safeSearchQuery)
-    
-    const matchesPhase = phaseFilter === 'all' || assessment?.phase === phaseFilter
     const selectedCourse = myCourses.find(c => c.id === classFilter)
-    const matchesClass = classFilter === 'all' || assessmentClassLevels.includes(selectedCourse?.title || '')
+    const matchesClass = classFilter === 'all' || assessment.classLevels.includes(selectedCourse?.title || '')
     
     return matchesSearch && matchesPhase && matchesClass
   })
 
-  // Dynamic Statistics
-  const allTeacherResults = submissions.filter(result => {
-    const assessment = assessments.find(a => a.id === result.assignmentId)
-    const classLevels = assessment?.classLevels || []
-    return assessment?.submittedByTeacherId === user?.id || classLevels.some(level => myCourses.some(c => c.title === level))
+  // Global Stats logic remains similar but calculated across all teacher-related submissions
+  const allSubmissions = submissions.filter(s => {
+    const a = assessments.find(as => as.id === s.assignmentId)
+    return teacherAssessments.some(ta => ta.id === a?.id)
   })
 
-  // Pending Grading
-  const pendingCount = allTeacherResults.filter(r => r.status === 'pending').length
-  
-  // Averages
-  const gradedResults = allTeacherResults.filter(r => r.grade !== undefined && r.grade !== null) as (typeof allTeacherResults[0] & { grade: number })[]
+  const pendingCount = allSubmissions.filter(r => r.status === 'pending').length
+  const gradedResults = allSubmissions.filter(r => r.grade !== undefined && r.grade !== null) as (typeof allSubmissions[0] & { grade: number })[]
   
   const getPercentage = (r: typeof gradedResults[0]) => {
     const a = assessments.find(a => a.id === r.assignmentId)
@@ -99,10 +83,8 @@ export default function ResultsPage() {
   }
 
   const totalAvg = gradedResults.length > 0 ? Math.round(gradedResults.reduce((acc, r) => acc + getPercentage(r), 0) / gradedResults.length) : 0
-
   const firstTestResults = gradedResults.filter(r => assessments.find(a => a.id === r.assignmentId)?.phase === 'First Test')
   const firstTestAvg = firstTestResults.length > 0 ? Math.round(firstTestResults.reduce((acc, r) => acc + getPercentage(r), 0) / firstTestResults.length) : 0
-
   const lastTestResults = gradedResults.filter(r => assessments.find(a => a.id === r.assignmentId)?.phase === 'Last Test')
   const lastTestAvg = lastTestResults.length > 0 ? Math.round(lastTestResults.reduce((acc, r) => acc + getPercentage(r), 0) / lastTestResults.length) : 0
 
@@ -116,16 +98,16 @@ export default function ResultsPage() {
       >
         <motion.div variants={STAGGER_ITEM}>
           <h1 className="text-3xl font-normal text-foreground">
-            Test Results
+            Academic Results
           </h1>
           <p className="text-muted-foreground mt-1 text-editorial-meta opacity-70">
-            Track student performance across all test phases
+            Audit and publish grades for individual examination batches
           </p>
         </motion.div>
         <motion.div variants={STAGGER_ITEM} className="flex items-center gap-2">
           <Button variant="outline" className="hover-lift border-primary/20 bg-card/40 backdrop-blur-md rounded-xl h-11 px-6">
             <Award className="w-4 h-4 mr-2" />
-            <span className="text-[10px] uppercase tracking-widest font-normal">Export Grades</span>
+            <span className="text-[10px] uppercase tracking-widest font-normal">Export Registry</span>
           </Button>
         </motion.div>
       </motion.div>
@@ -140,7 +122,7 @@ export default function ResultsPage() {
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-2 text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">
-                <TrendingUp className="w-3 h-3" /> Average Score
+                <TrendingUp className="w-3 h-3" /> Academy Average
               </CardDescription>
               <CardTitle className="text-3xl font-sans font-normal">{totalAvg > 0 ? `${totalAvg}%` : '--'}</CardTitle>
             </CardHeader>
@@ -149,7 +131,7 @@ export default function ResultsPage() {
         <motion.div variants={STAGGER_ITEM}>
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
             <CardHeader className="pb-2">
-              <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Pending Evaluation</CardDescription>
+              <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Pending Audits</CardDescription>
               <CardTitle className="text-3xl font-sans font-normal text-warning">{pendingCount > 0 ? pendingCount : '--'}</CardTitle>
             </CardHeader>
           </Card>
@@ -157,7 +139,7 @@ export default function ResultsPage() {
         <motion.div variants={STAGGER_ITEM}>
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
             <CardHeader className="pb-2">
-              <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">First Test Avg</CardDescription>
+              <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Mid-Term Avg</CardDescription>
               <CardTitle className="text-3xl font-sans font-normal">{firstTestAvg > 0 ? `${firstTestAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
@@ -165,7 +147,7 @@ export default function ResultsPage() {
         <motion.div variants={STAGGER_ITEM}>
           <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
             <CardHeader className="pb-2">
-              <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Last Test Avg</CardDescription>
+              <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Final-Term Avg</CardDescription>
               <CardTitle className="text-3xl font-sans font-normal">{lastTestAvg > 0 ? `${lastTestAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
@@ -176,7 +158,7 @@ export default function ResultsPage() {
         <div className="relative w-full md:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40 transition-premium" />
           <Input
-            placeholder="Search student identity..."
+            placeholder="Search examination title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-12 bg-card/40 backdrop-blur-md border-primary/5 rounded-2xl text-sm transition-premium focus:ring-1 focus:ring-primary/20"
@@ -216,74 +198,71 @@ export default function ResultsPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/10 border-b border-primary/5 h-16">
                   <tr className="border-none">
-                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Student Profile</th>
-                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Academic Class</th>
-                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Assessment Phase</th>
-                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Institutional Score</th>
+                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Examination Block</th>
+                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Class Assignment</th>
+                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Completion status</th>
+                    <th className="px-8 py-4 text-right text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Workspace</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary/5">
-                  {filteredResults.map((result) => {
-                    const student = students.find(s => s.id === result.studentId)
-                    const assessment = assessments.find(a => a.id === result.assignmentId)
-                    const studentCourse = myCourses.find(c => student?.enrolledCourses.includes(c.id))
+                  {filteredAssessments.map((assessment) => {
+                    const assessmentSubmissions = submissions.filter(s => s.assignmentId === assessment.id)
+                    const pending = assessmentSubmissions.filter(s => s.status === 'pending').length
+                    const total = assessmentSubmissions.length
                     
-                    const percent = (result.grade !== undefined && result.grade !== null) && assessment?.totalMarks 
-                      ? Math.round((result.grade / assessment.totalMarks) * 100) 
-                      : 0
+                    if (total === 0) return null // Only show assessments that have submissions
 
                     return (
-                      <tr key={result.id} className="hover:bg-primary/[0.02] transition-premium group cursor-pointer h-24" onClick={() => {
-                        setSelectedResult(result)
-                        setIsGradeOpen(true)
-                      }}>
+                      <tr key={assessment.id} className="hover:bg-primary/[0.02] transition-premium group h-24">
                         <td className="px-8 py-5">
                           <div className="flex flex-col">
-                            <span className="font-sans font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">
-                              {result.studentName || 'Student Registry'}
+                            <span className="font-serif font-normal text-lg text-foreground/80 group-hover:text-primary transition-colors">
+                              {assessment.title}
                             </span>
-                            <span className="text-[10px] text-muted-foreground/60 font-normal uppercase tracking-widest">
-                              {result.studentId}
+                            <span className="text-[10px] text-muted-foreground/60 font-normal uppercase tracking-widest mt-0.5">
+                              {assessment.phase} • {assessment.nature}
                             </span>
                           </div>
                         </td>
                         <td className="px-8 py-5">
-                          <div className="flex flex-col">
-                            <span className="font-sans font-normal text-sm text-foreground/70">{studentCourse?.title || 'Registry Level'}</span>
-                            <span className="text-[10px] text-muted-foreground/50 tracking-widest font-normal uppercase">
-                              {student?.classTiming || 'Timing TBC'}
-                            </span>
+                          <div className="flex flex-wrap gap-1">
+                            {assessment.classLevels.map(level => (
+                                <Badge key={level} variant="outline" className="text-[9px] uppercase tracking-widest font-normal border-primary/10 text-muted-foreground/60">
+                                    {level}
+                                </Badge>
+                            ))}
                           </div>
                         </td>
-                        <td className="px-8 py-5 space-y-2">
-                          <p className="font-sans font-normal text-sm text-foreground/80">{assessment?.title}</p>
-                          <Badge variant="outline" className="text-[9px] h-5 px-2 py-0 uppercase tracking-widest font-normal text-primary/70 border-primary/10 bg-primary/5">
-                            {assessment?.phase}
-                          </Badge>
-                        </td>
                         <td className="px-8 py-5">
-                          {result.grade !== undefined && result.grade !== null ? (
-                            <div className="flex flex-col">
-                              <span className="text-base font-normal text-foreground font-sans">
-                                {Math.round(result.grade)} <span className="text-muted-foreground/20 font-sans">/ {assessment?.totalMarks}</span>
-                              </span>
-                              <span className="text-[10px] font-normal text-success/70 uppercase tracking-widest mt-0.5">
-                                {percent}% Institutional Rank
-                              </span>
-                            </div>
-                          ) : (
-                            <Badge variant="secondary" className="text-[10px] uppercase font-normal tracking-widest bg-warning/5 text-warning border-warning/20 h-6 px-3">
-                              Pending Evaluation
-                            </Badge>
-                          )}
+                           <div className="space-y-1.5">
+                                <div className="flex items-center justify-between min-w-[120px]">
+                                    <span className="text-[10px] uppercase tracking-widest font-normal text-muted-foreground opacity-50">Audited</span>
+                                    <span className="text-[10px] font-bold text-foreground">{total - pending} / {total}</span>
+                                </div>
+                                <div className="h-1.5 w-full bg-muted/20 rounded-full overflow-hidden">
+                                     <div 
+                                        className={cn("h-full transition-all duration-500", pending === 0 ? "bg-success" : "bg-primary")} 
+                                        style={{ width: `${((total - pending) / total) * 100}%` }} 
+                                     />
+                                </div>
+                           </div>
+                        </td>
+                        <td className="px-8 py-5 text-right">
+                          <Button 
+                            onClick={() => router.push(`/teacher/results/${assessment.id}`)}
+                            className="rounded-xl h-10 px-6 bg-primary/5 hover:bg-primary text-primary hover:text-white transition-all shadow-sm group/btn"
+                          >
+                            <span className="text-[10px] uppercase tracking-widest font-normal">Review Results</span>
+                            <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                          </Button>
                         </td>
                       </tr>
                     )
                   })}
-                  {filteredResults.length === 0 && (
+                  {filteredAssessments.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
-                        No results found for the selected criteria.
+                      <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground font-serif text-lg opacity-40">
+                        No active examination blocks found.
                       </td>
                     </tr>
                   )}
@@ -293,100 +272,7 @@ export default function ResultsPage() {
           </div>
         </CardContent>
       </Card>
-
-      <Dialog open={isGradeOpen} onOpenChange={setIsGradeOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader className="bg-muted/5 border-b border-primary/5">
-            <DialogTitle className="font-serif text-2xl font-normal">Institutional Evaluation Audit</DialogTitle>
-            <DialogDescription className="text-editorial-meta text-xs">
-              Reviewing academic block responses and AI audit justifications.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest font-normal opacity-40">Examination Record</span>
-                <Badge variant="outline" className="text-[9px] uppercase tracking-widest font-normal h-5 border-primary/10">{selectedResult?.id}</Badge>
-              </div>
-              <div className="rounded-[2rem] border border-primary/5 bg-card/40 p-1 overflow-hidden">
-                <div className="space-y-4 max-h-[40vh] overflow-y-auto p-7 premium-scrollbar">
-                  {selectedResult?.randomizedQuestions?.map((q: any, i: number) => (
-                    <div key={q.id} className="space-y-3 pb-6 border-b border-primary/5 last:border-0 last:pb-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-normal text-primary uppercase tracking-widest opacity-60">Taxonomy Block {i+1}: {q.category}</span>
-                        {q.correctAnswer && (
-                          <span className="text-[9px] text-success font-normal uppercase tracking-widest">Key: {q.correctAnswer}</span>
-                        )}
-                      </div>
-                      <p className="text-base font-sans font-normal text-foreground/80 leading-relaxed">{q.content}</p>
-                      <div className="p-4 rounded-2xl bg-muted/20 border border-primary/5 text-sm font-normal">
-                        <span className="text-muted-foreground/40 mr-3 text-[10px] uppercase tracking-widest">Entry:</span>
-                        {selectedResult?.answers?.[q.id] || 'No response captured.'}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <div className="bg-primary/[0.02] p-6 rounded-[1.5rem] border border-primary/10">
-                    <p className="text-[10px] font-normal text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
-                      <AlertCircle className="w-3.5 h-3.5" /> AI Audit Justification
-                    </p>
-                    <p className="text-sm font-normal italic text-muted-foreground leading-relaxed">
-                      "{selectedResult?.aiJustification || 'No specific audit data available for this legacy registry entry.'}"
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-[150px_1fr] gap-6">
-              <div className="space-y-3">
-                <label className="text-[10px] uppercase tracking-widest font-normal opacity-50">Manual Score (%)</label>
-                <Input 
-                  type="number" 
-                  placeholder={selectedResult?.grade?.toString()} 
-                  value={gradeInput}
-                  onChange={(e) => setGradeInput(e.target.value)}
-                  max="100" 
-                  className="h-12 bg-card border-primary/10 rounded-xl text-lg font-sans"
-                />
-              </div>
-              <div className="space-y-3">
-                <label className="text-[10px] uppercase tracking-widest font-normal opacity-50">Correction / Feedback</label>
-                <Textarea 
-                  placeholder="Record formal feedback for the student registry..." 
-                  value={feedbackInput}
-                  onChange={(e) => setFeedbackInput(e.target.value)}
-                  rows={2} 
-                  className="bg-card border-primary/10 rounded-xl resize-none text-sm p-4 h-12 min-h-12"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" onClick={() => setIsGradeOpen(false)} className="rounded-xl px-6 h-11 border-primary/10">
-              <span className="text-[10px] uppercase tracking-widest font-normal">Cancel</span>
-            </Button>
-            <Button 
-              className="rounded-xl px-6 h-11 shadow-premium bg-primary hover:bg-primary/90"
-              onClick={() => {
-                if (selectedResult) {
-                  gradeSubmission(
-                    selectedResult.id, 
-                    parseInt(gradeInput) || selectedResult.grade || 0, 
-                    feedbackInput || selectedResult.feedback || ""
-                  )
-                  setIsGradeOpen(false)
-                  setGradeInput('')
-                  setFeedbackInput('')
-                  toast.success("Grade Published Successfully")
-                }
-              }}
-            >
-              <span className="text-[10px] uppercase tracking-widest font-normal text-white">Publish Final Grade</span>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
+
