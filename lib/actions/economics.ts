@@ -69,12 +69,24 @@ export async function getEconomicStats() {
         }))
     ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
+    // Growth Metrics: New enrollments last 30 days
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
+    const students = await db.student.findMany({
+      where: {
+        enrolledAt: { gte: thirtyDaysAgo }
+      }
+    })
+    const newEnrollments = students.length
+
     return {
       totalExpenditure,
       actualRevenue,
       projectedRevenue,
       totalPayroll,
       netMargin,
+      newEnrollments,
       categoryBreakdown,
       historicalData,
       expenditures,

@@ -76,16 +76,25 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
-function computeStats(teachers: Teacher[], students: Student[], courses: Course[]): DashboardStats {
+function computeStats(teachers: Teacher[], students: Student[], courses: Course[], econ: any | null): DashboardStats {
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const newEnrollments = students.filter(s => {
+    const d = new Date(s.enrolledAt)
+    return d >= thirtyDaysAgo
+  }).length
+
   return {
     totalStudents: students.length,
     totalTeachers: teachers.length,
     totalCourses: courses.length,
     activeEnrollments: students.filter(s => s.status === 'active').length,
-    revenue: 0,
-    revenueChange: 0,
-    newEnrollments: 3, // Mock based on recent students
+    revenue: econ?.actualRevenue || 0,
+    revenueChange: (econ?.actualRevenue / (econ?.totalExpenditure || 1)) * 100,
+    newEnrollments: econ?.newEnrollments || newEnrollments,
     completionRate: 0,
+    netMargin: econ?.netMargin || 0
   }
 }
 
@@ -166,7 +175,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     refresh()
   }, [refresh])
 
-  const stats = computeStats(teachers, students, courses)
+  const stats = computeStats(teachers, students, courses, economics)
   const [isRefreshing, startTransitionAction] = useTransition()
 
   const executeAction = useCallback(async (

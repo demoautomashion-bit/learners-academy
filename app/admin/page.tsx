@@ -36,7 +36,7 @@ import { useAuth } from '@/contexts/auth-context'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
-  const { students, teachers, courses, stats: mockDashboardStats } = useData()
+  const { students, teachers, courses, stats } = useData()
 
   // Dynamic Chart Data Generation
   const enrollmentTrendData = useMemo(() => {
@@ -82,21 +82,31 @@ export default function AdminDashboard() {
   const statCards = [
     {
       title: 'Total Students',
-      value: students.length,
+      value: stats.totalStudents,
+      sub: 'Cumulative Record',
       icon: GraduationCap,
       href: '/admin/students',
     },
     {
       title: 'Active Teachers',
-      value: teachers.length,
+      value: stats.totalTeachers,
+      sub: 'Faculty Roster',
       icon: Users,
       href: '/admin/teachers',
     },
     {
-      title: 'Total Classes',
-      value: courses.length,
-      icon: BookOpen,
-      href: '/admin/classes',
+      title: 'Institutional Growth',
+      value: stats.newEnrollments,
+      sub: 'Last 30 Days',
+      icon: UserPlus,
+      href: '/admin/students',
+    },
+    {
+      title: 'Realized Revenue',
+      value: `Rs. ${stats.revenue.toLocaleString()}`,
+      sub: 'Fees Collected',
+      icon: DollarSign,
+      href: '/admin/economics',
     },
   ]
 
@@ -118,7 +128,7 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <motion.div 
-        className="grid gap-4 md:grid-cols-3 lg:grid-cols-3"
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
         initial="hidden"
         animate="visible"
         variants={STAGGER_CONTAINER}
@@ -139,7 +149,7 @@ export default function AdminDashboard() {
                 <CardContent className="px-4 pb-4">
                   <div className="text-2xl font-serif tracking-tight font-normal">{stat.value}</div>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-normal">Cumulative Record</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-normal">{stat.sub}</span>
                   </div>
                 </CardContent>
               </Card>

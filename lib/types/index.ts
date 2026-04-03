@@ -102,6 +102,7 @@ export interface DashboardStats {
   revenueChange: number
   newEnrollments: number
   completionRate: number
+  netMargin: number
 }
 
 export interface ChartData {
