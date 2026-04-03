@@ -56,6 +56,31 @@ export async function updateAssessmentReviewAction(id: string, status: Assessmen
   return result
 }
 
+export async function updateAssessmentStatus(id: string, status: AssessmentTemplate['status']) {
+  if (status === 'active') {
+    const assessment = await db.assessmentTemplate.findUnique({ where: { id } })
+    if (assessment?.accessCode) {
+      const existing = await db.assessmentTemplate.findFirst({
+        where: { 
+          accessCode: assessment.accessCode,
+          status: 'active',
+          id: { not: id }
+        }
+      })
+      if (existing) {
+        throw new Error(`Token "${assessment.accessCode}" is already in use by another active assessment. Please archive it first.`)
+      }
+    }
+  }
+
+  const result = await db.assessmentTemplate.update({
+    where: { id },
+    data: { status }
+  })
+  revalidatePath('/')
+  return result
+}
+
 export async function removeAssessment(id: string) {
   const result = await db.assessmentTemplate.delete({ where: { id } })
   revalidatePath('/')

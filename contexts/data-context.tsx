@@ -13,7 +13,7 @@ import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeach
 import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics } from '@/lib/actions/students'
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse } from '@/lib/actions/courses'
 import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion } from '@/lib/actions/questions'
-import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction } from '@/lib/actions/assessments'
+import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction, updateAssessmentStatus as dbUpdateAssessmentStatus } from '@/lib/actions/assessments'
 import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
 import { getSchedules, addSchedule as dbAddSchedule, updateSchedule as dbUpdateSchedule, removeSchedule as dbRemoveSchedule } from '@/lib/actions/schedules'
 import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount } from '@/lib/actions/fees'
@@ -43,6 +43,7 @@ interface DataContextType {
   updateStudent: (id: string, data: Partial<Student>) => Promise<void>
   updateStudentSuccessMetrics: (id: string, progress: number, grade?: string) => Promise<void>
   publishAssessment: (assessment: AssessmentTemplate) => Promise<void>
+  updateAssessmentStatus: (id: string, status: AssessmentTemplate['status']) => Promise<void>
   removeAssessment: (id: string) => Promise<void>
   submitTestResult: (result: StudentTest) => Promise<void>
   gradeSubmission: (id: string, grade: number, feedback: string) => Promise<void>
@@ -263,6 +264,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await refresh()
   }, [refresh])
 
+  const updateAssessmentStatus = useCallback(async (id: string, status: AssessmentTemplate['status']) => {
+    await dbUpdateAssessmentStatus(id, status)
+    await refresh()
+  }, [refresh])
+
   const removeAssessment = useCallback(async (id: string) => {
     await dbRemoveAssessment(id)
     await refresh()
@@ -416,6 +422,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateStudent,
       updateStudentSuccessMetrics,
       publishAssessment,
+      updateAssessmentStatus,
       removeAssessment,
       submitTestResult,
       gradeSubmission,

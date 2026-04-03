@@ -85,6 +85,7 @@ export default function AssessmentsPage() {
     courses: mockCourses, 
     questions: mockQuestions, 
     publishAssessment, 
+    updateAssessmentStatus,
     removeAssessment,
     teachers,
     isInitialized
@@ -165,12 +166,14 @@ export default function AssessmentsPage() {
       await publishAssessment(newAssessment)
       setIsCreateOpen(false)
       reset()
+      setValue('accessCode', generateSecureToken())
       toast.success(requiresReview
         ? 'Paper submitted for admin review'
         : 'Assessment generated and is now LIVE'
       )
-    } catch (error) {
-      // Error handled by context
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to publish assessment')
+      console.error(error)
     }
   }
 
@@ -443,10 +446,14 @@ export default function AssessmentsPage() {
                               <span className="text-[9px] uppercase tracking-widest font-bold text-primary">Live</span>
                               <Switch 
                                 checked={true}
-                                onCheckedChange={(checked) => {
+                                onCheckedChange={async (checked) => {
                                   const newStatus = checked ? 'active' : 'archived'
-                                  toast.success(`Exam ${checked ? 'Activated' : 'Stopped'}`)
-                                  publishAssessment({ ...assessment, status: newStatus as any })
+                                  try {
+                                    await updateAssessmentStatus(assessment.id, newStatus as any)
+                                    toast.success(`Exam ${checked ? 'Activated' : 'Stopped'}`)
+                                  } catch (err: any) {
+                                    toast.error(err.message || 'Failed to update exam status')
+                                  }
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                                 className="scale-75 data-[state=checked]:bg-primary"
@@ -458,10 +465,14 @@ export default function AssessmentsPage() {
                               <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Stopped</span>
                               <Switch 
                                 checked={false}
-                                onCheckedChange={(checked) => {
+                                onCheckedChange={async (checked) => {
                                   const newStatus = checked ? 'active' : 'archived'
-                                  toast.success(`Exam ${checked ? 'Activated' : 'Stopped'}`)
-                                  publishAssessment({ ...assessment, status: newStatus as any })
+                                  try {
+                                    await updateAssessmentStatus(assessment.id, newStatus as any)
+                                    toast.success(`Exam ${checked ? 'Activated' : 'Stopped'}`)
+                                  } catch (err: any) {
+                                    toast.error(err.message || 'Failed to update exam status')
+                                  }
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                                 className="scale-75 data-[state=checked]:bg-primary"

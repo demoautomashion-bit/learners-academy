@@ -56,7 +56,7 @@ export default function StudentAssessmentsPage() {
       return phaseMatch && natureMatch && approvalMatch
     })
 
-    const seed = user?.id || 'anonymous'
+    const seed = `${user?.id || 'anonymous'}-${assessment.id}`
     const deterministicRandom = (s: string) => {
       let hash = 0
       for (let i = 0; i < s.length; i++) { hash = (hash << 5) - hash + s.charCodeAt(i); hash |= 0 }
