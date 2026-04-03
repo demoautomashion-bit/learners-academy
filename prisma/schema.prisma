@@ -133,7 +133,6 @@ model Assignment {
   createdAt        DateTime     @default(now())
   course           Course       @relation(fields: [courseId], references: [id])
   teacher          Teacher      @relation(fields: [teacherId], references: [id])
-  submissions      Submission[]
 }
 
 model Submission {
@@ -151,7 +150,6 @@ model Submission {
   answers             Json?
   aiFeedback          String?
   aiJustification     String?
-  assignment          Assignment @relation(fields: [assignmentId], references: [id])
   student             Student    @relation(fields: [studentId], references: [id])
 }
 
