@@ -59,16 +59,23 @@ export default function ResultsPage() {
     const assessment = assessments.find(a => a.id === result.assignmentId)
 
     // Check if this submission belongs to one of the teacher's assessments
-    const isMyAssessment = assessment?.submittedByTeacherId === user?.id || assessment?.classLevels.some(level =>
+    const assessmentClassLevels = assessment?.classLevels || []
+    const isMyAssessment = assessment?.submittedByTeacherId === user?.id || assessmentClassLevels.some(level =>
       myCourses.some(c => c.title === level)
     )
     if (!isMyAssessment) return false
 
-    const matchesSearch = student?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         assessment?.title.toLowerCase().includes(searchQuery.toLowerCase())
+    // Safely pull from result.studentName to avoid broken join query exceptions
+    const safeStudentName = result.studentName || student?.name || 'Unknown Student'
+    const safeAssessmentTitle = assessment?.title || 'Unknown Assessment'
+    
+    const searchTarget = `${safeStudentName} ${safeAssessmentTitle}`.toLowerCase()
+    const safeSearchQuery = (searchQuery || '').toLowerCase().trim()
+    const matchesSearch = safeSearchQuery === '' ? true : searchTarget.includes(safeSearchQuery)
+    
     const matchesPhase = phaseFilter === 'all' || assessment?.phase === phaseFilter
     const selectedCourse = myCourses.find(c => c.id === classFilter)
-    const matchesClass = classFilter === 'all' || assessment?.classLevels.includes(selectedCourse?.title || '')
+    const matchesClass = classFilter === 'all' || assessmentClassLevels.includes(selectedCourse?.title || '')
     
     return matchesSearch && matchesPhase && matchesClass
   })
@@ -76,7 +83,8 @@ export default function ResultsPage() {
   // Dynamic Statistics
   const allTeacherResults = submissions.filter(result => {
     const assessment = assessments.find(a => a.id === result.assignmentId)
-    return assessment?.submittedByTeacherId === user?.id || assessment?.classLevels.some(level => myCourses.some(c => c.title === level))
+    const classLevels = assessment?.classLevels || []
+    return assessment?.submittedByTeacherId === user?.id || classLevels.some(level => myCourses.some(c => c.title === level))
   })
 
   // Pending Grading

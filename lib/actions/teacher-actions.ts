@@ -15,10 +15,13 @@ export async function publishAssessmentAction(assessment: AssessmentTemplate) {
         classLevels: assessment.classLevels,
         nature: assessment.nature,
         totalMarks: assessment.totalMarks,
+        markAllocation: assessment.markAllocation as any,
         durationMinutes: assessment.durationMinutes,
         createdAt: new Date(assessment.createdAt),
         status: assessment.status,
         accessCode: assessment.accessCode,
+        submittedByTeacherId: assessment.submittedByTeacherId,
+        submittedByTeacherName: assessment.submittedByTeacherName,
       }
     })
     revalidatePath('/teacher/assessments')
