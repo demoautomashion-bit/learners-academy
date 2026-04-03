@@ -295,14 +295,14 @@ export default function ResultsPage() {
       </Card>
 
       <Dialog open={isGradeOpen} onOpenChange={setIsGradeOpen}>
-        <DialogContent className="max-w-2xl border-primary/5 shadow-22xl p-0 overflow-hidden">
-          <DialogHeader className="p-8 bg-muted/5 border-b border-primary/5">
+        <DialogContent className="max-w-2xl">
+          <DialogHeader className="bg-muted/5 border-b border-primary/5">
             <DialogTitle className="font-serif text-2xl font-normal">Institutional Evaluation Audit</DialogTitle>
             <DialogDescription className="text-editorial-meta text-xs">
               Reviewing academic block responses and AI audit justifications.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-8 space-y-8">
+          <div className="space-y-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase tracking-widest font-normal opacity-40">Examination Record</span>
@@ -362,7 +362,7 @@ export default function ResultsPage() {
               </div>
             </div>
           </div>
-          <DialogFooter className="p-8 bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
+          <DialogFooter className="bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
             <Button variant="outline" onClick={() => setIsGradeOpen(false)} className="rounded-xl px-6 h-11 border-primary/10">
               <span className="text-[10px] uppercase tracking-widest font-normal">Cancel</span>
             </Button>

@@ -209,8 +209,8 @@ export default function TeacherClassesPage() {
 
       {/* Course Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl border-primary/5 shadow-22xl p-0 overflow-hidden">
-          <DialogHeader className="p-8 bg-muted/5 border-b border-primary/5">
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="bg-muted/5 border-b border-primary/5">
             <DialogTitle className="text-2xl font-normal">Class Registry Intelligence</DialogTitle>
             <DialogDescription className="text-editorial-meta text-xs">
               Granular view of academic enrollment and term performance.
@@ -376,7 +376,7 @@ export default function TeacherClassesPage() {
 
       {/* Student Term Dossier Dialog */}
       <Dialog open={!!evalStudent} onOpenChange={(open) => !open && setEvalStudent(null)}>
-        <DialogContent className="max-w-2xl border-primary/5 shadow-22xl p-0 overflow-hidden bg-card/95 backdrop-blur-3xl">
+        <DialogContent className="max-w-2xl">
           {evalStudent && selectedCourse && (() => {
             const studentMidterms = mockSubmissions.filter(s => s.studentId === evalStudent.id && mockAssessments.find(a => a.id === s.assignmentId && a.phase === 'First Test' && (a.classLevels || []).includes(selectedCourse.title)))
             const midtermScore = studentMidterms.length > 0 && studentMidterms[0].grade ? studentMidterms[0].grade : 0 
@@ -400,7 +400,7 @@ export default function TeacherClassesPage() {
 
             return (
               <div className="flex flex-col h-full">
-                <DialogHeader className="p-8 pb-6 border-b border-primary/5">
+                <DialogHeader className="pb-6 border-b border-primary/5">
                   <div className="flex items-start justify-between">
                     <div>
                       <DialogTitle className="font-serif text-3xl font-normal">{evalStudent.name}</DialogTitle>

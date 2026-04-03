@@ -225,7 +225,7 @@ export default function EconomicsPage() {
                 <Plus className="w-4 h-4 mr-3 opacity-60" /> Log Expenditure
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md bg-card/90 backdrop-blur-3xl border-primary/5 rounded-[2rem] p-10">
+            <DialogContent className="max-w-md">
               <DialogHeader className="mb-6">
                 <DialogTitle className="font-serif text-3xl font-normal">Record Outflow</DialogTitle>
                 <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-normal opacity-60">Add a new financial transaction to the ledger.</CardDescription>

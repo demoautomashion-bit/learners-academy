@@ -205,15 +205,15 @@ export default function AssessmentsPage() {
               </span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-xl border-primary/5 shadow-22xl p-0 overflow-hidden">
-            <DialogHeader className="p-6 bg-muted/5 border-b border-primary/5">
+          <DialogContent className="max-w-xl">
+            <DialogHeader className="bg-muted/5 border-b border-primary/5">
               <DialogTitle className="text-2xl font-normal">Generate New Test</DialogTitle>
               <DialogDescription className="text-editorial-meta text-xs">
                 The system will automatically select questions from your Library block.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="max-h-[min(600px,60vh)] overflow-y-auto px-6 py-4 space-y-4 premium-scrollbar">
+              <div className="max-h-[min(600px,60vh)] overflow-y-auto space-y-4 premium-scrollbar">
                 <FieldGroup className="space-y-4">
                   <Field>
                     <FieldLabel>Test Title</FieldLabel>
@@ -347,7 +347,7 @@ export default function AssessmentsPage() {
                   </div>
                 )}
               </div>
-              <DialogFooter className="p-6 bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
+              <DialogFooter className="bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
                 <Button type="button" variant="outline" onClick={() => { setIsCreateOpen(false); reset(); }}>
                   Cancel
                 </Button>

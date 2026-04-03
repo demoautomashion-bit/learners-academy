@@ -242,15 +242,15 @@ export default function TeacherStudentsPage() {
 
       {/* Student Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-xl border-primary/5 shadow-22xl p-0 overflow-hidden">
-          <DialogHeader className="p-8 bg-muted/5 border-b border-primary/5">
+        <DialogContent className="max-w-xl">
+          <DialogHeader className="bg-muted/5 border-b border-primary/5">
             <DialogTitle className="font-serif text-2xl font-normal">Student Intelligence Profile</DialogTitle>
             <DialogDescription className="text-editorial-meta text-xs">
               Institutional record of academic performance and contact registry.
             </DialogDescription>
           </DialogHeader>
           {selectedStudent && (
-            <div className="p-8 space-y-8">
+            <div className="space-y-8">
               <div className="flex items-center gap-6">
                 <Avatar className="h-24 w-24 ring-4 ring-primary/5 shadow-premium">
                   <AvatarImage src={selectedStudent.avatar} alt={selectedStudent.name} />

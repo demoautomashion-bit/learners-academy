@@ -162,8 +162,8 @@ export default function QuestionLibraryPage() {
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="max-w-xl border-primary/5 shadow-22xl p-0 overflow-hidden">
-            <DialogHeader className="p-6 bg-muted/5 border-b border-primary/5 text-left items-start">
+          <DialogContent className="max-w-xl">
+            <DialogHeader className="bg-muted/5 border-b border-primary/5 text-left items-start">
               <DialogTitle className="text-2xl font-normal">Add to Library</DialogTitle>
               <DialogDescription className="text-editorial-meta text-xs">
                 Fields adapt to the selected block type for institutional precision.
@@ -171,7 +171,7 @@ export default function QuestionLibraryPage() {
             </DialogHeader>
 
             <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="max-h-[min(500px,50vh)] overflow-y-auto px-6 py-4 space-y-4 premium-scrollbar">
+              <div className="max-h-[min(500px,50vh)] overflow-y-auto space-y-4 premium-scrollbar">
                 <FieldGroup className="space-y-4">
                   {/* Category + Phase row */}
                   <div className="grid grid-cols-2 gap-3">
@@ -343,7 +343,7 @@ export default function QuestionLibraryPage() {
                 </FieldGroup>
               </div>
 
-              <DialogFooter className="p-6 bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
+              <DialogFooter className="bg-muted/5 border-t border-primary/5 mt-0 flex flex-col sm:flex-row gap-3">
                 <Button type="button" variant="outline" onClick={handleClose} className="rounded-xl px-6 h-11">
                   <span className="text-[10px] uppercase tracking-widest font-normal">Cancel</span>
                 </Button>

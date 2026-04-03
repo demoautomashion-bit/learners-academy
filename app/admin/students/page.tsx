@@ -235,7 +235,7 @@ export default function StudentsPage() {
               Enroll Student
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
+          <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle className="font-serif text-3xl tracking-tight font-normal">Registration Registry</DialogTitle>
                 <DialogDescription className="text-editorial-meta">
@@ -723,7 +723,7 @@ export default function StudentsPage() {
 
       {/* Edit Student Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-serif text-3xl tracking-tight text-primary font-normal">Edit Record</DialogTitle>
             <DialogDescription className="text-editorial-meta">Modify essential student protocols and enrollment settings.</DialogDescription>

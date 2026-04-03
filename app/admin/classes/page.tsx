@@ -212,7 +212,7 @@ export default function ClassesPage() {
               Create Class
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
+          <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle className="font-serif text-3xl tracking-tight font-normal">Class Registry</DialogTitle>
               <DialogDescription className="text-editorial-meta">
@@ -488,7 +488,7 @@ export default function ClassesPage() {
 
       {/* View Course Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl font-normal">Class Details</DialogTitle>
           </DialogHeader>
@@ -565,7 +565,7 @@ export default function ClassesPage() {
 
       {/* Edit Course Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-serif text-3xl tracking-tight font-normal">Edit Registry Parameters</DialogTitle>
             <DialogDescription className="text-editorial-meta">
