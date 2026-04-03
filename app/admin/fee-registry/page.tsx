@@ -167,7 +167,7 @@ export default function FeeRegistryPage() {
                 Add Student Account
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-xl rounded-[2.5rem] border-primary/5 shadow-2xl p-0 overflow-hidden">
+            <DialogContent className="max-w-xl border-primary/5 shadow-2xl p-0 overflow-hidden">
               <DialogHeader className="p-8 bg-muted/5 border-b border-primary/5">
                 <DialogTitle className="font-serif text-2xl font-normal">Initiate Academic Account</DialogTitle>
                 <DialogDescription className="text-[10px] uppercase tracking-widest opacity-60">

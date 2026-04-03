@@ -370,7 +370,7 @@ export default function TestReviewsPage() {
 
       {/* Pool Inspection Dialog */}
       <Dialog open={!!inspectPoolId} onOpenChange={(open) => !open && setInspectPoolId(null)}>
-        <DialogContent className="max-w-2xl bg-card/80 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl p-0 overflow-hidden">
+        <DialogContent className="max-w-2xl bg-card/80 backdrop-blur-2xl border-primary/10 shadow-22xl p-0 overflow-hidden">
           {selectedAssessmentForPool && (
             <>
               <DialogHeader className="p-8 pb-6 border-b border-primary/5">

@@ -608,7 +608,7 @@ export default function TeachersPage() {
 
       {/* View Teacher Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl bg-card/85 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl p-0 overflow-hidden">
+        <DialogContent className="max-w-2xl bg-card/85 backdrop-blur-2xl border-primary/10 shadow-22xl p-0 overflow-hidden">
           {selectedTeacher && (
             <div className="flex flex-col h-full max-h-[85vh]">
               {/* Header Splash */}
@@ -695,7 +695,7 @@ export default function TeachersPage() {
 
       {/* Financial Roster Dialog */}
       <Dialog open={isFinanceViewOpen} onOpenChange={setIsFinanceViewOpen}>
-        <DialogContent className="max-w-4xl bg-card/90 backdrop-blur-2xl border-primary/10 rounded-[2.5rem] shadow-22xl overflow-hidden p-0 md:p-6 max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-4xl bg-card/90 backdrop-blur-2xl border-primary/10 shadow-22xl overflow-hidden p-0 md:p-6 max-h-[90vh] flex flex-col">
           <DialogHeader className="pt-4 flex-shrink-0">
             <DialogTitle className="font-serif text-3xl font-normal tracking-tight">Unified Roster & Payroll</DialogTitle>
             <DialogDescription className="text-editorial-meta mt-1">
@@ -808,7 +808,7 @@ export default function TeachersPage() {
 
       {/* Edit Teacher Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl bg-card/80 backdrop-blur-xl border-primary/10 rounded-[2.5rem] shadow-22xl">
+        <DialogContent className="max-w-2xl bg-card/80 backdrop-blur-xl border-primary/10 shadow-22xl">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl">Modify Teacher Record</DialogTitle>
             <DialogDescription className="text-editorial-meta">
