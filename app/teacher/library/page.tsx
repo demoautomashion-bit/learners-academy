@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useData } from '@/contexts/data-context'
+import { useAuth } from '@/contexts/auth-context'
 import type { Question, QuestionCategory } from '@/lib/types'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -24,7 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { toast } from 'sonner'
-import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen } from 'lucide-react'
+import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen, Check } from 'lucide-react'
 import Image from 'next/image'
 
 const questionSchema = z.object({
@@ -66,7 +67,12 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
 }
 
 export default function QuestionLibraryPage() {
-  const { questions, addQuestion, deleteQuestion, isInitialized } = useData()
+  const { user } = useAuth()
+  const { questions, addQuestion, deleteQuestion, isInitialized, teachers, approveQuestion } = useData()
+  
+  // Find current teacher's requiresReview flag
+  const currentTeacher = teachers.find(t => t.id === user?.id)
+  const requiresReview = currentTeacher?.requiresReview ?? true // Default to true if not found for safety
   
   if (!isInitialized) return <DashboardSkeleton />
 
@@ -125,6 +131,7 @@ export default function QuestionLibraryPage() {
       passageText: data.passageText || undefined,
       audioUrl: data.audioUrl || undefined,
       matchPairs: data.type === 'Matching' ? validPairs : undefined,
+      isApproved: !requiresReview,
     }
 
     try {
@@ -409,6 +416,9 @@ export default function QuestionLibraryPage() {
                                   <Volume2 className="w-2.5 h-2.5" /> Audio
                                 </Badge>
                               )}
+                              <Badge variant={q.isApproved ? 'outline' : 'secondary'} className={`text-[9px] px-2 h-5 font-bold uppercase tracking-widest ${q.isApproved ? 'border-success/30 bg-success/5 text-success' : 'border-warning/30 bg-warning/5 text-warning'}`}>
+                                {q.isApproved ? 'Approved' : 'Pending Review'}
+                              </Badge>
                             </div>
 
                             {/* Content */}
@@ -450,15 +460,27 @@ export default function QuestionLibraryPage() {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted rounded-xl transition-premium">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon"
-                              className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl transition-premium"
-                              onClick={() => { deleteQuestion(q.id); toast.success('Question removed') }}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                          <div className="flex gap-2 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
+                            {!q.isApproved && !requiresReview && (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 border-success/30 hover:bg-success/10 text-success rounded-xl transition-premium font-bold text-[9px] uppercase tracking-widest gap-2"
+                                onClick={() => { approveQuestion(q.id, true); toast.success('Question Approved') }}
+                              >
+                                <Check className="w-3 h-3" /> Quick Approve
+                              </Button>
+                            )}
+                            <div className="flex gap-1 items-center">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted rounded-xl transition-premium">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon"
+                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl transition-premium"
+                                onClick={() => { deleteQuestion(q.id); toast.success('Question removed') }}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
