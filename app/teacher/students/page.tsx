@@ -33,10 +33,12 @@ export default function TeacherStudentsPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { students: mockStudents, courses: mockCourses, enrollments: mockEnrollments, isInitialized } = useData()
-  
-  if (!isInitialized) return <DashboardSkeleton />
+
+  // All hooks MUST be declared before any early returns (Rules of Hooks)
   const [searchQuery, setSearchQuery] = useState("")
   const [courseFilter, setCourseFilter] = useState("all")
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   // Get students enrolled in teacher's courses
   const teacherCourses = mockCourses.filter(c => c.teacherId === user?.id)

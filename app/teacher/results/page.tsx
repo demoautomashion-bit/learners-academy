@@ -44,13 +44,15 @@ export default function ResultsPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { submissions, assessments, courses, isInitialized } = useData()
-  
-  if (!isInitialized) return <DashboardSkeleton />
 
-  const myCourses = courses.filter(c => c.teacherId === user?.id)
+  // All hooks MUST be declared before any early returns (Rules of Hooks)
   const [searchQuery, setSearchQuery] = useState('')
   const [phaseFilter, setPhaseFilter] = useState('all')
   const [classFilter, setClassFilter] = useState('all')
+
+  if (!isInitialized) return <DashboardSkeleton />
+
+  const myCourses = courses.filter(c => c.teacherId === user?.id)
 
   // Grouping logic: We want to see a list of Assessments that have submissions
   const teacherAssessments = assessments.filter(a => {
