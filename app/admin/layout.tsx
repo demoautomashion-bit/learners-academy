@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
@@ -21,8 +21,16 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   useSidebar,
 } from '@/components/ui/sidebar'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +53,10 @@ import {
   TrendingUp,
   BarChart,
   ShieldCheck,
+  PlusCircle,
+  FileText,
+  BadgeCheck,
+  UserPlus
 } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
 
@@ -55,54 +67,52 @@ const adminNavItems = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Teachers',
+    title: 'Faculty Registry',
     href: '/admin/teachers',
     icon: Users,
+    items: [
+      { title: 'Instructor Roster', href: '/admin/teachers', icon: Users },
+      { title: 'Onboarding Protocol', href: '/admin/teachers/registration', icon: UserPlus },
+      { title: 'Payroll Audit', href: '/admin/teachers/payroll', icon: DollarSign },
+    ]
   },
   {
-    title: 'Students',
+    title: 'Student Body',
     href: '/admin/students',
     icon: GraduationCap,
+    items: [
+      { title: 'Student Registry', href: '/admin/students', icon: GraduationCap },
+      { title: 'Enrollment Registry', href: '/admin/students/registration', icon: PlusCircle },
+    ]
   },
   {
-    title: 'Attendance',
-    href: '/admin/attendance',
-    icon: Users,
-  },
-  {
-    title: 'Fee Registry',
-    href: '/admin/fee-registry',
-    icon: DollarSign,
-  },
-  {
-    title: 'Economics',
-    href: '/admin/economics',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Growth',
-    href: '/admin/growth',
-    icon: BarChart,
-  },
-  {
-    title: 'Classes',
+    title: 'Academic Ops',
     href: '/admin/classes',
     icon: BookOpen,
+    items: [
+      { title: 'Active Batches', href: '/admin/classes', icon: BookOpen },
+      { title: 'Attendance Registry', href: '/admin/attendance', icon: BadgeCheck },
+      { title: 'Schedule Auditor', href: '/admin/schedule', icon: CalendarDays },
+    ]
   },
   {
-    title: 'Test Reviews',
+    title: 'Institutional intelligence',
+    href: '/admin/fee-registry',
+    icon: TrendingUp,
+    items: [
+      { title: 'Fee Tracking', href: '/admin/fee-registry', icon: DollarSign },
+      { title: 'Economics Ledger', href: '/admin/economics', icon: TrendingUp },
+      { title: 'Growth Framework', href: '/admin/growth', icon: BarChart },
+    ]
+  },
+  {
+    title: 'Governance',
     href: '/admin/test-reviews',
     icon: ShieldCheck,
-  },
-  {
-    title: 'Schedule',
-    href: '/admin/schedule',
-    icon: CalendarDays,
-  },
-  {
-    title: 'Settings',
-    href: '/admin/settings',
-    icon: Settings,
+    items: [
+      { title: 'Quality Controls', href: '/admin/test-reviews', icon: ShieldCheck },
+      { title: 'System Settings', href: '/admin/settings', icon: Settings },
+    ]
   },
 ]
  
@@ -134,8 +144,6 @@ export default function AdminLayout({
   const { assessments } = useData()
   const pendingReviewCount = assessments.filter(a => a.status === 'pending_review').length
 
-  // Middleware handles route protection now.
-
   return (
     <SidebarProvider style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, var(--font-inter), Inter, sans-serif' }}>
       <Sidebar className="border-r border-white/5 bg-sidebar transition-premium">
@@ -144,59 +152,103 @@ export default function AdminLayout({
         {/* Navigation */}
         <SidebarContent className="px-3 py-4">
           <SidebarGroup>
-
             <SidebarGroupContent>
               <SidebarMenu className="gap-2">
                 {adminNavItems.map((item) => {
                   const isActive = pathname === item.href || 
                     (item.href !== '/admin' && pathname.startsWith(item.href))
-                  const isReviewItem = item.href === '/admin/test-reviews'
-                  return (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton 
-                        asChild 
-                        isActive={isActive}
-                        className={cn(
-                          "transition-premium h-11 px-4 rounded-xl",
-                          isActive 
-                            ? "bg-primary/5 text-primary shadow-sm" 
-                            : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
-                        )}
-                        tooltip={item.title}
-                      >
-                        <Link href={item.href} className="flex items-center gap-3">
-                          <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground")} />
-                          <span className="tracking-tight font-medium flex-1">{item.title}</span>
-                          {isReviewItem && pendingReviewCount > 0 && (
-                            <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-warning/20 text-warning text-[10px] font-bold">
-                              {pendingReviewCount}
-                            </span>
+                  
+                  const hasSubItems = item.items && item.items.length > 0
+                  const isInitiallyOpen = hasSubItems && pathname.startsWith(item.href)
+
+                  if (!hasSubItems) {
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={isActive}
+                          className={cn(
+                            "transition-premium h-11 px-4 rounded-xl",
+                            isActive 
+                              ? "bg-primary/5 text-primary shadow-sm" 
+                              : "text-muted-foreground hover:bg-primary/5 hover:text-primary font-normal"
                           )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                          tooltip={item.title}
+                        >
+                          <Link href={item.href} className="flex items-center gap-3">
+                            <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground")} />
+                            <span className="tracking-tight">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  }
+
+                  return (
+                    <Collapsible
+                      key={item.href}
+                      asChild
+                      defaultOpen={isInitiallyOpen}
+                      className="group/collapsible"
+                    >
+                      <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton 
+                             isActive={isActive} 
+                             tooltip={item.title}
+                             className={cn(
+                               "transition-premium h-11 px-4 rounded-xl",
+                               isActive && !pathname.includes(item.href) ? "bg-primary/5 text-primary" : ""
+                             )}
+                          >
+                            <Link href={item.href} className="flex items-center gap-3 w-full">
+                              <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
+                              <span className="tracking-tight font-normal text-foreground opacity-80">{item.title}</span>
+                              <ChevronDown className="ml-auto w-4 h-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180 opacity-40 shrink-0" />
+                            </Link>
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="animate-in fade-in slide-in-from-top-1 duration-300 overflow-hidden">
+                          <SidebarMenuSub className="ml-4 mt-1 border-l border-white/5 space-y-1">
+                            {item.items?.map((subItem) => {
+                               const isSubActive = pathname === subItem.href
+                               return (
+                                 <SidebarMenuSubItem key={subItem.href}>
+                                   <SidebarMenuSubButton 
+                                      asChild 
+                                      isActive={isSubActive}
+                                      className={cn(
+                                        "h-9 px-4 rounded-lg transition-all text-xs tracking-tight",
+                                        isSubActive 
+                                          ? "text-primary bg-primary/5 font-normal" 
+                                          : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 font-normal"
+                                      )}
+                                    >
+                                     <Link href={subItem.href} className="flex items-center gap-3">
+                                       {subItem.icon && <subItem.icon className="w-3.5 h-3.5" />}
+                                       <span>{subItem.title}</span>
+                                     </Link>
+                                   </SidebarMenuSubButton>
+                                 </SidebarMenuSubItem>
+                               )
+                            })}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
                   )
                 })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-
-
       </Sidebar>
 
       {/* Main Content Area */}
       <SidebarInset className="bg-background">
-        {/* Top Header */}
         <header className="sticky top-0 z-10 flex h-20 items-center gap-4 border-b border-primary/5 bg-card/80 backdrop-blur-xl px-8">
           <SidebarTrigger className="-ml-2" />
-          
           <div className="flex-1" />
-          
-          {/* Notifications */}
-
-
-          {/* Quick User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-4 outline-none hover:opacity-80 transition-opacity">
               <span className="hidden md:inline-block font-normal text-sm text-foreground opacity-60">
@@ -226,8 +278,6 @@ export default function AdminLayout({
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-
-        {/* Page Content */}
         <main className="flex-1 p-6">
           {children}
         </main>
