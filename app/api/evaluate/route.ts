@@ -6,6 +6,16 @@ const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }) : null
 
+export async function GET() {
+  return new Response(
+    JSON.stringify({ message: "Method not allowed. Use POST." }),
+    { 
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    }
+  )
+}
+
 export async function POST(req: Request) {
   try {
     if (!openai) {

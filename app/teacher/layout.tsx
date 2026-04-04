@@ -79,7 +79,7 @@ const teacherNavItems = [
     icon: Library,
     items: [
         { title: 'Institutional Library', href: '/teacher/library', icon: Library },
-        { title: 'Personal Resources', href: '/teacher/library/personal', icon: BookMarked },
+        { title: 'Personal Resources', href: '/teacher/library', icon: BookMarked },
     ]
   },
   {

@@ -35,6 +35,7 @@ interface DataContextType {
   feePayments: any[]
   isInitialized: boolean
   isLoading: boolean
+  hasError: boolean
 
   // Actions
   enrollStudent: (student: any) => Promise<void>
@@ -112,6 +113,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [feePayments, setFeePayments] = useState<any[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   const refresh = useCallback(async () => {
@@ -119,6 +121,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const normalizeDate = (d: any) => (d instanceof Date ? d.toISOString() : d)
 
     try {
+      setHasError(false)
       // Parallel fetch: eliminates sequential round-trip penalty
       const [initRes, econData] = await Promise.all([
         getInitialData(),
@@ -160,6 +163,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       })
     } catch (err) {
       console.error('CRITICAL_INITIALIZATION_ERROR:', err)
+      setHasError(true)
       toast.error("Cloud connection unstable. Using local bridge.")
     } finally {
       // Ensure the UI flag is always flipped to clear the skeleton
@@ -341,7 +345,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     toast.info('Reset is not available in database mode')
   }, [])
 
-
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background text-center p-8">
+        <div className="h-12 w-12 bg-destructive/10 rounded-full flex items-center justify-center mb-6">
+          <div className="h-6 w-6 text-destructive">⚠️</div>
+        </div>
+        <h2 className="text-2xl font-serif mb-2">Connection unstable</h2>
+        <p className="text-muted-foreground mb-8 max-w-xs mx-auto">
+          We were unable to synchronize with the institutional database. 
+        </p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="bg-primary text-white px-6 py-2 rounded-xl text-xs uppercase tracking-widest font-normal hover:bg-primary/90 transition-all shadow-premium"
+        >
+          Reload Portal
+        </button>
+      </div>
+    )
+  }
 
   return (
     <DataContext.Provider value={{
@@ -359,6 +381,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       enrollments,
       isInitialized,
       isLoading,
+      hasError,
       enrollStudent,
       removeStudent,
       updateStudentStatus,

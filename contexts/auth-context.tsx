@@ -106,12 +106,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (pathname === '/student') return
       if (pathname.startsWith('/student/assessments')) return
       
+      console.log("[Auth Redirect] Unauthorized access detected. Redirecting to login.", { from: pathname, to: '/auth/login' })
       router.push('/auth/login')
       return
     }
 
     if (state.isAuthenticated && isAuthPage) {
-      router.push(getRoleRedirectPath(state.user!.role))
+      const target = getRoleRedirectPath(state.user!.role)
+      console.log("[Auth Redirect] Authenticated user on auth page. Redirecting to portal.", { from: pathname, to: target, user: state.user })
+      router.push(target)
       return
     }
 
@@ -120,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const pathRole = pathname.split('/')[1] as UserRole
       if (state.user?.role !== pathRole) {
         const redirectPath = getRoleRedirectPath(state.user!.role)
-        console.log(`Role mismatch: ${state.user?.role} vs ${pathRole}. Redirecting to ${redirectPath}`)
+        console.log(`[Auth Redirect] Role mismatch: ${state.user?.role} vs ${pathRole}. Redirecting to ${redirectPath}`)
         
         // Brief delay to allow the toast to be seen if navigating
         toast.error(`Access Restricted`, {
