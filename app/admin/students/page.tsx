@@ -64,6 +64,7 @@ import type { Student } from '@/lib/types'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import Link from 'next/link'
 
 const studentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -81,11 +82,9 @@ const ACADEMY_CLASSES = ACADEMY_LEVELS
 const CLASS_TIMINGS = SESSION_TIMINGS
 
 export default function StudentsPage() {
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const router = useRouter()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [metricProgress, setMetricProgress] = useState(0)
-  const [metricGrade, setMetricGrade] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
@@ -145,16 +144,6 @@ export default function StudentsPage() {
       toast.success('Student record updated')
     } catch (err) {
       toast.error('Update failed')
-    }
-  }
-
-  const handleUpdateMetrics = async () => {
-    if (!selectedStudent) return
-    try {
-      await updateStudentSuccessMetrics(selectedStudent.id, metricProgress, metricGrade)
-      toast.success('Academic metrics synced')
-    } catch (err) {
-      toast.error('Metrics update failed')
     }
   }
 
@@ -406,12 +395,11 @@ export default function StudentsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => {
-                              setSelectedStudent(student)
-                              setIsViewDialogOpen(true)
-                            }}>
-                              <Eye className="w-4 h-4 mr-2" />
-                              View Details
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/students/${student.id}`} className="flex items-center w-full">
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Details
+                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => {
                               setSelectedStudent(student)
@@ -472,11 +460,8 @@ export default function StudentsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-card border rounded-2xl p-4 shadow-sm hover:shadow-md transition-premium"
-                  onClick={() => {
-                    setSelectedStudent(student)
-                    setIsViewDialogOpen(true)
-                  }}
+                  className="bg-card border rounded-2xl p-4 shadow-sm hover:shadow-md transition-premium cursor-pointer"
+                  onClick={() => router.push(`/admin/students/${student.id}`)}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -500,7 +485,7 @@ export default function StudentsPage() {
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
+                  <div className="grid grid-cols-2 gap-4 mb-4 text-xs font-sans">
                     <div className="space-y-1">
                       <p className="text-muted-foreground font-normal uppercase tracking-tighter text-[9px]">Guardian</p>
                       <p className="font-normal line-clamp-1">{student.guardianName || 'N/A'}</p>
@@ -519,15 +504,13 @@ export default function StudentsPage() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
+                      asChild
                       className="flex-1 h-9 rounded-xl text-xs font-normal"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setSelectedStudent(student)
-                        setIsViewDialogOpen(true)
-                      }}
                     >
-                      <Eye className="w-3.5 h-3.5 mr-1.5" />
-                      View Profile
+                      <Link href={`/admin/students/${student.id}`}>
+                        <Eye className="w-3.5 h-3.5 mr-1.5" />
+                        View Profile
+                      </Link>
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -566,138 +549,6 @@ export default function StudentsPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* View Student Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={(open) => {
-        setIsViewDialogOpen(open)
-        if (open && selectedStudent) {
-          setMetricProgress(selectedStudent.progress || 0)
-          setMetricGrade(selectedStudent.grade || '')
-        }
-      }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Student Details</DialogTitle>
-          </DialogHeader>
-          {selectedStudent && (
-            <div className="space-y-6 py-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="w-16 h-16">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xl">
-                    {selectedStudent.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-lg font-normal">{selectedStudent.name}</h3>
-                  <Badge 
-                    variant={selectedStudent.status === 'inactive' ? 'secondary' : 'default'}
-                    className={getStatusColor(selectedStudent.status)}
-                  >
-                    {selectedStudent.status}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="w-4 h-4 text-muted-foreground" />
-                  <span>{selectedStudent.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
-                  <span>{selectedStudent.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="flex items-center justify-center w-4 h-4 rounded bg-primary/10 text-[10px] font-normal text-primary">ID</div>
-                  <span className="font-normal">{selectedStudent.studentId || 'N/A'}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground font-normal">Guardian:</span>
-                  <span>{selectedStudent.guardianName || 'N/A'}</span>
-                </div>
-              </div>
-
-              {/* Editable Academic Metrics */}
-              <div className="space-y-6 pt-6 border-t border-primary/5">
-                <div className="space-y-3">
-                   <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-black uppercase tracking-widest opacity-40">Academic Progress</h4>
-                    <Badge variant="outline" className="text-[10px] font-sans font-normal">{metricProgress}%</Badge>
-                   </div>
-                   <Input 
-                      type="range" 
-                      min="0" 
-                      max="100" 
-                      value={metricProgress} 
-                      onChange={(e) => setMetricProgress(parseInt(e.target.value))}
-                      className="h-2 p-0 cursor-pointer accent-primary" 
-                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                      <h4 className="text-xs font-black uppercase tracking-widest opacity-40">Academic Grade</h4>
-                      <Select value={metricGrade} onValueChange={setMetricGrade}>
-                         <SelectTrigger className="h-10 rounded-xl bg-muted/20">
-                            <SelectValue placeholder="N/A" />
-                         </SelectTrigger>
-                         <SelectContent>
-                            {['A+', 'A', 'B', 'C', 'D', 'F'].map(g => (
-                               <SelectItem key={g} value={g}>{g}</SelectItem>
-                            ))}
-                         </SelectContent>
-                      </Select>
-                   </div>
-                   <div className="flex items-end">
-                      <Button 
-                        onClick={handleUpdateMetrics}
-                        className="w-full h-10 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border-none font-normal text-xs uppercase tracking-widest"
-                      >
-                         Sync Metrics
-                      </Button>
-                   </div>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t">
-                <h4 className="text-sm font-normal mb-3">Institutional Status</h4>
-                <div className="flex items-center gap-4">
-                  <Progress value={selectedStudent.progress} className="flex-1 h-3" />
-                  <span className="text-lg font-normal">{selectedStudent.progress}%\</span>
-                </div>
-              </div>
-
-              <div className="grid gap-4 grid-cols-3 pt-4 border-t">
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                    <BookOpen className="w-5 h-5 text-primary" />
-                  </div>
-                  <p className="text-2xl font-normal">{selectedStudent.enrolledCourses.length}</p>
-                        <p className="text-sm text-muted-foreground font-normal">Classes</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-2">
-                          <Award className="w-5 h-5 text-success" />
-                        </div>
-                        <p className={`text-2xl font-normal ${getGradeColor(selectedStudent.grade)}`}>
-                          {selectedStudent.grade || '-'}
-                        </p>
-                        <p className="text-sm text-muted-foreground font-normal">Grade</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-2">
-                          <GraduationCap className="w-5 h-5 text-accent" />
-                        </div>
-                        <p className="text-2xl font-normal">
-                    {new Date(selectedStudent.enrolledAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Enrolled</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Edit Student Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
