@@ -42,11 +42,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import type { Course } from '@/lib/types'
 
 export default function TeacherClassesPage() {
   const { user } = useAuth()
-  const { courses: mockCourses, students: mockStudents, assessments: mockAssessments, submissions: mockSubmissions, enrollments: mockEnrollments } = useData()
+  const { courses: mockCourses, students: mockStudents, assessments: mockAssessments, submissions: mockSubmissions, enrollments: mockEnrollments, isInitialized } = useData()
   const myCourses = mockCourses.filter(c => c.teacherId === user?.id)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -55,6 +56,8 @@ export default function TeacherClassesPage() {
 
   const [evalStudent, setEvalStudent] = useState<any | null>(null)
   const [evalScores, setEvalScores] = useState({ attendance: 60, participation: 20, discipline: 10, extra: 10 })
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   const validDossierClasses = [
     'Pre-Foundation', 'Foundation One', 'Foundation Two', 'Foundation Three', 

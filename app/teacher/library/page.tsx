@@ -74,8 +74,6 @@ export default function QuestionLibraryPage() {
   const currentTeacher = teachers.find(t => t.id === user?.id)
   const requiresReview = currentTeacher?.requiresReview ?? true // Default to true if not found for safety
   
-  if (!isInitialized) return <DashboardSkeleton />
-
   const [activeTab, setActiveTab] = useState<QuestionCategory>('Grammar')
   const [searchQuery, setSearchQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -97,6 +95,8 @@ export default function QuestionLibraryPage() {
   const filteredQuestions = questions.filter((q: Question) =>
     q.category === activeTab && q.content.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   const handleClose = () => {
     setIsOpen(false)

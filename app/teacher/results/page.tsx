@@ -26,16 +26,13 @@ import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { 
   Search, 
   FileCheck, 
-  Clock, 
-  AlertCircle, 
-  Eye, 
-  CheckCircle,
   TrendingUp,
-  Award
+  Award,
+  ArrowRight
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
-import { toast } from 'sonner'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'

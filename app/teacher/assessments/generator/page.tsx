@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Progress } from '@/components/ui/progress'
 import { 
   ChevronLeft, 
   Plus, 

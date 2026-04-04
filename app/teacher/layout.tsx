@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { Logo } from '@/components/logo'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { motion, AnimatePresence } from 'framer-motion'
+import { TeacherErrorBoundary } from '@/components/teacher-error-boundary'
 import {
   Sidebar,
   SidebarContent,
@@ -280,7 +281,9 @@ export default function TeacherLayout({
         </header>
 
         <main className="flex-1 p-6 text-foreground">
-          {children}
+          <TeacherErrorBoundary>
+            {children}
+          </TeacherErrorBoundary>
         </main>
       </SidebarInset>
     </SidebarProvider>
