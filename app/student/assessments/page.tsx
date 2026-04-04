@@ -14,8 +14,9 @@ import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ClipboardList, Clock, CheckCircle, ArrowRight, ChevronLeft, ChevronRight,
-  Lock, Timer, AlertTriangle, Award, TrendingUp, XCircle, Volume2, BookOpen,
+  Lock, Timer, AlertTriangle, Award, TrendingUp, XCircle, Volume2, BookOpen, Zap
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { evaluateSubjective } from "@/lib/ai-auditor"
 import { generateRandomizedQuestions } from "@/lib/actions/assessments"
 import type { AssessmentTemplate, Question, StudentTest } from "@/lib/types"
