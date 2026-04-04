@@ -84,16 +84,11 @@ const CLASS_TIMINGS = SESSION_TIMINGS
 export default function StudentsPage() {
   const router = useRouter()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
   const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, feePayments } = useData()
-
-  const enrollForm = useForm<StudentFormValues>({
-    resolver: zodResolver(studentSchema)
-  })
 
   const editForm = useForm<StudentFormValues>({
     resolver: zodResolver(studentSchema)
@@ -106,31 +101,6 @@ export default function StudentsPage() {
     const matchesStatus = statusFilter === 'all' || student.status === statusFilter
     return matchesSearch && matchesStatus
   })
-
-  const onEnrollSubmit = async (data: StudentFormValues) => {
-    const newStudent: Student = {
-      studentId: data.studentId,
-      name: data.name,
-      email: `${data.studentId.toLowerCase()}@learnersacademy.com`, 
-      phone: data.phone,
-      guardianName: data.guardianName,
-      password: data.password,
-      enrolledCourses: [data.course],
-      classTiming: data.timing,
-      status: 'active',
-      enrolledAt: new Date().toISOString(),
-      progress: 0,
-    }
-    
-    try {
-      await enrollStudent(newStudent)
-      setIsAddDialogOpen(false)
-      enrollForm.reset()
-      toast.success('Registration successful')
-    } catch (err) {
-      // Error handled by context
-    }
-  }
 
   const onEditSubmit = async (data: StudentFormValues) => {
     if (!selectedStudent) return
@@ -189,100 +159,12 @@ export default function StudentsPage() {
             Manage student enrollments and track their progress
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="h-12 px-8 shadow-lg shadow-primary/20 uppercase tracking-[0.15em] font-normal text-xs rounded-xl">
-              <Plus className="w-4 h-4 mr-2" />
-              Enroll Student
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-xl">
-            <DialogHeader>
-              <DialogTitle className="font-serif text-3xl tracking-tight font-normal">Registration Registry</DialogTitle>
-                <DialogDescription className="text-editorial-meta">
-                Onboard a new academic professional into the student database.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={enrollForm.handleSubmit(onEnrollSubmit)}>
-              <FieldGroup className="py-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Student Name</FieldLabel>
-                    <Input {...enrollForm.register('name')} placeholder="Full name" className="bg-background/50 h-10" />
-                    {enrollForm.formState.errors.name && <p className="text-[10px] text-destructive font-normal uppercase mt-1">{enrollForm.formState.errors.name.message}</p>}
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Guardian&apos;s Name</FieldLabel>
-                    <Input {...enrollForm.register('guardianName')} placeholder="Full name" className="bg-background/50 h-10" />
-                    {enrollForm.formState.errors.guardianName && <p className="text-[10px] text-destructive font-normal uppercase mt-1">{enrollForm.formState.errors.guardianName.message}</p>}
-                  </Field>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Student ID</FieldLabel>
-                    <Input {...enrollForm.register('studentId')} placeholder="e.g. STU-001" className="bg-background/50 h-10" />
-                    {enrollForm.formState.errors.studentId && <p className="text-[10px] text-destructive font-normal uppercase mt-1">{enrollForm.formState.errors.studentId.message}</p>}
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Portal Password</FieldLabel>
-                    <SecureInput {...enrollForm.register('password')} placeholder="••••••••" className="bg-background/50 h-10" />
-                    {enrollForm.formState.errors.password && <p className="text-[10px] text-destructive font-normal uppercase mt-1">{enrollForm.formState.errors.password.message}</p>}
-                  </Field>
-                </div>
-
-                <Field>
-                  <FieldLabel className="text-editorial-label">Phone Number</FieldLabel>
-                  <Input {...enrollForm.register('phone')} placeholder="+1 (555) 000-0000" className="bg-background/50 h-10" />
-                  {enrollForm.formState.errors.phone && <p className="text-[10px] text-destructive font-normal uppercase mt-1">{enrollForm.formState.errors.phone.message}</p>}
-                </Field>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Assigned Batch</FieldLabel>
-                    <Select onValueChange={(val) => enrollForm.setValue('course', val)}>
-                      <SelectTrigger className="bg-background/50 h-10">
-                        <SelectValue placeholder="Select specific batch" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockCourses.map((course) => (
-                          <SelectItem key={course.id} value={course.id}>
-                            {course.title} ({course.schedule} • {course.teacherName})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {enrollForm.formState.errors.course && <p className="text-[10px] text-destructive font-normal uppercase mt-1">{enrollForm.formState.errors.course.message}</p>}
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Class Timing</FieldLabel>
-                    <Select onValueChange={(val) => enrollForm.setValue('timing', val)}>
-                      <SelectTrigger className="bg-background/50 h-10">
-                        <SelectValue placeholder="Select session" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CLASS_TIMINGS.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {enrollForm.formState.errors.timing && <p className="text-[10px] text-destructive font-normal uppercase mt-1">{enrollForm.formState.errors.timing.message}</p>}
-                  </Field>
-                </div>
-              </FieldGroup>
-              <DialogFooter className="pt-2">
-                <Button type="button" variant="ghost" onClick={() => { setIsAddDialogOpen(false); enrollForm.reset(); }} className="text-muted-foreground hover:text-foreground">
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={enrollForm.formState.isSubmitting} className="px-8 font-normal uppercase tracking-wide">
-                  {enrollForm.formState.isSubmitting ? 'Registering...' : 'Register Student'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button asChild className="h-12 px-8 shadow-lg shadow-primary/20 uppercase tracking-[0.15em] font-normal text-xs rounded-xl">
+          <Link href="/admin/students/registration">
+            <Plus className="w-4 h-4 mr-2" />
+            Enroll Student
+          </Link>
+        </Button>
       </div>
 
       {/* Stats Cards */}
