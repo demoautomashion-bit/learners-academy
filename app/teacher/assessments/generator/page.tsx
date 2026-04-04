@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
@@ -95,13 +95,19 @@ export default function AssessmentGeneratorPage() {
       totalMarks: 100,
       duration: 60,
       questionCount: 15,
-      accessCode: generateSecureToken(),
+      accessCode: '',
       markAllocation: {
         MCQ: 0, Subjective: 0, 'True/False': 0, 'Fill in the Blanks': 0,
         Writing: 0, Matching: 0, Reading: 0, Listening: 0
       }
     }
   })
+
+  // Seed access code client-side only to avoid SSR hydration mismatch
+  // (Math.random() produces different values on server vs client)
+  useEffect(() => {
+    setValue('accessCode', generateSecureToken())
+  }, [])
 
   // Live Watch Calculations
   const watchNature = watch('nature')
