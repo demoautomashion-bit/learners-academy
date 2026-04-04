@@ -63,6 +63,8 @@ import { Switch } from '@/components/ui/switch'
 import { useData } from '@/contexts/data-context'
 import { cn } from '@/lib/utils'
 import type { Teacher } from '@/lib/types'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 const CLASS_LEVELS = [
   'Pre-Foundation',
@@ -84,12 +86,12 @@ const CLASS_LEVELS = [
 ]
 
 export default function TeachersPage() {
+  const router = useRouter()
   const { teachers, addTeacher, removeTeacher, updateTeacherStatus, updateTeacher, courses, students, feePayments, updateTeacherReviewFlag } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [isFinanceViewOpen, setIsFinanceViewOpen] = useState(false)
   const [compensationModel, setCompensationModel] = useState<'fixed' | 'percentage'>('fixed')
   const [compensationRate, setCompensationRate] = useState<number>(0)
@@ -400,13 +402,11 @@ export default function TeachersPage() {
                                <Wallet className="w-4 h-4 mr-2" />
                                Payroll & Roster
                              </DropdownMenuItem>
-                             <DropdownMenuItem onSelect={(e) => {
-                               e.preventDefault()
-                               setSelectedTeacher(teacher)
-                               setIsViewDialogOpen(true)
-                             }}>
-                               <Eye className="w-4 h-4 mr-2" />
-                               View Details
+                             <DropdownMenuItem asChild>
+                               <Link href={`/admin/teachers/${teacher.id}`} className="flex items-center w-full">
+                                 <Eye className="w-4 h-4 mr-2" />
+                                 View Details
+                               </Link>
                              </DropdownMenuItem>
                              <DropdownMenuItem onSelect={(e) => {
                                e.preventDefault()
@@ -478,11 +478,8 @@ export default function TeachersPage() {
               filteredTeachers.map((teacher) => (
                 <div
                   key={teacher.id}
-                  className="bg-card border rounded-2xl p-4 shadow-sm hover:shadow-md transition-premium active:scale-[0.98]"
-                  onClick={() => {
-                    setSelectedTeacher(teacher)
-                    setIsViewDialogOpen(true)
-                  }}
+                  className="bg-card border rounded-2xl p-4 shadow-sm hover:shadow-md transition-premium active:scale-[0.98] cursor-pointer"
+                  onClick={() => router.push(`/admin/teachers/${teacher.id}`)}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -556,12 +553,10 @@ export default function TeachersPage() {
                          }}>
                            <Edit className="w-4 h-4 mr-2" /> Edit
                          </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={(e) => {
-                           e.preventDefault()
-                           setSelectedTeacher(teacher)
-                           setIsViewDialogOpen(true)
-                         }}>
-                           <Eye className="w-4 h-4 mr-2" /> View Details
+                         <DropdownMenuItem asChild>
+                           <Link href={`/admin/teachers/${teacher.id}`} className="flex items-center w-full">
+                              <Eye className="w-4 h-4 mr-2" /> View Details
+                           </Link>
                          </DropdownMenuItem>
                          <DropdownMenuItem onSelect={() => handleToggleStatus(teacher)}>
                            <UserX className="w-4 h-4 mr-2" /> 
@@ -604,93 +599,6 @@ export default function TeachersPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* View Teacher Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl overflow-hidden">
-          {selectedTeacher && (
-            <div className="flex flex-col h-full max-h-[85vh]">
-              {/* Header Splash */}
-              <div className="bg-primary/5 p-8 pb-12 relative overflow-hidden h-40">
-                <div className="absolute top-0 right-0 p-8 opacity-20">
-                  <User className="h-40 w-40 -mr-16 -mt-16 text-primary rotate-12" />
-                </div>
-                <div className="flex items-center gap-6 relative z-10">
-                  <Avatar className="w-24 h-24 ring-4 ring-background shadow-xl">
-                    <AvatarFallback className="bg-primary/10 text-primary text-3xl font-serif">
-                      {selectedTeacher.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-1">
-                    <h3 className="text-3xl font-serif font-normal tracking-tight">{selectedTeacher.name}</h3>
-                    <div className="flex gap-2">
-                      <Badge 
-                        variant={selectedTeacher.status === 'active' ? 'default' : 'secondary'}
-                        className={cn("px-3 py-0.5 uppercase tracking-[0.1em] text-[8px]", selectedTeacher.status === 'active' ? 'bg-success' : '')}
-                      >
-                        {selectedTeacher.status}
-                      </Badge>
-                      <Badge variant="outline" className="px-3 py-0.5 uppercase tracking-[0.1em] text-[8px] bg-background/50">
-                        ID: {selectedTeacher.employeeId}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Content Grid Area - Scrolling only on content, header is fixed */}
-              <div className="flex-1 overflow-y-auto px-8 pb-8 -mt-4 bg-background rounded-t-[2.5rem] relative z-20 space-y-8 pt-4">
-                <div className="grid gap-8 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal">Institutional Payload</p>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-sm p-3 bg-muted/20 rounded-xl">
-                        <Mail className="w-4 h-4 text-primary opacity-60" />
-                        <span className="font-normal opacity-80 whitespace-nowrap overflow-hidden text-ellipsis">{selectedTeacher.email}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm p-3 bg-muted/20 rounded-xl">
-                        <Phone className="w-4 h-4 text-primary opacity-60" />
-                        <span className="font-normal opacity-80">{selectedTeacher.phone}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal">Primary Assignment</p>
-                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="text-xs font-normal opacity-60">Designated Level</p>
-                        <p className="font-serif text-lg">{selectedTeacher.assignedClass || 'Unassigned'}</p>
-                      </div>
-                      <ShieldCheck className="w-8 h-8 text-primary opacity-20" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-border/50">
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal mb-6">Performance Metrics</p>
-                  <div className="grid gap-3 grid-cols-3">
-                    <div className="bg-muted/10 p-5 rounded-2xl text-center shadow-inner-premium flex flex-col justify-center">
-                      <p className="text-3xl font-serif font-normal text-primary leading-none mb-2">{selectedTeacher.coursesCount}</p>
-                      <p className="text-[8px] uppercase tracking-[0.2em] opacity-40">Active Batches</p>
-                    </div>
-                    <div className="bg-muted/10 p-5 rounded-2xl text-center shadow-inner-premium flex flex-col justify-center">
-                      <p className="text-3xl font-serif font-normal text-primary leading-none mb-2">{selectedTeacher.studentsCount}</p>
-                      <p className="text-[8px] uppercase tracking-[0.2em] opacity-40">Enrolled Pupils</p>
-                    </div>
-                    <div className="bg-muted/10 p-5 rounded-2xl text-center shadow-inner-premium flex flex-col justify-center items-center">
-                      <p className="text-base font-serif font-normal leading-none mb-2 uppercase">
-                        {new Date(selectedTeacher.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                      </p>
-                      <p className="text-[8px] uppercase tracking-[0.2em] opacity-40">Registration</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Financial Roster Dialog */}
       <Dialog open={isFinanceViewOpen} onOpenChange={setIsFinanceViewOpen}>
