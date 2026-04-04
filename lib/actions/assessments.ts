@@ -2,7 +2,8 @@
 
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
-import type { AssessmentTemplate } from '@/lib/types'
+import { getSeedFromId, createPRNG, shuffleArray } from '@/lib/utils/random'
+import type { AssessmentTemplate, Question } from '@/lib/types'
 
 export async function getAssessments() {
   return db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })
@@ -126,5 +127,62 @@ export async function validateAccessToken(token: string, studentId: string, clas
   } catch (error) {
     console.error('Failed to validate access token:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Database error' }
+  }
+}
+
+/**
+ * PRODUCTION-GRADE DETERMINISTIC RANDOMIZATION (Step 6 of Audit Fix)
+ * Moves logic to server to ensure cross-device consistency and prevent tampering.
+ */
+export async function generateRandomizedQuestions(studentId: string, assessmentId: string) {
+  try {
+    // 1. Fetch Template
+    const assessment = await db.assessmentTemplate.findUnique({
+      where: { id: assessmentId }
+    })
+    
+    if (!assessment) throw new Error('Assessment registry entry not found')
+
+    // 2. Fetch Question Pool
+    const pool = await db.question.findMany({
+      where: {
+        isApproved: true,
+        OR: [
+          { phase: assessment.phase },
+          { phase: 'Both' }
+        ],
+        // If nature is Mixed we take all, otherwise filter by type
+        ...(assessment.nature !== 'Mixed' ? { type: assessment.nature } : {})
+      }
+    })
+
+    if (pool.length === 0) throw new Error('No approved institutional blocks found for this assessment criteria')
+
+    // 3. Stable Seed Construction (Step 3 of Audit Fix)
+    const rawSeed = `${studentId}::${assessmentId}`
+    const seed = getSeedFromId(rawSeed)
+    const prng = createPRNG(seed)
+
+    // 4. Robust Shuffle (Step 2 of Audit Fix)
+    const shuffled = shuffleArray(pool as unknown as Question[], prng)
+
+    // 5. Select target count
+    const selected = shuffled.slice(0, assessment.questionCount || 10)
+
+    // Debug Logging (Temporary - Step 7)
+    console.log(`[Assessment Engine] Seeded Shuffle - Student:${studentId} Test:${assessmentId}`)
+    console.log(`[Assessment Engine] Seed: ${seed} | Hash: ${rawSeed}`)
+    console.log(`[Assessment Engine] Sequence (First 3): ${selected.slice(0,3).map(q => q.id).join(', ')}`)
+
+    return {
+      success: true,
+      questions: selected
+    }
+  } catch (error) {
+    console.error('GENERATE_RANDOMIZED_QUESTIONS_ERROR:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Registry synthesis failed' 
+    }
   }
 }

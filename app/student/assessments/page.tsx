@@ -17,6 +17,7 @@ import {
   Lock, Timer, AlertTriangle, Award, TrendingUp, XCircle, Volume2, BookOpen,
 } from "lucide-react"
 import { evaluateSubjective } from "@/lib/ai-auditor"
+import { generateRandomizedQuestions } from "@/lib/actions/assessments"
 import type { AssessmentTemplate, Question, StudentTest } from "@/lib/types"
 
 const AUTO_GRADED_TYPES = ['MCQ', 'True/False', 'Fill in the Blanks', 'Matching'] as const
@@ -48,40 +49,45 @@ export default function StudentAssessmentsPage() {
   const audioRef = useRef<HTMLAudioElement>(null)
 
   // ── Start Test ──────────────────────────────────────────────────────────────
-  const startTest = (assessment: AssessmentTemplate) => {
-    const pool = mockQuestions.filter(q => {
-      const phaseMatch = q.phase === assessment.phase || q.phase === 'Both'
-      const natureMatch = assessment.nature === 'Mixed' || q.type === assessment.nature
-      const approvalMatch = q.isApproved === true
-      return phaseMatch && natureMatch && approvalMatch
-    })
+  const startTest = async (assessment: AssessmentTemplate) => {
+    try {
+      if (!user) {
+        toast.error("Institutional profile not found. Please log in again.")
+        return
+      }
 
-    const seed = `${user?.id || 'anonymous'}-${assessment.id}`
-    const deterministicRandom = (s: string) => {
-      let hash = 0
-      for (let i = 0; i < s.length; i++) { hash = (hash << 5) - hash + s.charCodeAt(i); hash |= 0 }
-      return () => { hash = (hash * 16807) % 2147483647; return (hash - 1) / 2147483646 }
-    }
-    const rand = deterministicRandom(seed)
-    const shuffled = [...pool].sort(() => rand() - 0.5)
-    
-    // Select the requested number of questions (or all if pool is smaller)
-    const selected = shuffled.slice(0, assessment.questionCount || 10)
+      toast.loading("Shuffling institutional registry blocks...", { id: "test-start" })
+      
+      // Step 6: Offload randomization to the server
+      const result = await generateRandomizedQuestions(user.id, assessment.id)
 
-    setRandomizedQuestions(selected)
-    setActiveTest(assessment)
-    setTimeLeft(assessment.durationMinutes * 60)
-    setIsTestEngineOpen(true)
-    setCurrentQuestionIndex(0)
-    setAnswers({})
-    setStrikes(0)
-    setIsPaused(false)
-    setShowResult(false)
+      if (!result.success || !result.questions) {
+        throw new Error(result.error || "Registry synthesis failed")
+      }
 
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() =>
-        toast.error("Please enable fullscreen for the best testing experience.")
-      )
+      // Step 4: Ensure isolation with fresh copy
+      const selected = [...result.questions]
+
+      setRandomizedQuestions(selected)
+      setActiveTest(assessment)
+      setTimeLeft(assessment.durationMinutes * 60)
+      setIsTestEngineOpen(true)
+      setCurrentQuestionIndex(0)
+      setAnswers({})
+      setStrikes(0)
+      setIsPaused(false)
+      setShowResult(false)
+
+      toast.success("Security Vault Entry Authorized", { id: "test-start" })
+
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() =>
+          toast.error("Please enable fullscreen for the best testing experience.")
+        )
+      }
+    } catch (err: any) {
+      console.error("[Test Start Error]", err)
+      toast.error(err.message || "Failed to initiate assessment sequence.", { id: "test-start" })
     }
   }
 
