@@ -65,6 +65,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 const studentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),

@@ -194,18 +194,20 @@ export default function AdminLayout({
                     >
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
-                          <SidebarMenuButton 
+                           <SidebarMenuButton 
                              isActive={isActive} 
                              asChild
                              tooltip={item.title}
                              className={cn(
-                               "transition-premium h-11 px-4 rounded-xl",
-                               isActive && !pathname.includes(item.href) ? "bg-primary/5 text-primary" : ""
+                               "transition-premium h-11 px-4 rounded-xl group/btn",
+                               isActive && !pathname.includes(item.href) 
+                                 ? "bg-primary/5 text-primary shadow-sm" 
+                                 : "text-muted-foreground hover:bg-primary/5 hover:text-primary font-normal"
                              )}
                           >
                             <Link href={item.href} className="flex items-center gap-3 w-full">
-                              <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
-                              <span className="tracking-tight font-normal text-foreground opacity-80">{item.title}</span>
+                              <item.icon className={cn("w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-0.5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
+                              <span className="tracking-tight transition-transform duration-300 group-hover/btn:translate-x-0.5">{item.title}</span>
                               <ChevronDown className="ml-auto w-4 h-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180 opacity-40 shrink-0" />
                             </Link>
                           </SidebarMenuButton>
