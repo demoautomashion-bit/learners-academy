@@ -104,7 +104,7 @@ export default function GrowthPage() {
     return tiers?.map(tier => ({
       name: tier.name.toUpperCase(),
       count: students?.filter(s => 
-        tier.match.some(m => s.class?.toLowerCase().includes(m))
+        tier.match.some(m => (s.class?.toLowerCase() || '').includes(m))
       ).length
     }))
   }, [students])

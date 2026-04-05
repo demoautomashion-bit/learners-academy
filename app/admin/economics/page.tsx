@@ -165,7 +165,7 @@ export default function EconomicsPage() {
     toast.success("Branded PDF Registry generated.")
   }
 
-  const pieData = Object.entries(economics.categoryBreakdown).map(([name, value]: [string, any]) => ({ name, value }))
+  const pieData = Object.entries(economics?.categoryBreakdown || {}).map(([name, value]: [string, any]) => ({ name, value }))
 
   const transactionColumns: Column<any>[] = [
     {
@@ -281,9 +281,9 @@ export default function EconomicsPage() {
 
       <EntityCardGrid 
         data={[
-          { label: 'Projected Portfolio', value: economics.projectedRevenue, sub: 'Total Contractual Value', icon: Building, color: 'text-primary', progress: (economics.actualRevenue / economics.projectedRevenue) * 100 },
-          { label: 'Realized Revenue', value: economics.actualRevenue, sub: 'Fees Collected (Actual)', icon: TrendingUp, color: 'text-success', progress: 100 },
-          { label: 'Institutional Expenditure', value: economics.totalExpenditure, sub: 'Outflow vs Capital Pool', icon: TrendingDown, color: 'text-destructive', progress: (economics.totalExpenditure / economics.actualRevenue) * 100 },
+          { label: 'Projected Portfolio', value: economics?.projectedRevenue || 0, sub: 'Total Contractual Value', icon: Building, color: 'text-primary', progress: (economics?.actualRevenue / (economics?.projectedRevenue || 1)) * 100 },
+          { label: 'Realized Revenue', value: economics?.actualRevenue || 0, sub: 'Fees Collected (Actual)', icon: TrendingUp, color: 'text-success', progress: 100 },
+          { label: 'Institutional Expenditure', value: economics?.totalExpenditure || 0, sub: 'Outflow vs Capital Pool', icon: TrendingDown, color: 'text-destructive', progress: (economics?.totalExpenditure / (economics?.actualRevenue || 1)) * 100 },
         ]}
         renderItem={(stat, i) => (
           <Card key={i} className="overflow-hidden group relative isolate">
@@ -319,7 +319,7 @@ export default function EconomicsPage() {
           <CardContent className="p-6 flex-1">
             <div className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={economics.historicalData}>
+                <AreaChart data={economics?.historicalData || []}>
                   <defs>
                     <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.2} />
@@ -364,7 +364,7 @@ export default function EconomicsPage() {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-xs text-muted-foreground opacity-50 font-normal">Total Share</span>
-                <span className="font-serif text-2xl font-normal">Rs. {economics.totalExpenditure.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="font-serif text-2xl font-normal">Rs. {(economics?.totalExpenditure || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
             </div>
             <div className="space-y-4 mt-6">
