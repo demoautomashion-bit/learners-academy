@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -89,13 +90,15 @@ export default function StudentsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
-  const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, feePayments } = useData()
+  const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, feePayments, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   const editForm = useForm<StudentFormValues>({
     resolver: zodResolver(studentSchema)
   })
 
-  const filteredStudents = students.filter(student => {
+  const filteredStudents = students?.filter(student => {
     const matchesSearch = 
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -180,7 +183,7 @@ export default function StudentsPage() {
           <CardHeader className="pb-2">
             <CardDescription>Active Students</CardDescription>
             <CardTitle className="text-3xl text-success">
-              {students.filter(s => s.status === 'active').length}
+              {students?.filter(s => s.status === 'active').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -237,7 +240,7 @@ export default function StudentsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredStudents.map((student) => (
+                  filteredStudents?.map((student) => (
                     <TableRow key={student.id}>
                       <TableCell className="font-sans font-normal text-primary tracking-tighter">
                         {student.studentId || 'ID-TBC'}
@@ -337,7 +340,7 @@ export default function StudentsPage() {
                 No students found matching your criteria.
               </div>
             ) : (
-              filteredStudents.map((student) => (
+              filteredStudents?.map((student) => (
                 <motion.div
                   key={student.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -473,7 +476,7 @@ export default function StudentsPage() {
                       <SelectValue placeholder="Select class level" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockCourses.map((course: any) => (
+                      {mockCourses?.map((course: any) => (
                         <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
                       ))}
                     </SelectContent>
@@ -489,7 +492,7 @@ export default function StudentsPage() {
                       <SelectValue placeholder="Select session" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CLASS_TIMINGS.map((time) => (
+                      {CLASS_TIMINGS?.map((time) => (
                         <SelectItem key={time} value={time}>{time}</SelectItem>
                       ))}
                     </SelectContent>

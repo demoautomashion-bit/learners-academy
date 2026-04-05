@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -40,11 +41,14 @@ export default function AssessmentWorkspacePage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
+  if (!user?.id) return null
   const { assessments, submissions, students, gradeSubmission, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   
   const assessmentId = params.assessmentId as string
   const assessment = assessments.find(a => a.id === assessmentId)
-  const assessmentSubmissions = submissions.filter(s => s.assignmentId === assessmentId)
+  const assessmentSubmissions = submissions?.filter(s => s.assignmentId === assessmentId)
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null)
@@ -64,15 +68,15 @@ export default function AssessmentWorkspacePage() {
     </div>
   )
 
-  const filteredSubmissions = assessmentSubmissions.filter(s => 
+  const filteredSubmissions = assessmentSubmissions?.filter(s => 
     s.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.studentId.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const pendingCount = assessmentSubmissions.filter(s => s.status === 'pending').length
-  const completedCount = assessmentSubmissions.filter(s => s.status === 'graded').length
+  const pendingCount = assessmentSubmissions?.filter(s => s.status === 'pending').length
+  const completedCount = assessmentSubmissions?.filter(s => s.status === 'graded').length
   
-  const gradedResults = assessmentSubmissions.filter(r => r.grade !== undefined && r.grade !== null)
+  const gradedResults = assessmentSubmissions?.filter(r => r.grade !== undefined && r.grade !== null)
   const avgPercent = gradedResults.length > 0 
     ? Math.round(gradedResults.reduce((acc, r) => acc + ((r.grade! / assessment.totalMarks) * 100), 0) / gradedResults.length)
     : 0
@@ -155,7 +159,7 @@ export default function AssessmentWorkspacePage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-primary/5">
-                            {filteredSubmissions.map((s) => (
+                            {filteredSubmissions?.map((s) => (
                                 <tr key={s.id} className="group hover:bg-primary/[0.02] transition-premium h-24">
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">

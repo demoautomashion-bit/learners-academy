@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -69,6 +70,8 @@ const CLASS_TIMES = SESSION_TIMINGS
 export default function ClassesPage() {
   const router = useRouter()
   const { courses, teachers, addCourse, removeCourse, updateCourseStatus, updateCourse, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -76,7 +79,7 @@ export default function ClassesPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
-  const filteredCourses = courses.filter(course => {
+  const filteredCourses = courses?.filter(course => {
     const matchesSearch = 
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.teacherName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -231,7 +234,7 @@ export default function ClassesPage() {
                         <SelectValue placeholder="Select class level" />
                       </SelectTrigger>
                       <SelectContent>
-                        {CLASS_LEVELS.map(level => (
+                        {CLASS_LEVELS?.map(level => (
                           <SelectItem key={level} value={level}>{level}</SelectItem>
                         ))}
                       </SelectContent>
@@ -244,7 +247,7 @@ export default function ClassesPage() {
                         <SelectValue placeholder="Assign teacher" />
                       </SelectTrigger>
                       <SelectContent>
-                        {teachers.map(teacher => (
+                        {teachers?.map(teacher => (
                           <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -260,7 +263,7 @@ export default function ClassesPage() {
                         <SelectValue placeholder="Starting time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {CLASS_TIMES.map(time => (
+                        {CLASS_TIMES?.map(time => (
                           <SelectItem key={time} value={time}>{time}</SelectItem>
                         ))}
                       </SelectContent>
@@ -304,7 +307,7 @@ export default function ClassesPage() {
           <CardHeader className="pb-2">
             <CardDescription>Active Batches</CardDescription>
             <CardTitle className="text-3xl text-success">
-              {courses.filter(c => c.status === 'active').length}
+              {courses?.filter(c => c.status === 'active').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -360,7 +363,7 @@ export default function ClassesPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredCourses.map((course) => (
+                filteredCourses?.map((course) => (
                   <TableRow key={course.id} className="group hover:bg-muted/20 transition-colors">
                     <TableCell className="font-normal tracking-tighter text-lg text-primary">
                       {course.roomNumber || 'N/A'}
@@ -439,7 +442,7 @@ export default function ClassesPage() {
                 No active classes found in the registry.
               </div>
             ) : (
-              filteredCourses.map((course) => (
+              filteredCourses?.map((course) => (
                 <div 
                   key={course.id} 
                   className="bg-card border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-premium active:scale-[0.98]"
@@ -586,7 +589,7 @@ export default function ClassesPage() {
                         <SelectValue placeholder="Select class level" />
                       </SelectTrigger>
                       <SelectContent>
-                        {CLASS_LEVELS.map(level => (
+                        {CLASS_LEVELS?.map(level => (
                           <SelectItem key={level} value={level}>{level}</SelectItem>
                         ))}
                       </SelectContent>
@@ -599,7 +602,7 @@ export default function ClassesPage() {
                         <SelectValue placeholder="Assign teacher" />
                       </SelectTrigger>
                       <SelectContent>
-                        {teachers.map(teacher => (
+                        {teachers?.map(teacher => (
                           <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -615,7 +618,7 @@ export default function ClassesPage() {
                         <SelectValue placeholder="Starting time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {CLASS_TIMES.map(time => (
+                        {CLASS_TIMES?.map(time => (
                           <SelectItem key={time} value={time}>{time}</SelectItem>
                         ))}
                       </SelectContent>

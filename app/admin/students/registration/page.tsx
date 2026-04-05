@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -48,7 +49,9 @@ type RegistrationFormValues = z.infer<typeof registrationSchema>
 
 export default function StudentRegistrationPage() {
   const router = useRouter()
-  const { students, courses, enrollStudent } = useData()
+  const { students, courses, enrollStudent, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   const form = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
@@ -225,7 +228,7 @@ export default function StudentRegistrationPage() {
                       <SelectValue placeholder="Select batch level" />
                     </SelectTrigger>
                     <SelectContent>
-                      {courses.filter(c => c.status === 'active').map((course) => (
+                      {courses?.filter(c => c.status === 'active').map((course) => (
                         <SelectItem key={course.id} value={course.id}>
                           {course.title} ({course.teacherName})
                         </SelectItem>
@@ -241,7 +244,7 @@ export default function StudentRegistrationPage() {
                       <SelectValue placeholder="Select session" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SESSION_TIMINGS.map((time) => (
+                      {SESSION_TIMINGS?.map((time) => (
                         <SelectItem key={time} value={time}>
                           {time}
                         </SelectItem>

@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import React, { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
@@ -76,7 +77,9 @@ const ACADEMY_CLASSES = ACADEMY_LEVELS
 const CLASS_TIMINGS = SESSION_TIMINGS
 
 export default function AttendancePage() {
-  const { teachers } = useData()
+  const { teachers, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<'week' | 'month'>('month')
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null)
@@ -110,7 +113,7 @@ export default function AttendancePage() {
       try {
         const data = await getTeacherAttendance(currentRange.start, currentRange.end)
         // Sanitize incoming data: ensure date is valid and teacherId exists
-        const sanitized = data.filter(a => a.date && !isNaN(new Date(a.date).getTime()) && a.teacherId)
+        const sanitized = data?.filter(a => a.date && !isNaN(new Date(a.date).getTime()) && a.teacherId)
         setAttendanceData(sanitized)
       } catch (error) {
         console.error('Failed to fetch attendance:', error)
@@ -179,7 +182,7 @@ export default function AttendancePage() {
       toast.error('Select a teacher to export their profile')
       return
     }
-    const dataRows = daysInRange.map(day => {
+    const dataRows = daysInRange?.map(day => {
       const record = getAttendanceForDay(selectedTeacherId!, day)
       return {
         Date: format(day, 'yyyy-MM-dd'),
@@ -191,7 +194,7 @@ export default function AttendancePage() {
 
     const csvContent = [
       ['Date', 'Teacher', 'Registry Status', 'Extra Class/Substitutions'],
-      ...dataRows.map(r => [r.Date, r.Name, r.Status, r.Substitutions])
+      ...dataRows?.map(r => [r.Date, r.Name, r.Status, r.Substitutions])
     ].map(e => e.join(",")).join("\n")
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -220,12 +223,12 @@ export default function AttendancePage() {
 
   const getTeacherStats = (teacherId: string) => {
     if (!teacherId) return { present: 0, absent: 0, late: 0, leave: 0, substitutions: 0 }
-    const teacherRecords = attendanceData.filter(a => a.teacherId === teacherId)
+    const teacherRecords = attendanceData?.filter(a => a.teacherId === teacherId)
     return {
-      present: teacherRecords.filter(r => r.status === 'Present').length,
-      absent: teacherRecords.filter(r => r.status === 'Absent').length,
-      late: teacherRecords.filter(r => r.status === 'Late').length,
-      leave: teacherRecords.filter(r => r.status === 'Leave').length,
+      present: teacherRecords?.filter(r => r.status === 'Present').length,
+      absent: teacherRecords?.filter(r => r.status === 'Absent').length,
+      late: teacherRecords?.filter(r => r.status === 'Late').length,
+      leave: teacherRecords?.filter(r => r.status === 'Leave').length,
       substitutions: teacherRecords.reduce((sum, r) => sum + (r.substituteCount || 0), 0)
     }
   }
@@ -306,7 +309,7 @@ export default function AttendancePage() {
               </div>
             </CardHeader>
             <CardContent className="p-4 space-y-1.5 max-h-[700px] overflow-y-auto scrollbar-thin">
-              {teachers.map(teacher => (
+              {teachers?.map(teacher => (
                 <button
                   key={teacher.id}
                   onClick={() => setSelectedTeacherId(teacher.id)}
@@ -411,7 +414,7 @@ export default function AttendancePage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {daysInRange.map((day) => {
+                      {daysInRange?.map((day) => {
                         const record = getAttendanceForDay(selectedTeacher.id, day)
                         const isWeekendDay = isWeekend(day)
                         const isoDate = format(day, 'yyyy-MM-dd')
@@ -468,7 +471,7 @@ export default function AttendancePage() {
                                     <span className={cn("text-[9px] uppercase tracking-widest font-normal opacity-70", (record?.substituteCount || 0) > 0 && "opacity-90 text-primary")}>
                                       Institutional Substitutions
                                     </span>
-                                    {details.filter((d: any) => d.type === 'Substitution').length > 0 && (
+                                    {details?.filter((d: any) => d.type === 'Substitution').length > 0 && (
                                       <span className="text-[7px] uppercase tracking-tighter opacity-30">Granular Logs Verified</span>
                                     )}
                                   </div>
@@ -555,7 +558,7 @@ export default function AttendancePage() {
                                             <p className="text-[10px] uppercase tracking-widest font-normal">No Granular Logs for this Cycle</p>
                                           </div>
                                         ) : (
-                                          details.map((event: any, idx: number) => (
+                                          details?.map((event: any, idx: number) => (
                                             <div key={idx} className="bg-card border border-primary/5 p-4 rounded-2xl shadow-sm group/event relative">
                                               <div className="flex items-start justify-between">
                                                 <div className="flex gap-3">
@@ -684,7 +687,7 @@ export default function AttendancePage() {
                     className="w-full bg-muted/5 border border-primary/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                   >
                     <option value="" disabled selected>Select Level/Class</option>
-                    {ACADEMY_CLASSES.map(cls => (
+                    {ACADEMY_CLASSES?.map(cls => (
                       <option key={cls} value={cls}>{cls}</option>
                     ))}
                   </select>
@@ -698,7 +701,7 @@ export default function AttendancePage() {
                     className="w-full bg-muted/5 border border-primary/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                   >
                     <option value="" disabled selected>Select Attendance Slot</option>
-                    {CLASS_TIMINGS.map(t => (
+                    {CLASS_TIMINGS?.map(t => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>

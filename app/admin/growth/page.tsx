@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { 
@@ -48,19 +49,21 @@ import { cn } from '@/lib/utils'
 */
 
 export default function GrowthPage() {
-  const { students, courses, isLoading } = useData()
+  const { students, courses, isLoading, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   const stats = useMemo(() => {
     const today = new Date()
-    const daily = students.filter(s => s.enrolledAt && isSameDay(new Date(s.enrolledAt), today)).length
-    const weekly = students.filter(s => s.enrolledAt && isSameWeek(new Date(s.enrolledAt), today)).length
-    const monthly = students.filter(s => s.enrolledAt && isSameMonth(new Date(s.enrolledAt), today)).length
+    const daily = students?.filter(s => s.enrolledAt && isSameDay(new Date(s.enrolledAt), today)).length
+    const weekly = students?.filter(s => s.enrolledAt && isSameWeek(new Date(s.enrolledAt), today)).length
+    const monthly = students?.filter(s => s.enrolledAt && isSameMonth(new Date(s.enrolledAt), today)).length
     
     const totalStudents = students.length
-    const activeRate = (students.filter(s => s.status === 'active').length / (totalStudents || 1)) * 100
+    const activeRate = (students?.filter(s => s.status === 'active').length / (totalStudents || 1)) * 100
     
     // Last week vs Current week (for sparkline mock)
-    const lastWeekly = students.filter(s => s.enrolledAt && isSameWeek(new Date(s.enrolledAt), subDays(today, 7))).length
+    const lastWeekly = students?.filter(s => s.enrolledAt && isSameWeek(new Date(s.enrolledAt), subDays(today, 7))).length
     const growthDelta = weekly > lastWeekly ? ((weekly - lastWeekly) / (lastWeekly || 1)) * 100 : (-(lastWeekly - weekly) / (lastWeekly || 1)) * 100
 
     // Term Progress (3-month cycle)
@@ -81,8 +84,8 @@ export default function GrowthPage() {
     const start = subDays(end, 29)
     const interval = eachDayOfInterval({ start, end })
 
-    return interval.map(date => {
-      const count = students.filter(s => s.enrolledAt && isSameDay(new Date(s.enrolledAt), date)).length
+    return interval?.map(date => {
+      const count = students?.filter(s => s.enrolledAt && isSameDay(new Date(s.enrolledAt), date)).length
       return {
         date: format(date, 'MMM d'),
         count
@@ -98,9 +101,9 @@ export default function GrowthPage() {
       { name: 'Specialized', match: ['ielts', 'speaking', 'grammar'] }
     ]
 
-    return tiers.map(tier => ({
+    return tiers?.map(tier => ({
       name: tier.name.toUpperCase(),
-      count: students.filter(s => 
+      count: students?.filter(s => 
         tier.match.some(m => s.class?.toLowerCase().includes(m))
       ).length
     }))
@@ -280,7 +283,7 @@ export default function GrowthPage() {
                     width={100}
                   />
                   <Bar dataKey="count" radius={[0, 10, 10, 0]} barSize={24}>
-                    {levelBreakdown.map((entry, index) => (
+                    {levelBreakdown?.map((entry, index) => (
                       <Cell key={index} fill={`oklch(0.62 0.17 ${240 + (index * 30)})`} />
                     ))}
                   </Bar>

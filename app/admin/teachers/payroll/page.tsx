@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
@@ -43,7 +44,9 @@ function PayrollContent() {
   const router = useRouter()
   const teacherId = searchParams.get('id')
   
-  const { teachers, courses, students, feePayments } = useData()
+  const { teachers, courses, students, feePayments, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   
   const [compensationModel, setCompensationModel] = useState<'fixed' | 'percentage'>('fixed')
   const [compensationRate, setCompensationRate] = useState<number>(1000)
@@ -54,14 +57,14 @@ function PayrollContent() {
   const financialData = useMemo(() => {
     if (!teacher) return { roster: [], paidCount: 0, unpaidCount: 0, totalPaidRevenue: 0 }
     
-    const teacherCourses = courses.filter(c => c.teacherId === teacher.id)
+    const teacherCourses = courses?.filter(c => c.teacherId === teacher.id)
     let paidCount = 0
     let unpaidCount = 0
     let totalPaidRevenue = 0
     let roster: any[] = []
 
     teacherCourses.forEach(course => {
-      const courseStudents = students.filter(s => s.enrolledCourses?.includes(course.id))
+      const courseStudents = students?.filter(s => s.enrolledCourses?.includes(course.id))
       courseStudents.forEach(student => {
         const payment = feePayments.find((fp: any) => fp.studentId === student.id && fp.courseId === course.id)
         const isPaid = payment && (payment.status === 'paid' || payment.status === 'partial')
@@ -90,7 +93,7 @@ function PayrollContent() {
   }, [teacher, courses, students, feePayments])
 
   const filteredRoster = useMemo(() => {
-    return financialData.roster.filter(item => 
+    return financialData.roster?.filter(item => 
       item.studentName.toLowerCase().includes(ledgerSearch.toLowerCase()) ||
       item.courseName.toLowerCase().includes(ledgerSearch.toLowerCase())
     )
@@ -216,7 +219,7 @@ function PayrollContent() {
                        </TableRow>
                     </TableHeader>
                     <TableBody>
-                       {filteredRoster.map((item) => (
+                       {filteredRoster?.map((item) => (
                           <TableRow key={item.id} className="hover:bg-primary/5 transition-colors duration-300 border-primary/5 h-16">
                              <TableCell className="pl-8">
                                 <div>
@@ -322,7 +325,7 @@ function PayrollContent() {
               <div className="space-y-4">
                  <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Assigned Batches</span>
-                    <span className="text-xs font-serif">{courses.filter(c => c.teacherId === teacher.id).length}</span>
+                    <span className="text-xs font-serif">{courses?.filter(c => c.teacherId === teacher.id).length}</span>
                  </div>
                  <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Direct Enrollments</span>

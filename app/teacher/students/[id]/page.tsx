@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
@@ -35,7 +36,10 @@ export default function StudentProfileDossierPage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
+  if (!user?.id) return null
   const { students, enrollments, submissions, assessments, updateStudent, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   
   const studentId = params.id as string
   const student = students.find(s => s.id === studentId)
@@ -56,7 +60,7 @@ export default function StudentProfileDossierPage() {
   )
 
   const studentEnrollment = enrollments.find(e => e.studentId === student.id)
-  const studentSubmissions = submissions.filter(s => s.studentId === studentId)
+  const studentSubmissions = submissions?.filter(s => s.studentId === studentId)
   const progress = studentEnrollment?.progress || 0
   
   const getPerformanceBadge = (p: number) => {
@@ -195,7 +199,7 @@ export default function StudentProfileDossierPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-primary/5">
-                                {studentSubmissions.map((s) => {
+                                {studentSubmissions?.map((s) => {
                                     const assessment = assessments.find(a => a.id === s.assignmentId)
                                     const percent = assessment?.totalMarks ? Math.round((s.grade! / assessment.totalMarks) * 100) : 0
                                     

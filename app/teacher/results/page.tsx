@@ -40,6 +40,7 @@ import { useRouter } from 'next/navigation'
 export default function ResultsPage() {
   const router = useRouter()
   const { user } = useAuth()
+  if (!user?.id) return null
   const { submissions, assessments, courses, isInitialized } = useData()
 
   // All hooks MUST be declared before any early returns (Rules of Hooks)
@@ -49,16 +50,16 @@ export default function ResultsPage() {
 
   if (!isInitialized) return <DashboardSkeleton />
 
-  const myCourses = courses.filter(c => c.teacherId === user?.id)
+  const myCourses = courses?.filter(c => c.teacherId === user?.id)
 
   // Grouping logic: We want to see a list of Assessments that have submissions
-  const teacherAssessments = assessments.filter(a => {
+  const teacherAssessments = assessments?.filter(a => {
     const isOwner = a.submittedByTeacherId === user?.id
     const isAssignedLevel = a.classLevels.some(level => myCourses.some(c => c.title === level))
     return isOwner || isAssignedLevel
   })
 
-  const filteredAssessments = teacherAssessments.filter(assessment => {
+  const filteredAssessments = teacherAssessments?.filter(assessment => {
     const matchesSearch = assessment.title.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesPhase = phaseFilter === 'all' || assessment.phase === phaseFilter
     
@@ -69,13 +70,13 @@ export default function ResultsPage() {
   })
 
   // Global Stats logic remains similar but calculated across all teacher-related submissions
-  const allSubmissions = submissions.filter(s => {
+  const allSubmissions = submissions?.filter(s => {
     const a = assessments.find(as => as.id === s.assignmentId)
     return teacherAssessments.some(ta => ta.id === a?.id)
   })
 
-  const pendingCount = allSubmissions.filter(r => r.status === 'pending').length
-  const gradedResults = allSubmissions.filter(r => r.grade !== undefined && r.grade !== null) as (typeof allSubmissions[0] & { grade: number })[]
+  const pendingCount = allSubmissions?.filter(r => r.status === 'pending').length
+  const gradedResults = allSubmissions?.filter(r => r.grade !== undefined && r.grade !== null) as (typeof allSubmissions[0] & { grade: number })[]
   
   const getPercentage = (r: typeof gradedResults[0]) => {
     const a = assessments.find(a => a.id === r.assignmentId)
@@ -83,9 +84,9 @@ export default function ResultsPage() {
   }
 
   const totalAvg = gradedResults.length > 0 ? Math.round(gradedResults.reduce((acc, r) => acc + getPercentage(r), 0) / gradedResults.length) : 0
-  const firstTestResults = gradedResults.filter(r => assessments.find(a => a.id === r.assignmentId)?.phase === 'First Test')
+  const firstTestResults = gradedResults?.filter(r => assessments.find(a => a.id === r.assignmentId)?.phase === 'First Test')
   const firstTestAvg = firstTestResults.length > 0 ? Math.round(firstTestResults.reduce((acc, r) => acc + getPercentage(r), 0) / firstTestResults.length) : 0
-  const lastTestResults = gradedResults.filter(r => assessments.find(a => a.id === r.assignmentId)?.phase === 'Last Test')
+  const lastTestResults = gradedResults?.filter(r => assessments.find(a => a.id === r.assignmentId)?.phase === 'Last Test')
   const lastTestAvg = lastTestResults.length > 0 ? Math.round(lastTestResults.reduce((acc, r) => acc + getPercentage(r), 0) / lastTestResults.length) : 0
 
   return (
@@ -171,7 +172,7 @@ export default function ResultsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Classes</SelectItem>
-              {myCourses.map(course => (
+              {myCourses?.map(course => (
                 <SelectItem key={course.id} value={course.id}>
                   {course.title}
                 </SelectItem>
@@ -205,9 +206,9 @@ export default function ResultsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary/5">
-                  {filteredAssessments.map((assessment) => {
-                    const assessmentSubmissions = submissions.filter(s => s.assignmentId === assessment.id)
-                    const pending = assessmentSubmissions.filter(s => s.status === 'pending').length
+                  {filteredAssessments?.map((assessment) => {
+                    const assessmentSubmissions = submissions?.filter(s => s.assignmentId === assessment.id)
+                    const pending = assessmentSubmissions?.filter(s => s.status === 'pending').length
                     const total = assessmentSubmissions.length
                     
                     if (total === 0) return null // Only show assessments that have submissions
@@ -226,7 +227,7 @@ export default function ResultsPage() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1">
-                            {assessment.classLevels.map(level => (
+                            {assessment.classLevels?.map(level => (
                                 <Badge key={level} variant="outline" className="text-[9px] uppercase tracking-widest font-normal border-primary/10 text-muted-foreground/60">
                                     {level}
                                 </Badge>

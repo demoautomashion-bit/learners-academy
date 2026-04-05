@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -40,13 +41,15 @@ const CLASS_LEVELS = ACADEMY_LEVELS
 const ACADEMY_SLOTS = SCHEDULE_SLOTS
 
 export default function SchedulePage() {
-  const { schedules, teachers, addSchedule, removeSchedule, updateSchedule } = useData()
+  const { schedules, teachers, addSchedule, removeSchedule, updateSchedule, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null)
 
-  const filteredSchedules = schedules.filter(s =>
+  const filteredSchedules = schedules?.filter(s =>
     s.classTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.teacherName.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -134,7 +137,7 @@ export default function SchedulePage() {
                         <SelectValue placeholder="Select class" />
                       </SelectTrigger>
                       <SelectContent>
-                        {CLASS_LEVELS.map(level => (
+                        {CLASS_LEVELS?.map(level => (
                           <SelectItem key={level} value={level}>{level}</SelectItem>
                         ))}
                       </SelectContent>
@@ -147,7 +150,7 @@ export default function SchedulePage() {
                         <SelectValue placeholder="Select teacher" />
                       </SelectTrigger>
                       <SelectContent>
-                        {teachers.map(teacher => (
+                        {teachers?.map(teacher => (
                           <SelectItem key={teacher.id} value={teacher.name}>{teacher.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -163,7 +166,7 @@ export default function SchedulePage() {
                         <SelectValue placeholder="Choose timing slot" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ACADEMY_SLOTS.map(slot => (
+                        {ACADEMY_SLOTS?.map(slot => (
                           <SelectItem key={slot.id} value={slot.id}>
                             {slot.id} ({slot.time})
                           </SelectItem>
@@ -201,7 +204,7 @@ export default function SchedulePage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredSchedules.map((item) => (
+        {filteredSchedules?.map((item) => (
           <Card key={item.id} className="bg-card/40 backdrop-blur-md hover-lift border-primary/5 shadow-premium ring-1 ring-border group transition-premium">
             <CardHeader className="pb-3 flex flex-row items-start justify-between">
               <div className="space-y-1">
@@ -246,7 +249,7 @@ export default function SchedulePage() {
                     <Calendar className="w-4 h-4 text-primary" />
                   </div>
                   <div className="flex gap-1">
-                    {item.days.map(day => (
+                    {item.days?.map(day => (
                       <Badge key={day} variant="secondary" className="px-1 text-[9px] uppercase font-normal">{day}</Badge>
                     ))}
                   </div>
@@ -287,7 +290,7 @@ export default function SchedulePage() {
                         <SelectValue placeholder="Designated Slot" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ACADEMY_SLOTS.map(slot => (
+                        {ACADEMY_SLOTS?.map(slot => (
                           <SelectItem key={slot.id} value={slot.id}>
                             {slot.id}: {slot.time}
                           </SelectItem>

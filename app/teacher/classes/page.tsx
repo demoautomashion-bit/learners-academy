@@ -47,8 +47,9 @@ import type { Course } from '@/lib/types'
 
 export default function TeacherClassesPage() {
   const { user } = useAuth()
+  if (!user?.id) return null
   const { courses: mockCourses, students: mockStudents, assessments: mockAssessments, submissions: mockSubmissions, enrollments: mockEnrollments, isInitialized } = useData()
-  const myCourses = mockCourses.filter(c => c.teacherId === user?.id)
+  const myCourses = mockCourses?.filter(c => c.teacherId === user?.id)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -64,7 +65,7 @@ export default function TeacherClassesPage() {
     'Beginners', 'Level One', 'Level Two', 'Level Three', 'Level Four', 'Level Five'
   ]
 
-  const filteredStudents = mockStudents.filter(student => {
+  const filteredStudents = mockStudents?.filter(student => {
     // Check if student is in any of the teacher's classes
     const isMyStudent = student.enrolledCourses.some(studentCourseId => 
       myCourses.some(myCourse => myCourse.id === studentCourseId)
@@ -116,7 +117,7 @@ export default function TeacherClassesPage() {
           <CardHeader className="p-6 pb-2">
             <CardDescription className="text-xs uppercase tracking-widest font-normal opacity-60">Total Enrolled Students</CardDescription>
             <CardTitle className="text-3xl font-sans font-normal">
-              {mockStudents.filter(s => (s.enrolledCourses || []).some(courseId => myCourses.some(mc => mc.id === courseId))).length}
+              {mockStudents?.filter(s => (s.enrolledCourses || []).some(courseId => myCourses.some(mc => mc.id === courseId))).length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -139,7 +140,7 @@ export default function TeacherClassesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All My Classes</SelectItem>
-                  {myCourses.map(course => (
+                  {myCourses?.map(course => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.title}
                     </SelectItem>
@@ -177,7 +178,7 @@ export default function TeacherClassesPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredStudents.map((student) => {
+                  filteredStudents?.map((student) => {
                     const studentCourse = myCourses.find(c => student.enrolledCourses.includes(c.id))
                     return (
                       <TableRow key={student.id} className="hover:bg-primary/[0.02] border-primary/5 transition-premium group h-16">
@@ -252,9 +253,9 @@ export default function TeacherClassesPage() {
                         <span className="text-xs uppercase tracking-widest font-normal opacity-60">Enrollment</span>
                       </div>
                       <p className="text-3xl font-sans font-normal">
-                        {mockStudents.filter(s => (s.enrolledCourses || []).includes(selectedCourse.id)).length}/{selectedCourse.capacity}
+                        {mockStudents?.filter(s => (s.enrolledCourses || []).includes(selectedCourse.id)).length}/{selectedCourse.capacity}
                       </p>
-                      <Progress value={(mockStudents.filter(s => (s.enrolledCourses || []).includes(selectedCourse.id)).length / (selectedCourse.capacity || 1)) * 100} className="h-1 mt-3" />
+                      <Progress value={(mockStudents?.filter(s => (s.enrolledCourses || []).includes(selectedCourse.id)).length / (selectedCourse.capacity || 1)) * 100} className="h-1 mt-3" />
                     </div>
                     <div className="p-6 rounded-2xl border border-primary/5 bg-card/40">
                       <div className="flex items-center gap-2 mb-2">
@@ -279,7 +280,7 @@ export default function TeacherClassesPage() {
 
                 <TabsContent value="students" className="mt-0">
                   <div className="space-y-3">
-                    {mockStudents.filter(s => s.enrolledCourses.includes(selectedCourse.id)).map((student) => {
+                    {mockStudents?.filter(s => s.enrolledCourses.includes(selectedCourse.id)).map((student) => {
                       const enrollment = mockEnrollments.find(e => e.studentId === student.id && e.courseId === selectedCourse.id)
                       const progress = enrollment?.progress || 0
                       
@@ -331,9 +332,9 @@ export default function TeacherClassesPage() {
 
                 <TabsContent value="assessments" className="mt-0">
                   <div className="space-y-3">
-                    {mockAssessments.filter(a => (a.classLevels || []).includes(selectedCourse.title)).map((assessment) => {
-                      const totalSubmissions = mockSubmissions.filter(s => s.assignmentId === assessment.id).length;
-                      const rosterCount = mockStudents.filter(s => (s.enrolledCourses || []).includes(selectedCourse.id)).length;
+                    {mockAssessments?.filter(a => (a.classLevels || []).includes(selectedCourse.title)).map((assessment) => {
+                      const totalSubmissions = mockSubmissions?.filter(s => s.assignmentId === assessment.id).length;
+                      const rosterCount = mockStudents?.filter(s => (s.enrolledCourses || []).includes(selectedCourse.id)).length;
                       const safeTotal = rosterCount > 0 ? rosterCount : 1;
 
                       return (
@@ -381,10 +382,10 @@ export default function TeacherClassesPage() {
       <Dialog open={!!evalStudent} onOpenChange={(open) => !open && setEvalStudent(null)}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl border-primary/5 shadow-premium">
           {evalStudent && selectedCourse && (() => {
-            const studentMidterms = mockSubmissions.filter(s => s.studentId === evalStudent.id && mockAssessments.find(a => a.id === s.assignmentId && a.phase === 'First Test' && (a.classLevels || []).includes(selectedCourse.title)))
+            const studentMidterms = mockSubmissions?.filter(s => s.studentId === evalStudent.id && mockAssessments.find(a => a.id === s.assignmentId && a.phase === 'First Test' && (a.classLevels || []).includes(selectedCourse.title)))
             const midtermScore = studentMidterms.length > 0 && studentMidterms[0].grade ? studentMidterms[0].grade : 0 
             
-            const studentFinals = mockSubmissions.filter(s => s.studentId === evalStudent.id && mockAssessments.find(a => a.id === s.assignmentId && a.phase === 'Last Test' && (a.classLevels || []).includes(selectedCourse.title)))
+            const studentFinals = mockSubmissions?.filter(s => s.studentId === evalStudent.id && mockAssessments.find(a => a.id === s.assignmentId && a.phase === 'Last Test' && (a.classLevels || []).includes(selectedCourse.title)))
             const finalScore = studentFinals.length > 0 && studentFinals[0].grade ? studentFinals[0].grade : 0
             
             const grandTotal = midtermScore + finalScore + evalScores.attendance + evalScores.participation + evalScores.discipline + evalScores.extra

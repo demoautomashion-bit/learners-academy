@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { 
@@ -70,7 +71,9 @@ import { useTransition } from 'react'
 */
 
 export default function FeeRegistryPage() {
-  const { students, courses, feePayments, recordPayment, addFeeAccount } = useData()
+  const { students, courses, feePayments, recordPayment, addFeeAccount, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'All' | 'Paid' | 'Partial' | 'Unpaid'>('All')
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false)
@@ -99,7 +102,7 @@ export default function FeeRegistryPage() {
   }, [feePayments])
 
   const filteredPayments = useMemo(() => {
-    return feePayments.filter(p => {
+    return feePayments?.filter(p => {
       const matchesSearch = p.student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             p.course.title.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = filterStatus === 'All' || p.status === filterStatus
@@ -183,7 +186,7 @@ export default function FeeRegistryPage() {
                         <SelectValue placeholder="Registration / UID" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-primary/5 shadow-premium">
-                        {students.map(s => (
+                        {students?.map(s => (
                           <SelectItem key={s.id} value={s.id} className="rounded-lg">
                             {s.name} ({s.studentId})
                           </SelectItem>
@@ -198,7 +201,7 @@ export default function FeeRegistryPage() {
                         <SelectValue placeholder="Enrolled Course" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-primary/5 shadow-premium">
-                        {courses.map(c => (
+                        {courses?.map(c => (
                           <SelectItem key={c.id} value={c.id} className="rounded-lg">
                             {c.title}
                           </SelectItem>
@@ -310,7 +313,7 @@ export default function FeeRegistryPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredPayments.map((entry) => {
+                    filteredPayments?.map((entry) => {
                       const balance = entry.totalAmount - entry.amountPaid
                       const progress = (entry.amountPaid / entry.totalAmount) * 100
 

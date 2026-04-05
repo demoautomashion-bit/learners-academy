@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
@@ -67,6 +68,8 @@ type QuestionFormValues = z.infer<typeof questionSchema>
 export default function AssessmentLibraryPage() {
   const router = useRouter()
   const { questions, addQuestion, deleteQuestion, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [phaseFilter, setPhaseFilter] = useState('all')
@@ -91,7 +94,7 @@ export default function AssessmentLibraryPage() {
 
   const watchType = watch('type')
 
-  const filteredQuestions = questions.filter(q => {
+  const filteredQuestions = questions?.filter(q => {
     const matchesSearch = q.content.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesType = typeFilter === 'all' || q.type === typeFilter
     const matchesPhase = phaseFilter === 'all' || q.phase === phaseFilter || q.phase === 'Both'
@@ -319,7 +322,7 @@ export default function AssessmentLibraryPage() {
         animate="visible"
       >
         <AnimatePresence>
-          {filteredQuestions.map((q) => (
+          {filteredQuestions?.map((q) => (
             <motion.div 
               key={q.id} 
               variants={STAGGER_ITEM}
@@ -362,7 +365,7 @@ export default function AssessmentLibraryPage() {
                    
                    {q.type === 'MCQ' && q.options && (
                       <div className="grid grid-cols-2 gap-3 pt-4">
-                         {q.options.filter(o => !!o).map((opt, i) => (
+                         {q.options?.filter(o => !!o).map((opt, i) => (
                            <div key={i} className="p-3 rounded-2xl bg-muted/10 border border-primary/5 text-[10px] font-normal truncate">
                              <span className="opacity-30 mr-2">{String.fromCharCode(65 + i)}:</span>
                              {opt}

@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -70,12 +71,14 @@ import { ACADEMY_LEVELS } from '@/lib/registry'
 
 export default function TeachersPage() {
   const router = useRouter()
-  const { teachers, addTeacher, removeTeacher, updateTeacherStatus, updateTeacher, courses, students, feePayments, updateTeacherReviewFlag } = useData()
+  const { teachers, addTeacher, removeTeacher, updateTeacherStatus, updateTeacher, courses, students, feePayments, updateTeacherReviewFlag, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
 
-  const filteredTeachers = teachers.filter(teacher =>
+  const filteredTeachers = teachers?.filter(teacher =>
     teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     teacher.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     teacher.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -152,7 +155,7 @@ export default function TeachersPage() {
           <CardHeader className="pb-2">
             <CardDescription>Active Teachers</CardDescription>
             <CardTitle className="text-3xl text-success">
-              {teachers.filter(t => t.status === 'active').length}
+              {teachers?.filter(t => t.status === 'active').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -160,7 +163,7 @@ export default function TeachersPage() {
           <CardHeader className="pb-2">
             <CardDescription>Inactive Teachers</CardDescription>
             <CardTitle className="text-3xl text-muted-foreground">
-              {teachers.filter(t => t.status === 'inactive').length}
+              {teachers?.filter(t => t.status === 'inactive').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -204,7 +207,7 @@ export default function TeachersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredTeachers.map((teacher) => (
+                  filteredTeachers?.map((teacher) => (
                     <TableRow key={teacher.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -329,7 +332,7 @@ export default function TeachersPage() {
                 No teachers found in the registry.
               </div>
             ) : (
-              filteredTeachers.map((teacher) => (
+              filteredTeachers?.map((teacher) => (
                 <div
                   key={teacher.id}
                   className="bg-card border rounded-2xl p-4 shadow-sm hover:shadow-md transition-premium active:scale-[0.98] cursor-pointer"
@@ -503,7 +506,7 @@ export default function TeachersPage() {
                         <SelectValue placeholder="No level assigned" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ACADEMY_LEVELS.map(level => (
+                        {ACADEMY_LEVELS?.map(level => (
                           <SelectItem key={level} value={level}>{level}</SelectItem>
                         ))}
                       </SelectContent>

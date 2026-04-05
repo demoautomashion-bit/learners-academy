@@ -26,6 +26,7 @@ import { motion } from 'framer-motion'
 
 export default function TeacherDashboard() {
   const { user } = useAuth()
+  if (!user?.id) return null
   const { 
     courses, 
     assessments, 
@@ -35,15 +36,15 @@ export default function TeacherDashboard() {
     isInitialized
   } = useData()
   
-  const myCourses = courses.filter(c => c.teacherId === user?.id)
-  const myCourseTitles = myCourses.map(c => c.title)
+  const myCourses = courses?.filter(c => c.teacherId === user?.id)
+  const myCourseTitles = myCourses?.map(c => c.title)
  
-  const activeTests = assessments.filter(a => 
+  const activeTests = assessments?.filter(a => 
     a.status === 'active' && 
     (a.submittedByTeacherId === user?.id || (a.classLevels || []).some(level => myCourseTitles.includes(level)))
   )
 
-  const pendingSubmissions = submissions.filter(s => {
+  const pendingSubmissions = submissions?.filter(s => {
     if (s.status !== 'pending') return false
     const match = assessments.find(a => a.id === s.assignmentId)
     return match && (match.submittedByTeacherId === user?.id || (match.classLevels || []).some(level => myCourseTitles.includes(level)))
@@ -125,7 +126,7 @@ export default function TeacherDashboard() {
         animate="visible"
         variants={STAGGER_CONTAINER}
       >
-        {stats.map((stat) => (
+        {stats?.map((stat) => (
           <motion.div
             key={stat.title}
             variants={STAGGER_ITEM}
@@ -177,8 +178,8 @@ export default function TeacherDashboard() {
                 </div>
               ) : (
                 activeTests.slice(0, 3).map((assessment) => {
-                  const subCount = submissions.filter(s => s.assignmentId === assessment.id).length
-                  const enrolledCount = students.filter(s =>
+                  const subCount = submissions?.filter(s => s.assignmentId === assessment.id).length
+                  const enrolledCount = students?.filter(s =>
                     (s.enrolledCourses || []).some(cId =>
                       myCourses.some(mc => mc.id === cId && (assessment.classLevels || []).includes(mc.title))
                     )
@@ -229,11 +230,11 @@ export default function TeacherDashboard() {
                   <p className="text-xs uppercase tracking-widest font-normal text-muted-foreground opacity-60">No Academic Records</p>
                 </div>
               ) : (
-                myCourses.map((course) => {
-                  const courseStudents = students.filter(s => (s.enrolledCourses || []).includes(course.id))
-                  const courseStudentIds = courseStudents.map(s => s.id)
+                myCourses?.map((course) => {
+                  const courseStudents = students?.filter(s => (s.enrolledCourses || []).includes(course.id))
+                  const courseStudentIds = courseStudents?.map(s => s.id)
                   
-                  const courseResults = submissions.filter(s => 
+                  const courseResults = submissions?.filter(s => 
                     s.grade !== undefined && s.grade !== null &&
                     courseStudentIds.includes(s.studentId)
                   )

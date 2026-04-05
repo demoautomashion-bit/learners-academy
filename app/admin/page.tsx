@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import React, { useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -36,7 +37,10 @@ import { useAuth } from '@/contexts/auth-context'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
-  const { students, teachers, courses, stats } = useData()
+  if (!user?.id) return null
+  const { students, teachers, courses, stats, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   // Dynamic Chart Data Generation
   const enrollmentTrendData = useMemo(() => {
@@ -65,7 +69,7 @@ export default function AdminDashboard() {
       }
     })
 
-    return trend.map(({ name, value }) => ({ name, value }))
+    return trend?.map(({ name, value }) => ({ name, value }))
   }, [students])
 
   const coursePopularityData = useMemo(() => {
@@ -133,7 +137,7 @@ export default function AdminDashboard() {
         animate="visible"
         variants={STAGGER_CONTAINER}
       >
-        {statCards.map((stat) => (
+        {statCards?.map((stat) => (
           <motion.div
             key={stat.title}
             variants={STAGGER_ITEM}
@@ -349,7 +353,7 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {courses.filter(c => c.status === 'active').slice(0, 6).map((course) => (
+            {courses?.filter(c => c.status === 'active').slice(0, 6).map((course) => (
               <div 
                 key={course.id} 
                 className="group p-5 rounded-2xl border bg-card hover-lift transition-premium cursor-pointer"

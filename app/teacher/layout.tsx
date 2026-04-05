@@ -132,6 +132,7 @@ export default function TeacherLayout({
 }) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
+  if (!user?.id) return null
 
   return (
     <SidebarProvider style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif' }}>
@@ -141,7 +142,7 @@ export default function TeacherLayout({
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu className="gap-2">
-                {teacherNavItems.map((item) => {
+                {teacherNavItems?.map((item) => {
                   const isActive = pathname === item.href || 
                     (item.href !== '/teacher' && pathname.startsWith(item.href))
                   

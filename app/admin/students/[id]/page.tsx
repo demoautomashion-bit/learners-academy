@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useData } from '@/contexts/data-context'
@@ -46,7 +47,9 @@ import { cn } from '@/lib/utils'
 export default function StudentDossierPage() {
   const params = useParams()
   const router = useRouter()
-  const { students, courses, feePayments, updateStudentSuccessMetrics } = useData()
+  const { students, courses, feePayments, updateStudentSuccessMetrics, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   
   // Find student by ID or studentId
   const student = students.find(s => s.id === params.id || s.studentId === params.id)
@@ -84,7 +87,7 @@ export default function StudentDossierPage() {
     )
   }
 
-  const studentFees = feePayments.filter(f => f.studentId === student.id)
+  const studentFees = feePayments?.filter(f => f.studentId === student.id)
   const totalPaid = studentFees.reduce((sum, f) => sum + (f.amountPaid || 0), 0)
   const totalDue = studentFees.reduce((sum, f) => sum + (f.totalAmount || 0), 0) - totalPaid
 
@@ -240,7 +243,7 @@ export default function StudentDossierPage() {
 
               <div className="space-y-4 pt-4">
                  <h4 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground opacity-60 font-bold">Current Enrollments</h4>
-                 {student.enrolledCourses.map(courseId => {
+                 {student.enrolledCourses?.map(courseId => {
                    const course = courses.find(c => c.id === courseId)
                    return (
                      <div key={courseId} className="flex items-center justify-between p-4 rounded-2xl bg-background/40 border group hover:border-primary/20 transition-all duration-300">
@@ -310,7 +313,7 @@ export default function StudentDossierPage() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        studentFees.map((fee) => (
+                        studentFees?.map((fee) => (
                           <TableRow key={fee.id} className="group hover:bg-primary/5 border-primary/5">
                             <TableCell className="font-serif">
                               {courses.find(c => c.id === fee.courseId)?.title || 'Registry Level'}

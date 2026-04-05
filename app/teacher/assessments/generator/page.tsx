@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
@@ -69,6 +70,7 @@ type AssessmentFormValues = z.infer<typeof assessmentSchema>
 export default function AssessmentGeneratorPage() {
   const router = useRouter()
   const { user } = useAuth()
+  if (!user?.id) return null
   const { 
     courses, 
     questions, 
@@ -79,7 +81,7 @@ export default function AssessmentGeneratorPage() {
 
   const currentTeacher = teachers.find(t => t.id === user?.id)
   const requiresReview = !!currentTeacher?.requiresReview
-  const myClasses = courses.filter(c => c.teacherId === user?.id)
+  const myClasses = courses?.filter(c => c.teacherId === user?.id)
 
   const {
     register,
@@ -116,7 +118,7 @@ export default function AssessmentGeneratorPage() {
   const watchPhase = watch('phase')
 
   const availableBlocks = useMemo(() => {
-     return questions.filter(q => q.phase === watchPhase || q.phase === 'Both')
+     return questions?.filter(q => q.phase === watchPhase || q.phase === 'Both')
   }, [questions, watchPhase])
 
   const natureStats = useMemo(() => {
@@ -252,7 +254,7 @@ export default function AssessmentGeneratorPage() {
                                      <SelectValue placeholder="Select Class Level" />
                                   </SelectTrigger>
                                   <SelectContent className="rounded-xl">
-                                     {myClasses.map(c => (
+                                     {myClasses?.map(c => (
                                         <SelectItem key={c.id} value={c.title} className="text-xs uppercase tracking-widest">{c.title}</SelectItem>
                                      ))}
                                   </SelectContent>

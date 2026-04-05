@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useParams, useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,17 +31,15 @@ import { motion } from 'framer-motion'
 export default function TeacherProfilePage() {
   const params = useParams()
   const router = useRouter()
-  const { 
-    teachers, 
+  const { teachers, 
     courses: allCourses, 
     updateTeacherStatus, 
     updateTeacherReviewFlag,
-    removeTeacher 
-  } = useData()
+    removeTeacher, isInitialized } = useData()
 
   const teacherId = params.id as string
   const teacher = teachers.find(t => t.id === teacherId || t.employeeId === teacherId)
-  const teacherCourses = allCourses.filter(c => c.teacherId === teacher?.id)
+  const teacherCourses = allCourses?.filter(c => c.teacherId === teacher?.id)
 
   if (!teacher) {
     return (
@@ -221,7 +220,7 @@ export default function TeacherProfilePage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {teacherCourses.map(course => (
+                  {teacherCourses?.map(course => (
                     <div key={course.id} className="p-5 rounded-2xl bg-background/40 border border-primary/5 group hover:border-primary/20 transition-all duration-300">
                       <div className="flex justify-between items-start mb-2">
                         <Badge variant="outline" className="text-[9px] uppercase tracking-tighter opacity-60 font-normal">

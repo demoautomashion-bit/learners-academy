@@ -15,6 +15,7 @@ import Image from 'next/image'
 
 export default function TeacherSettingsPage() {
   const { user } = useAuth()
+  if (!user?.id) return null
 
   const profileData = [
     {
@@ -89,7 +90,7 @@ export default function TeacherSettingsPage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="grid grid-cols-2 gap-px bg-primary/5">
-            {profileData.map((item, index) => (
+            {profileData?.map((item, index) => (
               <div key={index} className="bg-card p-8 hover:bg-muted/5 transition-premium group">
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">

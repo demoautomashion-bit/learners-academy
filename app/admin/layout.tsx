@@ -142,8 +142,9 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
+  if (!user?.id) return null
   const { assessments } = useData()
-  const pendingReviewCount = assessments.filter(a => a.status === 'pending_review').length
+  const pendingReviewCount = assessments?.filter(a => a.status === 'pending_review').length
 
   return (
     <SidebarProvider style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, var(--font-inter), Inter, sans-serif' }}>
@@ -155,7 +156,7 @@ export default function AdminLayout({
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu className="gap-2">
-                {adminNavItems.map((item) => {
+                {adminNavItems?.map((item) => {
                   const isActive = pathname === item.href || 
                     (item.href !== '/admin' && pathname.startsWith(item.href))
                   

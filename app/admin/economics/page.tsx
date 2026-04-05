@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { 
@@ -87,7 +88,9 @@ import { cn } from '@/lib/utils'
 */
 
 export default function EconomicsPage() {
-  const { economics, addExpenditure, isLoading } = useData()
+  const { economics, addExpenditure, isLoading, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false)
   const [newExpense, setNewExpense] = useState({ amount: '', category: '', description: '' })
 
@@ -122,7 +125,7 @@ export default function EconomicsPage() {
     if (!economics?.transactions) return
     
     const headers = ["Date", "Log ID", "Entity", "Category", "Description", "Type", "Amount"]
-    const rows = economics.transactions.map((tx: any) => [
+    const rows = economics.transactions?.map((tx: any) => [
       format(new Date(tx.date), 'yyyy-MM-dd'),
       tx.id,
       tx.person,
@@ -134,7 +137,7 @@ export default function EconomicsPage() {
 
     const csvContent = "data:text/csv;charset=utf-8," 
       + headers.join(",") + "\n"
-      + rows.map((e: any) => e.join(",")).join("\n")
+      + rows?.map((e: any) => e.join(",")).join("\n")
 
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
@@ -172,7 +175,7 @@ export default function EconomicsPage() {
     doc.text(`Current Net Margin: Rs. ${economics.netMargin.toLocaleString()}`, 18, 70)
 
     const tableHeaders = [["DATE", "ENTITY", "CATEGORY", "TYPE", "AMOUNT"]]
-    const tableData = economics.transactions.map((tx: any) => [
+    const tableData = economics.transactions?.map((tx: any) => [
       format(new Date(tx.date), 'MMM d, yyyy'),
       tx.person,
       tx.category,
@@ -252,7 +255,7 @@ export default function EconomicsPage() {
                       <SelectValue placeholder="Select classification..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-primary/5 p-1.5 focus:bg-card">
-                      {EXPENDITURE_CATEGORIES.map(cat => (
+                      {EXPENDITURE_CATEGORIES?.map(cat => (
                         <SelectItem key={cat} value={cat} className="rounded-xl py-3 cursor-pointer">{cat}</SelectItem>
                       ))}
                     </SelectContent>
@@ -400,7 +403,7 @@ export default function EconomicsPage() {
                     dataKey="value"
                     stroke="transparent"
                   >
-                    {pieData.map((entry: any, index: number) => (
+                    {pieData?.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={`oklch(0.62 0.17 ${240 + (index * 40)})`} opacity={1 - (index * 0.15)} />
                     ))}
                   </Pie>
@@ -415,7 +418,7 @@ export default function EconomicsPage() {
               </div>
             </div>
             <div className="space-y-4 mt-6">
-              {pieData.map((item, index) => {
+              {pieData?.map((item, index) => {
                 const Icon = categoryIcons[item.name as string] || List
                 return (
                   <div key={index} className="flex items-center justify-between group">
@@ -462,7 +465,7 @@ export default function EconomicsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {economics.transactions.map((tx: any) => (
+                  {economics.transactions?.map((tx: any) => (
                     <TableRow key={tx.id} className="group border-b border-primary/5 hover:bg-primary/[0.01] transition-premium h-20">
                       <TableCell className="pl-10">
                         <div className="flex items-center gap-3">

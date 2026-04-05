@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -45,7 +46,9 @@ type TeacherRegistrationValues = z.infer<typeof teacherRegistrationSchema>
 
 export default function TeacherRegistrationPage() {
   const router = useRouter()
-  const { teachers, addTeacher } = useData()
+  const { teachers, addTeacher, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
 
   const form = useForm<TeacherRegistrationValues>({
     resolver: zodResolver(teacherRegistrationSchema),

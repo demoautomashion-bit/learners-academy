@@ -278,7 +278,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ user, isAuthenticated: true, isLoading: false })
   }, [])
 
-  if (!mounted) return <div id="auth-hydrating" />
+  // Protection render guard
+  const isProtectedRoute = pathname.startsWith('/admin') || 
+                           pathname.startsWith('/teacher') || 
+                           pathname.startsWith('/student')
+
+  if (isProtectedRoute && (state.isLoading || !state.isAuthenticated)) {
+     if (pathname === '/student' || pathname.startsWith('/student/assessments')) {
+        // Exception allowed by route-protection logic
+     } else {
+        return <div id="auth-hydrating" className="min-h-screen flex items-center justify-center bg-background"><div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" /></div>
+     }
+  }
+
+  if (!mounted || state.isLoading) return <div id="auth-hydrating" className="min-h-screen bg-background" />
 
   return (
     <AuthContext.Provider value={{

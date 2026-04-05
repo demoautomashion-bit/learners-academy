@@ -27,6 +27,7 @@ import {
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth()
+  if (!user?.id) return null
   const [isLoading, setIsLoading] = useState(false)
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

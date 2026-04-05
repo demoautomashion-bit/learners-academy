@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -41,14 +42,16 @@ import { useData } from '@/contexts/data-context'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 
 export default function TestReviewsPage() {
-  const { assessments, teachers, approveAssessment, rejectAssessment } = useData()
+  const { assessments, teachers, approveAssessment, rejectAssessment, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [expandedRejectId, setExpandedRejectId] = useState<string | null>(null)
   const [inspectPoolId, setInspectPoolId] = useState<string | null>(null)
   const [feedbackMap, setFeedbackMap] = useState<Record<string, string>>({})
 
-  const pendingAssessments = assessments.filter(a => a.status === 'pending_review')
-  const approvedCount = assessments.filter(a => a.status === 'active' && a.submittedByTeacherId).length
-  const rejectedCount = assessments.filter(a => a.status === 'draft' && a.adminFeedback).length
+  const pendingAssessments = assessments?.filter(a => a.status === 'pending_review')
+  const approvedCount = assessments?.filter(a => a.status === 'active' && a.submittedByTeacherId).length
+  const rejectedCount = assessments?.filter(a => a.status === 'draft' && a.adminFeedback).length
 
   const getTeacherName = (assessment: any) => {
     if (assessment.submittedByTeacherName) return assessment.submittedByTeacherName
@@ -95,7 +98,7 @@ export default function TestReviewsPage() {
 
   const getPoolStrength = (assessment: any) => {
     const { questions } = useData()
-    const pool = questions.filter(q => {
+    const pool = questions?.filter(q => {
       const phaseMatch = q.phase === assessment.phase || q.phase === 'Both'
       const natureMatch = assessment.nature === 'Mixed' || q.type === assessment.nature
       return phaseMatch && natureMatch && q.isApproved
@@ -215,7 +218,7 @@ export default function TestReviewsPage() {
           variants={STAGGER_CONTAINER}
         >
           <AnimatePresence>
-            {pendingAssessments.map((assessment) => (
+            {pendingAssessments?.map((assessment) => (
               <motion.div
                 key={assessment.id}
                 variants={STAGGER_ITEM}
@@ -398,7 +401,7 @@ export default function TestReviewsPage() {
                         <p className="text-muted-foreground">Crucial Error: No approved questions found for this criteria.</p>
                       </div>
                     ) : (
-                      poolQuestions.map((q, i) => (
+                      poolQuestions?.map((q, i) => (
                         <div key={q.id} className="group relative bg-muted/20 hover:bg-muted/40 border border-primary/5 rounded-2xl p-4 transition-premium">
                            <div className="flex items-start gap-4">
                              <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-background border flex items-center justify-center text-[10px] font-bold text-muted-foreground/40">{i+1}</span>
@@ -410,7 +413,7 @@ export default function TestReviewsPage() {
                                <p className="text-sm font-normal leading-relaxed text-foreground/80">{q.content}</p>
                                {q.options && q.options.length > 0 && (
                                  <div className="flex flex-wrap gap-1.5 pt-1">
-                                   {q.options.map((opt, idx) => (
+                                   {q.options?.map((opt, idx) => (
                                      <span key={idx} className={`text-[9px] px-2 py-0.5 rounded-full ${opt === q.correctAnswer ? 'bg-success/10 text-success' : 'bg-background text-muted-foreground'}`}>
                                        {opt}
                                      </span>

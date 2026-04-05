@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -47,6 +48,8 @@ import { cn } from '@/lib/utils'
 export default function ScheduleIntelligencePage() {
   const router = useRouter()
   const { courses, teachers, updateCourse, isInitialized } = useData()
+
+  if (!isInitialized) return <DashboardSkeleton />
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDay, setSelectedDay] = useState('Monday') // Simple day toggle
 
@@ -92,7 +95,7 @@ export default function ScheduleIntelligencePage() {
     return results
   }, [courses, teachers])
 
-  const filteredTimings = SESSION_TIMINGS.filter(t => 
+  const filteredTimings = SESSION_TIMINGS?.filter(t => 
     t.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -193,7 +196,7 @@ export default function ScheduleIntelligencePage() {
                         className="space-y-4"
                     >
                         <h4 className="px-4 text-[10px] uppercase tracking-widest font-bold text-destructive">Active Registry Issues</h4>
-                        {conflicts.map((conflict, idx) => (
+                        {conflicts?.map((conflict, idx) => (
                             <div 
                                 key={idx}
                                 className="p-4 bg-destructive/5 border border-destructive/10 rounded-[1.5rem] space-y-2 group hover:bg-destructive/10 transition-colors"
@@ -209,7 +212,7 @@ export default function ScheduleIntelligencePage() {
                                     <p className="text-[10px] text-muted-foreground mt-0.5">{conflict.time}</p>
                                 </div>
                                 <div className="pt-2 flex gap-1 items-center">
-                                    {conflict.courseIds.map(cid => (
+                                    {conflict.courseIds?.map(cid => (
                                         <div key={cid} className="h-1 flex-1 bg-destructive/20 rounded-full" />
                                     ))}
                                 </div>
@@ -250,8 +253,8 @@ export default function ScheduleIntelligencePage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredTimings.map((time) => {
-                                const batchesInTime = courses.filter(c => c.schedule === time)
+                            {filteredTimings?.map((time) => {
+                                const batchesInTime = courses?.filter(c => c.schedule === time)
                                 const hasConflicts = conflicts.some(c => c.time === time)
                                 
                                 return (
@@ -337,7 +340,7 @@ export default function ScheduleIntelligencePage() {
                     <CardContent className="pt-2">
                          <div className="space-y-4">
                             {teachers.slice(0, 3).map(t => {
-                                const tCourses = courses.filter(c => c.teacherId === t.id)
+                                const tCourses = courses?.filter(c => c.teacherId === t.id)
                                 return (
                                     <div key={t.id} className="flex items-center justify-between p-4 rounded-2xl bg-muted/5 border border-primary/5">
                                         <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState } from "react"
 import { useData } from "@/contexts/data-context"
@@ -32,6 +32,7 @@ import { useRouter } from "next/navigation"
 export default function TeacherStudentsPage() {
   const router = useRouter()
   const { user } = useAuth()
+  if (!user?.id) return null
   const { students: mockStudents, courses: mockCourses, enrollments: mockEnrollments, isInitialized } = useData()
 
   // All hooks MUST be declared before any early returns (Rules of Hooks)
@@ -41,22 +42,22 @@ export default function TeacherStudentsPage() {
   if (!isInitialized) return <DashboardSkeleton />
 
   // Get students enrolled in teacher's courses
-  const teacherCourses = mockCourses.filter(c => c.teacherId === user?.id)
-  const teacherCourseIds = teacherCourses.map(c => c.id)
+  const teacherCourses = mockCourses?.filter(c => c.teacherId === user?.id)
+  const teacherCourseIds = teacherCourses?.map(c => c.id)
   
-  const studentsInTeacherCourses = mockStudents.filter(student => {
-    const studentEnrollments = mockEnrollments.filter(e => e.studentId === student.id)
+  const studentsInTeacherCourses = mockStudents?.filter(student => {
+    const studentEnrollments = mockEnrollments?.filter(e => e.studentId === student.id)
     return studentEnrollments.some(e => teacherCourseIds.includes(e.courseId))
   })
 
-  const filteredStudents = studentsInTeacherCourses.filter(student => {
+  const filteredStudents = studentsInTeacherCourses?.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.id.toLowerCase().includes(searchQuery.toLowerCase())
     
     if (courseFilter === "all") return matchesSearch
     
-    const studentEnrollments = mockEnrollments.filter(e => e.studentId === student.id)
+    const studentEnrollments = mockEnrollments?.filter(e => e.studentId === student.id)
     const matchesCourse = studentEnrollments.some(e => e.courseId === courseFilter)
     
     return matchesSearch && matchesCourse
@@ -104,7 +105,7 @@ export default function TeacherStudentsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Academic Levels</SelectItem>
-              {teacherCourses.map(course => (
+              {teacherCourses?.map(course => (
                 <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
               ))}
             </SelectContent>
@@ -151,7 +152,7 @@ export default function TeacherStudentsPage() {
           <Card className="hover-lift border-primary/5 bg-card/30 backdrop-blur-md shadow-premium rounded-[2rem] p-8 overflow-hidden group">
             <div className="flex flex-col items-center justify-center text-center space-y-2">
                 <p className="text-4xl font-sans font-normal text-foreground/80 group-hover:text-warning transition-colors">
-                  {studentsInTeacherCourses.filter(s => {
+                  {studentsInTeacherCourses?.filter(s => {
                     const enrollment = mockEnrollments.find(e => e.studentId === s.id)
                     return enrollment && enrollment.progress >= 80
                   }).length}
@@ -191,7 +192,7 @@ export default function TeacherStudentsPage() {
               initial="hidden"
               animate="visible"
             >
-              {filteredStudents.map((student) => {
+              {filteredStudents?.map((student) => {
                 const enrollment = mockEnrollments.find(e => e.studentId === student.id)
                 const progress = enrollment?.progress || 0
                 

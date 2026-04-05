@@ -40,7 +40,7 @@ export default function AdminLibraryPage() {
 
   if (!isInitialized) return <DashboardSkeleton />
 
-  const filteredQuestions = questions.filter((q: Question) => {
+  const filteredQuestions = questions?.filter((q: Question) => {
     const categoryMatch = activeTab === 'All' || q.category === activeTab
     const searchMatch = q.content.toLowerCase().includes(searchQuery.toLowerCase())
     const approvalMatch = 
@@ -50,7 +50,7 @@ export default function AdminLibraryPage() {
     return categoryMatch && searchMatch && approvalMatch
   })
 
-  const pendingCount = questions.filter(q => !q.isApproved).length
+  const pendingCount = questions?.filter(q => !q.isApproved).length
 
   return (
     <div className="space-y-8">
@@ -97,7 +97,7 @@ export default function AdminLibraryPage() {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
           <TabsList className="px-4 pb-4 bg-transparent w-full justify-start overflow-x-auto no-scrollbar h-auto border-none">
             <TabsTrigger value="All" className="h-9 px-6 rounded-xl text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">All Categories</TabsTrigger>
-            {CATEGORIES.map(cat => (
+            {CATEGORIES?.map(cat => (
               <TabsTrigger key={cat} value={cat} className="h-9 px-6 rounded-xl text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{cat}</TabsTrigger>
             ))}
           </TabsList>
@@ -113,7 +113,7 @@ export default function AdminLibraryPage() {
               <p className="text-muted-foreground font-serif text-lg">No questions found matching your filters.</p>
             </motion.div>
           ) : (
-            filteredQuestions.map((q) => (
+            filteredQuestions?.map((q) => (
               <motion.div
                 key={q.id}
                 layout

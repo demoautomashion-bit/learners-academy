@@ -68,6 +68,7 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
 
 export default function QuestionLibraryPage() {
   const { user } = useAuth()
+  if (!user?.id) return null
   const { questions, addQuestion, deleteQuestion, isInitialized, teachers, approveQuestion } = useData()
   
   // Find current teacher's requiresReview flag
@@ -92,7 +93,7 @@ export default function QuestionLibraryPage() {
   const imageUrl = watch('imageUrl')
   const correctAnswer = watch('correctAnswer')
 
-  const filteredQuestions = questions.filter((q: Question) =>
+  const filteredQuestions = questions?.filter((q: Question) =>
     q.category === activeTab && q.content.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -105,10 +106,10 @@ export default function QuestionLibraryPage() {
   }
 
   const updatePair = (i: number, field: 'left' | 'right', val: string) =>
-    setMatchPairs(prev => prev.map((p, idx) => idx === i ? { ...p, [field]: val } : p))
+    setMatchPairs(prev => prev?.map((p, idx) => idx === i ? { ...p, [field]: val } : p))
 
   const onSubmit = async (data: QuestionFormValues) => {
-    const validPairs = matchPairs.filter(p => p.left.trim() && p.right.trim())
+    const validPairs = matchPairs?.filter(p => p.left.trim() && p.right.trim())
     if (data.type === 'Matching' && validPairs.length < 2) {
       toast.error('Add at least 2 complete pairs for a Matching question.')
       return
@@ -180,7 +181,7 @@ export default function QuestionLibraryPage() {
                       <Select value={watch('category')} onValueChange={(v) => setValue('category', v)}>
                         <SelectTrigger className="h-10 text-sm rounded-xl"><SelectValue placeholder="Category" /></SelectTrigger>
                         <SelectContent className="rounded-xl">
-                          {CATEGORIES.map(c => <SelectItem key={c} value={c} className="text-sm">{c}</SelectItem>)}
+                          {CATEGORIES?.map(c => <SelectItem key={c} value={c} className="text-sm">{c}</SelectItem>)}
                         </SelectContent>
                       </Select>
                       {errors.category && <p className="text-xs text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.category.message}</p>}
@@ -204,7 +205,7 @@ export default function QuestionLibraryPage() {
                     <Select defaultValue="MCQ" onValueChange={(v) => setValue('type', v as any)}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {TYPE_OPTIONS.map(t => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
+                        {TYPE_OPTIONS?.map(t => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </Field>
@@ -300,13 +301,13 @@ export default function QuestionLibraryPage() {
                           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Column B</span>
                           <span />
                         </div>
-                        {matchPairs.map((pair, i) => (
+                        {matchPairs?.map((pair, i) => (
                           <div key={i} className="grid grid-cols-[1fr_1fr_20px] gap-1.5 items-center">
                             <Input value={pair.left} onChange={e => updatePair(i, 'left', e.target.value)}
                               className="h-7 text-xs" placeholder={`Term ${i + 1}`} />
                             <Input value={pair.right} onChange={e => updatePair(i, 'right', e.target.value)}
                               className="h-7 text-xs" placeholder={`Match ${i + 1}`} />
-                            <button type="button" onClick={() => setMatchPairs(p => p.filter((_, idx) => idx !== i))}
+                            <button type="button" onClick={() => setMatchPairs(p => p?.filter((_, idx) => idx !== i))}
                               disabled={matchPairs.length <= 2}
                               className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-30 transition-premium">
                               <X className="w-3 h-3" />
@@ -363,7 +364,7 @@ export default function QuestionLibraryPage() {
         <div className="space-y-4">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
             <TabsList className="bg-card/40 backdrop-blur-md border border-primary/5 p-1 w-full justify-start overflow-x-auto no-scrollbar h-12 rounded-2xl">
-              {CATEGORIES.map(cat => (
+              {CATEGORIES?.map(cat => (
                 <TabsTrigger key={cat} value={cat} className="flex-1 md:flex-none h-10 px-6 text-xs uppercase tracking-widest font-normal rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm transition-premium">{cat}</TabsTrigger>
               ))}
             </TabsList>
@@ -392,7 +393,7 @@ export default function QuestionLibraryPage() {
                     </div>
                   </Card>
                 ) : (
-                  filteredQuestions.map(q => (
+                  filteredQuestions?.map(q => (
                     <motion.div key={q.id} variants={STAGGER_ITEM}>
                       <Card className="overflow-hidden border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl hover-lift transition-premium flex flex-col">
                         <div className="p-6">
@@ -443,7 +444,7 @@ export default function QuestionLibraryPage() {
                             {/* MCQ options */}
                             {q.type === 'MCQ' && q.options && (
                               <div className="flex flex-wrap gap-1">
-                                {q.options.map((opt, i) => (
+                                {q.options?.map((opt, i) => (
                                   <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${opt === q.correctAnswer ? 'bg-success/10 text-success ring-1 ring-success/20' : 'bg-muted text-muted-foreground'}`}>
                                     {opt}
                                   </span>
@@ -506,8 +507,8 @@ export default function QuestionLibraryPage() {
               </div>
               <div className="pt-4 border-t border-primary/5 space-y-2.5">
                 <p className="text-[8px] uppercase tracking-[0.2em] font-normal opacity-40">By Taxonomy</p>
-                {TYPE_OPTIONS.map(t => {
-                  const count = questions.filter((q: Question) => q.type === t.value).length
+                {TYPE_OPTIONS?.map(t => {
+                  const count = questions?.filter((q: Question) => q.type === t.value).length
                   return count > 0 ? (
                     <div key={t.value} className="flex justify-between items-center group">
                       <span className="text-xs text-muted-foreground font-normal transition-colors group-hover:text-foreground">{t.value}</span>

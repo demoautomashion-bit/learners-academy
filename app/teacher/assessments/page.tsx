@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -57,6 +58,7 @@ import { AssessmentSkeleton } from '@/components/dashboard-skeleton'
 export default function AssessmentsPage() {
   const router = useRouter()
   const { user } = useAuth()
+  if (!user?.id) return null
   const { 
     assessments, 
     updateAssessmentStatus,
@@ -70,7 +72,7 @@ export default function AssessmentsPage() {
   const requiresReview = !!currentTeacher?.requiresReview
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredAssessments = assessments.filter(a =>
+  const filteredAssessments = assessments?.filter(a =>
     a.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -142,7 +144,7 @@ export default function AssessmentsPage() {
                <p className="text-2xl font-serif text-muted-foreground opacity-30">No active assessments in current registry.</p>
             </div>
           ) : (
-            filteredAssessments.map((assessment) => (
+            filteredAssessments?.map((assessment) => (
               <motion.div
                 key={assessment.id}
                 variants={STAGGER_ITEM}

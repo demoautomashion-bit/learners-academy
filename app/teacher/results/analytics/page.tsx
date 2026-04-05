@@ -23,20 +23,21 @@ import { cn } from '@/lib/utils'
 
 export default function InstitutionalAnalyticsPage() {
   const { user } = useAuth()
+  if (!user?.id) return null
   const { students, courses, submissions, assessments, isInitialized } = useData()
 
   if (!isInitialized) return <DashboardSkeleton />
 
-  const myCourses = courses.filter(c => c.teacherId === user?.id)
-  const teacherAssessments = assessments.filter(a => {
+  const myCourses = courses?.filter(c => c.teacherId === user?.id)
+  const teacherAssessments = assessments?.filter(a => {
     const isOwner = a.submittedByTeacherId === user?.id
     const isAssignedLevel = a.classLevels.some(level => myCourses.some(c => c.title === level))
     return isOwner || isAssignedLevel
   })
 
   // Aggregate Data Calculations
-  const teacherSubmissions = submissions.filter(s => teacherAssessments.some(ta => ta.id === s.assignmentId))
-  const gradedResults = teacherSubmissions.filter(s => s.grade !== undefined && s.grade !== null) as (typeof teacherSubmissions[0] & { grade: number })[]
+  const teacherSubmissions = submissions?.filter(s => teacherAssessments.some(ta => ta.id === s.assignmentId))
+  const gradedResults = teacherSubmissions?.filter(s => s.grade !== undefined && s.grade !== null) as (typeof teacherSubmissions[0] & { grade: number })[]
   
   const getPercentage = (r: typeof gradedResults[0]) => {
     const a = assessments.find(a => a.id === r.assignmentId)
@@ -47,7 +48,7 @@ export default function InstitutionalAnalyticsPage() {
     ? Math.round(gradedResults.reduce((acc, r) => acc + getPercentage(r), 0) / gradedResults.length) 
     : 0
 
-  const highPerformers = gradedResults.filter(r => getPercentage(r) >= 80).length
+  const highPerformers = gradedResults?.filter(r => getPercentage(r) >= 80).length
   const totalSubmissions = teacherSubmissions.length
   const completionRate = totalSubmissions > 0 ? Math.round((gradedResults.length / totalSubmissions) * 100) : 0
 
@@ -100,7 +101,7 @@ export default function InstitutionalAnalyticsPage() {
               <CardTitle className="text-4xl font-sans font-normal">{highPerformers}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-               <span className="text-[10px] text-muted-foreground font-normal">Candidates with >80% Score</span>
+               <span className="text-[10px] text-muted-foreground font-normal">Candidates with &gt;80% Score</span>
             </CardContent>
           </Card>
         </motion.div>
@@ -143,8 +144,8 @@ export default function InstitutionalAnalyticsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-10 space-y-8">
-            {myCourses.map((course) => {
-              const courseResults = gradedResults.filter(r => r.assignmentId && assessments.find(a => a.id === r.assignmentId)?.classLevels.includes(course.title))
+            {myCourses?.map((course) => {
+              const courseResults = gradedResults?.filter(r => r.assignmentId && assessments.find(a => a.id === r.assignmentId)?.classLevels.includes(course.title))
               const courseAvg = courseResults.length > 0 
                 ? Math.round(courseResults.reduce((acc, r) => acc + getPercentage(r), 0) / courseResults.length) 
                 : 0
