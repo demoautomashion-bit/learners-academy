@@ -98,7 +98,7 @@ export default function ResultsPage() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="text-3xl font-serif tracking-tight text-foreground font-normal">
+          <h1 className="text-3xl font-serif text-foreground">
             Academic Results
           </h1>
           <p className="text-muted-foreground mt-1 text-sm opacity-70">
@@ -106,9 +106,9 @@ export default function ResultsPage() {
           </p>
         </motion.div>
         <motion.div variants={STAGGER_ITEM} className="flex items-center gap-2">
-          <Button variant="outline" className="hover-lift border-primary/20 bg-card/40 backdrop-blur-md rounded-xl h-10 px-6">
+          <Button variant="outline" className="hover-lift    ">
             <Award className="w-4 h-4 mr-2" />
-            <span className="text-xs uppercase tracking-widest font-normal">Export Registry</span>
+            <span className="text-xs   font-normal">Export Registry</span>
           </Button>
         </motion.div>
       </motion.div>
@@ -120,36 +120,36 @@ export default function ResultsPage() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl">
+          <Card className="glass-1 hover-lift transition-premium">
             <CardHeader className="p-6 pb-2">
-              <CardDescription className="flex items-center gap-2 text-xs uppercase tracking-widest font-normal opacity-60">
+              <CardDescription className="flex items-center gap-2 text-xs   font-normal opacity-60">
                 <TrendingUp className="w-3 h-3" /> Academy Average
               </CardDescription>
-              <CardTitle className="text-3xl font-sans font-normal">{totalAvg > 0 ? `${totalAvg}%` : '--'}</CardTitle>
+              <CardTitle className="font-sans text-xl font-serif">{totalAvg > 0 ? `${totalAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl">
+          <Card className="glass-1 hover-lift transition-premium">
             <CardHeader className="p-6 pb-2">
-              <CardDescription className="text-xs uppercase tracking-widest font-normal opacity-60">Pending Audits</CardDescription>
-              <CardTitle className="text-3xl font-sans font-normal text-warning">{pendingCount > 0 ? pendingCount : '--'}</CardTitle>
+              <CardDescription className="text-xs   font-normal opacity-60">Pending Audits</CardDescription>
+              <CardTitle className="font-sans text-warning text-xl font-serif">{pendingCount > 0 ? pendingCount : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl">
+          <Card className="glass-1 hover-lift transition-premium">
             <CardHeader className="p-6 pb-2">
-              <CardDescription className="text-xs uppercase tracking-widest font-normal opacity-60">Mid-Term Avg</CardDescription>
-              <CardTitle className="text-3xl font-sans font-normal">{firstTestAvg > 0 ? `${firstTestAvg}%` : '--'}</CardTitle>
+              <CardDescription className="text-xs   font-normal opacity-60">Mid-Term Avg</CardDescription>
+              <CardTitle className="font-sans text-xl font-serif">{firstTestAvg > 0 ? `${firstTestAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl">
+          <Card className="glass-1 hover-lift transition-premium">
             <CardHeader className="p-6 pb-2">
-              <CardDescription className="text-xs uppercase tracking-widest font-normal opacity-60">Final-Term Avg</CardDescription>
-              <CardTitle className="text-3xl font-sans font-normal">{lastTestAvg > 0 ? `${lastTestAvg}%` : '--'}</CardTitle>
+              <CardDescription className="text-xs   font-normal opacity-60">Final-Term Avg</CardDescription>
+              <CardTitle className="font-sans text-xl font-serif">{lastTestAvg > 0 ? `${lastTestAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
@@ -162,12 +162,12 @@ export default function ResultsPage() {
             placeholder="Search examination title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-12 bg-card/40 backdrop-blur-md border-primary/5 rounded-2xl text-sm transition-premium focus:ring-1 focus:ring-primary/20"
+            className="pl-9 h-12     text-sm transition-premium focus:ring-1 focus:ring-primary/20"
           />
         </div>
         <div className="flex items-center gap-3">
           <Select value={classFilter} onValueChange={setClassFilter}>
-            <SelectTrigger className="w-[200px] h-12 bg-card/40 backdrop-blur-md border-primary/5 rounded-2xl text-[10px] uppercase tracking-widest font-normal">
+            <SelectTrigger className="w-[200px] h-12     text-xs   font-normal">
               <SelectValue placeholder="All Classes" />
             </SelectTrigger>
             <SelectContent>
@@ -180,7 +180,7 @@ export default function ResultsPage() {
             </SelectContent>
           </Select>
           <Select value={phaseFilter} onValueChange={setPhaseFilter}>
-            <SelectTrigger className="w-[180px] h-12 bg-card/40 backdrop-blur-md border-primary/5 rounded-2xl text-[10px] uppercase tracking-widest font-normal">
+            <SelectTrigger className="w-[180px] h-12     text-xs   font-normal">
               <SelectValue placeholder="All Phases" />
             </SelectTrigger>
             <SelectContent>
@@ -192,17 +192,17 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      <Card className="border-primary/5 shadow-premium rounded-2xl overflow-hidden bg-card/40 backdrop-blur-xl">
-        <CardContent className="p-0">
+      <Card className="glass-1 overflow-hidden">
+        <CardContent className="p-6">
           <div className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-muted/10 border-b border-primary/5 h-14">
+                <thead className="bg-muted/10 border-b  h-14">
                   <tr className="border-none">
-                    <th className="px-6 py-4 text-left text-xs font-normal uppercase tracking-widest text-muted-foreground opacity-60">Examination Block</th>
-                    <th className="px-6 py-4 text-left text-xs font-normal uppercase tracking-widest text-muted-foreground opacity-60">Class Assignment</th>
-                    <th className="px-6 py-4 text-left text-xs font-normal uppercase tracking-widest text-muted-foreground opacity-60">Completion status</th>
-                    <th className="px-6 py-4 text-right text-xs font-normal uppercase tracking-widest text-muted-foreground opacity-60">Workspace</th>
+                    <th className="px-6 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Examination Block</th>
+                    <th className="px-6 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Class Assignment</th>
+                    <th className="px-6 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Completion status</th>
+                    <th className="px-6 py-4 text-right text-xs font-normal   text-muted-foreground opacity-60">Workspace</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary/5">
@@ -220,7 +220,7 @@ export default function ResultsPage() {
                             <span className="font-serif font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">
                               {assessment.title}
                             </span>
-                            <span className="text-[10px] text-muted-foreground/60 font-normal uppercase tracking-widest mt-0.5">
+                            <span className="text-xs text-muted-foreground/60 font-normal   mt-0.5">
                               {assessment.phase} • {assessment.nature}
                             </span>
                           </div>
@@ -228,7 +228,7 @@ export default function ResultsPage() {
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1">
                             {assessment.classLevels?.map(level => (
-                                <Badge key={level} variant="outline" className="text-[9px] uppercase tracking-widest font-normal border-primary/10 text-muted-foreground/60">
+                                <Badge key={level} variant="outline" className="text-xs   font-normal  text-muted-foreground/60">
                                     {level}
                                 </Badge>
                             ))}
@@ -237,10 +237,10 @@ export default function ResultsPage() {
                         <td className="px-6 py-4">
                            <div className="space-y-1.5">
                                 <div className="flex items-center justify-between min-w-[120px]">
-                                    <span className="text-[9px] uppercase tracking-widest font-normal text-muted-foreground opacity-50">Audited</span>
-                                    <span className="text-[10px] font-bold text-foreground">{total - pending} / {total}</span>
+                                    <span className="text-xs   font-normal text-muted-foreground opacity-50">Audited</span>
+                                    <span className="text-xs font-bold text-foreground">{total - pending} / {total}</span>
                                 </div>
-                                <div className="h-1 w-full bg-muted/20 rounded-full overflow-hidden">
+                                <div className="h-1 w-full bg-muted/20  overflow-hidden">
                                      <div 
                                         className={cn("h-full transition-all duration-500", pending === 0 ? "bg-success" : "bg-primary")} 
                                         style={{ width: `${((total - pending) / total) * 100}%` }} 
@@ -251,9 +251,9 @@ export default function ResultsPage() {
                         <td className="px-6 py-4 text-right">
                           <Button 
                             onClick={() => router.push(`/teacher/results/${assessment.id}`)}
-                            className="rounded-xl h-10 px-6 bg-primary/5 hover:bg-primary text-primary hover:text-white transition-all shadow-sm group/btn"
+                            className=" h-10 px-6 bg-primary/5 hover:bg-primary text-primary hover:text-white transition-all shadow-sm group/btn"
                           >
-                            <span className="text-xs uppercase tracking-widest font-normal">Review</span>
+                            <span className="text-xs   font-normal">Review</span>
                             <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                           </Button>
                         </td>

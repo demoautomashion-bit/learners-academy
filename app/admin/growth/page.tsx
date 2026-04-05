@@ -122,17 +122,17 @@ export default function GrowthPage() {
       {/* Editorial Header */}
       <motion.div variants={STAGGER_ITEM} className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="max-w-3xl">
-          <h1 className="font-serif text-3xl tracking-normal text-foreground font-normal">
+          <h1 className="font-serif text-3xl text-foreground">
             Growth & Analytics
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-normal max-w-2xl opacity-80">
             Institutional trajectory analysis, student retention metrics, and long-term academic growth forecasting.
           </p>
         </div>
-        <div className="flex bg-muted/20 p-1.5 rounded-2xl border border-primary/5">
-          <div className="px-6 py-2.5 flex items-center gap-3 bg-card border border-primary/5 shadow-sm rounded-xl">
+        <div className="flex bg-muted/20 p-1.5  border ">
+          <div className="px-6 py-2.5 flex items-center gap-3 bg-card border  shadow-sm ">
             <Waves className="w-4 h-4 text-primary opacity-60" />
-            <span className="text-[10px] uppercase tracking-[0.2em] font-normal text-muted-foreground">Market Momentum Index</span>
+            <span className="text-xs   font-normal text-muted-foreground">Market Momentum Index</span>
           </div>
         </div>
       </motion.div>
@@ -145,16 +145,16 @@ export default function GrowthPage() {
           { label: 'Momentum Index', value: `${stats.growthDelta.toFixed(0)}%`, context: 'Growth Delta', icon: Zap, color: 'text-primary' },
           { label: 'Effective Reach', value: stats.totalStudents, context: 'Institutional Scale', icon: GraduationCap, color: 'text-indigo-400' },
         ].map((stat, i) => (
-          <Card key={i} className="border-primary/5 shadow-premium rounded-[2.5rem] bg-card/40 backdrop-blur-3xl group relative overflow-hidden flex flex-col justify-between h-56">
-            <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Card key={i} className="     group relative overflow-hidden flex flex-col justify-between h-56">
+            <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5  blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardContent className="pt-10 pb-6 relative z-10">
-              <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mb-4 font-normal opacity-50">{stat.label}</p>
+              <p className="text-xs   text-muted-foreground mb-4 font-normal opacity-50">{stat.label}</p>
               <div className="flex items-baseline gap-3">
-                <h3 className="font-serif text-3xl font-normal tracking-tight">
+                <h3 className="font-serif text-xl font-serif">
                   {stat.value}
                 </h3>
                 {i === 2 && (
-                  <div className={cn("flex items-center gap-1 text-[10px] uppercase font-normal tracking-widest", stats.growthDelta >= 0 ? "text-success" : "text-destructive")}>
+                  <div className={cn("flex items-center gap-1 text-xs  font-normal ", stats.growthDelta >= 0 ? "text-success" : "text-destructive")}>
                     {stats.growthDelta >= 0 ? <ArrowUp className="w-2 h-2" /> : <ArrowDown className="w-2 h-2" />} 
                     {Math.abs(stats.growthDelta).toFixed(0)}%
                   </div>
@@ -163,8 +163,8 @@ export default function GrowthPage() {
             </CardContent>
             <div className="px-10 pb-8 relative z-10 mt-auto">
               <div className="flex items-center gap-3">
-                <div className={cn("w-1.5 h-1.5 rounded-full", stat.color.replace('text-', 'bg-'))} />
-                <span className="text-[9px] text-muted-foreground opacity-40 uppercase tracking-[0.2em] font-normal">{stat.context}</span>
+                <div className={cn("w-1.5 h-1.5 ", stat.color.replace('text-', 'bg-'))} />
+                <span className="text-xs text-muted-foreground opacity-40   font-normal">{stat.context}</span>
               </div>
             </div>
           </Card>
@@ -174,22 +174,22 @@ export default function GrowthPage() {
       {/* Rich Visual Data Row */}
       <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Admission Velocity Chart */}
-        <Card className="lg:col-span-3 border-primary/5 shadow-premium rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="bg-muted/10 border-b border-primary/5 p-10">
+        <Card className="glass-1 lg:col-span-3 overflow-hidden">
+          <CardHeader className="bg-muted/10 border-b  p-10">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-serif text-3xl font-normal">Recruitment Velocity</h3>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-60 mt-1">Stochastic entry distribution (Trailing 30-Day Window)</p>
+                <h3 className="font-serif text-xl font-serif">Recruitment Velocity</h3>
+                <p className="text-xs   text-muted-foreground font-normal opacity-60 mt-1">Stochastic entry distribution (Trailing 30-Day Window)</p>
               </div>
               <div className="flex gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary shadow-sm shadow-primary/40" />
-                  <span className="text-[9px] uppercase tracking-widest opacity-40">Registered</span>
+                  <div className="w-2 h-2  bg-primary shadow-sm shadow-primary/40" />
+                  <span className="text-xs   opacity-40">Registered</span>
                 </div>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-10 pt-16">
+          <CardContent className="p-6 pt-16">
             <div className="h-[380px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData}>
@@ -221,7 +221,7 @@ export default function GrowthPage() {
                       border: '1px solid hsl(var(--primary) / 0.08)',
                       boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)',
                       fontSize: '11px',
-                      textTransform: 'uppercase',
+                      textTransform: '',
                       letterSpacing: '0.05em'
                     }}
                   />
@@ -241,13 +241,13 @@ export default function GrowthPage() {
         </Card>
 
         {/* Level Distribution Bar Chart */}
-        <Card className="lg:col-span-2 border-primary/5 shadow-premium rounded-[2.5rem] overflow-hidden bg-card/40 backdrop-blur-3xl">
-          <CardHeader className="bg-muted/10 border-b border-primary/5 p-10 text-center relative overflow-hidden">
-            <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5 rounded-full blur-3xl opacity-20" />
-            <h3 className="font-serif text-3xl font-normal">Tiers Composition</h3>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-60 mt-1">Cross-sectional study by institutional rank.</p>
+        <Card className="glass-1 lg:col-span-2 overflow-hidden">
+          <CardHeader className="bg-muted/10 border-b  p-10 text-center relative overflow-hidden">
+            <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5  blur-3xl opacity-20" />
+            <h3 className="font-serif text-xl font-serif">Tiers Composition</h3>
+            <p className="text-xs   text-muted-foreground font-normal opacity-60 mt-1">Cross-sectional study by institutional rank.</p>
           </CardHeader>
-          <CardContent className="p-10 flex flex-col items-center justify-center gap-12 min-h-[400px]">
+          <CardContent className="p-6 flex flex-col items-center justify-center gap-6 min-h-[400px]">
             {/* Term Lifecycle Progress */}
             <div className="relative w-40 h-40 group mb-4">
               <svg className="w-full h-full transform -rotate-90">
@@ -264,7 +264,7 @@ export default function GrowthPage() {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                 <span className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground opacity-50 font-normal">{stats.termSeason} Term</span>
+                 <span className="text-xs   text-muted-foreground opacity-50 font-normal">{stats.termSeason} Term</span>
                  <span className="font-serif text-3xl font-normal leading-none mt-1">{Math.round(stats.termProgress)}%</span>
               </div>
             </div>
@@ -301,12 +301,12 @@ export default function GrowthPage() {
           { label: 'Operational Scale', description: `Cross-institutional reach has successfully expanded to ${stats.totalStudents} active student identifiers.`, icon: GraduationCap, color: 'text-primary' },
           { label: 'Tier Saturation', description: `The Specialized Tier (IELTS/Speaking) currently accounts for ${((levelBreakdown.find(t => t.name.includes('SPECIALIZED'))?.count || 0) / (stats.totalStudents || 1) * 100).toFixed(0)}% of momentum.`, icon: Flame, color: 'text-indigo-400' },
         ].map((insight, i) => (
-          <Card key={i} className="border-primary/5 shadow-premium rounded-[1.75rem] bg-card/40 backdrop-blur-3xl p-8 flex items-center gap-6 group hover:translate-y-[-4px] transition-all">
-             <div className="w-14 h-14 rounded-2xl bg-primary/5 border border-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <Card key={i} className="     p-8 flex items-center gap-6 group hover:translate-y-[-4px] transition-all">
+             <div className="w-14 h-14  bg-primary/5 border  flex items-center justify-center group-hover:scale-110 transition-transform">
                 <insight.icon className={cn("w-6 h-6", insight.color, "opacity-60")} />
              </div>
              <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-50 mb-1">{insight.label}</p>
+                <p className="text-xs   text-muted-foreground font-normal opacity-50 mb-1">{insight.label}</p>
                 <p className="text-sm font-normal text-foreground leading-tight">{insight.description}</p>
              </div>
           </Card>

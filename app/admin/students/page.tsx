@@ -156,14 +156,14 @@ export default function StudentsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-normal text-foreground">
+          <h1 className="font-serif text-3xl text-foreground">
             Students
           </h1>
           <p className="text-muted-foreground mt-1">
             Manage student enrollments and track their progress
           </p>
         </div>
-        <Button asChild className="h-12 px-8 shadow-lg shadow-primary/20 uppercase tracking-[0.15em] font-normal text-xs rounded-xl">
+        <Button asChild className="shadow-lg shadow-primary/20 font-normal ">
           <Link href="/admin/students/registration">
             <Plus className="w-4 h-4 mr-2" />
             Enroll Student
@@ -173,16 +173,16 @@ export default function StudentsPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-primary/5 shadow-premium">
+        <Card className="glass-1 hover-lift transition-premium">
           <CardHeader className="pb-2">
             <CardDescription>Total Students</CardDescription>
-            <CardTitle className="text-3xl">{students.length}</CardTitle>
+            <CardTitle className="text-xl font-serif">{students.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-primary/5 shadow-premium">
+        <Card className="glass-1 hover-lift transition-premium">
           <CardHeader className="pb-2">
             <CardDescription>Active Students</CardDescription>
-            <CardTitle className="text-3xl text-success">
+            <CardTitle className="text-success text-xl font-serif">
               {students?.filter(s => s.status === 'active').length}
             </CardTitle>
           </CardHeader>
@@ -190,7 +190,7 @@ export default function StudentsPage() {
       </div>
 
       {/* Students Table */}
-      <Card className="bg-card/40 backdrop-blur-md border-primary/5 shadow-premium rounded-[2.5rem] overflow-hidden">
+      <Card className="glass-1 overflow-hidden">
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <CardTitle>All Students</CardTitle>
@@ -220,9 +220,9 @@ export default function StudentsPage() {
         </CardHeader>
         <CardContent>
           {/* Desktop Table View */}
-          <div className="hidden md:block rounded-lg border">
+          <div className="hidden md:block  border">
             <Table>
-              <TableHeader className="bg-muted/5 h-16 border-b border-primary/5">
+              <TableHeader className="bg-muted/5 h-16 border-b ">
                 <TableRow>
                   <TableHead>Student ID</TableHead>
                   <TableHead>Name</TableHead>
@@ -242,7 +242,7 @@ export default function StudentsPage() {
                 ) : (
                   filteredStudents?.map((student) => (
                     <TableRow key={student.id}>
-                      <TableCell className="font-sans font-normal text-primary tracking-tighter">
+                      <TableCell className="font-sans font-normal text-primary ">
                         {student.studentId || 'ID-TBC'}
                       </TableCell>
                       <TableCell>
@@ -263,7 +263,7 @@ export default function StudentsPage() {
                           <span className="font-normal text-sm">
                             {mockCourses.find(c => c.id === student.enrolledCourses[0])?.title || 'Registry Level'}
                           </span>
-                          <span className="text-[10px] text-muted-foreground tracking-wide font-normal">
+                          <span className="text-xs text-muted-foreground  font-normal">
                             {student.classTiming || 'Timing TBC'}
                           </span>
                         </div>
@@ -336,7 +336,7 @@ export default function StudentsPage() {
           {/* Mobile Card List View */}
           <div className="grid gap-4 md:hidden">
             {filteredStudents.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-2xl border border-dashed">
+              <div className="text-center py-12 text-muted-foreground bg-muted/10  border border-dashed">
                 No students found matching your criteria.
               </div>
             ) : (
@@ -346,7 +346,7 @@ export default function StudentsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-card border rounded-2xl p-4 shadow-sm hover:shadow-md transition-premium cursor-pointer"
+                  className="bg-card border  p-4 shadow-sm hover:shadow-md transition-premium cursor-pointer"
                   onClick={() => router.push(`/admin/students/${student.id}`)}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -358,14 +358,14 @@ export default function StudentsPage() {
                       </Avatar>
                       <div>
                         <h4 className="font-serif font-normal text-base leading-none mb-1">{student.name}</h4>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-normal opacity-60">
+                        <p className="text-xs text-muted-foreground   font-normal opacity-60">
                           {student.studentId || 'ID-TBC'}
                         </p>
                       </div>
                     </div>
                     <Badge 
                       variant={student.status === 'inactive' ? 'secondary' : 'default'}
-                      className={cn("text-[8px] px-1.5 py-0 uppercase tracking-tighter", getStatusColor(student.status))}
+                      className={cn("text-xs px-1.5 py-0  ", getStatusColor(student.status))}
                     >
                       {student.status}
                     </Badge>
@@ -373,11 +373,11 @@ export default function StudentsPage() {
 
                   <div className="grid grid-cols-2 gap-4 mb-4 text-xs font-sans">
                     <div className="space-y-1">
-                      <p className="text-muted-foreground font-normal uppercase tracking-tighter text-[9px]">Guardian</p>
+                      <p className="text-muted-foreground font-normal   text-xs">Guardian</p>
                       <p className="font-normal line-clamp-1">{student.guardianName || 'N/A'}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-muted-foreground font-normal uppercase tracking-tighter text-[9px]">Class & Timing</p>
+                      <p className="text-muted-foreground font-normal   text-xs">Class & Timing</p>
                       <p className="font-normal text-primary truncate">
                         {mockCourses.find(c => c.id === student.enrolledCourses[0])?.title} ({student.classTiming})
                       </p>
@@ -391,7 +391,7 @@ export default function StudentsPage() {
                       variant="ghost" 
                       size="sm" 
                       asChild
-                      className="flex-1 h-9 rounded-xl text-xs font-normal"
+                      className="flex-1  font-normal"
                     >
                       <Link href={`/admin/students/${student.id}`}>
                         <Eye className="w-3.5 h-3.5 mr-1.5" />
@@ -400,15 +400,15 @@ export default function StudentsPage() {
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="h-9 w-9 rounded-xl">
+                        <Button variant="ghost" size="sm" className="w-9 ">
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 rounded-2xl p-1 shadow-premium">
+                      <DropdownMenuContent align="end" className="w-48  p-1 ">
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation()
                           handleToggleStatus(student)
-                        }} className="rounded-xl">
+                        }} className="">
                           {student.status === 'active' ? (
                             <><UserX className="w-4 h-4 mr-2" /> Deactivate</>
                           ) : (
@@ -417,7 +417,7 @@ export default function StudentsPage() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
-                          className="text-destructive focus:text-destructive rounded-xl"
+                          className="text-destructive focus:text-destructive "
                           onClick={(e) => {
                             e.stopPropagation()
                             handleDelete(student)
@@ -440,7 +440,7 @@ export default function StudentsPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle className="font-serif text-3xl tracking-tight text-primary font-normal">Edit Record</DialogTitle>
+            <DialogTitle className="font-serif text-3xl  text-primary font-normal">Edit Record</DialogTitle>
             <DialogDescription className="text-editorial-meta">Modify essential student protocols and enrollment settings.</DialogDescription>
           </DialogHeader>
           <form onSubmit={editForm.handleSubmit(onEditSubmit)}>

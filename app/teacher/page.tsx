@@ -97,7 +97,7 @@ export default function TeacherDashboard() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="text-3xl font-serif tracking-tight text-foreground font-normal">
+          <h1 className="text-3xl font-serif text-foreground">
             Welcome, {user?.name?.split(' ')[0] || 'Teacher'}
           </h1>
           <p className="text-editorial-meta text-base mt-1 opacity-70">
@@ -105,14 +105,14 @@ export default function TeacherDashboard() {
           </p>
         </motion.div>
         <motion.div variants={STAGGER_ITEM} className="flex gap-2">
-          <Button variant="outline" asChild className="hover-lift border-primary/20 bg-card/40 backdrop-blur-md rounded-xl h-10 px-6">
-            <Link href="/teacher/library" className="flex items-center text-xs uppercase tracking-widest font-normal">
+          <Button variant="outline" asChild className="hover-lift    ">
+            <Link href="/teacher/library" className="flex items-center text-xs   font-normal">
               <Plus className="w-4 h-4 mr-2" />
               Build Block
             </Link>
           </Button>
-          <Button asChild className="hover-lift shadow-premium rounded-xl h-10 px-6">
-            <Link href="/teacher/assessments" className="text-xs uppercase tracking-widest font-normal">
+          <Button asChild className="hover-lift  ">
+            <Link href="/teacher/assessments" className="text-xs   font-normal">
               Initiate Test
             </Link>
           </Button>
@@ -132,20 +132,20 @@ export default function TeacherDashboard() {
             variants={STAGGER_ITEM}
           >
             <Link href={stat.href}>
-              <Card className="hover-lift cursor-pointer transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl">
+              <Card className="glass-1 hover-lift cursor-pointer transition-premium">
                 <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
-                  <CardTitle className="text-xs uppercase tracking-widest font-normal text-muted-foreground opacity-60">
+                  <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif">
                     {stat.title}
                   </CardTitle>
-                  <div className={`p-2 rounded-xl ${stat.bgColor} opacity-60`}>
+                  <div className={`p-2  ${stat.bgColor} opacity-60`}>
                     <stat.icon className={`h-4 w-4 ${stat.color}`} />
                   </div>
                 </CardHeader>
                 <CardContent className="px-6 pb-6">
-                  <div className="text-3xl font-sans tracking-tight font-normal">{stat.value}</div>
+                  <div className="text-3xl font-sans  font-normal">{stat.value}</div>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <div className="h-1 w-1 rounded-full bg-primary/40" />
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-normal opacity-40">Institutional Data</span>
+                    <div className="h-1 w-1  bg-primary/40" />
+                    <span className="text-xs text-muted-foreground   font-normal opacity-40">Institutional Data</span>
                   </div>
                 </CardContent>
               </Card>
@@ -158,14 +158,14 @@ export default function TeacherDashboard() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Active Assessments */}
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl h-full flex flex-col overflow-hidden">
+          <Card className="glass-1 hover-lift transition-premium h-full flex flex-col overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
               <div>
-                <CardTitle className="text-xl font-serif font-normal">Active Assessments</CardTitle>
+                <CardTitle className="text-xl font-serif">Active Assessments</CardTitle>
                 <CardDescription className="text-editorial-meta text-xs opacity-60">Track ongoing test participation</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" asChild className="text-primary hover:bg-primary/10 rounded-xl transition-premium group">
-                <Link href="/teacher/assessments" className="flex items-center text-xs uppercase tracking-widest font-normal">
+              <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10  transition-premium group">
+                <Link href="/teacher/assessments" className="flex items-center text-xs   font-normal">
                   View Registry
                   <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -173,8 +173,8 @@ export default function TeacherDashboard() {
             </CardHeader>
             <CardContent className="p-6 space-y-4 flex-1">
               {activeTests.length === 0 ? (
-                <div className="py-8 text-center bg-muted/5 rounded-2xl border border-dashed border-primary/10">
-                  <p className="text-xs uppercase tracking-widest font-normal text-muted-foreground opacity-60">No Live Encounters</p>
+                <div className="py-8 text-center bg-muted/5  border border-dashed ">
+                  <p className="text-xs   font-normal text-muted-foreground opacity-60">No Live Encounters</p>
                 </div>
               ) : (
                 activeTests.slice(0, 3).map((assessment) => {
@@ -187,20 +187,20 @@ export default function TeacherDashboard() {
                   const safeTotal = enrolledCount > 0 ? enrolledCount : 1
 
                   return (
-                    <div key={assessment.id} className="p-4 rounded-xl bg-muted/10 border border-primary/5 hover:bg-muted/20 transition-premium group cursor-pointer hover:shadow-premium">
+                    <div key={assessment.id} className="p-4  bg-muted/10 border  hover:bg-muted/20 transition-premium group cursor-pointer hover:">
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className="font-sans text-base font-medium group-hover:text-primary transition-colors">{assessment.title}</p>
-                          <p className="text-editorial-meta text-xs mt-0.5 opacity-60 uppercase tracking-widest">
+                          <p className="text-editorial-meta text-xs mt-0.5 opacity-60  ">
                             {(assessment.classLevels || []).join(', ') || assessment.nature}
                           </p>
                         </div>
-                        <Badge variant="outline" className="text-[10px] tracking-widest uppercase font-normal text-primary border-primary/20 bg-primary/5">
+                        <Badge variant="outline" className="text-xs   font-normal text-primary  bg-primary/5">
                           Registry Active
                         </Badge>
                       </div>
                       <div className="space-y-2 mt-4">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground uppercase tracking-widest font-normal opacity-60">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground   font-normal opacity-60">
                           <span>Capture Census</span>
                           <span>{subCount}/{enrolledCount}</span>
                         </div>
@@ -216,18 +216,18 @@ export default function TeacherDashboard() {
 
         {/* Class Performance */}
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl h-full flex flex-col overflow-hidden">
+          <Card className="glass-1 hover-lift transition-premium h-full flex flex-col overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
               <div>
-                <CardTitle className="text-xl font-serif font-normal">Class Performance</CardTitle>
+                <CardTitle className="text-xl font-serif">Class Performance</CardTitle>
                 <CardDescription className="text-editorial-meta text-xs opacity-60">Success metrics & average tracking</CardDescription>
               </div>
               <TrendingUp className="w-5 h-5 text-primary opacity-40" />
             </CardHeader>
             <CardContent className="p-6 space-y-6 flex-1">
             {myCourses.length === 0 ? (
-                <div className="py-8 text-center bg-muted/5 rounded-2xl border border-dashed border-primary/10">
-                  <p className="text-xs uppercase tracking-widest font-normal text-muted-foreground opacity-60">No Academic Records</p>
+                <div className="py-8 text-center bg-muted/5  border border-dashed ">
+                  <p className="text-xs   font-normal text-muted-foreground opacity-60">No Academic Records</p>
                 </div>
               ) : (
                 myCourses?.map((course) => {
@@ -257,7 +257,7 @@ export default function TeacherDashboard() {
                     <div key={course.id} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="font-sans text-sm font-normal">{course.title}</span>
-                        <span className="text-xs uppercase tracking-widest font-normal text-primary">Avg. {avgProgress}%</span>
+                        <span className="text-xs   font-normal text-primary">Avg. {avgProgress}%</span>
                       </div>
                       <Progress value={avgProgress} className="h-1 bg-primary/10" />
                     </div>
@@ -277,10 +277,10 @@ export default function TeacherDashboard() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="hover-lift border-l-4 border-l-primary/40 bg-card/40 backdrop-blur-md border-primary/5 shadow-premium rounded-2xl overflow-hidden">
+          <Card className="glass-1 hover-lift border-l-4 border-l-primary/40 overflow-hidden">
             <CardHeader className="p-6">
-              <CardTitle className="text-xs font-normal uppercase tracking-widest text-primary mb-2">First Test Phase</CardTitle>
-              <CardContent className="p-0">
+              <CardTitle className="text-primary mb-2 text-xl font-serif">First Test Phase</CardTitle>
+              <CardContent className="p-6">
                 <p className="text-sm text-muted-foreground leading-relaxed opacity-70">
                   Targeted registry block consisting of 12 queries filtered from core disciplines for mid-term academic vetting.
                 </p>
@@ -289,10 +289,10 @@ export default function TeacherDashboard() {
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="hover-lift border-l-4 border-l-accent/40 bg-card/40 backdrop-blur-md border-primary/5 shadow-premium rounded-2xl overflow-hidden">
+          <Card className="glass-1 hover-lift border-l-4 border-l-accent/40 overflow-hidden">
             <CardHeader className="p-6">
-              <CardTitle className="text-xs font-normal uppercase tracking-widest text-accent mb-2">Last Test Phase</CardTitle>
-              <CardContent className="p-0">
+              <CardTitle className="text-accent mb-2 text-xl font-serif">Last Test Phase</CardTitle>
+              <CardContent className="p-6">
                 <p className="text-sm text-muted-foreground leading-relaxed opacity-70">
                   Summative evaluation registry encompassing comprehensive curriculum goals and advanced performance benchmarks.
                 </p>

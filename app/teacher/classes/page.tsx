@@ -89,7 +89,7 @@ export default function TeacherClassesPage() {
       case 'intermediate':
         return 'bg-warning/10 text-warning border-warning/20'
       case 'advanced':
-        return 'bg-primary/10 text-primary border-primary/20'
+        return 'bg-primary/10 text-primary '
     }
   }
 
@@ -97,7 +97,7 @@ export default function TeacherClassesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-serif tracking-tight text-foreground font-normal">
+        <h1 className="text-3xl font-serif text-foreground">
           My Classes
         </h1>
         <p className="text-muted-foreground mt-1 text-sm opacity-70">
@@ -107,16 +107,16 @@ export default function TeacherClassesPage() {
 
       {/* Stats */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl">
+        <Card className="glass-1 hover-lift transition-premium">
           <CardHeader className="p-6 pb-2">
-            <CardDescription className="text-xs uppercase tracking-widest font-normal opacity-60">Total Assigned Classes</CardDescription>
-            <CardTitle className="text-3xl font-sans font-normal">{myCourses.length}</CardTitle>
+            <CardDescription className="text-xs   font-normal opacity-60">Total Assigned Classes</CardDescription>
+            <CardTitle className="font-sans text-xl font-serif">{myCourses.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl">
+        <Card className="glass-1 hover-lift transition-premium">
           <CardHeader className="p-6 pb-2">
-            <CardDescription className="text-xs uppercase tracking-widest font-normal opacity-60">Total Enrolled Students</CardDescription>
-            <CardTitle className="text-3xl font-sans font-normal">
+            <CardDescription className="text-xs   font-normal opacity-60">Total Enrolled Students</CardDescription>
+            <CardTitle className="font-sans text-xl font-serif">
               {mockStudents?.filter(s => (s.enrolledCourses || []).some(courseId => myCourses.some(mc => mc.id === courseId))).length}
             </CardTitle>
           </CardHeader>
@@ -124,18 +124,18 @@ export default function TeacherClassesPage() {
       </div>
 
       {/* Student Registry Table */}
-      <Card className="border-primary/5 shadow-premium rounded-2xl overflow-hidden bg-card/40 backdrop-blur-xl">
-        <CardHeader className="border-b border-primary/5 p-6">
+      <Card className="glass-1 overflow-hidden">
+        <CardHeader className="border-b  p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="text-xl font-serif font-normal">Student Registry</CardTitle>
+              <CardTitle className="text-xl font-serif">Student Registry</CardTitle>
               <CardDescription className="text-xs opacity-70">
                 Active roster management for your assigned academic sessions.
               </CardDescription>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Select value={classFilter} onValueChange={setClassFilter}>
-                <SelectTrigger className="w-[200px] h-10 bg-background/50 rounded-xl text-xs uppercase tracking-widest">
+                <SelectTrigger className="w-[200px] h-10 bg-background/50  text-xs  ">
                   <SelectValue placeholder="All My Classes" />
                 </SelectTrigger>
                 <SelectContent>
@@ -153,21 +153,21 @@ export default function TeacherClassesPage() {
                   placeholder="Search by ID or Name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-10 pl-9 bg-background/50 border-primary/10 rounded-xl text-sm"
+                  className="h-10 pl-9 bg-background/50   text-sm"
                 />
               </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-6">
           <div className="overflow-hidden">
             <Table>
-              <TableHeader className="bg-muted/10 border-b border-primary/5 h-14">
+              <TableHeader className="bg-muted/10 border-b  h-14">
                 <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="text-xs font-normal uppercase tracking-widest text-muted-foreground opacity-60 py-4 px-6">Student ID</TableHead>
-                  <TableHead className="text-xs font-normal uppercase tracking-widest text-muted-foreground opacity-60 py-4 px-6">Student Name</TableHead>
-                  <TableHead className="text-xs font-normal uppercase tracking-widest text-muted-foreground opacity-60 py-4 px-6">Guardian Name</TableHead>
-                  <TableHead className="text-xs font-normal uppercase tracking-widest text-muted-foreground opacity-60 py-4 px-6 text-right">Assigned Class</TableHead>
+                  <TableHead className="text-xs font-normal   text-muted-foreground opacity-60 py-4 px-6">Student ID</TableHead>
+                  <TableHead className="text-xs font-normal   text-muted-foreground opacity-60 py-4 px-6">Student Name</TableHead>
+                  <TableHead className="text-xs font-normal   text-muted-foreground opacity-60 py-4 px-6">Guardian Name</TableHead>
+                  <TableHead className="text-xs font-normal   text-muted-foreground opacity-60 py-4 px-6 text-right">Assigned Class</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -181,8 +181,8 @@ export default function TeacherClassesPage() {
                   filteredStudents?.map((student) => {
                     const studentCourse = myCourses.find(c => student.enrolledCourses.includes(c.id))
                     return (
-                      <TableRow key={student.id} className="hover:bg-primary/[0.02] border-primary/5 transition-premium group h-16">
-                        <TableCell className="font-normal text-primary tracking-tighter py-4 px-6">
+                      <TableRow key={student.id} className="hover:bg-primary/[0.02]  transition-premium group h-16">
+                        <TableCell className="font-normal text-primary  py-4 px-6">
                           {student.studentId || 'N/A'}
                         </TableCell>
                         <TableCell className="py-4 px-6">
@@ -196,7 +196,7 @@ export default function TeacherClassesPage() {
                         <TableCell className="py-4 px-6 text-right">
                           <div className="flex flex-col items-end">
                             <span className="font-normal text-sm text-foreground/70">{studentCourse?.title || 'Course Registry'}</span>
-                            <span className="text-[10px] text-muted-foreground/60 tracking-widest font-normal uppercase">
+                            <span className="text-xs text-muted-foreground/60  font-normal ">
                               {student.classTiming || 'Session TBC'}
                             </span>
                           </div>
@@ -213,8 +213,8 @@ export default function TeacherClassesPage() {
 
       {/* Course Detail Dialog */}
     <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-2xl border-primary/5 shadow-premium">
-          <DialogHeader className="bg-muted/5 border-b border-primary/5 p-6">
+        <DialogContent className="max-w-3xl p-0 overflow-hidden   ">
+          <DialogHeader className="bg-muted/5 border-b  p-6">
             <DialogTitle className="text-xl font-serif font-normal">Class Registry Intelligence</DialogTitle>
             <DialogDescription className="text-xs opacity-60">
               Granular view of academic enrollment and term performance.
@@ -222,10 +222,10 @@ export default function TeacherClassesPage() {
           </DialogHeader>
           {selectedCourse && (
             <Tabs defaultValue="overview" className="mt-0">
-              <TabsList className="w-full h-12 bg-muted/5 border-b border-primary/5 rounded-none p-1">
-                <TabsTrigger value="overview" className="flex-1 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm text-xs uppercase tracking-widest font-normal">Overview</TabsTrigger>
-                <TabsTrigger value="students" className="flex-1 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm text-xs uppercase tracking-widest font-normal">Students</TabsTrigger>
-                <TabsTrigger value="assessments" className="flex-1 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm text-xs uppercase tracking-widest font-normal">Assessments</TabsTrigger>
+              <TabsList className="w-full h-12 bg-muted/5 border-b   p-1">
+                <TabsTrigger value="overview" className="flex-1  data-[state=active]:bg-card data-[state=active]:shadow-sm text-xs   font-normal">Overview</TabsTrigger>
+                <TabsTrigger value="students" className="flex-1  data-[state=active]:bg-card data-[state=active]:shadow-sm text-xs   font-normal">Students</TabsTrigger>
+                <TabsTrigger value="assessments" className="flex-1  data-[state=active]:bg-card data-[state=active]:shadow-sm text-xs   font-normal">Assessments</TabsTrigger>
               </TabsList>
 
               <div className="p-6">
@@ -242,37 +242,37 @@ export default function TeacherClassesPage() {
                         {selectedCourse.status}
                       </Badge>
                     </div>
-                    <h3 className="text-xl font-serif font-normal">{selectedCourse.title}</h3>
+                    <h3 className="text-xl font-serif">{selectedCourse.title}</h3>
                     <p className="text-muted-foreground mt-2 text-editorial-meta opacity-70">{selectedCourse.description}</p>
                   </div>
 
                   <div className="grid gap-4 grid-cols-2">
-                    <div className="p-6 rounded-2xl border border-primary/5 bg-card/40">
+                    <div className="p-6  border  ">
                       <div className="flex items-center gap-2 mb-2">
                         <Users className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs uppercase tracking-widest font-normal opacity-60">Enrollment</span>
+                        <span className="text-xs   font-normal opacity-60">Enrollment</span>
                       </div>
                       <p className="text-3xl font-sans font-normal">
                         {mockStudents?.filter(s => (s.enrolledCourses || []).includes(selectedCourse.id)).length}/{selectedCourse.capacity}
                       </p>
                       <Progress value={(mockStudents?.filter(s => (s.enrolledCourses || []).includes(selectedCourse.id)).length / (selectedCourse.capacity || 1)) * 100} className="h-1 mt-3" />
                     </div>
-                    <div className="p-6 rounded-2xl border border-primary/5 bg-card/40">
+                    <div className="p-6  border  ">
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs uppercase tracking-widest font-normal opacity-60">Duration</span>
+                        <span className="text-xs   font-normal opacity-60">Duration</span>
                       </div>
                       <p className="text-3xl font-sans font-normal">{selectedCourse.duration}</p>
                     </div>
                   </div>
 
-                  <div className="p-6 rounded-2xl border border-primary/5 bg-card/40">
+                  <div className="p-6  border  ">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-xs uppercase tracking-widest font-normal opacity-60">Schedule</span>
+                      <span className="text-xs   font-normal opacity-60">Schedule</span>
                     </div>
                     <p className="font-sans font-normal text-base">{selectedCourse.schedule}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest font-normal opacity-50">
+                    <p className="text-xs text-muted-foreground mt-1   font-normal opacity-50">
                       Term: {new Date(selectedCourse.startDate).toLocaleDateString()} — {new Date(selectedCourse.endDate).toLocaleDateString()}
                     </p>
                   </div>
@@ -285,35 +285,35 @@ export default function TeacherClassesPage() {
                       const progress = enrollment?.progress || 0
                       
                       return (
-                        <div key={student.id} className="flex items-center justify-between p-4 rounded-xl border border-primary/5 bg-card/40 hover:bg-muted/30 transition-premium group">
+                        <div key={student.id} className="flex items-center justify-between p-4  border   hover:bg-muted/30 transition-premium group">
                           <div className="flex items-center gap-4">
-                            <Avatar className="h-10 w-10 border border-primary/10">
+                            <Avatar className="h-10 w-10 border ">
                               <AvatarFallback className="bg-primary/5 text-primary text-xs font-normal">
                                 {student.name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <p className="font-sans font-medium text-sm text-foreground/80 group-hover:text-primary transition-colors">{student.name}</p>
-                              <p className="text-[10px] text-muted-foreground font-normal tracking-widest uppercase opacity-60">{student.email}</p>
+                              <p className="text-xs text-muted-foreground font-normal   opacity-60">{student.email}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-6">
                             <div className="text-right flex flex-col items-end gap-1">
-                              <span className="text-[9px] uppercase tracking-widest opacity-50 font-normal">Progress</span>
+                              <span className="text-xs   opacity-50 font-normal">Progress</span>
                               <div className="flex items-center gap-2">
                                 <Progress value={progress} className="w-20 h-0.5 shadow-sm" />
-                                <span className="text-[10px] font-normal">{progress}%</span>
+                                <span className="text-xs font-normal">{progress}%</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
-                              <Badge variant={student.status === 'active' ? 'default' : 'secondary'} className="text-[9px] uppercase tracking-widest font-normal h-5 border-none shadow-premium">
+                              <Badge variant={student.status === 'active' ? 'default' : 'secondary'} className="text-xs   font-normal h-5 border-none ">
                                 {student.grade || '-'}
                               </Badge>
                               {selectedCourse && validDossierClasses.includes(selectedCourse.title) && (
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  className="h-8 px-4 text-xs uppercase tracking-widest bg-primary/5 border-primary/10 hover:bg-primary/20 text-primary transition-premium rounded-xl"
+                                  className="bg-primary/5  hover:bg-primary/20 transition-premium "
                                   onClick={() => {
                                     setEvalStudent(student)
                                     setEvalScores({ attendance: 60, participation: 20, discipline: 10, extra: 10 })
@@ -338,27 +338,27 @@ export default function TeacherClassesPage() {
                       const safeTotal = rosterCount > 0 ? rosterCount : 1;
 
                       return (
-                        <div key={assessment.id} className="p-5 rounded-2xl border border-primary/5 bg-card/40 hover:bg-muted/30 transition-premium group">
+                        <div key={assessment.id} className="p-5  border   hover:bg-muted/30 transition-premium group">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-primary/5 text-primary">
+                              <div className="p-2  bg-primary/5 text-primary">
                                 <ClipboardList className="w-4 h-4" />
                               </div>
                               <div>
                                 <p className="font-sans font-normal text-lg group-hover:text-primary transition-colors">{assessment.title}</p>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-normal opacity-50">Phase: {assessment.phase}</p>
+                                <p className="text-xs text-muted-foreground   font-normal opacity-50">Phase: {assessment.phase}</p>
                               </div>
                             </div>
                             <Badge 
                               variant={assessment.status === 'active' ? 'default' : 'secondary'}
-                              className={`text-[9px] uppercase tracking-widest font-normal h-5 ${assessment.status === 'active' ? 'bg-success hover:bg-success/90' : ''}`}
+                              className={`text-xs   font-normal h-5 ${assessment.status === 'active' ? 'bg-success hover:bg-success/90' : ''}`}
                             >
                               {assessment.status}
                             </Badge>
                           </div>
                           <p className="text-editorial-meta text-sm opacity-70 mb-5">{assessment.nature} Assessment</p>
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-normal opacity-50">
+                            <div className="flex items-center justify-between text-xs   font-normal opacity-50">
                               <span>Capture Status</span>
                               <span>{totalSubmissions}/{rosterCount} Registry Entries</span>
                             </div>
@@ -380,7 +380,7 @@ export default function TeacherClassesPage() {
 
       {/* Student Term Dossier Dialog */}
       <Dialog open={!!evalStudent} onOpenChange={(open) => !open && setEvalStudent(null)}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl border-primary/5 shadow-premium">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden   ">
           {evalStudent && selectedCourse && (() => {
             const studentMidterms = mockSubmissions?.filter(s => s.studentId === evalStudent.id && mockAssessments.find(a => a.id === s.assignmentId && a.phase === 'First Test' && (a.classLevels || []).includes(selectedCourse.title)))
             const midtermScore = studentMidterms.length > 0 && studentMidterms[0].grade ? studentMidterms[0].grade : 0 
@@ -404,15 +404,15 @@ export default function TeacherClassesPage() {
 
             return (
               <div className="flex flex-col h-full">
-                <DialogHeader className="p-6 border-b border-primary/5">
+                <DialogHeader className="p-6 border-b ">
                   <div className="flex items-start justify-between">
                     <div>
                       <DialogTitle className="font-serif text-3xl font-normal">{evalStudent.name}</DialogTitle>
-                      <DialogDescription className="text-xs uppercase tracking-widest opacity-60 mt-2">
+                      <DialogDescription className="text-xs   opacity-60 mt-2">
                         {evalStudent.guardianName || 'Guardian Record'} • {selectedCourse.title}
                       </DialogDescription>
                     </div>
-                    <Badge variant="outline" className="text-xs uppercase tracking-widest bg-primary/5 text-primary border-primary/20 h-6 px-3">Term Dossier</Badge>
+                    <Badge variant="outline" className="text-xs   bg-primary/5 text-primary  h-6 px-3">Term Dossier</Badge>
                   </div>
                 </DialogHeader>
 
@@ -423,15 +423,15 @@ export default function TeacherClassesPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
                         <ClipboardList className="w-4 h-4 text-primary/50" />
-                        <h4 className="text-[10px] uppercase tracking-widest font-normal text-muted-foreground opacity-80">Institutional Assessments</h4>
+                        <h4 className="text-xs   font-normal text-muted-foreground opacity-80">Institutional Assessments</h4>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="p-4 rounded-xl bg-muted/20 border border-primary/5">
-                          <p className="text-[9px] uppercase tracking-widest font-normal text-muted-foreground mb-1">Midterm</p>
+                        <div className="p-4  bg-muted/20 border ">
+                          <p className="text-xs   font-normal text-muted-foreground mb-1">Midterm</p>
                           <p className="font-sans text-xl font-normal text-foreground/80">{midtermScore} <span className="text-xs text-muted-foreground opacity-50">/100</span></p>
                         </div>
-                        <div className="p-4 rounded-xl bg-muted/20 border border-primary/5">
-                          <p className="text-[9px] uppercase tracking-widest font-normal text-muted-foreground mb-1">Final Test</p>
+                        <div className="p-4  bg-muted/20 border ">
+                          <p className="text-xs   font-normal text-muted-foreground mb-1">Final Test</p>
                           <p className="font-sans text-xl font-normal text-foreground/80">{finalScore} <span className="text-xs text-muted-foreground opacity-50">/100</span></p>
                         </div>
                       </div>
@@ -440,56 +440,56 @@ export default function TeacherClassesPage() {
                     <div className="space-y-4 pt-2">
                       <div className="flex items-center gap-2">
                         <Eye className="w-4 h-4 text-primary/50" />
-                        <h4 className="text-[10px] uppercase tracking-widest font-normal text-muted-foreground opacity-80">Subjective Scoring</h4>
+                        <h4 className="text-xs   font-normal text-muted-foreground opacity-80">Subjective Scoring</h4>
                       </div>
                       
                       <div className="space-y-3">
                         <div className="flex items-center justify-between gap-4">
-                          <label className="text-xs uppercase tracking-widest font-normal w-32">Attendance</label>
+                          <label className="text-xs   font-normal w-32">Attendance</label>
                           <div className="flex items-center gap-2 flex-1">
                             <Input 
                               type="number" max={60} min={0} 
                               value={evalScores.attendance} 
                               onChange={e => setEvalScores(prev => ({ ...prev, attendance: Math.min(60, Math.max(0, Number(e.target.value) || 0)) }))}
-                              className="h-9 bg-background/50 border-primary/10 focus-visible:ring-primary text-sm font-medium"
+                              className="h-9 bg-background/50  focus-visible:ring-primary text-sm font-medium"
                             />
-                            <span className="text-[10px] text-muted-foreground opacity-50 w-8 text-right">/60</span>
+                            <span className="text-xs text-muted-foreground opacity-50 w-8 text-right">/60</span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between gap-4">
-                          <label className="text-xs uppercase tracking-widest font-normal w-32">Participation</label>
+                          <label className="text-xs   font-normal w-32">Participation</label>
                           <div className="flex items-center gap-2 flex-1">
                             <Input 
                               type="number" max={20} min={0} 
                               value={evalScores.participation} 
                               onChange={e => setEvalScores(prev => ({ ...prev, participation: Math.min(20, Math.max(0, Number(e.target.value) || 0)) }))}
-                              className="h-9 bg-background/50 border-primary/10 focus-visible:ring-primary text-sm font-medium"
+                              className="h-9 bg-background/50  focus-visible:ring-primary text-sm font-medium"
                             />
-                            <span className="text-[10px] text-muted-foreground opacity-50 w-8 text-right">/20</span>
+                            <span className="text-xs text-muted-foreground opacity-50 w-8 text-right">/20</span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between gap-4">
-                          <label className="text-xs uppercase tracking-widest font-normal w-32">Discipline</label>
+                          <label className="text-xs   font-normal w-32">Discipline</label>
                           <div className="flex items-center gap-2 flex-1">
                             <Input 
                               type="number" max={10} min={0} 
                               value={evalScores.discipline} 
                               onChange={e => setEvalScores(prev => ({ ...prev, discipline: Math.min(10, Math.max(0, Number(e.target.value) || 0)) }))}
-                              className="h-9 bg-background/50 border-primary/10 focus-visible:ring-primary text-sm font-medium"
+                              className="h-9 bg-background/50  focus-visible:ring-primary text-sm font-medium"
                             />
-                            <span className="text-[10px] text-muted-foreground opacity-50 w-8 text-right">/10</span>
+                            <span className="text-xs text-muted-foreground opacity-50 w-8 text-right">/10</span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between gap-4">
-                          <label className="text-xs uppercase tracking-widest font-normal w-32">Activities</label>
+                          <label className="text-xs   font-normal w-32">Activities</label>
                           <div className="flex items-center gap-2 flex-1">
                             <Input 
                               type="number" max={10} min={0} 
                               value={evalScores.extra} 
                               onChange={e => setEvalScores(prev => ({ ...prev, extra: Math.min(10, Math.max(0, Number(e.target.value) || 0)) }))}
-                              className="h-9 bg-background/50 border-primary/10 focus-visible:ring-primary text-sm font-medium"
+                              className="h-9 bg-background/50  focus-visible:ring-primary text-sm font-medium"
                             />
-                            <span className="text-[10px] text-muted-foreground opacity-50 w-8 text-right">/10</span>
+                            <span className="text-xs text-muted-foreground opacity-50 w-8 text-right">/10</span>
                           </div>
                         </div>
                       </div>
@@ -497,10 +497,10 @@ export default function TeacherClassesPage() {
                   </div>
 
                   {/* Right Column: Engine */}
-                  <div className="flex flex-col items-center justify-center p-8 bg-muted/10 border border-primary/5 rounded-3xl h-full">
+                  <div className="flex flex-col items-center justify-center p-8 bg-muted/10 border   h-full">
                     <div className="text-center space-y-6">
                       <div>
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Term Grand Total</p>
+                        <p className="text-xs   text-muted-foreground mb-3">Term Grand Total</p>
                         <div className="flex items-baseline justify-center gap-1">
                           <span className="font-sans text-6xl font-normal text-primary">{grandTotal}</span>
                           <span className="text-xl text-muted-foreground opacity-40">/300</span>
@@ -511,18 +511,18 @@ export default function TeacherClassesPage() {
 
                       <div className="flex items-center justify-center gap-4 pt-2">
                         <div className="text-center">
-                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-60 mb-1">Percentage</p>
+                          <p className="text-xs   text-muted-foreground opacity-60 mb-1">Percentage</p>
                           <p className="font-sans text-xl font-normal">{percentage}%</p>
                         </div>
                         <div className="w-px h-8 bg-border/50" />
                         <div className="text-center">
-                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-60 mb-1">Grade Mark</p>
+                          <p className="text-xs   text-muted-foreground opacity-60 mb-1">Grade Mark</p>
                           <p className="font-sans text-xl font-normal text-primary">{grade}</p>
                         </div>
                       </div>
                       
                       <div className="pt-2">
-                        <Badge variant="outline" className={`text-[10px] uppercase tracking-widest font-normal px-4 py-1.5 ${percentage >= 36 ? 'bg-success/10 text-success border-success/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
+                        <Badge variant="outline" className={`text-xs   font-normal px-4 py-1.5 ${percentage >= 36 ? 'bg-success/10 text-success border-success/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
                           {eligibility}
                         </Badge>
                       </div>

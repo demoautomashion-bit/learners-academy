@@ -112,7 +112,7 @@ export default function TestReviewsPage() {
     : { count: 0, questions: [] }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Page Header */}
       <motion.div
         initial="hidden"
@@ -121,7 +121,7 @@ export default function TestReviewsPage() {
         className="flex flex-col gap-1"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="font-serif text-3xl font-normal text-foreground">
+          <h1 className="font-serif text-3xl text-foreground">
             Test Review Queue
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -138,18 +138,18 @@ export default function TestReviewsPage() {
         variants={STAGGER_CONTAINER}
       >
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-warning/10 shadow-premium">
+          <Card className="glass-1 hover-lift transition-premium border-warning/10">
             <CardHeader className="pb-1 pt-4 px-4">
               <CardDescription className="text-editorial-label flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5 text-warning" />
                 Pending Review
               </CardDescription>
-              <CardTitle className="text-3xl font-serif font-normal text-warning">
+              <CardTitle className="font-serif text-warning text-xl font-serif">
                 {pendingAssessments.length}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <span className="text-xs text-muted-foreground  ">
                 Awaiting your decision
               </span>
             </CardContent>
@@ -157,18 +157,18 @@ export default function TestReviewsPage() {
         </motion.div>
 
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-success/10 shadow-premium">
+          <Card className="glass-1 hover-lift transition-premium border-success/10">
             <CardHeader className="pb-1 pt-4 px-4">
               <CardDescription className="text-editorial-label flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                 Approved
               </CardDescription>
-              <CardTitle className="text-3xl font-serif font-normal text-success">
+              <CardTitle className="font-serif text-success text-xl font-serif">
                 {approvedCount}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <span className="text-xs text-muted-foreground  ">
                 Live this term
               </span>
             </CardContent>
@@ -176,18 +176,18 @@ export default function TestReviewsPage() {
         </motion.div>
 
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-destructive/10 shadow-premium">
+          <Card className="glass-1 hover-lift transition-premium border-destructive/10">
             <CardHeader className="pb-1 pt-4 px-4">
               <CardDescription className="text-editorial-label flex items-center gap-2">
                 <AlertCircle className="w-3.5 h-3.5 text-destructive" />
                 Sent for Revision
               </CardDescription>
-              <CardTitle className="text-3xl font-serif font-normal text-destructive">
+              <CardTitle className="font-serif text-destructive text-xl font-serif">
                 {rejectedCount}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <span className="text-xs text-muted-foreground  ">
                 Awaiting teacher correction
               </span>
             </CardContent>
@@ -202,11 +202,11 @@ export default function TestReviewsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center justify-center py-24 gap-4 text-center"
         >
-          <div className="w-20 h-20 rounded-3xl bg-success/5 border border-success/10 flex items-center justify-center">
+          <div className="w-20 h-20  bg-success/5 border border-success/10 flex items-center justify-center">
             <ShieldCheck className="w-10 h-10 text-success/40" />
           </div>
           <div>
-            <h2 className="font-serif text-2xl font-normal text-foreground">Queue is clear</h2>
+            <h2 className="font-serif text-2xl text-foreground">Queue is clear</h2>
             <p className="text-muted-foreground mt-1">All submitted papers have been reviewed.</p>
           </div>
         </motion.div>
@@ -226,7 +226,7 @@ export default function TestReviewsPage() {
                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="hover-lift overflow-hidden border-none shadow-sm ring-1 ring-warning/20 h-full flex flex-col bg-card">
+                <Card className="glass-1 hover-lift overflow-hidden border-none shadow-sm ring-1 ring-warning/20 h-full flex flex-col bg-card">
                   {/* Amber top accent */}
                   <div className="h-0.5 w-full bg-gradient-to-r from-warning/40 via-warning to-warning/40" />
 
@@ -234,26 +234,26 @@ export default function TestReviewsPage() {
                     <div className="space-y-1.5">
                       <Badge
                         variant="outline"
-                        className="text-[9px] uppercase tracking-widest font-bold border-primary/20 bg-primary/5 text-primary"
+                        className="text-xs   font-bold  bg-primary/5 text-primary"
                       >
                         {assessment.phase}
                       </Badge>
-                      <CardTitle className="font-serif text-xl tracking-tight leading-tight">
+                      <CardTitle className="font-serif text-xl leading-tight">
                         {assessment.title}
                       </CardTitle>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-normal opacity-70">
+                      <p className="text-xs text-muted-foreground   font-normal opacity-70">
                         {getTeacherName(assessment)} · {getTeacherEmployeeId(assessment)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-warning/10 border border-warning/20 shrink-0 ml-2">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1  bg-warning/10 border border-warning/20 shrink-0 ml-2">
                       <Clock className="w-3 h-3 text-warning" />
-                      <span className="text-[9px] uppercase tracking-widest font-bold text-warning">Pending</span>
+                      <span className="text-xs   font-bold text-warning">Pending</span>
                     </div>
                   </CardHeader>
 
                   <CardContent className="space-y-5 flex-1 flex flex-col">
                     {/* Meta grid */}
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-[11px] uppercase tracking-wider font-bold text-muted-foreground/80">
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs   font-bold text-muted-foreground/80">
                       <div className="flex items-center gap-2">
                         <Users className="w-3.5 h-3.5 text-primary/60" />
                         <span className="truncate">{assessment.classLevels[0]}</span>
@@ -274,18 +274,18 @@ export default function TestReviewsPage() {
 
                     {/* Access code preview */}
                     <div className="flex flex-col gap-3">
-                      <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/30 border border-primary/5">
+                      <div className="flex items-center justify-between p-3  bg-muted/30 border ">
                         <div className="flex flex-col">
-                          <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Access Token</span>
-                          <span className="font-sans text-sm font-bold tracking-tighter text-primary">{assessment.accessCode}</span>
+                          <span className="text-xs   font-bold text-muted-foreground">Access Token</span>
+                          <span className="font-sans text-sm font-bold  text-primary">{assessment.accessCode}</span>
                         </div>
-                        <span className="text-[9px] uppercase tracking-widest text-muted-foreground">Locked</span>
+                        <span className="text-xs   text-muted-foreground">Locked</span>
                       </div>
 
                       {/* Pool Strength Indicator */}
-                      <div className="flex items-center justify-between p-3 rounded-2xl bg-primary/[0.02] border border-primary/10">
+                      <div className="flex items-center justify-between p-3  bg-primary/[0.02] border ">
                         <div className="flex flex-col">
-                          <span className="text-[9px] uppercase tracking-widest font-bold text-primary/60">Library Strength</span>
+                          <span className="text-xs   font-bold text-primary/60">Library Strength</span>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <LibraryIcon className="w-3 h-3 text-primary" />
                             <span className="font-sans text-sm font-bold text-foreground">
@@ -296,7 +296,7 @@ export default function TestReviewsPage() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 group hover:bg-primary/5 text-primary text-[10px] uppercase tracking-widest font-bold gap-1.5 px-3 rounded-xl"
+                          className="group hover:bg-primary/5 font-bold gap-1.5 "
                           onClick={() => setInspectPoolId(assessment.id)}
                         >
                           Inspect Pool <Eye className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
@@ -308,7 +308,7 @@ export default function TestReviewsPage() {
                     <div className="mt-auto pt-2 space-y-2">
                       {/* Approve */}
                       <Button
-                        className="w-full h-10 rounded-xl bg-success hover:bg-success/90 text-white font-normal uppercase tracking-widest text-[11px] transition-premium gap-2"
+                        className="w-full  bg-success hover:bg-success/90 font-normal transition-premium gap-2"
                         onClick={() => handleApprove(assessment.id, assessment.title)}
                       >
                         <CheckCircle2 className="w-4 h-4" />
@@ -319,7 +319,7 @@ export default function TestReviewsPage() {
                       {expandedRejectId !== assessment.id ? (
                         <Button
                           variant="outline"
-                          className="w-full h-10 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/5 hover:text-destructive font-normal uppercase tracking-widest text-[11px] transition-premium gap-2"
+                          className="w-full  border-destructive/20 hover:bg-destructive/5 hover: font-normal transition-premium gap-2"
                           onClick={() => setExpandedRejectId(assessment.id)}
                         >
                           <MessageSquareWarning className="w-4 h-4" />
@@ -334,7 +334,7 @@ export default function TestReviewsPage() {
                         >
                           <Textarea
                             placeholder="Describe what needs to be improved..."
-                            className="rounded-xl text-sm resize-none min-h-[80px] border-destructive/20 focus:ring-destructive/30 bg-destructive/5"
+                            className=" text-sm resize-none min-h-[80px] border-destructive/20 focus:ring-destructive/30 bg-destructive/5"
                             value={feedbackMap[assessment.id] || ''}
                             onChange={(e) =>
                               setFeedbackMap(prev => ({ ...prev, [assessment.id]: e.target.value }))
@@ -344,7 +344,7 @@ export default function TestReviewsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="flex-1 rounded-xl text-muted-foreground hover:text-foreground text-xs"
+                              className="flex-1  hover:"
                               onClick={() => {
                                 setExpandedRejectId(null)
                                 setFeedbackMap(prev => { const n = { ...prev }; delete n[assessment.id]; return n })
@@ -354,7 +354,7 @@ export default function TestReviewsPage() {
                             </Button>
                             <Button
                               size="sm"
-                              className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90 text-white text-xs gap-1.5"
+                              className="flex-1  bg-destructive hover:bg-destructive/90 gap-1.5"
                               onClick={() => handleReject(assessment.id, assessment.title)}
                             >
                               <Send className="w-3.5 h-3.5" /> Send Feedback
@@ -376,17 +376,17 @@ export default function TestReviewsPage() {
         <DialogContent className="max-w-2xl overflow-hidden">
           {selectedAssessmentForPool && (
             <>
-              <DialogHeader className="p-8 pb-6 border-b border-primary/5">
+              <DialogHeader className="p-8 pb-6 border-b ">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Badge variant="outline" className="text-[9px] uppercase tracking-[0.2em] font-bold text-primary mb-2 border-primary/20">{selectedAssessmentForPool.phase}</Badge>
+                    <Badge variant="outline" className="text-xs   font-bold text-primary mb-2 ">{selectedAssessmentForPool.phase}</Badge>
                     <DialogTitle className="font-serif text-3xl font-normal">Content Selection Pool</DialogTitle>
                     <DialogDescription className="text-editorial-meta mt-1">
                       Showing all approved questions eligible for the randomized <b>{selectedAssessmentForPool.questionCount}</b> question slots.
                     </DialogDescription>
                   </div>
                   <div className="hidden sm:flex flex-col items-end">
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Pool Strength</span>
+                    <span className="text-xs   font-bold text-muted-foreground">Pool Strength</span>
                     <span className="text-3xl font-serif text-primary">{poolQuestions.length}</span>
                   </div>
                 </div>
@@ -402,19 +402,19 @@ export default function TestReviewsPage() {
                       </div>
                     ) : (
                       poolQuestions?.map((q, i) => (
-                        <div key={q.id} className="group relative bg-muted/20 hover:bg-muted/40 border border-primary/5 rounded-2xl p-4 transition-premium">
+                        <div key={q.id} className="group relative bg-muted/20 hover:bg-muted/40 border   p-4 transition-premium">
                            <div className="flex items-start gap-4">
-                             <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-background border flex items-center justify-center text-[10px] font-bold text-muted-foreground/40">{i+1}</span>
+                             <span className="flex-shrink-0 w-6 h-6  bg-background border flex items-center justify-center text-xs font-bold text-muted-foreground/40">{i+1}</span>
                              <div className="space-y-2 flex-1">
                                <div className="flex items-center gap-2">
-                                 <Badge variant="secondary" className="text-[8px] px-1.5 h-4 font-bold uppercase tracking-tighter bg-primary/10 text-primary border-none">{q.type}</Badge>
-                                 <Badge variant="outline" className="text-[8px] px-1.5 h-4 font-normal uppercase tracking-tighter border-muted-foreground/20 text-muted-foreground">{q.category}</Badge>
+                                 <Badge variant="secondary" className="text-xs px-1.5 h-4 font-bold   bg-primary/10 text-primary border-none">{q.type}</Badge>
+                                 <Badge variant="outline" className="text-xs px-1.5 h-4 font-normal   border-muted-foreground/20 text-muted-foreground">{q.category}</Badge>
                                </div>
                                <p className="text-sm font-normal leading-relaxed text-foreground/80">{q.content}</p>
                                {q.options && q.options.length > 0 && (
                                  <div className="flex flex-wrap gap-1.5 pt-1">
                                    {q.options?.map((opt, idx) => (
-                                     <span key={idx} className={`text-[9px] px-2 py-0.5 rounded-full ${opt === q.correctAnswer ? 'bg-success/10 text-success' : 'bg-background text-muted-foreground'}`}>
+                                     <span key={idx} className={`text-xs px-2 py-0.5  ${opt === q.correctAnswer ? 'bg-success/10 text-success' : 'bg-background text-muted-foreground'}`}>
                                        {opt}
                                      </span>
                                    ))}
@@ -429,12 +429,12 @@ export default function TestReviewsPage() {
                 </ScrollArea>
               </div>
 
-              <div className="p-8 pt-6 border-t border-primary/5 flex items-center justify-between">
+              <div className="p-8 pt-6 border-t  flex items-center justify-between">
                 <div className="flex items-center gap-2 text-warning">
                   <ShieldCheck className="w-4 h-4" />
-                  <span className="text-[10px] uppercase tracking-widest font-bold">Encrypted Audit Trail</span>
+                  <span className="text-xs   font-bold">Encrypted Audit Trail</span>
                 </div>
-                <Button variant="outline" className="rounded-xl h-11 px-8 text-xs uppercase tracking-widest font-normal" onClick={() => setInspectPoolId(null)}>
+                <Button variant="outline" className=" font-normal" onClick={() => setInspectPoolId(null)}>
                   Close Audit
                 </Button>
               </div>

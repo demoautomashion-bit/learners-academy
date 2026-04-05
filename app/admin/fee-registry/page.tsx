@@ -156,7 +156,7 @@ export default function FeeRegistryPage() {
       {/* Header Area */}
       <motion.div variants={STAGGER_ITEM} className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl tracking-normal text-foreground font-normal">
+          <h1 className="font-serif text-3xl text-foreground">
             Institutional Fee Registry
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-normal max-w-2xl opacity-80 leading-relaxed">
@@ -166,28 +166,28 @@ export default function FeeRegistryPage() {
         <div className="flex gap-3">
           <Dialog open={isAddAccountOpen} onOpenChange={setIsAddAccountOpen}>
             <DialogTrigger asChild>
-              <Button className="rounded-xl px-8 h-12 font-normal text-xs uppercase tracking-[0.15em] bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <Button className=" font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                 Add Student Account
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-xl overflow-hidden">
-              <DialogHeader className="p-8 bg-muted/5 border-b border-primary/5">
+              <DialogHeader className="p-8 bg-muted/5 border-b ">
                 <DialogTitle className="font-serif text-2xl font-normal">Initiate Academic Account</DialogTitle>
-                <DialogDescription className="text-[10px] uppercase tracking-widest opacity-60">
+                <DialogDescription className="text-xs   opacity-60">
                   Link an existing student to the financial registry
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleAddAccount} className="p-8 space-y-6">
                 <div className="grid grid-cols-2 gap-6 text-left">
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-[0.2em] opacity-40 ml-1">Select Student</Label>
+                    <Label className="text-xs   opacity-40 ml-1">Select Student</Label>
                     <Select name="studentId" required>
-                      <SelectTrigger className="rounded-xl h-12 border-primary/5 bg-muted/5">
+                      <SelectTrigger className=" h-12  bg-muted/5">
                         <SelectValue placeholder="Registration / UID" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-primary/5 shadow-premium">
+                      <SelectContent className="  ">
                         {students?.map(s => (
-                          <SelectItem key={s.id} value={s.id} className="rounded-lg">
+                          <SelectItem key={s.id} value={s.id} className="">
                             {s.name} ({s.studentId})
                           </SelectItem>
                         ))}
@@ -195,14 +195,14 @@ export default function FeeRegistryPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-[0.2em] opacity-40 ml-1">Academic Level</Label>
+                    <Label className="text-xs   opacity-40 ml-1">Academic Level</Label>
                     <Select name="courseId" required>
-                      <SelectTrigger className="rounded-xl h-12 border-primary/5 bg-muted/5">
+                      <SelectTrigger className=" h-12  bg-muted/5">
                         <SelectValue placeholder="Enrolled Course" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-primary/5 shadow-premium">
+                      <SelectContent className="  ">
                         {courses?.map(c => (
-                          <SelectItem key={c.id} value={c.id} className="rounded-lg">
+                          <SelectItem key={c.id} value={c.id} className="">
                             {c.title}
                           </SelectItem>
                         ))}
@@ -210,16 +210,16 @@ export default function FeeRegistryPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-[0.2em] opacity-40 ml-1">Total Flexible Fee (Rs.)</Label>
-                    <Input name="totalAmount" type="number" required placeholder="0.00" className="rounded-xl h-12 border-primary/5 bg-muted/5 focus:bg-card transition-all" />
+                    <Label className="text-xs   opacity-40 ml-1">Total Flexible Fee (Rs.)</Label>
+                    <Input name="totalAmount" type="number" required placeholder="0.00" className=" h-12  bg-muted/5 focus:bg-card transition-all" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-[0.2em] opacity-40 ml-1">Initial Deposit (Rs.)</Label>
-                    <Input name="initialDeposit" type="number" defaultValue={0} className="rounded-xl h-12 border-primary/5 bg-muted/5 focus:bg-card transition-all" />
+                    <Label className="text-xs   opacity-40 ml-1">Initial Deposit (Rs.)</Label>
+                    <Input name="initialDeposit" type="number" defaultValue={0} className=" h-12  bg-muted/5 focus:bg-card transition-all" />
                   </div>
                 </div>
                 <DialogFooter className="pt-4">
-                  <Button type="submit" disabled={isPending} className="w-full h-12 rounded-xl text-[10px] uppercase tracking-[0.2em] font-normal shadow-lg">
+                  <Button type="submit" disabled={isPending} className="w-full  font-normal shadow-lg">
                     {isPending ? 'Syncing...' : 'Authorize Registration'}
                   </Button>
                 </DialogFooter>
@@ -237,18 +237,18 @@ export default function FeeRegistryPage() {
           { label: 'Monthly Volume', value: stats.monthly, info: 'Current Month', icon: DollarSign, color: 'text-primary' },
           { label: 'Total Outstanding', value: stats.totalOutstanding, info: 'Uncollected', icon: AlertCircle, color: 'text-destructive' },
         ].map((stat, i) => (
-          <Card key={i} className="border-primary/5 bg-card/40 backdrop-blur-md shadow-premium hover-lift transition-premium">
+          <Card key={i} className="    hover-lift transition-premium">
             <CardContent className="pt-8 pb-7">
               <div className="flex flex-col gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/5">
+                <div className="w-10 h-10  bg-primary/5 flex items-center justify-center border ">
                   <stat.icon className={cn("h-4 w-4", stat.color)} />
                 </div>
                 <div>
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-2 font-normal opacity-60">{stat.label}</p>
-                  <h3 className="font-serif text-2xl font-normal tracking-tight mb-3">
+                  <p className="text-xs   text-muted-foreground mb-2 font-normal opacity-60">{stat.label}</p>
+                  <h3 className="font-serif mb-3 text-xl font-serif">
                     Rs. {stat.value.toLocaleString()}
                   </h3>
-                  <p className="text-[10px] text-muted-foreground mt-2 font-normal opacity-70 uppercase tracking-widest">{stat.info}</p>
+                  <p className="text-xs text-muted-foreground mt-2 font-normal opacity-70  ">{stat.info}</p>
                 </div>
               </div>
             </CardContent>
@@ -260,14 +260,14 @@ export default function FeeRegistryPage() {
       <motion.div variants={STAGGER_ITEM} className="space-y-6">
         <div className="flex items-center justify-between gap-4 px-2">
           <div className="flex items-center gap-6">
-            <h2 className="font-serif text-2xl font-normal text-foreground">Student Accounts</h2>
-            <div className="flex gap-1 bg-muted/20 p-1 rounded-xl border border-primary/5">
+            <h2 className="font-serif text-2xl text-foreground">Student Accounts</h2>
+            <div className="flex gap-1 bg-muted/20 p-1  border ">
               {['All', 'Paid', 'Partial', 'Unpaid'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status as any)}
                   className={cn(
-                    "px-4 py-1.5 text-[10px] uppercase tracking-widest rounded-lg transition-all font-normal",
+                    "px-4 py-1.5 text-xs    transition-all font-normal",
                     filterStatus === status 
                       ? "bg-primary text-white shadow-sm" 
                       : "text-muted-foreground hover:text-primary hover:bg-primary/5"
@@ -284,23 +284,23 @@ export default function FeeRegistryPage() {
               placeholder="Search registry entries..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 h-12 bg-muted/10 border-primary/5 rounded-2xl focus:bg-background transition-all font-normal text-sm"
+              className="pl-11 h-12 bg-muted/10   focus:bg-background transition-all font-normal text-sm"
             />
           </div>
         </div>
 
-        <Card className="border-primary/5 shadow-premium rounded-[2rem] overflow-hidden">
-          <CardContent className="p-0">
+        <Card className="glass-1 overflow-hidden">
+          <CardContent className="p-6">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-muted/5 h-16 border-b border-primary/5">
+                <TableHeader className="bg-muted/5 h-16 border-b ">
                   <TableRow className="border-none hover:bg-transparent">
-                    <TableHead className="w-[280px] text-[10px] uppercase tracking-[0.2em] pl-10 font-normal text-muted-foreground opacity-60">Name</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-normal text-muted-foreground opacity-60">Class</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-normal text-muted-foreground opacity-60">ID & Timing</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-normal text-muted-foreground opacity-60">Status</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-normal text-muted-foreground opacity-60 w-[240px]">Dues (Rs.)</TableHead>
-                    <TableHead className="text-right pr-10 text-[10px] uppercase tracking-[0.2em] font-normal text-muted-foreground opacity-60">Action</TableHead>
+                    <TableHead className="w-[280px] text-xs   pl-10 font-normal text-muted-foreground opacity-60">Name</TableHead>
+                    <TableHead className="text-xs   font-normal text-muted-foreground opacity-60">Class</TableHead>
+                    <TableHead className="text-xs   font-normal text-muted-foreground opacity-60">ID & Timing</TableHead>
+                    <TableHead className="text-xs   font-normal text-muted-foreground opacity-60">Status</TableHead>
+                    <TableHead className="text-xs   font-normal text-muted-foreground opacity-60 w-[240px]">Dues (Rs.)</TableHead>
+                    <TableHead className="text-right pr-10 text-xs   font-normal text-muted-foreground opacity-60">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -309,7 +309,7 @@ export default function FeeRegistryPage() {
                       <TableCell colSpan={6} className="text-center py-32 opacity-30">
                         <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-20" />
                         <p className="font-serif text-xl font-normal">No registry entries found</p>
-                        <p className="text-[10px] uppercase tracking-widest mt-2 font-normal">System awaiting transactional data</p>
+                        <p className="text-xs   mt-2 font-normal">System awaiting transactional data</p>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -318,25 +318,25 @@ export default function FeeRegistryPage() {
                       const progress = (entry.amountPaid / entry.totalAmount) * 100
 
                       return (
-                        <TableRow key={entry.id} className="group border-b border-primary/5 hover:bg-primary/[0.02] transition-premium h-20">
+                        <TableRow key={entry.id} className="group border-b  hover:bg-primary/[0.02] transition-premium h-20">
                           <TableCell className="pl-10">
                             <div className="flex items-center gap-4">
-                              <Avatar className="h-10 w-10 border border-primary/5 shadow-sm group-hover:scale-105 transition-transform">
+                              <Avatar className="h-10 w-10 border  shadow-sm group-hover:scale-105 transition-transform">
                                 <AvatarImage src={entry.student.avatar} />
-                                <AvatarFallback className="text-[10px] bg-primary/5 text-primary font-normal">
+                                <AvatarFallback className="text-xs bg-primary/5 text-primary font-normal">
                                   {entry.student.name.split(' ').map((n: string) => n[0]).join('')}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <p className="text-sm font-normal text-foreground leading-none mb-1">{entry.student.name}</p>
-                                <p className="text-[9px] uppercase tracking-tighter text-muted-foreground font-normal">ID: {entry.student.studentId || 'GEN-ST'}</p>
+                                <p className="text-xs   text-muted-foreground font-normal">ID: {entry.student.studentId || 'GEN-ST'}</p>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="text-sm font-normal text-foreground leading-tight">{entry.course.title}</span>
-                              <span className="text-[9px] uppercase tracking-widest text-primary/70 font-normal mt-1 opacity-70">{entry.course.level}</span>
+                              <span className="text-xs   text-primary/70 font-normal mt-1 opacity-70">{entry.course.level}</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -344,13 +344,13 @@ export default function FeeRegistryPage() {
                               <span className="text-xs font-normal text-foreground">{entry.student.studentId || 'GEN-ST'}</span>
                               <div className="flex items-center gap-1.5 opacity-50 mt-1">
                                 <Clock className="w-2.5 h-2.5" />
-                                <span className="text-[9px] font-normal uppercase tracking-tighter">{entry.student.classTiming || 'TBC'}</span>
+                                <span className="text-xs font-normal  ">{entry.student.classTiming || 'TBC'}</span>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className={cn(
-                              "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[10px] uppercase tracking-widest border border-transparent font-normal transition-all",
+                              "inline-flex items-center gap-2.5 px-3.5 py-1.5  text-xs   border border-transparent font-normal transition-all",
                               entry.status === 'Paid' && "bg-success/5 text-success border-success/10",
                               entry.status === 'Partial' && "bg-warning/5 text-warning border-warning/10",
                               entry.status === 'Unpaid' && "bg-destructive/5 text-destructive border-destructive/10"
@@ -362,11 +362,11 @@ export default function FeeRegistryPage() {
                             <div className="flex flex-col gap-2 pr-6">
                               <div className="flex justify-between items-end">
                                 <div className="flex flex-col">
-                                  <span className="text-[11px] font-normal text-foreground leading-none">Paid: {entry.amountPaid.toLocaleString()}</span>
-                                  <span className="text-[8px] text-muted-foreground uppercase tracking-tighter mt-1 opacity-60">Total: {entry.totalAmount.toLocaleString()}</span>
+                                  <span className="text-xs font-normal text-foreground leading-none">Paid: {entry.amountPaid.toLocaleString()}</span>
+                                  <span className="text-xs text-muted-foreground   mt-1 opacity-60">Total: {entry.totalAmount.toLocaleString()}</span>
                                 </div>
                                 {balance > 0 ? (
-                                  <span className="text-[10px] text-destructive font-serif font-normal italic">Rs. {balance.toLocaleString()} Due</span>
+                                  <span className="text-xs text-destructive font-serif font-normal italic">Rs. {balance.toLocaleString()} Due</span>
                                 ) : (
                                   <CheckCircle className="w-3 h-3 text-success opacity-40" />
                                 )}
@@ -377,21 +377,21 @@ export default function FeeRegistryPage() {
                           <TableCell className="text-right pr-10">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-10 w-10 rounded-full hover:bg-primary/5 transition-all">
+                                <Button variant="ghost" size="sm" className="w-10  hover:bg-primary/5 transition-all">
                                   <MoreVertical className="w-4 h-4 text-muted-foreground opacity-40 group-hover:opacity-100" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-56 rounded-2xl border-primary/5 shadow-premium p-1.5 overflow-hidden">
-                                <DropdownMenuLabel className="text-[8px] uppercase tracking-[0.3em] opacity-40 px-4 py-3 font-normal">Account Actions</DropdownMenuLabel>
+                              <DropdownMenuContent align="end" className="w-56    p-1.5 overflow-hidden">
+                                <DropdownMenuLabel className="text-xs   opacity-40 px-4 py-3 font-normal">Account Actions</DropdownMenuLabel>
                                 <DropdownMenuSeparator className="opacity-5" />
-                                <DropdownMenuItem onClick={() => handleQuickPayment(entry.id)} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/5 transition-all font-normal">
+                                <DropdownMenuItem onClick={() => handleQuickPayment(entry.id)} className="gap-3 cursor-pointer py-3  focus:bg-primary/5 transition-all font-normal">
                                   <Plus className="w-4 h-4 text-primary opacity-60" /> <span className="text-xs">Record Contribution</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-muted font-normal">
+                                <DropdownMenuItem className="gap-3 cursor-pointer py-3  focus:bg-muted font-normal">
                                   <ArrowUpRight className="w-4 h-4 text-muted-foreground opacity-60" /> <span className="text-xs">Issue Statement</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="opacity-5" />
-                                <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-destructive/5 text-destructive font-normal">
+                                <DropdownMenuItem className="gap-3 cursor-pointer py-3  focus:bg-destructive/5 text-destructive font-normal">
                                   <AlertCircle className="w-4 h-4 opacity-70" /> <span className="text-xs">Send Due Reminder</span>
                                 </DropdownMenuItem>
                               </DropdownMenuContent>

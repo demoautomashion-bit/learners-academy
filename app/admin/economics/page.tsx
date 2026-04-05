@@ -215,7 +215,7 @@ export default function EconomicsPage() {
       {/* Header section */}
       <motion.div variants={STAGGER_ITEM} className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl tracking-normal text-foreground font-normal">
+          <h1 className="font-serif text-3xl text-foreground">
             Institutional Economics
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-normal max-w-2xl opacity-80">
@@ -225,72 +225,72 @@ export default function EconomicsPage() {
         <div className="flex gap-3">
           <Dialog open={isAddExpenseOpen} onOpenChange={setIsAddExpenseOpen}>
             <DialogTrigger asChild>
-              <Button className="rounded-xl px-8 h-12 font-normal text-xs uppercase tracking-[0.15em] bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <Button className=" font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                 <Plus className="w-4 h-4 mr-3 opacity-60" /> Log Expenditure
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader className="mb-6">
                 <DialogTitle className="font-serif text-3xl font-normal">Record Outflow</DialogTitle>
-                <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-normal opacity-60">Add a new financial transaction to the ledger.</CardDescription>
+                <CardDescription className="text-xs   font-normal opacity-60">Add a new financial transaction to the ledger.</CardDescription>
               </DialogHeader>
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal ml-1">Capital Amount (Rs.)</label>
+                  <label className="text-xs   text-muted-foreground font-normal ml-1">Capital Amount (Rs.)</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground opacity-40 font-normal">Rs.</span>
                     <Input 
                       type="number" 
                       placeholder="0.00" 
-                      className="pl-12 h-12 bg-muted/20 border-primary/5 rounded-xl font-normal text-sm focus:bg-background"
+                      className="pl-12 h-12 bg-muted/20   font-normal text-sm focus:bg-background"
                       value={newExpense.amount}
                       onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal ml-1">Asset Category</label>
+                  <label className="text-xs   text-muted-foreground font-normal ml-1">Asset Category</label>
                   <Select onValueChange={(val) => setNewExpense({...newExpense, category: val})}>
-                    <SelectTrigger className="h-12 bg-muted/20 border-primary/5 rounded-xl font-normal text-sm focus:bg-background">
+                    <SelectTrigger className="h-12 bg-muted/20   font-normal text-sm focus:bg-background">
                       <SelectValue placeholder="Select classification..." />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-primary/5 p-1.5 focus:bg-card">
+                    <SelectContent className="  p-1.5 focus:bg-card">
                       {EXPENDITURE_CATEGORIES?.map(cat => (
-                        <SelectItem key={cat} value={cat} className="rounded-xl py-3 cursor-pointer">{cat}</SelectItem>
+                        <SelectItem key={cat} value={cat} className=" py-3 cursor-pointer">{cat}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal ml-1">Audit Description</label>
+                  <label className="text-xs   text-muted-foreground font-normal ml-1">Audit Description</label>
                   <Input 
                     placeholder="Enter transactional justification..." 
-                    className="h-12 bg-muted/20 border-primary/5 rounded-xl font-normal text-sm focus:bg-background"
+                    className="h-12 bg-muted/20   font-normal text-sm focus:bg-background"
                     value={newExpense.description}
                     onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
                   />
                 </div>
               </div>
               <DialogFooter className="mt-10 gap-3">
-                <Button variant="ghost" className="rounded-xl font-normal tracking-widest uppercase text-[10px] h-12 opacity-60 hover:opacity-100" onClick={() => setIsAddExpenseOpen(false)}>Ignore</Button>
-                <Button className="rounded-xl flex-1 h-12 font-normal text-[10px] uppercase tracking-[0.2em] shadow-premium" onClick={handleAddExpense}>Process Transaction</Button>
+                <Button variant="ghost" className=" font-normal opacity-60 hover:opacity-100" onClick={() => setIsAddExpenseOpen(false)}>Ignore</Button>
+                <Button className=" flex-1 font-normal " onClick={handleAddExpense}>Process Transaction</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-xl px-6 h-12 border-primary/10 font-normal text-xs uppercase tracking-[0.15em] transition-all hover:bg-primary/5">
+              <Button variant="outline" className="  font-normal transition-all hover:bg-primary/5">
                 <Download className="w-4 h-4 mr-3 opacity-40" /> Export Registry
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-2xl border-primary/5 shadow-premium p-1.5">
-              <DropdownMenuLabel className="text-[8px] uppercase tracking-[0.3em] opacity-40 px-4 py-3 font-normal">Select Format</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56    p-1.5">
+              <DropdownMenuLabel className="text-xs   opacity-40 px-4 py-3 font-normal">Select Format</DropdownMenuLabel>
               <DropdownMenuSeparator className="opacity-5" />
-              <DropdownMenuItem onClick={handleExportCSV} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/5 font-normal">
+              <DropdownMenuItem onClick={handleExportCSV} className="gap-3 cursor-pointer py-3  focus:bg-primary/5 font-normal">
                 <FileSpreadsheet className="w-4 h-4 text-primary opacity-60" /> <span className="text-xs">Export as CSV Ledger</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportPDF} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/5 font-normal">
+              <DropdownMenuItem onClick={handleExportPDF} className="gap-3 cursor-pointer py-3  focus:bg-primary/5 font-normal">
                 <FileText className="w-4 h-4 text-primary opacity-60" /> <span className="text-xs">Export as PDF Registry</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -305,22 +305,22 @@ export default function EconomicsPage() {
           { label: 'Realized Revenue', value: economics.actualRevenue, sub: 'Fees Collected (Actual)', icon: TrendingUp, color: 'text-success', progress: 100 },
           { label: 'Institutional Expenditure', value: economics.totalExpenditure, sub: 'Outflow vs Capital Pool', icon: TrendingDown, color: 'text-destructive', progress: (economics.totalExpenditure / economics.actualRevenue) * 100 },
         ].map((stat, i) => (
-          <Card key={i} className="border-primary/5 bg-card/40 backdrop-blur-3xl shadow-premium rounded-[2.5rem] overflow-hidden group relative isolate">
+          <Card key={i} className="     overflow-hidden group relative isolate">
             <div className={cn("absolute inset-x-0 -bottom-1 h-1 transition-all opacity-20", stat.color.replace('text-', 'bg-'))} style={{ width: `${Math.min(stat.progress, 100)}%` }} />
             <CardContent className="pt-10 pb-8 relative">
               <div className="absolute right-8 top-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
                 <stat.icon className="w-20 h-20" />
               </div>
-              <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mb-4 font-normal opacity-50">{stat.label}</p>
-              <h3 className="font-serif text-3xl font-normal tracking-tight mb-4">
+              <p className="text-xs   text-muted-foreground mb-4 font-normal opacity-50">{stat.label}</p>
+              <h3 className="font-serif mb-4 text-xl font-serif">
                 Rs. {stat.value.toLocaleString()}
               </h3>
               <div className="flex items-center justify-between mt-6">
                 <div className="flex items-center gap-2">
-                  <div className={cn("w-1.5 h-1.5 rounded-full shadow-sm shadow-black/20", stat.color.replace('text-', 'bg-'))} />
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-normal opacity-40">{stat.sub}</span>
+                  <div className={cn("w-1.5 h-1.5  shadow-sm shadow-black/20", stat.color.replace('text-', 'bg-'))} />
+                  <span className="text-xs   text-muted-foreground font-normal opacity-40">{stat.sub}</span>
                 </div>
-                <span className="text-[10px] font-normal opacity-30 uppercase tracking-widest">{Math.round(stat.progress)}%</span>
+                <span className="text-xs font-normal opacity-30  ">{Math.round(stat.progress)}%</span>
               </div>
             </CardContent>
           </Card>
@@ -330,12 +330,12 @@ export default function EconomicsPage() {
       {/* Charts Layer */}
       <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Expenditure Trend */}
-        <Card className="lg:col-span-2 border-primary/5 shadow-premium rounded-[2rem] overflow-hidden">
-          <CardHeader className="bg-muted/5 border-b border-primary/5 p-8">
-            <h3 className="font-serif text-2xl font-normal">Capital Expenditure Velocity</h3>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-60">Outflow analysis over the trailing 6-month cycle.</p>
+        <Card className="glass-1 lg:col-span-2 overflow-hidden">
+          <CardHeader className="bg-muted/5 border-b  p-8">
+            <h3 className="font-serif text-xl font-serif">Capital Expenditure Velocity</h3>
+            <p className="text-xs   text-muted-foreground font-normal opacity-60">Outflow analysis over the trailing 6-month cycle.</p>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="p-6">
             <div className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={economics.historicalData}>
@@ -384,12 +384,12 @@ export default function EconomicsPage() {
         </Card>
 
         {/* Categorical Breakdown */}
-        <Card className="border-primary/5 shadow-premium rounded-[2rem] overflow-hidden">
-          <CardHeader className="bg-muted/5 border-b border-primary/5 p-8 text-center">
-            <h3 className="font-serif text-2xl font-normal">Allocation Model</h3>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-normal opacity-60">Distribution across institutional categories.</p>
+        <Card className="glass-1 overflow-hidden">
+          <CardHeader className="bg-muted/5 border-b  p-8 text-center">
+            <h3 className="font-serif text-xl font-serif">Allocation Model</h3>
+            <p className="text-xs   text-muted-foreground font-normal opacity-60">Distribution across institutional categories.</p>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="p-6">
             <div className="h-[250px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <RePieChart>
@@ -413,7 +413,7 @@ export default function EconomicsPage() {
                 </RePieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground opacity-50 font-normal">Total Share</span>
+                <span className="text-xs   text-muted-foreground opacity-50 font-normal">Total Share</span>
                 <span className="font-serif text-2xl font-normal">Rs. {economics.totalExpenditure.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
             </div>
@@ -423,12 +423,12 @@ export default function EconomicsPage() {
                 return (
                   <div key={index} className="flex items-center justify-between group">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/5 group-hover:bg-primary/10 transition-all">
+                      <div className="w-8 h-8  bg-primary/5 flex items-center justify-center border  group-hover:bg-primary/10 transition-all">
                         <Icon className="w-3.5 h-3.5 text-primary opacity-50" />
                       </div>
                       <span className="text-xs font-normal text-muted-foreground group-hover:text-foreground transition-colors">{item.name}</span>
                     </div>
-                    <span className="text-[11px] font-normal tracking-tight opacity-70 group-hover:opacity-100 transition-opacity">
+                    <span className="text-xs font-normal  opacity-70 group-hover:opacity-100 transition-opacity">
                       Rs. {item.value.toLocaleString()}
                     </span>
                   </div>
@@ -442,50 +442,50 @@ export default function EconomicsPage() {
       {/* Transaction Log Layer */}
       <motion.div variants={STAGGER_ITEM} className="space-y-6">
         <div className="flex items-center justify-between px-2">
-          <h2 className="font-serif text-xl font-normal text-foreground uppercase tracking-tight">Transaction Registry</h2>
+          <h2 className="font-serif text-foreground text-2xl font-serif">Transaction Registry</h2>
           <div className="flex items-center gap-4">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-normal opacity-50">Descending Chronological Record</span>
-            <Button variant="ghost" size="icon" className="h-10 w-10 border border-primary/5 rounded-full hover:bg-primary/5">
+            <span className="text-xs   text-muted-foreground font-normal opacity-50">Descending Chronological Record</span>
+            <Button variant="ghost" size="icon" className="w-10 border   hover:bg-primary/5">
               <Filter className="w-4 h-4 opacity-40" />
             </Button>
           </div>
         </div>
 
-        <Card className="border-primary/5 shadow-premium rounded-[2.5rem] overflow-hidden">
-          <CardContent className="p-0">
+        <Card className="glass-1 overflow-hidden">
+          <CardContent className="p-6">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-muted/10 border-b border-primary/5">
+                <TableHeader className="bg-muted/10 border-b ">
                   <TableRow className="border-none hover:bg-transparent h-16">
-                    <TableHead className="w-[180px] text-[10px] uppercase tracking-[0.2em] pl-10 font-normal h-16 text-muted-foreground">Log ID</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-normal h-16 text-muted-foreground">Entity Identifier</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-normal h-16 text-muted-foreground">Curated Category</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-normal h-16 text-muted-foreground">Functional Description</TableHead>
-                    <TableHead className="text-right pr-10 text-[10px] uppercase tracking-[0.2em] font-normal h-16 text-muted-foreground">Currency Amount</TableHead>
+                    <TableHead className="w-[180px] text-xs   pl-10 font-normal h-16 text-muted-foreground">Log ID</TableHead>
+                    <TableHead className="text-xs   font-normal h-16 text-muted-foreground">Entity Identifier</TableHead>
+                    <TableHead className="text-xs   font-normal h-16 text-muted-foreground">Curated Category</TableHead>
+                    <TableHead className="text-xs   font-normal h-16 text-muted-foreground">Functional Description</TableHead>
+                    <TableHead className="text-right pr-10 text-xs   font-normal h-16 text-muted-foreground">Currency Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {economics.transactions?.map((tx: any) => (
-                    <TableRow key={tx.id} className="group border-b border-primary/5 hover:bg-primary/[0.01] transition-premium h-20">
+                    <TableRow key={tx.id} className="group border-b  hover:bg-primary/[0.01] transition-premium h-20">
                       <TableCell className="pl-10">
                         <div className="flex items-center gap-3">
                           <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center text-[10px] transition-all",
+                            "w-10 h-10  flex items-center justify-center text-xs transition-all",
                             tx.type === 'Credit' ? "bg-success/5 text-success border border-success/10" : "bg-destructive/5 text-destructive border border-destructive/10"
                           )}>
                             {tx.type === 'Credit' ? 'CR' : 'DB'}
                           </div>
                           <div>
-                            <p className="text-[11px] font-normal text-foreground leading-none mb-1">{format(new Date(tx.date), 'MMM d, yyyy')}</p>
-                            <p className="text-[8px] uppercase tracking-tighter text-muted-foreground opacity-50 font-normal">{tx.id.substring(0, 12)}</p>
+                            <p className="text-xs font-normal text-foreground leading-none mb-1">{format(new Date(tx.date), 'MMM d, yyyy')}</p>
+                            <p className="text-xs   text-muted-foreground opacity-50 font-normal">{tx.id.substring(0, 12)}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-[11px] font-normal uppercase tracking-widest opacity-60 text-foreground">{tx.person}</span>
+                        <span className="text-xs font-normal   opacity-60 text-foreground">{tx.person}</span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-[9px] px-3 py-0.5 border-primary/5 rounded-full font-normal uppercase tracking-widest opacity-70">
+                        <Badge variant="outline" className="text-xs px-3 py-0.5   font-normal   opacity-70">
                           {tx.category}
                         </Badge>
                       </TableCell>
@@ -494,7 +494,7 @@ export default function EconomicsPage() {
                       </TableCell>
                       <TableCell className="text-right pr-10">
                         <span className={cn(
-                          "font-serif text-lg font-normal tracking-tight",
+                          "font-serif text-lg font-normal ",
                           tx.type === 'Credit' ? "text-success" : "text-foreground"
                         )}>
                           {tx.type === 'Credit' ? '+' : '-'}Rs. {tx.amount.toLocaleString()}

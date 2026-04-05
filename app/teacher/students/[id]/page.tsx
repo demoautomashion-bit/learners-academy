@@ -64,9 +64,9 @@ export default function StudentProfileDossierPage() {
   const progress = studentEnrollment?.progress || 0
   
   const getPerformanceBadge = (p: number) => {
-    if (p >= 80) return <Badge className="bg-success text-white border-none text-[10px] uppercase font-bold tracking-widest px-4 py-1.5 rounded-full">Exceptional Performance</Badge>
-    if (p >= 60) return <Badge className="bg-primary text-white border-none text-[10px] uppercase font-bold tracking-widest px-4 py-1.5 rounded-full">Strong Progress</Badge>
-    return <Badge className="bg-warning/20 text-warning border-warning/10 text-[10px] uppercase font-bold tracking-widest px-4 py-1.5 rounded-full">Academic Review Required</Badge>
+    if (p >= 80) return <Badge className="bg-success text-white border-none text-xs  font-bold  px-4 py-1.5 ">Exceptional Performance</Badge>
+    if (p >= 60) return <Badge className="bg-primary text-white border-none text-xs  font-bold  px-4 py-1.5 ">Strong Progress</Badge>
+    return <Badge className="bg-warning/20 text-warning border-warning/10 text-xs  font-bold  px-4 py-1.5 ">Academic Review Required</Badge>
   }
 
   const handleUpdateEvaluation = async () => {
@@ -83,28 +83,28 @@ export default function StudentProfileDossierPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Hero Section */}
-      <div className="relative -mx-6 px-12 py-12 bg-primary/5 border-b border-primary/5">
+      <div className="relative -mx-6 px-12 py-12 bg-primary/5 border-b ">
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => router.push('/teacher/students')}
-          className="mb-8 hover:bg-primary/5 text-primary tracking-widest transition-all p-0 h-auto font-normal"
+          className="mb-8 hover:bg-primary/5 text-primary  transition-all p-0 h-auto font-normal"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
-          <span className="text-[10px] uppercase">Registry Overview</span>
+          <span className="text-xs ">Registry Overview</span>
         </Button>
 
         <div className="flex flex-col md:flex-row gap-10 items-center md:items-start group">
           <div className="relative">
-            <Avatar className="h-32 w-32 md:h-40 md:w-40 border-4 border-background ring-8 ring-primary/5 shadow-massive transition-premium">
+            <Avatar className="h-32 w-32 md:h-40 md:w-40 border-4 border-background ring-8 ring-primary/5  transition-premium">
               <AvatarImage src={student.avatar} alt={student.name} />
               <AvatarFallback className="bg-primary/5 text-4xl font-serif text-primary">
                 {student.name.split(" ").map(n => n[0]).join("")}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-2 -right-2 bg-success text-white p-2.5 rounded-2xl shadow-premium ring-4 ring-background">
+            <div className="absolute -bottom-2 -right-2 bg-success text-white p-2.5   ring-4 ring-background">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
@@ -112,24 +112,24 @@ export default function StudentProfileDossierPage() {
           <div className="flex-1 space-y-4 text-center md:text-left">
             <div className="space-y-1">
                <div className="flex items-center justify-center md:justify-start gap-4">
-                  <h1 className="text-5xl font-serif font-normal text-foreground leading-none">
+                  <h1 className="font-serif text-foreground leading-none text-3xl font-serif">
                     {student.name}
                   </h1>
                   {getPerformanceBadge(progress)}
                </div>
                <p className="text-muted-foreground text-editorial-meta opacity-60 flex items-center justify-center md:justify-start gap-3">
-                 <span className="font-normal font-sans uppercase text-[10px] tracking-[0.2em]">{student.id}</span>
+                 <span className="font-normal font-sans  text-xs ">{student.id}</span>
                  <span className="opacity-20">•</span>
                  <span className="font-normal font-sans text-sm italic">Admitted {new Date(student.enrolledAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                </p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-4">
-               <div className="flex items-center gap-3 bg-background/50 backdrop-blur-md px-5 py-3 rounded-2xl border border-primary/5">
+               <div className="flex items-center gap-3 bg-background/50  px-5 py-3  border ">
                   <Mail className="h-4 w-4 text-primary opacity-40" />
                   <span className="text-xs font-normal text-foreground/70">{student.email}</span>
                </div>
-               <div className="flex items-center gap-3 bg-background/50 backdrop-blur-md px-5 py-3 rounded-2xl border border-primary/5">
+               <div className="flex items-center gap-3 bg-background/50  px-5 py-3  border ">
                   <Phone className="h-4 w-4 text-primary opacity-40" />
                   <span className="text-xs font-normal text-foreground/70">{student.phone || "+1 (555) 123-4567"}</span>
                </div>
@@ -137,9 +137,9 @@ export default function StudentProfileDossierPage() {
           </div>
 
           <div className="flex gap-4">
-             <Button className="h-14 px-8 rounded-2xl bg-primary text-white shadow-premium hover:bg-primary/90 transition-premium">
+             <Button className=" bg-primary  hover:bg-primary/90 transition-premium">
                 <MessageCircle className="w-4 h-4 mr-2" />
-                <span className="text-[10px] uppercase tracking-widest font-normal">Contact Guardian</span>
+                <span className="text-xs   font-normal">Contact Guardian</span>
              </Button>
           </div>
         </div>
@@ -148,54 +148,54 @@ export default function StudentProfileDossierPage() {
       <div className="grid gap-8 lg:grid-cols-12 items-start">
         {/* Core Metrics */}
         <div className="lg:col-span-12 grid gap-4 md:grid-cols-4">
-             <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
+             <Card className="glass-1 hover-lift transition-premium">
                 <CardHeader className="pb-3">
-                    <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Academic Mastery</CardDescription>
-                    <CardTitle className="text-3xl font-sans font-normal">{progress}%</CardTitle>
+                    <CardDescription className="text-editorial-label text-xs   font-normal opacity-60">Academic Mastery</CardDescription>
+                    <CardTitle className="font-sans text-xl font-serif">{progress}%</CardTitle>
                 </CardHeader>
                 <div className="px-6 pb-6">
                     <Progress value={progress} className="h-1.5 bg-primary/5" />
                 </div>
              </Card>
-             <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
+             <Card className="glass-1 hover-lift transition-premium">
                 <CardHeader className="pb-3">
-                    <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Assessments Taken</CardDescription>
-                    <CardTitle className="text-3xl font-sans font-normal">{studentSubmissions.length}</CardTitle>
+                    <CardDescription className="text-editorial-label text-xs   font-normal opacity-60">Assessments Taken</CardDescription>
+                    <CardTitle className="font-sans text-xl font-serif">{studentSubmissions.length}</CardTitle>
                 </CardHeader>
              </Card>
-             <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
+             <Card className="glass-1 hover-lift transition-premium">
                 <CardHeader className="pb-3">
-                    <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Current Rank</CardDescription>
-                    <CardTitle className="text-3xl font-sans font-normal">Elite</CardTitle>
+                    <CardDescription className="text-editorial-label text-xs   font-normal opacity-60">Current Rank</CardDescription>
+                    <CardTitle className="font-sans text-xl font-serif">Elite</CardTitle>
                 </CardHeader>
              </Card>
-             <Card className="hover-lift transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[1.5rem]">
+             <Card className="glass-1 hover-lift transition-premium">
                 <CardHeader className="pb-3">
-                    <CardDescription className="text-editorial-label text-[10px] uppercase tracking-widest font-normal opacity-60">Session Attendance</CardDescription>
-                    <CardTitle className="text-3xl font-sans font-normal">94%</CardTitle>
+                    <CardDescription className="text-editorial-label text-xs   font-normal opacity-60">Session Attendance</CardDescription>
+                    <CardTitle className="font-sans text-xl font-serif">94%</CardTitle>
                 </CardHeader>
              </Card>
         </div>
 
         {/* Left Column (Academic History) */}
-        <div className="lg:col-span-8 space-y-8">
-            <Card className="border-primary/5 bg-card/60 backdrop-blur-xl shadow-premium rounded-[2.5rem] overflow-hidden">
-                <CardHeader className="p-8 bg-muted/5 border-b border-primary/5">
+        <div className="lg:col-span-8 space-y-6">
+            <Card className="glass-1 overflow-hidden">
+                <CardHeader className="p-8 bg-muted/5 border-b ">
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle className="text-2xl font-serif font-normal">Academic History Registry</CardTitle>
+                            <CardTitle className="font-serif text-xl font-serif">Academic History Registry</CardTitle>
                             <CardDescription className="text-editorial-meta opacity-60">Historical performance data for this candidate across all examination blocks.</CardDescription>
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="p-6">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-muted/10 h-16">
                                 <tr>
-                                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Examination Hub</th>
-                                    <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Institutional Rank</th>
-                                    <th className="px-8 py-4 text-right text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Action</th>
+                                    <th className="px-8 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Examination Hub</th>
+                                    <th className="px-8 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Institutional Rank</th>
+                                    <th className="px-8 py-4 text-right text-xs font-normal   text-muted-foreground opacity-60">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-primary/5">
@@ -208,17 +208,17 @@ export default function StudentProfileDossierPage() {
                                             <td className="px-8 py-5">
                                                 <div className="flex flex-col">
                                                     <span className="font-serif font-normal text-lg">{assessment?.title || 'Unknown Test'}</span>
-                                                    <span className="text-[10px] text-muted-foreground/60 uppercase tracking-widest mt-0.5">{assessment?.phase} Framework</span>
+                                                    <span className="text-xs text-muted-foreground/60   mt-0.5">{assessment?.phase} Framework</span>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
                                                 {s.status === 'graded' ? (
                                                     <div className="flex flex-col">
                                                         <span className="font-sans text-base font-normal">{s.grade} <span className="opacity-20">/ {assessment?.totalMarks}</span></span>
-                                                        <span className="text-[10px] text-success uppercase tracking-widest font-normal">{percent}% Efficiency</span>
+                                                        <span className="text-xs text-success   font-normal">{percent}% Efficiency</span>
                                                     </div>
                                                 ) : (
-                                                    <Badge variant="secondary" className="bg-warning/5 text-warning border-warning/10 text-[9px] uppercase tracking-widest font-normal">Awaiting Review</Badge>
+                                                    <Badge variant="secondary" className="bg-warning/5 text-warning border-warning/10 text-xs   font-normal">Awaiting Review</Badge>
                                                 )}
                                             </td>
                                             <td className="px-8 py-5 text-right">
@@ -226,10 +226,10 @@ export default function StudentProfileDossierPage() {
                                                     variant="ghost" 
                                                     size="sm" 
                                                     onClick={() => router.push(`/teacher/results/${s.assignmentId}`)}
-                                                    className="rounded-xl px-4 hover:bg-primary/5 hover:text-primary"
+                                                    className=" px-4 hover:bg-primary/5 hover:text-primary"
                                                 >
                                                     <ExternalLink className="w-3.5 h-3.5 mr-2 opacity-40" />
-                                                    <span className="text-[10px] uppercase font-normal tracking-widest">View Analysis</span>
+                                                    <span className="text-xs  font-normal ">View Analysis</span>
                                                 </Button>
                                             </td>
                                         </tr>
@@ -250,48 +250,48 @@ export default function StudentProfileDossierPage() {
         </div>
 
         {/* Right Column (Evaluation & Notes) */}
-        <div className="lg:col-span-4 space-y-8">
-            <Card className="border-primary/5 bg-card/60 backdrop-blur-xl shadow-premium rounded-[2rem] overflow-hidden flex flex-col h-full">
-                <CardHeader className="p-8 bg-muted/5 border-b border-primary/5 space-y-2">
+        <div className="lg:col-span-4 space-y-6">
+            <Card className="glass-1 overflow-hidden flex flex-col h-full">
+                <CardHeader className="p-8 bg-muted/5 border-b  space-y-2">
                     <div className="flex items-center gap-3">
                         <BrainCircuit className="w-5 h-5 text-primary opacity-60" />
-                        <CardTitle className="font-serif text-xl font-normal">Institutional Evaluation</CardTitle>
+                        <CardTitle className="font-serif text-xl">Institutional Evaluation</CardTitle>
                     </div>
                     <CardDescription className="text-xs text-muted-foreground font-normal">Record qualitative insights and academic goals for the student registry.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-8 space-y-8 flex-1">
+                <CardContent className="p-6 space-y-6 flex-1">
                     <div className="space-y-4">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-normal opacity-40">Current Evaluation Note</label>
-                        <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 italic text-sm text-foreground/70 leading-relaxed min-h-[120px]">
+                        <label className="text-xs   font-normal opacity-40">Current Evaluation Note</label>
+                        <div className="p-6  bg-primary/5 border  italic text-sm text-foreground/70 leading-relaxed min-h-[120px]">
                             "{student.grade || 'No formal evaluation captured yet for the current term.'}"
                         </div>
                     </div>
 
-                    <div className="space-y-5 pt-8 border-t border-primary/5">
+                    <div className="space-y-5 pt-8 border-t ">
                         <div className="space-y-3">
-                            <label className="text-[10px] uppercase tracking-[0.2em] font-normal opacity-40 font-sans">Modify Narrative</label>
+                            <label className="text-xs   font-normal opacity-40 font-sans">Modify Narrative</label>
                             <Textarea 
                                 placeholder="Update institutional evaluation..."
                                 value={evaluationInput}
                                 onChange={(e) => setEvaluationInput(e.target.value)}
-                                className="bg-background border-primary/10 rounded-2xl p-6 min-h-[180px] text-sm leading-relaxed resize-none font-normal"
+                                className="bg-background   p-6 min-h-[180px] text-sm leading-relaxed resize-none font-normal"
                             />
                         </div>
                         <Button 
-                            className="w-full h-14 rounded-2xl bg-primary text-white shadow-premium hover:bg-primary/90 flex items-center justify-center"
+                            className="w-full  bg-primary  hover:bg-primary/90 flex items-center justify-center"
                             onClick={handleUpdateEvaluation}
                             disabled={isUpdating || !evaluationInput.trim()}
                         >
                             {isUpdating ? (
-                                <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <div className="h-5 w-5 border-2 border-white/30 border-t-white  animate-spin" />
                             ) : (
-                                <span className="text-[10px] uppercase tracking-widest font-normal">Publish To Registry</span>
+                                <span className="text-xs   font-normal">Publish To Registry</span>
                             )}
                         </Button>
                     </div>
                 </CardContent>
-                <div className="p-8 bg-muted/5 border-t border-primary/5">
-                     <p className="text-[9px] text-muted-foreground font-normal leading-relaxed opacity-50">
+                <div className="p-8 bg-muted/5 border-t ">
+                     <p className="text-xs text-muted-foreground font-normal leading-relaxed opacity-50">
                         Institutional evaluations are permanent logs and visible to high-level administrative audits and parents. Use precise, professional academic language.
                      </p>
                 </div>

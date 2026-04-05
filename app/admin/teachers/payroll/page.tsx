@@ -108,7 +108,7 @@ function PayrollContent() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <h2 className="text-2xl font-serif">Professional Record Missing</h2>
         <p className="text-muted-foreground">The requested instructor's financial data could not be localized.</p>
-        <Button variant="outline" asChild className="rounded-xl">
+        <Button variant="outline" asChild className="">
           <Link href="/admin/teachers">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Registry
@@ -119,29 +119,29 @@ function PayrollContent() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="rounded-full">
+          <Button variant="ghost" size="icon" asChild className="">
             <Link href="/admin/teachers">
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>
           <div>
-            <h1 className="font-serif text-3xl font-normal tracking-tight">Institutional Payroll</h1>
+            <h1 className="font-serif text-3xl">Institutional Payroll</h1>
             <div className="flex items-center gap-2 mt-1">
                <Avatar className="w-5 h-5 ring-1 ring-primary/20">
-                  <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
                     {teacher.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                </Avatar>
-               <p className="text-muted-foreground text-[10px] uppercase tracking-[0.2em]">{teacher.name} • {new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</p>
+               <p className="text-muted-foreground text-xs  ">{teacher.name} • {new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-10 rounded-xl text-xs font-normal border-primary/10 hover:bg-primary/5 uppercase tracking-widest">
+          <Button variant="outline" className=" font-normal  hover:bg-primary/5">
             <Download className="w-4 h-4 mr-2" />
             Export Audit
           </Button>
@@ -150,38 +150,38 @@ function PayrollContent() {
 
       {/* Global Financial Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="rounded-[2rem] border-primary/5 bg-card/40 backdrop-blur-md shadow-premium">
+        <Card className="glass-1">
           <CardContent className="p-6">
-             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-2">Total Faculty Revenue</p>
+             <p className="text-xs   text-muted-foreground font-bold mb-2">Total Faculty Revenue</p>
              <p className="text-3xl font-serif">Rs. {financialData.totalPaidRevenue.toLocaleString()}</p>
              <div className="flex items-center gap-1 mt-2 text-success">
                 <TrendingUp className="w-3 h-3" />
-                <span className="text-[10px] font-bold">12% growth vs last period</span>
+                <span className="text-xs font-bold">12% growth vs last period</span>
              </div>
           </CardContent>
         </Card>
         
-        <Card className="rounded-[2rem] border-success/5 bg-card/40 backdrop-blur-md shadow-premium">
+        <Card className="glass-1 border-success/5">
           <CardContent className="p-6">
-             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-2">Paid Enrolments</p>
+             <p className="text-xs   text-muted-foreground font-bold mb-2">Paid Enrolments</p>
              <p className="text-3xl font-serif text-success">{financialData.paidCount}</p>
-             <p className="text-[10px] text-muted-foreground mt-2 italic font-serif">Verified institutional payments</p>
+             <p className="text-xs text-muted-foreground mt-2 italic font-serif">Verified institutional payments</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-destructive/5 bg-card/40 backdrop-blur-md shadow-premium">
+        <Card className="glass-1 border-destructive/5">
           <CardContent className="p-6">
-             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-2">Outstanding Dues</p>
+             <p className="text-xs   text-muted-foreground font-bold mb-2">Outstanding Dues</p>
              <p className="text-3xl font-serif text-destructive">{financialData.unpaidCount}</p>
-             <p className="text-[10px] text-muted-foreground mt-2 italic font-serif">Pending audit resolution</p>
+             <p className="text-xs text-muted-foreground mt-2 italic font-serif">Pending audit resolution</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-primary/5 bg-primary/5 shadow-inner-premium border-2 border-dashed">
+        <Card className="glass-1 bg-primary/5 shadow-inner-premium border-2 border-dashed">
           <CardContent className="p-6 flex flex-col justify-center h-full">
-             <p className="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Calculated Payout</p>
+             <p className="text-xs   text-primary font-bold mb-1">Calculated Payout</p>
              <p className="text-3xl font-serif text-primary">Rs. {computedSalary.toLocaleString()}</p>
-             <p className="text-[9px] text-primary/60 mt-2 uppercase tracking-tighter">*Engineered based on {compensationModel} model</p>
+             <p className="text-xs text-primary/60 mt-2  ">*Engineered based on {compensationModel} model</p>
           </CardContent>
         </Card>
       </div>
@@ -189,8 +189,8 @@ function PayrollContent() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main Ledger */}
         <div className="lg:col-span-3 space-y-6">
-           <Card className="rounded-[2.5rem] border-primary/5 bg-card/40 backdrop-blur-md shadow-premium overflow-hidden">
-              <CardHeader className="border-b border-primary/5 bg-muted/10 h-20 flex flex-row items-center justify-between px-8">
+           <Card className="glass-1 overflow-hidden">
+              <CardHeader className="border-b  bg-muted/10 h-20 flex flex-row items-center justify-between px-8">
                  <div>
                     <CardTitle className="font-serif flex items-center gap-3 text-xl">
                        <ShieldCheck className="w-5 h-5 text-primary" />
@@ -201,16 +201,16 @@ function PayrollContent() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
                     <Input 
                       placeholder="Search ledger entries..." 
-                      className="pl-10 h-10 bg-background/50 border-primary/10 rounded-xl text-xs"
+                      className="pl-10 h-10 bg-background/50   text-xs"
                       value={ledgerSearch}
                       onChange={(e) => setLedgerSearch(e.target.value)}
                     />
                  </div>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-6">
                  <Table>
-                    <TableHeader className="bg-muted/5 h-12 uppercase tracking-widest text-[9px]">
-                       <TableRow className="hover:bg-transparent border-primary/5">
+                    <TableHeader className="bg-muted/5 h-12   text-xs">
+                       <TableRow className="hover:bg-transparent ">
                           <TableHead className="pl-8">Student Candidate</TableHead>
                           <TableHead>Assigned Batch</TableHead>
                           <TableHead>Execution Schedule</TableHead>
@@ -220,20 +220,20 @@ function PayrollContent() {
                     </TableHeader>
                     <TableBody>
                        {filteredRoster?.map((item) => (
-                          <TableRow key={item.id} className="hover:bg-primary/5 transition-colors duration-300 border-primary/5 h-16">
+                          <TableRow key={item.id} className="hover:bg-primary/5 transition-colors duration-300  h-16">
                              <TableCell className="pl-8">
                                 <div>
                                    <p className="font-serif text-sm">{item.studentName}</p>
-                                   <p className="text-[10px] text-muted-foreground uppercase">{item.studentId}</p>
+                                   <p className="text-xs text-muted-foreground ">{item.studentId}</p>
                                 </div>
                              </TableCell>
                              <TableCell className="font-normal text-xs">{item.courseName}</TableCell>
-                             <TableCell className="text-[10px] text-muted-foreground uppercase tracking-widest">{item.timing}</TableCell>
+                             <TableCell className="text-xs text-muted-foreground  ">{item.timing}</TableCell>
                              <TableCell className="text-right">
                                 <Badge 
                                   variant="outline" 
                                   className={cn(
-                                    "text-[9px] uppercase font-normal tracking-widest h-6 px-3",
+                                    "text-xs  font-normal  h-6 px-3",
                                     item.status === 'Paid' ? "bg-success/5 text-success border-success/20" : "bg-destructive/5 text-destructive border-destructive/20"
                                   )}
                                 >
@@ -260,7 +260,7 @@ function PayrollContent() {
 
         {/* Salary Engine Sidebar */}
         <div className="space-y-6">
-           <Card className="rounded-[2.5rem] border-primary/10 bg-gradient-to-br from-primary/10 to-accent/10 backdrop-blur-xl shadow-premium overflow-hidden border-2">
+           <Card className="glass-1 bg-gradient-to-br from-primary/10 to-accent/10 overflow-hidden border-2">
               <CardHeader className="bg-white/10 p-8 pb-4">
                  <CardTitle className="font-serif text-xl flex items-center gap-3">
                    <Calculator className="w-5 h-5 text-primary" />
@@ -268,22 +268,22 @@ function PayrollContent() {
                  </CardTitle>
                  <CardDescription className="text-xs">Adjust compensation parameters for the active period</CardDescription>
               </CardHeader>
-              <CardContent className="p-8 pt-6 space-y-6">
+              <CardContent className="p-6 pt-6 space-y-6">
                 <div className="space-y-2">
-                   <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">Calculation Model</label>
+                   <label className="text-xs   text-muted-foreground font-bold">Calculation Model</label>
                    <Select value={compensationModel} onValueChange={(val: any) => setCompensationModel(val)}>
-                      <SelectTrigger className="h-12 bg-background/50 border-primary/20 rounded-2xl">
+                      <SelectTrigger className="h-12 bg-background/50  ">
                          <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-primary/10 shadow-premium">
-                         <SelectItem value="fixed" className="rounded-xl">Fixed Head Count</SelectItem>
-                         <SelectItem value="percentage" className="rounded-xl">Gross Revenue %</SelectItem>
+                      <SelectContent className="  ">
+                         <SelectItem value="fixed" className="">Fixed Head Count</SelectItem>
+                         <SelectItem value="percentage" className="">Gross Revenue %</SelectItem>
                       </SelectContent>
                    </Select>
                 </div>
 
                 <div className="space-y-2">
-                   <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">Baseline Rate</label>
+                   <label className="text-xs   text-muted-foreground font-bold">Baseline Rate</label>
                    <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-serif text-xs">
                         {compensationModel === 'fixed' ? 'Rs.' : '%'}
@@ -292,35 +292,35 @@ function PayrollContent() {
                         type="number" 
                         value={compensationRate}
                         onChange={(e) => setCompensationRate(Number(e.target.value) || 0)}
-                        className="h-12 pl-12 bg-background/50 border-primary/20 rounded-2xl font-serif text-lg"
+                        className="h-12 pl-12 bg-background/50   font-serif text-lg"
                       />
                    </div>
-                   <p className="text-[9px] text-muted-foreground italic leading-relaxed opacity-60">
+                   <p className="text-xs text-muted-foreground italic leading-relaxed opacity-60">
                      {compensationModel === 'fixed' 
                        ? 'Instructor receives a fixed amount for every student who has successfully cleared their dues.' 
                        : 'Instructor receives a percentage of the total gross revenue generated from their assigned batches.'}
                    </p>
                 </div>
 
-                <div className="pt-6 border-t border-primary/10 space-y-4">
+                <div className="pt-6 border-t  space-y-4">
                    <div className="flex justify-between items-end">
                       <div>
-                         <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Period Forecast</p>
+                         <p className="text-xs   text-muted-foreground">Period Forecast</p>
                          <p className="text-2xl font-serif text-primary">Rs. {computedSalary.toLocaleString()}</p>
                       </div>
                       <Wallet className="w-8 h-8 text-primary opacity-20" />
                    </div>
-                   <Button className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-bold uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-primary/20">
+                   <Button className="w-full  bg-primary font-bold shadow-xl shadow-primary/20">
                       Generate Payout Logic
                    </Button>
                 </div>
               </CardContent>
            </Card>
 
-           <Card className="rounded-[2.5rem] border-primary/5 bg-card/40 backdrop-blur-md p-6">
+           <Card className="glass-1 p-6">
               <div className="flex items-center gap-3 mb-4">
                  <Users className="w-4 h-4 text-muted-foreground opacity-40" />
-                 <h4 className="text-[10px] uppercase tracking-widest font-bold">Faculty Composition</h4>
+                 <h4 className="text-xs   font-bold">Faculty Composition</h4>
               </div>
               <div className="space-y-4">
                  <div className="flex items-center justify-between">
@@ -344,7 +344,7 @@ export default function FacultyPayrollPage() {
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <Calculator className="w-12 h-12 animate-pulse opacity-20" />
-        <p className="text-[10px] uppercase tracking-widest opacity-40 font-bold">Synchronizing Financial Registry...</p>
+        <p className="text-xs   opacity-40 font-bold">Synchronizing Financial Registry...</p>
       </div>
     }>
       <PayrollContent />

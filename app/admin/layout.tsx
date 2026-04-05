@@ -170,7 +170,7 @@ export default function AdminLayout({
                           asChild 
                           isActive={isActive}
                           className={cn(
-                            "transition-premium h-11 px-4 rounded-xl",
+                            "transition-premium h-11 px-4 ",
                             isActive 
                               ? "bg-primary/5 text-primary shadow-sm" 
                               : "text-muted-foreground hover:bg-primary/5 hover:text-primary font-normal"
@@ -179,7 +179,7 @@ export default function AdminLayout({
                         >
                           <Link href={item.href} className="flex items-center gap-3">
                             <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground")} />
-                            <span className="tracking-tight">{item.title}</span>
+                            <span className="">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -200,7 +200,7 @@ export default function AdminLayout({
                              asChild
                              tooltip={item.title}
                              className={cn(
-                               "transition-premium h-11 px-4 rounded-xl group/btn",
+                               "transition-premium h-11 px-4  group/btn",
                                isActive && !pathname.includes(item.href) 
                                  ? "bg-primary/5 text-primary shadow-sm" 
                                  : "text-muted-foreground hover:bg-primary/5 hover:text-primary font-normal"
@@ -208,7 +208,7 @@ export default function AdminLayout({
                           >
                             <Link href={item.href} className="flex items-center gap-3 w-full">
                               <item.icon className={cn("w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-0.5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
-                              <span className="tracking-tight transition-transform duration-300 group-hover/btn:translate-x-0.5">{item.title}</span>
+                              <span className=" transition-transform duration-300 group-hover/btn:translate-x-0.5">{item.title}</span>
                               <ChevronDown className="ml-auto w-4 h-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180 opacity-40 shrink-0" />
                             </Link>
                           </SidebarMenuButton>
@@ -236,7 +236,7 @@ export default function AdminLayout({
                                         asChild 
                                         isActive={isSubActive}
                                         className={cn(
-                                          "h-9 px-4 rounded-lg transition-all text-xs tracking-tight",
+                                          "h-9 px-4  transition-all text-xs ",
                                           isSubActive 
                                             ? "text-primary bg-primary/5 font-normal" 
                                             : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 font-normal"
@@ -265,7 +265,7 @@ export default function AdminLayout({
 
       {/* Main Content Area */}
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-10 flex h-20 items-center gap-4 border-b border-primary/5 bg-card/80 backdrop-blur-xl px-8">
+        <header className="sticky top-0 z-10 flex h-20 items-center gap-4 border-b    px-8">
           <SidebarTrigger className="-ml-2" />
           <div className="flex-1" />
           <DropdownMenu>
@@ -273,7 +273,7 @@ export default function AdminLayout({
               <span className="hidden md:inline-block font-normal text-sm text-foreground opacity-60">
                 {user?.name}
               </span>
-              <Avatar className="h-9 w-9 border border-primary/10 shadow-sm">
+              <Avatar className="h-9 w-9 border  shadow-sm">
                 <AvatarImage src={user?.avatar} alt={user?.name} />
                 <AvatarFallback className="bg-primary/5 text-primary text-xs">
                   {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}

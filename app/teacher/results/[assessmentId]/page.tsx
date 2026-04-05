@@ -82,9 +82,9 @@ export default function AssessmentWorkspacePage() {
     : 0
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header Splash */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between items-center -mx-6 px-12 py-10 bg-primary/[0.03] border-b border-primary/5">
+      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between items-center -mx-6 px-12 py-10 bg-primary/[0.03] border-b ">
         <div className="space-y-4">
           <Button 
             variant="ghost" 
@@ -93,14 +93,14 @@ export default function AssessmentWorkspacePage() {
             className="hover:bg-primary/5 text-primary/60 hover:text-primary transition-all p-0 h-auto"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
-            <span className="text-[10px] uppercase tracking-widest font-normal">Back to Ledger</span>
+            <span className="text-xs   font-normal">Back to Ledger</span>
           </Button>
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-4xl font-normal text-foreground font-serif tracking-tight">
+              <h1 className="text-foreground font-serif text-3xl font-serif">
                 {assessment.title}
               </h1>
-              <Badge variant="outline" className="text-[10px] uppercase tracking-widest font-normal h-6 border-primary/10 text-primary/80 bg-primary/5 px-3">
+              <Badge variant="outline" className="text-xs   font-normal h-6  text-primary/80 bg-primary/5 px-3">
                 {assessment.phase}
               </Badge>
             </div>
@@ -115,12 +115,12 @@ export default function AssessmentWorkspacePage() {
         </div>
 
         <div className="flex gap-4 items-center">
-            <div className="flex flex-col items-center px-6 py-4 bg-background/50 backdrop-blur-md rounded-2xl border border-primary/5 shadow-inner-premium text-center min-w-[120px]">
-                <span className="text-[9px] uppercase tracking-widest font-normal text-muted-foreground mb-1">Batch Avg</span>
+            <div className="flex flex-col items-center px-6 py-4 bg-background/50   border  shadow-inner-premium text-center min-w-[120px]">
+                <span className="text-xs   font-normal text-muted-foreground mb-1">Batch Avg</span>
                 <span className="text-2xl font-serif font-normal text-primary">{avgPercent}%</span>
             </div>
-            <div className="flex flex-col items-center px-6 py-4 bg-background/50 backdrop-blur-md rounded-2xl border border-primary/5 shadow-inner-premium text-center min-w-[120px]">
-                <span className="text-[9px] uppercase tracking-widest font-normal text-muted-foreground mb-1">Completion</span>
+            <div className="flex flex-col items-center px-6 py-4 bg-background/50   border  shadow-inner-premium text-center min-w-[120px]">
+                <span className="text-xs   font-normal text-muted-foreground mb-1">Completion</span>
                 <span className={cn("text-2xl font-serif font-normal", pendingCount > 0 ? "text-warning" : "text-success")}>
                     {completedCount} <span className="text-sm opacity-20 text-foreground">/ {assessmentSubmissions.length}</span>
                 </span>
@@ -138,24 +138,24 @@ export default function AssessmentWorkspacePage() {
                     placeholder="Search student ID or identity..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-11 h-14 bg-card/40 backdrop-blur-md border-primary/5 rounded-2xl text-base shadow-sm focus:ring-1 focus:ring-primary/20"
+                    className="pl-11 h-14     text-base shadow-sm focus:ring-1 focus:ring-primary/20"
                 />
              </div>
-             <Button variant="outline" className="h-14 px-6 rounded-2xl border-primary/5 bg-card/40 backdrop-blur-md opacity-60 hover:opacity-100 transition-all">
+             <Button variant="outline" className="    opacity-60 hover:opacity-100 transition-all">
                 <Filter className="w-4 h-4 mr-2" />
-                <span className="text-[10px] uppercase tracking-widest font-normal">Filters</span>
+                <span className="text-xs   font-normal">Filters</span>
              </Button>
           </div>
 
-          <Card className="border-primary/5 shadow-premium rounded-[2.5rem] overflow-hidden bg-card/40 backdrop-blur-xl">
-             <CardContent className="p-0">
+          <Card className="glass-1 overflow-hidden">
+             <CardContent className="p-6">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                        <thead className="bg-muted/10 border-b border-primary/5 h-16">
+                        <thead className="bg-muted/10 border-b  h-16">
                             <tr>
-                                <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Candidate Registry</th>
-                                <th className="px-8 py-4 text-left text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Session status</th>
-                                <th className="px-8 py-4 text-right text-[10px] font-normal uppercase tracking-widest text-muted-foreground opacity-60">Action</th>
+                                <th className="px-8 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Candidate Registry</th>
+                                <th className="px-8 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Session status</th>
+                                <th className="px-8 py-4 text-right text-xs font-normal   text-muted-foreground opacity-60">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-primary/5">
@@ -170,7 +170,7 @@ export default function AssessmentWorkspacePage() {
                                             </Avatar>
                                             <div className="flex flex-col">
                                                 <span className="font-sans font-normal text-base text-foreground/80">{s.studentName}</span>
-                                                <span className="text-[10px] text-muted-foreground/60 font-normal uppercase tracking-widest">{s.studentId}</span>
+                                                <span className="text-xs text-muted-foreground/60 font-normal  ">{s.studentId}</span>
                                             </div>
                                         </div>
                                     </td>
@@ -181,10 +181,10 @@ export default function AssessmentWorkspacePage() {
                                                     <CheckCircle2 className="w-4 h-4 text-success" />
                                                     <span className="font-sans font-normal text-base">{s.grade} <span className="opacity-20">/ {assessment.totalMarks}</span></span>
                                                 </div>
-                                                <span className="text-[10px] text-success/70 uppercase tracking-widest mt-1">Audit Verified</span>
+                                                <span className="text-xs text-success/70   mt-1">Audit Verified</span>
                                             </div>
                                         ) : (
-                                            <Badge variant="secondary" className="bg-warning/5 text-warning border-warning/10 h-7 px-4 rounded-full text-[10px] uppercase font-normal tracking-widest">
+                                            <Badge variant="secondary" className="bg-warning/5 text-warning border-warning/10 h-7 px-4  text-xs  font-normal ">
                                                 Awaiting Review
                                             </Badge>
                                         )}
@@ -198,9 +198,9 @@ export default function AssessmentWorkspacePage() {
                                                 setFeedbackInput(s.feedback || '')
                                                 setIsGradeOpen(true)
                                             }}
-                                            className="h-11 rounded-xl px-6 group/btn transition-all"
+                                            className="h-11  px-6 group/btn transition-all"
                                         >
-                                            <span className="text-[10px] uppercase tracking-widest font-normal">
+                                            <span className="text-xs   font-normal">
                                                 {s.status === 'pending' ? 'Execute Audit' : 'Edit Analysis'}
                                             </span>
                                             <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
@@ -217,12 +217,12 @@ export default function AssessmentWorkspacePage() {
 
         {/* Right Column: Context/Stats */}
         <div className="lg:col-span-4 space-y-6">
-            <Card className="border-primary/5 bg-card/40 backdrop-blur-xl shadow-premium rounded-[2rem] overflow-hidden">
-                <CardHeader className="bg-primary/5 border-b border-primary/5 py-6">
-                    <CardTitle className="font-serif text-xl font-normal">Assessment Schema</CardTitle>
+            <Card className="glass-1 overflow-hidden">
+                <CardHeader className="bg-primary/5 border-b  py-6">
+                    <CardTitle className="font-serif text-xl">Assessment Schema</CardTitle>
                     <CardDescription className="text-xs text-muted-foreground font-normal">Core parameters for this examination block.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-8 space-y-6">
+                <CardContent className="p-6 space-y-6">
                     <div className="space-y-4">
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground font-normal">Token Registry</span>
@@ -240,7 +240,7 @@ export default function AssessmentWorkspacePage() {
                 </CardContent>
             </Card>
 
-            <Card className="border-primary/5 bg-primary/5 shadow-premium rounded-[2rem] overflow-hidden p-8">
+            <Card className="glass-1 bg-primary/5 overflow-hidden p-8">
                 <div className="space-y-6">
                     <div className="flex items-center gap-3">
                         <Award className="w-6 h-6 text-primary opacity-60" />
@@ -249,12 +249,12 @@ export default function AssessmentWorkspacePage() {
                     <p className="text-sm text-muted-foreground leading-relaxed font-normal">
                         This batch is performing <span className="text-primary font-bold">{avgPercent}%</span> effectively against the {assessment.phase} benchmarks.
                     </p>
-                    <div className="pt-4 border-t border-primary/10">
+                    <div className="pt-4 border-t ">
                          <div className="flex items-center justify-between mb-2">
-                             <span className="text-[10px] uppercase font-bold text-primary/40 tracking-widest">Audit Progress</span>
-                             <span className="text-[10px] font-bold text-primary">{assessmentSubmissions.length > 0 ? Math.round((completedCount / assessmentSubmissions.length) * 100) : 0}%</span>
+                             <span className="text-xs  font-bold text-primary/40 ">Audit Progress</span>
+                             <span className="text-xs font-bold text-primary">{assessmentSubmissions.length > 0 ? Math.round((completedCount / assessmentSubmissions.length) * 100) : 0}%</span>
                          </div>
-                         <div className="h-2 bg-background/50 rounded-full overflow-hidden border border-primary/5">
+                         <div className="h-2 bg-background/50  overflow-hidden border ">
                              <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${assessmentSubmissions.length > 0 ? (completedCount / assessmentSubmissions.length) * 100 : 0}%` }}
@@ -269,41 +269,41 @@ export default function AssessmentWorkspacePage() {
 
       {/* Audit Dialog (Refined split-pane feel) */}
       <Dialog open={isGradeOpen} onOpenChange={setIsGradeOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-primary/10 shadow-massive">
-          <div className="bg-primary/5 p-8 border-b border-primary/5 flex items-center justify-between">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0  ">
+          <div className="bg-primary/5 p-8 border-b  flex items-center justify-between">
             <div className="space-y-1">
               <DialogTitle className="font-serif text-3xl font-normal">Evaluation Audit: {selectedSubmission?.studentName}</DialogTitle>
               <DialogDescription className="text-editorial-meta text-xs">Technical review of examination block {selectedSubmission?.id}</DialogDescription>
             </div>
-            <Badge className="bg-background border-primary/10 text-primary uppercase text-[10px] font-normal tracking-widest h-7 px-4">
+            <Badge className="bg-background  text-primary  text-xs font-normal  h-7 px-4">
               ID: {selectedSubmission?.studentId}
             </Badge>
           </div>
 
           <div className="flex-1 overflow-hidden grid md:grid-cols-2">
             {/* Left Hand: Student Responses */}
-            <div className="p-8 overflow-y-auto space-y-8 bg-background border-r border-primary/5 premium-scrollbar">
-               <h4 className="text-[10px] uppercase tracking-widest font-black opacity-30 sticky top-0 bg-background py-2">Candidate responses</h4>
+            <div className="p-8 overflow-y-auto space-y-6 bg-background border-r  premium-scrollbar">
+               <h4 className="text-xs   font-black opacity-30 sticky top-0 bg-background py-2">Candidate responses</h4>
                {selectedSubmission?.randomizedQuestions?.map((q: any, i: number) => (
-                    <div key={q.id} className="space-y-4 pb-8 border-b border-primary/5 last:border-0">
+                    <div key={q.id} className="space-y-4 pb-8 border-b  last:border-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Block {i+1} • {q.category}</span>
+                        <span className="text-xs font-bold text-primary  ">Block {i+1} • {q.category}</span>
                         {q.correctAnswer && (
-                          <span className="text-[9px] text-success/60 font-normal uppercase tracking-widest italic">Reference: {q.correctAnswer}</span>
+                          <span className="text-xs text-success/60 font-normal   italic">Reference: {q.correctAnswer}</span>
                         )}
                       </div>
-                      <p className="text-base font-sans font-normal text-foreground/80 leading-relaxed bg-muted/5 p-4 rounded-2xl border border-primary/5">{q.content}</p>
-                      <div className="p-5 rounded-2xl bg-primary/5 border-l-4 border-primary/40 text-sm font-normal">
-                        <label className="text-[9px] uppercase font-bold text-primary/40 block mb-2">Student Submission</label>
+                      <p className="text-base font-sans font-normal text-foreground/80 leading-relaxed bg-muted/5 p-4  border ">{q.content}</p>
+                      <div className="p-5  bg-primary/5 border-l-4  text-sm font-normal">
+                        <label className="text-xs  font-bold text-primary/40 block mb-2">Student Submission</label>
                         {selectedSubmission?.answers?.[q.id] || <span className="italic opacity-30">No response captured.</span>}
                       </div>
                     </div>
                 ))}
 
-                <div className="p-6 bg-warning/5 rounded-[1.5rem] border border-warning/20">
+                <div className="p-6 bg-warning/5  border border-warning/20">
                     <div className="flex items-center gap-2 mb-3">
                         <AlertCircle className="w-4 h-4 text-warning" />
-                        <span className="text-[10px] font-bold text-warning uppercase tracking-widest">AI Audit Delta</span>
+                        <span className="text-xs font-bold text-warning  ">AI Audit Delta</span>
                     </div>
                     <p className="text-sm font-normal italic text-muted-foreground leading-relaxed">
                         "{selectedSubmission?.aiJustification || 'No specific AI analysis data available.'}"
@@ -313,9 +313,9 @@ export default function AssessmentWorkspacePage() {
 
             {/* Right Hand: Action & Grading */}
             <div className="p-10 bg-muted/5 flex flex-col justify-between overflow-y-auto">
-               <div className="space-y-8">
+               <div className="space-y-6">
                   <div className="space-y-4">
-                     <h4 className="text-[10px] uppercase tracking-widest font-black opacity-30">Final evaluation</h4>
+                     <h4 className="text-xs   font-black opacity-30">Final evaluation</h4>
                      <label className="text-xs font-normal text-muted-foreground">Absolute Marks (0 - {assessment.totalMarks})</label>
                      <div className="flex items-center gap-4">
                         <Input 
@@ -324,10 +324,10 @@ export default function AssessmentWorkspacePage() {
                             value={gradeInput}
                             onChange={(e) => setGradeInput(e.target.value)}
                             max={assessment.totalMarks}
-                            className="h-16 bg-background border-primary/10 rounded-2xl text-3xl font-serif px-6 text-center focus:ring-primary/20"
+                            className="h-16 bg-background   text-3xl font-serif px-6 text-center focus:ring-primary/20"
                         />
                         <div className="text-muted-foreground/30 font-serif text-3xl">/</div>
-                        <div className="w-20 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary font-serif text-3xl opacity-40">
+                        <div className="w-20 h-16 bg-primary/5  flex items-center justify-center text-primary font-serif text-3xl opacity-40">
                             {assessment.totalMarks}
                         </div>
                      </div>
@@ -339,15 +339,15 @@ export default function AssessmentWorkspacePage() {
                         placeholder="Write formal feedback for the student and student's guardian..." 
                         value={feedbackInput}
                         onChange={(e) => setFeedbackInput(e.target.value)}
-                        className="bg-background border-primary/10 rounded-2xl p-6 min-h-[200px] text-base leading-relaxed resize-none font-normal"
+                        className="bg-background   p-6 min-h-[200px] text-base leading-relaxed resize-none font-normal"
                      />
                   </div>
                </div>
 
                 <div className="pt-8 space-y-4">
-                    <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <div className="flex items-center gap-3 p-4 bg-primary/5  border ">
                         <FileCheck className="w-5 h-5 text-primary opacity-60" />
-                        <p className="text-[10px] font-normal leading-tight text-primary/70">
+                        <p className="text-xs font-normal leading-tight text-primary/70">
                             By publishing, this grade will be recorded in the student's Academic Dossier and the Financial Roster.
                         </p>
                     </div>
@@ -355,12 +355,12 @@ export default function AssessmentWorkspacePage() {
             </div>
           </div>
 
-          <DialogFooter className="p-8 bg-background border-t border-primary/5 flex gap-4">
-            <Button variant="ghost" onClick={() => setIsGradeOpen(false)} className="rounded-xl px-8 h-12 text-muted-foreground">
-                <span className="text-[10px] uppercase tracking-widest font-normal">Discard</span>
+          <DialogFooter className="p-8 bg-background border-t  flex gap-4">
+            <Button variant="ghost" onClick={() => setIsGradeOpen(false)} className=" px-8 h-12 text-muted-foreground">
+                <span className="text-xs   font-normal">Discard</span>
             </Button>
             <Button 
-              className="rounded-xl px-12 h-12 shadow-premium bg-primary hover:bg-primary/90 flex-1 md:flex-none"
+              className="  bg-primary hover:bg-primary/90 flex-1 md:flex-none"
               onClick={() => {
                 if (selectedSubmission) {
                   const score = parseFloat(gradeInput)
@@ -378,7 +378,7 @@ export default function AssessmentWorkspacePage() {
                 }
               }}
             >
-              <span className="text-[10px] uppercase tracking-widest font-normal text-white">Publish Academic Score</span>
+              <span className="text-xs   font-normal text-white">Publish Academic Score</span>
             </Button>
           </DialogFooter>
         </DialogContent>

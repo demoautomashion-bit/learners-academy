@@ -56,7 +56,7 @@ export default function SettingsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-normal text-foreground">
+          <h1 className="font-serif text-3xl text-foreground">
             Settings
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -83,9 +83,9 @@ export default function SettingsPage() {
 
         <TabsContent value="general" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-3">
-            <Card className="md:col-span-2 bg-card/40 backdrop-blur-md border-primary/5 shadow-premium">
+            <Card className="glass-1 md:col-span-2">
               <CardHeader>
-                <CardTitle className="font-serif">Institute Information</CardTitle>
+                <CardTitle className="font-serif text-xl font-serif">Institute Information</CardTitle>
                 <CardDescription>
                   Core academic identity and branding parameters.
                 </CardDescription>
@@ -112,22 +112,22 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card/40 backdrop-blur-md border-primary/5 shadow-premium">
+            <Card className="glass-1">
               <CardHeader>
-                <CardTitle className="font-serif text-lg">Academy Branding</CardTitle>
+                <CardTitle className="font-serif text-xl font-serif">Academy Branding</CardTitle>
                 <CardDescription>
                   Manage the official logo and institutional profile icon.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center py-6">
                 <div className="relative group cursor-pointer mb-6">
-                  <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-primary/20 flex items-center justify-center bg-muted/30 overflow-hidden transition-all group-hover:border-primary/50">
+                  <div className="w-32 h-32  border-2 border-dashed  flex items-center justify-center bg-muted/30 overflow-hidden transition-all group-hover:">
                     {user?.avatar ? (
                       <img src={user.avatar} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
                       <ImageIcon className="w-8 h-8 text-primary/20" />
                     )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-2xl">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity ">
                       <Upload className="w-6 h-6 text-white" />
                     </div>
                   </div>
@@ -139,15 +139,15 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="text-center space-y-1">
-                  <p className="text-xs font-normal uppercase tracking-widest text-primary opacity-60">Official Logo</p>
-                  <p className="text-[11px] text-muted-foreground">Supported: JPG, PNG, SVG (Max 2MB)</p>
+                  <p className="text-xs font-normal   text-primary opacity-60">Official Logo</p>
+                  <p className="text-xs text-muted-foreground">Supported: JPG, PNG, SVG (Max 2MB)</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button onClick={handleSave} disabled={isLoading} className="px-8 font-normal uppercase tracking-wide">
+            <Button onClick={handleSave} disabled={isLoading} className="font-normal">
               {isLoading ? 'Syncing...' : 'Save General changes'}
             </Button>
           </div>
@@ -157,7 +157,7 @@ export default function SettingsPage() {
 
         {/* Security Settings */}
         <TabsContent value="security" className="space-y-6">
-          <Card className="bg-card/40 backdrop-blur-md border-primary/5 shadow-premium">
+          <Card className="glass-1">
             <CardHeader>
               <CardTitle>Password</CardTitle>
               <CardDescription>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/40 backdrop-blur-md border-primary/5 shadow-premium">
+          <Card className="glass-1">
             <CardHeader>
               <CardTitle>Two-Factor Authentication</CardTitle>
               <CardDescription>
@@ -205,7 +205,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/40 backdrop-blur-md border-primary/5 shadow-premium">
+          <Card className="glass-1">
             <CardHeader>
               <CardTitle>Session Management</CardTitle>
               <CardDescription>
@@ -213,7 +213,7 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center justify-between p-3  border">
                 <div>
                   <p className="font-normal">Current Session</p>
                   <p className="text-sm text-muted-foreground">Chrome on macOS - Active now</p>
@@ -235,9 +235,9 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="appearance" className="space-y-6">
-          <Card className="bg-card/40 backdrop-blur-md border-primary/5 shadow-premium">
+          <Card className="glass-1">
             <CardHeader>
-              <CardTitle className="font-serif">Interface Configuration</CardTitle>
+              <CardTitle className="font-serif text-xl font-serif">Interface Configuration</CardTitle>
               <CardDescription>
                 Tailor the visual intensity and density of your administration portal.
               </CardDescription>
@@ -266,7 +266,7 @@ export default function SettingsPage() {
           </Card>
 
           <div className="flex justify-end pt-4">
-            <Button onClick={handleSave} disabled={isLoading} className="px-8 font-normal uppercase tracking-wide">
+            <Button onClick={handleSave} disabled={isLoading} className="font-normal">
               {isLoading ? 'applying...' : 'Apply Appearance'}
             </Button>
           </div>

@@ -69,25 +69,25 @@ export default function TeacherProfilePage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header Controls */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="rounded-full">
+          <Button variant="ghost" size="icon" asChild className="">
             <Link href="/admin/teachers">
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>
           <div>
-            <h1 className="font-serif text-3xl font-normal tracking-tight">Faculty Dossier</h1>
-            <p className="text-muted-foreground text-sm uppercase tracking-widest opacity-60">Verified Institutional Record</p>
+            <h1 className="font-serif text-3xl">Faculty Dossier</h1>
+            <p className="text-muted-foreground text-sm   opacity-60">Verified Institutional Record</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <Badge 
             variant={teacher.status === 'active' ? 'default' : 'secondary'}
             className={cn(
-              "px-4 py-1.5 uppercase text-[10px] tracking-widest",
+              "px-4 py-1.5  text-xs ",
               teacher.status === 'active' ? "bg-success hover:bg-success/90" : ""
             )}
           >
@@ -97,8 +97,8 @@ export default function TeacherProfilePage() {
       </div>
 
       {/* Hero Section */}
-      <Card className="border-none bg-gradient-to-br from-primary/10 via-card to-accent/5 backdrop-blur-xl shadow-premium overflow-hidden rounded-[2.5rem]">
-        <CardContent className="p-8 md:p-12 relative overflow-hidden">
+      <Card className="glass-1 border-none bg-gradient-to-br from-primary/10 via-card to-accent/5 overflow-hidden">
+        <CardContent className="p-6 md:p-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
             <ShieldCheck className="w-64 h-64 -mr-20 -mt-20 rotate-12" />
           </div>
@@ -112,9 +112,9 @@ export default function TeacherProfilePage() {
             
             <div className="flex-1 space-y-4">
               <div className="space-y-1">
-                <h2 className="text-3xl md:text-5xl font-serif tracking-tight">{teacher.name}</h2>
+                <h2 className="md: font-serif text-2xl font-serif">{teacher.name}</h2>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground text-sm">
-                  <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> {teacher.employeeId}</span>
+                  <span className="flex items-center gap-2"><div className="w-1.5 h-1.5  bg-primary" /> {teacher.employeeId}</span>
                   <span className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> {teacher.email}</span>
                   <span className="flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> {teacher.phone}</span>
                 </div>
@@ -129,10 +129,10 @@ export default function TeacherProfilePage() {
               </div>
             </div>
 
-            <div className="w-full md:w-auto bg-background/40 backdrop-blur-md rounded-2xl p-6 border border-white/10 space-y-4">
+            <div className="w-full md:w-auto bg-background/40   p-6 border border-white/10 space-y-4">
                <div className="flex items-center justify-between gap-8">
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Review Mode</p>
+                    <p className="text-xs   text-muted-foreground font-bold">Review Mode</p>
                     <p className="text-xs text-muted-foreground/60 italic leading-none">Paper Audit Required</p>
                   </div>
                   <Switch 
@@ -144,7 +144,7 @@ export default function TeacherProfilePage() {
                <Button 
                 variant="outline" 
                 onClick={handleToggleStatus}
-                className="w-full h-10 rounded-xl border-primary/10 hover:bg-primary/5 font-normal text-[10px] uppercase tracking-widest"
+                className="w-full   hover:bg-primary/5 font-normal"
                >
                  {teacher.status === 'active' ? (
                    <><UserX className="w-3.5 h-3.5 mr-2" /> Deactivate</>
@@ -160,42 +160,42 @@ export default function TeacherProfilePage() {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="rounded-[2rem] border-primary/5 bg-card/40 backdrop-blur-md shadow-premium">
+          <Card className="glass-1">
             <CardContent className="p-6 flex items-center gap-6">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <div className="w-14 h-14  bg-primary/10 flex items-center justify-center">
                 <BookOpen className="w-7 h-7 text-primary" />
               </div>
               <div>
                 <p className="text-3xl font-serif">{teacher.coursesCount}</p>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Active Batches</p>
+                <p className="text-xs   text-muted-foreground font-bold">Active Batches</p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
         
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="rounded-[2rem] border-success/5 bg-card/40 backdrop-blur-md shadow-premium">
+          <Card className="glass-1 border-success/5">
             <CardContent className="p-6 flex items-center gap-6">
-              <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center">
+              <div className="w-14 h-14  bg-success/10 flex items-center justify-center">
                 <Users className="w-7 h-7 text-success" />
               </div>
               <div>
                 <p className="text-3xl font-serif">{teacher.studentsCount}</p>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Total Students</p>
+                <p className="text-xs   text-muted-foreground font-bold">Total Students</p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="rounded-[2rem] border-warning/5 bg-card/40 backdrop-blur-md shadow-premium">
+          <Card className="glass-1 border-warning/5">
             <CardContent className="p-6 flex items-center gap-6">
-              <div className="w-14 h-14 rounded-2xl bg-warning/10 flex items-center justify-center">
+              <div className="w-14 h-14  bg-warning/10 flex items-center justify-center">
                 <Award className="w-7 h-7 text-warning" />
               </div>
               <div>
                 <p className="text-3xl font-serif">4.8</p>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Avg. Performance</p>
+                <p className="text-xs   text-muted-foreground font-bold">Avg. Performance</p>
               </div>
             </CardContent>
           </Card>
@@ -205,9 +205,9 @@ export default function TeacherProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Teaching Load */}
         <div className="lg:col-span-2">
-          <Card className="rounded-[2.5rem] border-primary/5 bg-card/40 backdrop-blur-md shadow-premium h-full">
+          <Card className="glass-1 h-full">
             <CardHeader>
-              <CardTitle className="font-serif flex items-center gap-3">
+              <CardTitle className="font-serif flex items-center gap-3 text-xl font-serif">
                 <ShieldCheck className="w-5 h-5 text-primary" />
                 Teaching Load & Assigned Batches
               </CardTitle>
@@ -215,34 +215,34 @@ export default function TeacherProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {teacherCourses.length === 0 ? (
-                <div className="p-12 text-center rounded-3xl bg-muted/5 border border-dashed">
+                <div className="p-12 text-center  bg-muted/5 border border-dashed">
                   <p className="text-sm text-muted-foreground font-serif">No active batches currently assigned.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {teacherCourses?.map(course => (
-                    <div key={course.id} className="p-5 rounded-2xl bg-background/40 border border-primary/5 group hover:border-primary/20 transition-all duration-300">
+                    <div key={course.id} className="p-5  bg-background/40 border  group hover: transition-all duration-300">
                       <div className="flex justify-between items-start mb-2">
-                        <Badge variant="outline" className="text-[9px] uppercase tracking-tighter opacity-60 font-normal">
+                        <Badge variant="outline" className="text-xs   opacity-60 font-normal">
                           {course.level}
                         </Badge>
-                        <span className="text-[10px] text-muted-foreground font-mono">{course.duration}</span>
+                        <span className="text-xs text-muted-foreground font-mono">{course.duration}</span>
                       </div>
                       <h4 className="font-serif text-lg mb-1">{course.title}</h4>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-4">{course.schedule}</p>
+                      <p className="text-xs text-muted-foreground   mb-4">{course.schedule}</p>
                       
-                      <div className="flex items-center gap-4 pt-4 border-t border-primary/5">
+                      <div className="flex items-center gap-4 pt-4 border-t ">
                         <div className="flex -space-x-2">
                           {[1, 2, 3].map(i => (
-                            <div key={i} className="w-6 h-6 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center text-[8px] font-bold">
+                            <div key={i} className="w-6 h-6  bg-primary/10 border-2 border-background flex items-center justify-center text-xs font-bold">
                               U
                             </div>
                           ))}
-                          <div className="w-6 h-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[8px] font-bold">
+                          <div className="w-6 h-6  bg-muted border-2 border-background flex items-center justify-center text-xs font-bold">
                             +{course.enrolled}
                           </div>
                         </div>
-                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Enrollment Active</p>
+                        <p className="text-xs   text-muted-foreground font-bold">Enrollment Active</p>
                       </div>
                     </div>
                   ))}
@@ -254,36 +254,36 @@ export default function TeacherProfilePage() {
 
         {/* Sidebar Info */}
         <div className="space-y-6">
-          <Card className="rounded-[2.5rem] border-primary/5 bg-card/40 backdrop-blur-md shadow-premium">
+          <Card className="glass-1">
             <CardHeader>
-              <CardTitle className="font-serif text-lg">Employment Record</CardTitle>
+              <CardTitle className="font-serif text-xl font-serif">Employment Record</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <div className="w-10 h-10  bg-muted flex items-center justify-center shrink-0">
                   <Calendar className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Registration Date</p>
+                  <p className="text-xs   text-muted-foreground font-bold">Registration Date</p>
                   <p className="text-sm font-serif">{new Date(teacher.joinedAt).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <div className="w-10 h-10  bg-muted flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Security Clearance</p>
+                  <p className="text-xs   text-muted-foreground font-bold">Security Clearance</p>
                   <p className="text-sm font-serif">Institutional Access Level 4</p>
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-primary/5">
-                <h4 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-4 opacity-60">Professional Credentials</h4>
+              <div className="pt-6 border-t ">
+                <h4 className="text-xs   text-muted-foreground font-bold mb-4 opacity-60">Professional Credentials</h4>
                 <div className="space-y-2">
                   {teacher.qualifications?.map(q => (
-                    <div key={q} className="p-3 rounded-xl bg-background/40 text-xs font-serif border border-primary/5 flex items-center gap-2">
+                    <div key={q} className="p-3  bg-background/40 text-xs font-serif border  flex items-center gap-2">
                       <Award className="w-3.5 h-3.5 text-primary opacity-40" />
                       {q}
                     </div>
@@ -293,14 +293,14 @@ export default function TeacherProfilePage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-[2.5rem] border-destructive/5 bg-destructive/5 p-6 space-y-4">
+          <Card className="glass-1 border-destructive/5 bg-destructive/5 p-6 space-y-4">
             <h4 className="font-serif text-lg text-destructive">Termination Protocol</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Caution: Purging this professional from the registry will orphan all assigned batches and requires administrative override.
             </p>
             <Button 
                variant="ghost" 
-               className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive h-10 rounded-xl text-xs font-normal"
+               className="w-full justify-start hover:bg-destructive/10 hover:  font-normal"
                onClick={() => {
                  if (confirm('Permanently purge this professional from the institutional registry?')) {
                    removeTeacher(teacher.id)

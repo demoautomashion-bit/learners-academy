@@ -128,14 +128,14 @@ export default function TeachersPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-normal text-foreground">
+          <h1 className="font-serif text-3xl text-foreground">
             Academic Faculty
           </h1>
           <p className="text-muted-foreground mt-1">
             Manage your teaching staff and assignments
           </p>
         </div>
-        <Button asChild className="h-12 px-8 shadow-lg shadow-primary/20 uppercase tracking-[0.15em] font-normal text-xs rounded-xl">
+        <Button asChild className="shadow-lg shadow-primary/20 font-normal ">
           <Link href="/admin/teachers/registration">
             <Plus className="w-4 h-4 mr-2" />
             Add Teacher
@@ -145,24 +145,24 @@ export default function TeachersPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-primary/5 shadow-premium">
+        <Card className="glass-1 hover-lift transition-premium">
           <CardHeader className="pb-2">
             <CardDescription>Total Teachers</CardDescription>
-            <CardTitle className="text-3xl">{teachers.length}</CardTitle>
+            <CardTitle className="text-xl font-serif">{teachers.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-primary/5 shadow-premium">
+        <Card className="glass-1 hover-lift transition-premium">
           <CardHeader className="pb-2">
             <CardDescription>Active Teachers</CardDescription>
-            <CardTitle className="text-3xl text-success">
+            <CardTitle className="text-success text-xl font-serif">
               {teachers?.filter(t => t.status === 'active').length}
             </CardTitle>
           </CardHeader>
         </Card>
-        <Card className="bg-card/40 backdrop-blur-md hover-lift transition-premium border-primary/5 shadow-premium">
+        <Card className="glass-1 hover-lift transition-premium">
           <CardHeader className="pb-2">
             <CardDescription>Inactive Teachers</CardDescription>
-            <CardTitle className="text-3xl text-muted-foreground">
+            <CardTitle className="text-muted-foreground text-xl font-serif">
               {teachers?.filter(t => t.status === 'inactive').length}
             </CardTitle>
           </CardHeader>
@@ -170,7 +170,7 @@ export default function TeachersPage() {
       </div>
 
       {/* Teachers Table */}
-      <Card className="bg-card/40 backdrop-blur-md border-primary/5 shadow-premium rounded-[2.5rem] overflow-hidden">
+      <Card className="glass-1 overflow-hidden">
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <CardTitle>All Teachers</CardTitle>
@@ -187,9 +187,9 @@ export default function TeachersPage() {
         </CardHeader>
         <CardContent>
           {/* Desktop Table View */}
-          <div className="hidden md:block rounded-lg border overflow-x-auto">
+          <div className="hidden md:block  border overflow-x-auto">
             <Table>
-              <TableHeader className="bg-muted/5 h-16 border-b border-primary/5">
+              <TableHeader className="bg-muted/5 h-16 border-b ">
                 <TableRow>
                   <TableHead>Teacher</TableHead>
                   <TableHead>ID & Class</TableHead>
@@ -328,14 +328,14 @@ export default function TeachersPage() {
           {/* Mobile Card List View */}
           <div className="grid gap-4 md:hidden">
             {filteredTeachers.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-2xl border border-dashed">
+              <div className="text-center py-12 text-muted-foreground bg-muted/10  border border-dashed">
                 No teachers found in the registry.
               </div>
             ) : (
               filteredTeachers?.map((teacher) => (
                 <div
                   key={teacher.id}
-                  className="bg-card border rounded-2xl p-4 shadow-sm hover:shadow-md transition-premium active:scale-[0.98] cursor-pointer"
+                  className="bg-card border  p-4 shadow-sm hover:shadow-md transition-premium active:scale-[0.98] cursor-pointer"
                   onClick={() => router.push(`/admin/teachers/${teacher.id}`)}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -352,14 +352,14 @@ export default function TeachersPage() {
                             <ShieldCheck className="w-3.5 h-3.5 text-warning" />
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-normal opacity-60">
+                        <p className="text-xs text-muted-foreground   font-normal opacity-60">
                           {teacher.employeeId}
                         </p>
                       </div>
                     </div>
                     <Badge 
                       variant={teacher.status === 'active' ? 'default' : 'secondary'}
-                      className={cn("text-[8px] px-1.5 py-0 uppercase tracking-tighter", teacher.status === 'active' ? 'bg-success' : '')}
+                      className={cn("text-xs px-1.5 py-0  ", teacher.status === 'active' ? 'bg-success' : '')}
                     >
                       {teacher.status}
                     </Badge>
@@ -367,11 +367,11 @@ export default function TeachersPage() {
 
                   <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
                     <div className="space-y-1">
-                      <p className="text-muted-foreground font-normal uppercase tracking-tighter text-[9px]">Registry Email</p>
+                      <p className="text-muted-foreground font-normal   text-xs">Registry Email</p>
                       <p className="font-normal line-clamp-1">{teacher.email}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-muted-foreground font-normal uppercase tracking-tighter text-[9px]">Assigned Class</p>
+                      <p className="text-muted-foreground font-normal   text-xs">Assigned Class</p>
                       <p className="font-normal text-primary truncate">
                         {teacher.assignedClass || 'Level TBC'}
                       </p>
@@ -382,20 +382,20 @@ export default function TeachersPage() {
                     <div className="flex gap-4">
                       <div className="text-center">
                         <p className="font-normal text-sm leading-none">{teacher.coursesCount}</p>
-                        <p className="text-[8px] text-muted-foreground uppercase tracking-tight font-normal">Classes</p>
+                        <p className="text-xs text-muted-foreground   font-normal">Classes</p>
                       </div>
                       <div className="text-center">
                         <p className="font-normal text-sm leading-none">{teacher.studentsCount}</p>
-                        <p className="text-[8px] text-muted-foreground uppercase tracking-tight font-normal">Students</p>
+                        <p className="text-xs text-muted-foreground   font-normal">Students</p>
                       </div>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full">
+                        <Button variant="ghost" size="sm" className="w-8 ">
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 rounded-xl p-1">
+                      <DropdownMenuContent align="end" className="w-48  p-1">
                         <DropdownMenuItem asChild>
                           <Link href={`/admin/teachers/payroll?id=${teacher.id}`} className="flex items-center w-full">
                             <Wallet className="w-4 h-4 mr-2" /> Payroll & Roster
@@ -419,7 +419,7 @@ export default function TeachersPage() {
                          </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="flex items-center justify-between cursor-default focus:bg-warning/5 rounded-xl"
+                          className="flex items-center justify-between cursor-default focus:bg-warning/5 "
                           onSelect={(e) => {
                             e.preventDefault()
                             updateTeacherReviewFlag(teacher.id, !teacher.requiresReview)
@@ -440,7 +440,7 @@ export default function TeachersPage() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
-                          className="text-destructive focus:text-destructive rounded-xl"
+                          className="text-destructive focus:text-destructive "
                           onSelect={() => handleDelete(teacher)}
                         >
                           <Trash2 className="w-4 h-4 mr-2" /> Remove Professional
@@ -476,31 +476,31 @@ export default function TeachersPage() {
                 </div>
                 <FieldGroup className="flex-1 space-y-3">
                   <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5 h-auto">Legal Identity</FieldLabel>
+                    <FieldLabel className="text-xs   text-muted-foreground mb-1.5 h-auto">Legal Identity</FieldLabel>
                     <Input name="name" defaultValue={selectedTeacher?.name} required className="bg-background/50 h-10" placeholder="Full name as per registry" />
                   </Field>
                   <div className="grid grid-cols-2 gap-4">
                     <Field>
-                      <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Employee ID</FieldLabel>
+                      <FieldLabel className="text-xs   text-muted-foreground mb-1 h-auto">Employee ID</FieldLabel>
                       <Input name="employeeId" defaultValue={selectedTeacher?.employeeId} required className="bg-background/50 h-10 font-mono" />
                     </Field>
                     <Field>
-                      <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Portal Access</FieldLabel>
+                      <FieldLabel className="text-xs   text-muted-foreground mb-1 h-auto">Portal Access</FieldLabel>
                       <SecureInput name="password" placeholder="••••••••" className="bg-background/50 h-10" />
                     </Field>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <Field>
-                      <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Registry Contact</FieldLabel>
+                      <FieldLabel className="text-xs   text-muted-foreground mb-1 h-auto">Registry Contact</FieldLabel>
                       <Input name="phone" defaultValue={selectedTeacher?.phone} required className="bg-background/50 h-10" />
                     </Field>
                     <Field>
-                      <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Institutional Mail</FieldLabel>
-                      <Input name="email" type="email" defaultValue={selectedTeacher?.email} required className="bg-background/50 h-10 text-[11px]" />
+                      <FieldLabel className="text-xs   text-muted-foreground mb-1 h-auto">Institutional Mail</FieldLabel>
+                      <Input name="email" type="email" defaultValue={selectedTeacher?.email} required className="bg-background/50 h-10 text-xs" />
                     </Field>
                   </div>
                   <Field>
-                    <FieldLabel className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1 h-auto">Current Batch Level</FieldLabel>
+                    <FieldLabel className="text-xs   text-muted-foreground mb-1 h-auto">Current Batch Level</FieldLabel>
                     <Select name="assignedClass" defaultValue={selectedTeacher?.assignedClass || ''}>
                       <SelectTrigger className="h-10 bg-background/50 font-normal">
                         <SelectValue placeholder="No level assigned" />
@@ -516,10 +516,10 @@ export default function TeachersPage() {
               </div>
             </div>
             <DialogFooter className="pt-2 mt-4 border-t border-border/50 pt-4 flex-shrink-0">
-              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-muted-foreground hover:text-foreground h-11 px-8 text-xs uppercase tracking-widest">
+              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-muted-foreground hover:text-foreground h-11 px-8 text-xs  ">
                 Cancel
               </Button>
-              <Button type="submit" className="h-11 px-10 font-normal uppercase tracking-widest text-xs shadow-xl shadow-primary/20">Save Changes</Button>
+              <Button type="submit" className="font-normal shadow-xl shadow-primary/20">Save Changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>

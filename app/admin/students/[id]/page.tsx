@@ -92,23 +92,23 @@ export default function StudentDossierPage() {
   const totalDue = studentFees.reduce((sum, f) => sum + (f.totalAmount || 0), 0) - totalPaid
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header & Back Button */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="rounded-full">
+          <Button variant="ghost" size="icon" asChild className="">
             <Link href="/admin/students">
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>
           <div>
-            <h1 className="font-serif text-3xl font-normal tracking-tight">Academic Dossier</h1>
-            <p className="text-muted-foreground text-sm uppercase tracking-widest opacity-60">Permanent Institutional Record</p>
+            <h1 className="font-serif text-3xl">Academic Dossier</h1>
+            <p className="text-muted-foreground text-sm   opacity-60">Permanent Institutional Record</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
            <Badge variant={student.status === 'active' ? 'default' : 'secondary'} className={cn(
-             "px-4 py-1.5 uppercase text-[10px] tracking-widest",
+             "px-4 py-1.5  text-xs ",
              student.status === 'active' ? "bg-success hover:bg-success/90" : ""
            )}>
              {student.status}
@@ -117,8 +117,8 @@ export default function StudentDossierPage() {
       </div>
 
       {/* Top Summary Card */}
-      <Card className="border-none bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl shadow-premium overflow-hidden rounded-[2.5rem]">
-        <CardContent className="p-8 md:p-12">
+      <Card className="glass-1 border-none bg-gradient-to-br from-card/80 to-card/40 overflow-hidden">
+        <CardContent className="p-6 md:p-6">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <Avatar className="w-24 h-24 md:w-32 md:h-32 ring-8 ring-primary/5 shadow-2xl">
               <AvatarFallback className="bg-primary/5 text-primary text-4xl font-serif">
@@ -127,42 +127,42 @@ export default function StudentDossierPage() {
             </Avatar>
             <div className="flex-1 space-y-4">
               <div className="space-y-1">
-                <h2 className="text-3xl md:text-5xl font-serif tracking-tight">{student.name}</h2>
+                <h2 className="md: font-serif text-2xl font-serif">{student.name}</h2>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground text-sm">
-                  <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-primary/20" /> {student.studentId || 'ID Pending'}</span>
+                  <span className="flex items-center gap-2"><div className="w-2 h-2  bg-primary/20" /> {student.studentId || 'ID Pending'}</span>
                   <span className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> {student.email}</span>
                   <span className="flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> {student.phone}</span>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-                <div className="bg-background/40 backdrop-blur-sm p-4 rounded-2xl border border-primary/5">
-                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold opacity-70">Academic Grade</p>
+                <div className="bg-background/40  p-4  border ">
+                   <p className="text-xs   text-muted-foreground mb-1 font-bold opacity-70">Academic Grade</p>
                    <p className="text-2xl font-serif text-primary">{student.grade || 'N/A'}</p>
                 </div>
-                <div className="bg-background/40 backdrop-blur-sm p-4 rounded-2xl border border-primary/5">
-                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold opacity-70">Attendance Trend</p>
+                <div className="bg-background/40  p-4  border ">
+                   <p className="text-xs   text-muted-foreground mb-1 font-bold opacity-70">Attendance Trend</p>
                    <p className="text-2xl font-serif text-success">92%</p>
                 </div>
-                <div className="bg-background/40 backdrop-blur-sm p-4 rounded-2xl border border-primary/5">
-                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold opacity-70">Enrolled Since</p>
+                <div className="bg-background/40  p-4  border ">
+                   <p className="text-xs   text-muted-foreground mb-1 font-bold opacity-70">Enrolled Since</p>
                    <p className="text-2xl font-serif">
                      {new Date(student.enrolledAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                    </p>
                 </div>
-                <div className="bg-background/40 backdrop-blur-sm p-4 rounded-2xl border border-primary/5">
-                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold opacity-70">Portal Status</p>
+                <div className="bg-background/40  p-4  border ">
+                   <p className="text-xs   text-muted-foreground mb-1 font-bold opacity-70">Portal Status</p>
                    <p className="text-2xl font-serif text-accent">Active</p>
                 </div>
               </div>
             </div>
             
             {/* Quick Actions / Metrics Update */}
-            <div className="w-full md:w-72 bg-background/20 backdrop-blur-md rounded-3xl p-6 border border-white/10 space-y-4">
-               <h4 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">Academic Controls</h4>
+            <div className="w-full md:w-72 bg-background/20   p-6 border border-white/10 space-y-4">
+               <h4 className="text-xs   text-muted-foreground font-bold">Academic Controls</h4>
                <div className="space-y-4">
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                    <div className="flex justify-between items-center text-xs font-bold ">
                       <span>Progress</span>
                       <span className="text-primary">{metricProgress}%</span>
                     </div>
@@ -176,9 +176,9 @@ export default function StudentDossierPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <span className="text-[10px] font-bold uppercase">Assigned Grade</span>
+                    <span className="text-xs font-bold ">Assigned Grade</span>
                     <Select value={metricGrade} onValueChange={setMetricGrade}>
-                       <SelectTrigger className="h-9 rounded-xl bg-background/50 border-primary/10">
+                       <SelectTrigger className="h-9  bg-background/50 ">
                           <SelectValue placeholder="Grade" />
                        </SelectTrigger>
                        <SelectContent>
@@ -191,7 +191,7 @@ export default function StudentDossierPage() {
                   <Button 
                     onClick={handleUpdateMetrics}
                     size="sm" 
-                    className="w-full rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase text-[10px] tracking-widest h-10 mt-2"
+                    className="w-full  bg-primary hover:bg-primary/90 font-bold mt-2"
                   >
                     Sync Records
                   </Button>
@@ -203,60 +203,60 @@ export default function StudentDossierPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Academic Progress Column */}
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="rounded-[2.5rem] border-primary/5 bg-card/40 backdrop-blur-md shadow-premium">
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="glass-1">
             <CardHeader>
-              <CardTitle className="font-serif flex items-center gap-3">
+              <CardTitle className="font-serif flex items-center gap-3 text-xl font-serif">
                 <TrendingUp className="w-5 h-5 text-primary" />
                 Academic Progress & Curriculum
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-8">
+            <CardContent className="space-y-6">
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Overall Completion</span>
+                  <span className="text-muted-foreground   text-xs font-bold">Overall Completion</span>
                   <span className="font-serif text-lg">{student.progress}%</span>
                 </div>
                 <Progress value={student.progress} className="h-3" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 pt-4">
-                <div className="flex items-center gap-4 p-5 rounded-2xl bg-primary/5 border border-primary/10">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="flex items-center gap-4 p-5  bg-primary/5 border ">
+                  <div className="w-12 h-12  bg-primary/10 flex items-center justify-center">
                     <BookOpen className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Enrolled Classes</p>
+                    <p className="text-xs   text-muted-foreground font-bold">Enrolled Classes</p>
                     <p className="text-xl font-serif">{student.enrolledCourses.length}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 p-5 rounded-2xl bg-success/5 border border-success/10">
-                  <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
+                <div className="flex items-center gap-4 p-5  bg-success/5 border border-success/10">
+                  <div className="w-12 h-12  bg-success/10 flex items-center justify-center">
                     <History className="w-6 h-6 text-success" />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Active Term</p>
+                    <p className="text-xs   text-muted-foreground font-bold">Active Term</p>
                     <p className="text-xl font-serif">Spring 2024</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4 pt-4">
-                 <h4 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground opacity-60 font-bold">Current Enrollments</h4>
+                 <h4 className="text-xs   text-muted-foreground opacity-60 font-bold">Current Enrollments</h4>
                  {student.enrolledCourses?.map(courseId => {
                    const course = courses.find(c => c.id === courseId)
                    return (
-                     <div key={courseId} className="flex items-center justify-between p-4 rounded-2xl bg-background/40 border group hover:border-primary/20 transition-all duration-300">
+                     <div key={courseId} className="flex items-center justify-between p-4  bg-background/40 border group hover: transition-all duration-300">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-xs font-serif uppercase">
+                          <div className="w-10 h-10  bg-muted flex items-center justify-center text-xs font-serif ">
                             {course?.title.substring(0, 2)}
                           </div>
                           <div>
                             <p className="text-sm font-serif">{course?.title || 'Unknown Course'}</p>
-                            <p className="text-[10px] text-muted-foreground">{course?.schedule} • Teacher: {course?.teacherName}</p>
+                            <p className="text-xs text-muted-foreground">{course?.schedule} • Teacher: {course?.teacherName}</p>
                           </div>
                         </div>
-                        <Badge variant="outline" className="text-[9px] uppercase tracking-tighter opacity-60">Active</Badge>
+                        <Badge variant="outline" className="text-xs   opacity-60">Active</Badge>
                      </div>
                    )
                  })}
@@ -265,27 +265,27 @@ export default function StudentDossierPage() {
           </Card>
 
           {/* Financial Summary */}
-          <Card className="rounded-[2.5rem] border-primary/5 bg-card/40 backdrop-blur-md shadow-premium">
+          <Card className="glass-1">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="font-serif flex items-center gap-3">
+              <CardTitle className="font-serif flex items-center gap-3 text-xl font-serif">
                 <DollarSign className="w-5 h-5 text-success" />
                 Financial Summary
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-background/40 p-5 rounded-2xl border border-primary/5">
-                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold">Total Paid</p>
+                <div className="bg-background/40 p-5  border ">
+                   <p className="text-xs   text-muted-foreground mb-1 font-bold">Total Paid</p>
                    <p className="text-2xl font-serif text-success">${totalPaid.toLocaleString()}</p>
                 </div>
-                <div className="bg-background/40 p-5 rounded-2xl border border-primary/5">
-                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold">Current Dues</p>
+                <div className="bg-background/40 p-5  border ">
+                   <p className="text-xs   text-muted-foreground mb-1 font-bold">Current Dues</p>
                    <p className="text-2xl font-serif text-destructive">${totalDue.toLocaleString()}</p>
                 </div>
-                <div className="bg-background/40 p-5 rounded-2xl border border-primary/5 hidden md:block">
-                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold">Payment Status</p>
+                <div className="bg-background/40 p-5  border  hidden md:block">
+                   <p className="text-xs   text-muted-foreground mb-1 font-bold">Payment Status</p>
                    <Badge className={cn(
-                     "mt-1 uppercase text-[9px] tracking-widest px-3",
+                     "mt-1  text-xs  px-3",
                      totalDue === 0 ? "bg-success" : "bg-warning"
                    )}>
                      {totalDue === 0 ? 'Settled' : 'Action Required'}
@@ -294,15 +294,15 @@ export default function StudentDossierPage() {
               </div>
 
               <div className="pt-4">
-                <h4 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground opacity-60 mb-4 font-bold">Transaction History</h4>
-                <div className="rounded-2xl border border-primary/5 overflow-hidden bg-background/20">
+                <h4 className="text-xs   text-muted-foreground opacity-60 mb-4 font-bold">Transaction History</h4>
+                <div className=" border  overflow-hidden bg-background/20">
                   <Table>
                     <TableHeader className="bg-muted/10">
                       <TableRow>
-                        <TableHead className="text-[10px] uppercase font-bold tracking-tight">Class Level</TableHead>
-                        <TableHead className="text-[10px] uppercase font-bold tracking-tight">Amount</TableHead>
-                        <TableHead className="text-[10px] uppercase font-bold tracking-tight">Date</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase font-bold tracking-tight">Status</TableHead>
+                        <TableHead className="text-xs  font-bold ">Class Level</TableHead>
+                        <TableHead className="text-xs  font-bold ">Amount</TableHead>
+                        <TableHead className="text-xs  font-bold ">Date</TableHead>
+                        <TableHead className="text-right text-xs  font-bold ">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -314,7 +314,7 @@ export default function StudentDossierPage() {
                         </TableRow>
                       ) : (
                         studentFees?.map((fee) => (
-                          <TableRow key={fee.id} className="group hover:bg-primary/5 border-primary/5">
+                          <TableRow key={fee.id} className="group hover:bg-primary/5 ">
                             <TableCell className="font-serif">
                               {courses.find(c => c.id === fee.courseId)?.title || 'Registry Level'}
                             </TableCell>
@@ -325,7 +325,7 @@ export default function StudentDossierPage() {
                               {new Date(fee.paymentDate || fee.createdAt).toLocaleDateString()}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Badge variant="outline" className="text-[9px] px-2 py-0 uppercase tracking-tighter border-primary/20">
+                              <Badge variant="outline" className="text-xs px-2 py-0   ">
                                 {fee.status}
                               </Badge>
                             </TableCell>
@@ -341,10 +341,10 @@ export default function StudentDossierPage() {
         </div>
 
         {/* Sidebar Column: Institutional History & Profile */}
-        <div className="space-y-8">
-          <Card className="rounded-[2.5rem] border-primary/5 bg-card/40 backdrop-blur-md shadow-premium">
+        <div className="space-y-6">
+          <Card className="glass-1">
             <CardHeader>
-              <CardTitle className="font-serif flex items-center gap-3">
+              <CardTitle className="font-serif flex items-center gap-3 text-xl font-serif">
                 <ShieldCheck className="w-5 h-5 text-accent" />
                 Institutional Registry
               </CardTitle>
@@ -352,59 +352,59 @@ export default function StudentDossierPage() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8  bg-muted flex items-center justify-center shrink-0">
                     <User className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Guardian Information</p>
+                    <p className="text-xs   text-muted-foreground font-bold">Guardian Information</p>
                     <p className="text-sm font-serif">{student.guardianName || 'Institutional Delegate'}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8  bg-muted flex items-center justify-center shrink-0">
                     <Clock className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Session Timing</p>
+                    <p className="text-xs   text-muted-foreground font-bold">Session Timing</p>
                     <p className="text-sm font-serif">{student.classTiming || 'Morning Session'}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8  bg-muted flex items-center justify-center shrink-0">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Enrollment Date</p>
+                    <p className="text-xs   text-muted-foreground font-bold">Enrollment Date</p>
                     <p className="text-sm font-serif font-sans opacity-80">{new Date(student.enrolledAt).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
                   </div>
                 </div>
               </div>
               
-              <div className="pt-6 border-t border-primary/5">
-                 <h4 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground opacity-60 mb-4 font-bold">Official Verification</h4>
-                 <div className="p-4 rounded-2xl bg-background/40 border border-dashed border-primary/20 text-center">
-                    <p className="text-[10px] text-muted-foreground italic mb-2 font-normal">Digitally Signed by</p>
-                    <p className="text-xs uppercase tracking-widest font-serif">Academic Registrar</p>
+              <div className="pt-6 border-t ">
+                 <h4 className="text-xs   text-muted-foreground opacity-60 mb-4 font-bold">Official Verification</h4>
+                 <div className="p-4  bg-background/40 border border-dashed  text-center">
+                    <p className="text-xs text-muted-foreground italic mb-2 font-normal">Digitally Signed by</p>
+                    <p className="text-xs   font-serif">Academic Registrar</p>
                  </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-[2.5rem] border-primary/5 bg-gradient-to-br from-primary/5 to-accent/5 backdrop-blur-md shadow-premium p-1 relative overflow-hidden group">
+          <Card className="glass-1 bg-gradient-to-br from-primary/5 to-accent/5 p-1 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                <Award className="w-16 h-16" />
             </div>
-            <div className="bg-card/40 rounded-[2.3rem] p-6 space-y-4 relative z-10">
+            <div className="  p-6 space-y-4 relative z-10">
               <h4 className="font-serif text-lg">Academic Honors</h4>
               <div className="flex items-center gap-4">
-                 <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
+                 <div className="w-12 h-12  bg-warning/10 flex items-center justify-center">
                     <Award className="w-6 h-6 text-warning" />
                  </div>
                  <div>
                     <p className="text-sm font-serif">Distinction Candidate</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Term Excellence Award</p>
+                    <p className="text-xs text-muted-foreground  ">Term Excellence Award</p>
                  </div>
               </div>
             </div>

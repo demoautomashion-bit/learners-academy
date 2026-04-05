@@ -56,13 +56,13 @@ const TYPE_OPTIONS = [
 ]
 
 const TYPE_BADGE_COLORS: Record<string, string> = {
-  'MCQ':                'border-primary/20 bg-primary/5 text-primary',
+  'MCQ':                ' bg-primary/5 text-primary',
   'True/False':         'border-success/20 bg-success/5 text-success',
   'Fill in the Blanks': 'border-warning/20 bg-warning/5 text-warning',
   'Writing':            'border-muted-foreground/20 bg-muted/50 text-muted-foreground',
   'Matching':           'border-accent/20 bg-accent/5 text-foreground',
-  'Reading':            'border-primary/15 bg-primary/5 text-primary/70',
-  'Listening':          'border-primary/15 bg-primary/5 text-primary/70',
+  'Reading':            ' bg-primary/5 text-primary/70',
+  'Listening':          ' bg-primary/5 text-primary/70',
   'Subjective':         'border-muted-foreground/20 bg-muted/30 text-muted-foreground',
 }
 
@@ -149,7 +149,7 @@ export default function QuestionLibraryPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-serif tracking-tight text-foreground font-normal">Assessment Library</h1>
+          <h1 className="text-3xl font-serif text-foreground">Assessment Library</h1>
           <p className="text-muted-foreground mt-1 text-sm opacity-70">
             Curate your institutional question bank across {CATEGORIES.length} academic categories.
           </p>
@@ -157,14 +157,14 @@ export default function QuestionLibraryPage() {
 
         <Dialog open={isOpen} onOpenChange={(o) => { if (!o) handleClose(); else setIsOpen(true) }}>
           <DialogTrigger asChild>
-            <Button className="hover-lift shadow-premium rounded-xl h-10 px-6">
+            <Button className="hover-lift  ">
               <Plus className="w-4 h-4 mr-2" />
-              <span className="text-xs uppercase tracking-widest font-normal">Add Question</span>
+              <span className="text-xs   font-normal">Add Question</span>
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl border-primary/5 shadow-premium">
-            <DialogHeader className="bg-muted/5 border-b border-primary/5 p-6 text-left items-start">
+          <DialogContent className="max-w-xl p-0 overflow-hidden   ">
+            <DialogHeader className="bg-muted/5 border-b  p-6 text-left items-start">
               <DialogTitle className="text-xl font-serif font-normal">Add to Library</DialogTitle>
               <DialogDescription className="text-xs opacity-60">
                 Fields adapt to the selected block type for institutional precision.
@@ -177,20 +177,20 @@ export default function QuestionLibraryPage() {
                   {/* Category + Phase row */}
                   <div className="grid grid-cols-2 gap-3">
                     <Field>
-                      <FieldLabel className="text-xs uppercase tracking-widest opacity-60">Category</FieldLabel>
+                      <FieldLabel className="text-xs   opacity-60">Category</FieldLabel>
                       <Select value={watch('category')} onValueChange={(v) => setValue('category', v)}>
-                        <SelectTrigger className="h-10 text-sm rounded-xl"><SelectValue placeholder="Category" /></SelectTrigger>
-                        <SelectContent className="rounded-xl">
+                        <SelectTrigger className="h-10 text-sm "><SelectValue placeholder="Category" /></SelectTrigger>
+                        <SelectContent className="">
                           {CATEGORIES?.map(c => <SelectItem key={c} value={c} className="text-sm">{c}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                      {errors.category && <p className="text-xs text-destructive font-normal uppercase tracking-widest mt-1 opacity-80">{errors.category.message}</p>}
+                      {errors.category && <p className="text-xs text-destructive font-normal   mt-1 opacity-80">{errors.category.message}</p>}
                     </Field>
                     <Field>
-                      <FieldLabel className="text-xs uppercase tracking-widest opacity-60">Phase</FieldLabel>
+                      <FieldLabel className="text-xs   opacity-60">Phase</FieldLabel>
                       <Select defaultValue="Both" onValueChange={(v) => setValue('phase', v as any)}>
-                        <SelectTrigger className="h-10 text-sm rounded-xl"><SelectValue /></SelectTrigger>
-                        <SelectContent className="rounded-xl">
+                        <SelectTrigger className="h-10 text-sm "><SelectValue /></SelectTrigger>
+                        <SelectContent className="">
                           <SelectItem value="First Test" className="text-sm">First Test</SelectItem>
                           <SelectItem value="Last Test" className="text-sm">Last Test</SelectItem>
                           <SelectItem value="Both" className="text-sm">Both</SelectItem>
@@ -260,7 +260,7 @@ export default function QuestionLibraryPage() {
                         : 'Enter your question here...'
                       }
                     />
-                    {errors.content && <p className="text-[10px] text-destructive font-bold mt-0.5">{errors.content.message}</p>}
+                    {errors.content && <p className="text-xs text-destructive font-bold mt-0.5">{errors.content.message}</p>}
                   </Field>
 
                   {/* Image URL — all types except Listening */}
@@ -268,10 +268,10 @@ export default function QuestionLibraryPage() {
                     <Field>
                       <FieldLabel className="text-xs">Visual Aid (Optional)</FieldLabel>
                       {imageUrl ? (
-                        <div className="relative w-full h-24 rounded-lg overflow-hidden border">
+                        <div className="relative w-full h-24  overflow-hidden border">
                           <Image src={imageUrl} alt="Preview" fill className="object-cover" />
                           <button type="button" onClick={() => setValue('imageUrl', '')}
-                            className="absolute top-1 right-1 bg-destructive text-white p-0.5 rounded-full shadow">
+                            className="absolute top-1 right-1 bg-destructive text-white p-0.5  shadow">
                             <X className="w-3 h-3" />
                           </button>
                         </div>
@@ -297,8 +297,8 @@ export default function QuestionLibraryPage() {
                       <FieldLabel className="text-xs">Match Pairs</FieldLabel>
                       <div className="space-y-1.5">
                         <div className="grid grid-cols-[1fr_1fr_20px] gap-1.5 px-0.5">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Column A</span>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Column B</span>
+                          <span className="text-xs font-bold   text-muted-foreground/60">Column A</span>
+                          <span className="text-xs font-bold   text-muted-foreground/60">Column B</span>
                           <span />
                         </div>
                         {matchPairs?.map((pair, i) => (
@@ -331,7 +331,7 @@ export default function QuestionLibraryPage() {
                         <div className="grid grid-cols-2 gap-2">
                           {['True', 'False'].map(opt => (
                             <button key={opt} type="button" onClick={() => setValue('correctAnswer', opt)}
-                              className={`h-8 rounded-lg border-2 text-xs font-bold transition-premium ${correctAnswer === opt ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/30'}`}>
+                              className={`h-8  border-2 text-xs font-bold transition-premium ${correctAnswer === opt ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:'}`}>
                               {opt}
                             </button>
                           ))}
@@ -344,12 +344,12 @@ export default function QuestionLibraryPage() {
                 </FieldGroup>
               </div>
 
-              <DialogFooter className="bg-muted/5 border-t border-primary/5 p-6 mt-0 flex flex-col sm:flex-row gap-3">
-                <Button type="button" variant="outline" onClick={handleClose} className="rounded-xl px-6 h-10">
-                  <span className="text-xs uppercase tracking-widest font-normal">Cancel</span>
+              <DialogFooter className="bg-muted/5 border-t  p-6 mt-0 flex flex-col sm:flex-row gap-3">
+                <Button type="button" variant="outline" onClick={handleClose} className="">
+                  <span className="text-xs   font-normal">Cancel</span>
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="rounded-xl px-6 h-10 shadow-premium">
-                  <span className="text-xs uppercase tracking-widest font-normal">
+                <Button type="submit" disabled={isSubmitting} className="">
+                  <span className="text-xs   font-normal">
                     {isSubmitting ? 'Adding...' : 'Add Block'}
                   </span>
                 </Button>
@@ -363,9 +363,9 @@ export default function QuestionLibraryPage() {
       <div className="grid gap-6 md:grid-cols-[1fr_200px]">
         <div className="space-y-4">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
-            <TabsList className="bg-card/40 backdrop-blur-md border border-primary/5 p-1 w-full justify-start overflow-x-auto no-scrollbar h-12 rounded-2xl">
+            <TabsList className="  border  p-1 w-full justify-start overflow-x-auto no-scrollbar h-12 ">
               {CATEGORIES?.map(cat => (
-                <TabsTrigger key={cat} value={cat} className="flex-1 md:flex-none h-10 px-6 text-xs uppercase tracking-widest font-normal rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm transition-premium">{cat}</TabsTrigger>
+                <TabsTrigger key={cat} value={cat} className="flex-1 md:flex-none h-10 px-6 text-xs   font-normal  data-[state=active]:bg-card data-[state=active]:shadow-sm transition-premium">{cat}</TabsTrigger>
               ))}
             </TabsList>
 
@@ -373,7 +373,7 @@ export default function QuestionLibraryPage() {
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40 transition-premium" />
                 <Input placeholder={`Search in ${activeTab}...`} value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-12 bg-card/40 backdrop-blur-md border-primary/5 rounded-2xl text-sm transition-premium focus:ring-1 focus:ring-primary/20" />
+                  onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-12     text-sm transition-premium focus:ring-1 focus:ring-primary/20" />
               </div>
 
               <motion.div 
@@ -383,9 +383,9 @@ export default function QuestionLibraryPage() {
                 animate="visible"
               >
                 {filteredQuestions.length === 0 ? (
-                  <Card className="border-dashed border-primary/10 py-16 bg-muted/5 rounded-[2rem]">
+                  <Card className="glass-1 border-dashed py-16 bg-muted/5">
                     <div className="flex flex-col items-center justify-center text-center">
-                      <div className="bg-primary/5 p-4 rounded-full mb-4">
+                      <div className="bg-primary/5 p-4  mb-4">
                         <LibraryIcon className="w-8 h-8 text-primary/30" />
                       </div>
                       <p className="font-sans text-lg font-normal">Empty Category</p>
@@ -395,29 +395,29 @@ export default function QuestionLibraryPage() {
                 ) : (
                   filteredQuestions?.map(q => (
                     <motion.div key={q.id} variants={STAGGER_ITEM}>
-                      <Card className="overflow-hidden border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl hover-lift transition-premium flex flex-col">
+                      <Card className="glass-1 overflow-hidden hover-lift transition-premium flex flex-col">
                         <div className="p-6">
                           <div className="flex justify-between items-start gap-6">
                             <div className="space-y-3 flex-1 min-w-0">
                             {/* Badges */}
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <Badge variant="outline" className={`text-[9px] px-2 h-5 font-normal uppercase tracking-widest border-none ${TYPE_BADGE_COLORS[q.type] || ''}`}>
+                              <Badge variant="outline" className={`text-xs px-2 h-5 font-normal   border-none ${TYPE_BADGE_COLORS[q.type] || ''}`}>
                                 {q.type}
                               </Badge>
-                              <Badge variant="secondary" className="text-[9px] px-2 h-5 font-normal uppercase tracking-widest bg-muted/30">
+                              <Badge variant="secondary" className="text-xs px-2 h-5 font-normal   bg-muted/30">
                                 {q.phase}
                               </Badge>
                               {q.passageText && (
-                                <Badge variant="outline" className="text-[9px] px-2 h-5 font-normal uppercase tracking-widest border-primary/10 text-primary/60 gap-1">
+                                <Badge variant="outline" className="text-xs px-2 h-5 font-normal    text-primary/60 gap-1">
                                   <BookOpen className="w-2.5 h-2.5" /> Passage
                                 </Badge>
                               )}
                               {q.audioUrl && (
-                                <Badge variant="outline" className="text-[9px] px-2 h-5 font-normal uppercase tracking-widest border-primary/10 text-primary/60 gap-1">
+                                <Badge variant="outline" className="text-xs px-2 h-5 font-normal    text-primary/60 gap-1">
                                   <Volume2 className="w-2.5 h-2.5" /> Audio
                                 </Badge>
                               )}
-                              <Badge variant={q.isApproved ? 'outline' : 'secondary'} className={`text-[9px] px-2 h-5 font-bold uppercase tracking-widest ${q.isApproved ? 'border-success/30 bg-success/5 text-success' : 'border-warning/30 bg-warning/5 text-warning'}`}>
+                              <Badge variant={q.isApproved ? 'outline' : 'secondary'} className={`text-xs px-2 h-5 font-bold   ${q.isApproved ? 'border-success/30 bg-success/5 text-success' : 'border-warning/30 bg-warning/5 text-warning'}`}>
                                 {q.isApproved ? 'Approved' : 'Pending Review'}
                               </Badge>
                             </div>
@@ -430,13 +430,13 @@ export default function QuestionLibraryPage() {
                               <div className="space-y-1">
                                 {(q.matchPairs as { left: string; right: string }[]).slice(0, 3).map((pair, i) => (
                                   <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-[10px]">{pair.left}</span>
+                                    <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-xs">{pair.left}</span>
                                     <span className="text-muted-foreground/30 font-bold">::</span>
-                                    <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-[10px]">{pair.right}</span>
+                                    <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-xs">{pair.right}</span>
                                   </div>
                                 ))}
                                 {(q.matchPairs as any[]).length > 3 && (
-                                  <p className="text-[10px] text-muted-foreground/50">+{(q.matchPairs as any[]).length - 3} more pairs</p>
+                                  <p className="text-xs text-muted-foreground/50">+{(q.matchPairs as any[]).length - 3} more pairs</p>
                                 )}
                               </div>
                             )}
@@ -445,7 +445,7 @@ export default function QuestionLibraryPage() {
                             {q.type === 'MCQ' && q.options && (
                               <div className="flex flex-wrap gap-1">
                                 {q.options?.map((opt, i) => (
-                                  <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${opt === q.correctAnswer ? 'bg-success/10 text-success ring-1 ring-success/20' : 'bg-muted text-muted-foreground'}`}>
+                                  <span key={i} className={`text-xs px-2 py-0.5  font-medium ${opt === q.correctAnswer ? 'bg-success/10 text-success ring-1 ring-success/20' : 'bg-muted text-muted-foreground'}`}>
                                     {opt}
                                   </span>
                                 ))}
@@ -454,7 +454,7 @@ export default function QuestionLibraryPage() {
 
                             {/* Image */}
                             {q.imageUrl && (
-                              <div className="relative w-full h-24 rounded-lg overflow-hidden border border-primary/5 mt-1">
+                              <div className="relative w-full h-24  overflow-hidden border  mt-1">
                                 <Image src={q.imageUrl} alt="Visual aid" fill className="object-cover" />
                               </div>
                             )}
@@ -466,18 +466,18 @@ export default function QuestionLibraryPage() {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="h-8 border-success/30 hover:bg-success/10 text-success rounded-xl transition-premium font-bold text-xs uppercase tracking-widest gap-2"
+                                className="border-success/30 hover:bg-success/10  transition-premium font-bold gap-2"
                                 onClick={() => { approveQuestion(q.id, true); toast.success('Question Approved') }}
                               >
                                 <Check className="w-3 h-3" /> Quick Approve
                               </Button>
                             )}
                             <div className="flex gap-1 items-center">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted rounded-xl transition-premium">
+                              <Button variant="ghost" size="icon" className="w-8 hover:bg-muted  transition-premium">
                                 <Edit className="w-4 h-4" />
                               </Button>
                               <Button variant="ghost" size="icon"
-                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl transition-premium"
+                                className="w-8 hover:bg-destructive/10 hover:  transition-premium"
                                 onClick={() => { deleteQuestion(q.id); toast.success('Question removed') }}>
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -496,23 +496,23 @@ export default function QuestionLibraryPage() {
 
         {/* Stats sidebar */}
         <div className="space-y-4">
-          <Card className="border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-2xl overflow-hidden">
-            <CardHeader className="p-6 border-b border-primary/5">
-              <CardTitle className="text-xs uppercase tracking-widest font-normal opacity-60">Block Registry Intelligence</CardTitle>
+          <Card className="glass-1 overflow-hidden">
+            <CardHeader className="p-6 border-b ">
+              <CardTitle className="opacity-60 text-xl font-serif">Block Registry Intelligence</CardTitle>
             </CardHeader>
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-end">
-                <span className="text-xs uppercase tracking-widest font-normal opacity-50">Total Blocks</span>
+                <span className="text-xs   font-normal opacity-50">Total Blocks</span>
                 <span className="text-3xl font-sans font-normal text-primary">{questions.length}</span>
               </div>
-              <div className="pt-4 border-t border-primary/5 space-y-2.5">
-                <p className="text-[8px] uppercase tracking-[0.2em] font-normal opacity-40">By Taxonomy</p>
+              <div className="pt-4 border-t  space-y-2.5">
+                <p className="text-xs   font-normal opacity-40">By Taxonomy</p>
                 {TYPE_OPTIONS?.map(t => {
                   const count = questions?.filter((q: Question) => q.type === t.value).length
                   return count > 0 ? (
                     <div key={t.value} className="flex justify-between items-center group">
                       <span className="text-xs text-muted-foreground font-normal transition-colors group-hover:text-foreground">{t.value}</span>
-                      <Badge variant="outline" className="h-4 px-1.5 text-[8px] border-primary/5 bg-primary/[0.02] font-normal">{count}</Badge>
+                      <Badge variant="outline" className="h-4 px-1.5 text-xs  bg-primary/[0.02] font-normal">{count}</Badge>
                     </div>
                   ) : null
                 })}

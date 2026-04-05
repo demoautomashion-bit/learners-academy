@@ -106,7 +106,7 @@ export default function SchedulePage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-normal text-foreground">
+          <h1 className="font-serif text-3xl text-foreground">
             Academic Schedule
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -115,14 +115,14 @@ export default function SchedulePage() {
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button className="h-12 px-8 shadow-lg shadow-primary/20 uppercase tracking-[0.15em] font-normal text-xs rounded-xl">
+            <Button className="shadow-lg shadow-primary/20 font-normal ">
               <Plus className="w-4 h-4 mr-2" />
               Add Schedule
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
+          <DialogContent className="max-w-xl   ">
             <DialogHeader>
-              <DialogTitle className="font-serif text-3xl tracking-tight font-normal">Schedule Registry</DialogTitle>
+              <DialogTitle className="font-serif text-3xl  font-normal">Schedule Registry</DialogTitle>
               <DialogDescription className="text-editorial-meta">
                 Assign an academic session to a standardized slot and room.
               </DialogDescription>
@@ -184,7 +184,7 @@ export default function SchedulePage() {
                 <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="text-muted-foreground hover:text-foreground">
                   Cancel
                 </Button>
-                <Button type="submit" className="px-8 font-normal uppercase tracking-wide">Publish Schedule</Button>
+                <Button type="submit" className="font-normal">Publish Schedule</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -205,10 +205,10 @@ export default function SchedulePage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredSchedules?.map((item) => (
-          <Card key={item.id} className="bg-card/40 backdrop-blur-md hover-lift border-primary/5 shadow-premium ring-1 ring-border group transition-premium">
+          <Card key={item.id} className="  hover-lift   ring-1 ring-border group transition-premium">
             <CardHeader className="pb-3 flex flex-row items-start justify-between">
               <div className="space-y-1">
-                <Badge variant="outline" className="text-[10px] tracking-widest uppercase font-normal text-primary border-primary/20 bg-primary/5">
+                <Badge variant="outline" className="text-xs   font-normal text-primary  bg-primary/5">
                   {item.slotId || 'S-TBC'}
                 </Badge>
                 <CardTitle className="text-xl font-serif text-foreground leading-tight">{item.classTitle}</CardTitle>
@@ -217,13 +217,13 @@ export default function SchedulePage() {
                 </CardDescription>
               </div>
               <div className="flex gap-1 opacity-10 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted group/edit" onClick={() => { setSelectedSchedule(item); setIsEditOpen(true); }}>
+                <Button variant="ghost" size="icon" className="w-8 hover:bg-muted group/edit" onClick={() => { setSelectedSchedule(item); setIsEditOpen(true); }}>
                   <Edit className="w-3.5 h-3.5" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="w-8 hover:bg-destructive/10 hover:"
                   onClick={() => removeSchedule(item.id)}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -250,7 +250,7 @@ export default function SchedulePage() {
                   </div>
                   <div className="flex gap-1">
                     {item.days?.map(day => (
-                      <Badge key={day} variant="secondary" className="px-1 text-[9px] uppercase font-normal">{day}</Badge>
+                      <Badge key={day} variant="secondary" className="px-1 text-xs  font-normal">{day}</Badge>
                     ))}
                   </div>
                 </div>
@@ -261,9 +261,9 @@ export default function SchedulePage() {
       </div>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-xl bg-card/90 backdrop-blur-xl border-primary/10">
+        <DialogContent className="max-w-xl   ">
           <DialogHeader>
-            <DialogTitle className="font-serif text-3xl tracking-tight font-normal">Edit Schedule Options</DialogTitle>
+            <DialogTitle className="font-serif text-3xl  font-normal">Edit Schedule Options</DialogTitle>
             <DialogDescription className="text-editorial-meta">
               Change the teacher, course title, or timing.
             </DialogDescription>
@@ -308,7 +308,7 @@ export default function SchedulePage() {
                 <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="text-muted-foreground hover:text-foreground">
                   Cancel
                 </Button>
-                <Button type="submit" className="px-8 font-normal uppercase tracking-wide">Commit Changes</Button>
+                <Button type="submit" className="font-normal">Commit Changes</Button>
               </DialogFooter>
             </form>
           )}

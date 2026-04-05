@@ -156,7 +156,7 @@ export default function TeacherLayout({
                             asChild 
                             isActive={isActive}
                             className={cn(
-                              "transition-all duration-300 h-10 px-4 rounded-xl font-normal",
+                              "transition-all duration-300 h-10 px-4  font-normal",
                               isActive 
                                 ? "bg-primary/10 text-primary font-bold shadow-sm" 
                                 : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
@@ -165,7 +165,7 @@ export default function TeacherLayout({
                           >
                             <Link href={item.href} className="flex items-center gap-3">
                               <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
-                              <span className="text-xs uppercase tracking-widest">{item.title}</span>
+                              <span className="text-xs  ">{item.title}</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -186,13 +186,13 @@ export default function TeacherLayout({
                              asChild
                              tooltip={item.title}
                              className={cn(
-                               "transition-all duration-300 h-10 px-4 rounded-xl",
+                               "transition-all duration-300 h-10 px-4 ",
                                isActive && !pathname.includes(item.href) ? "bg-primary/5 text-primary" : ""
                              )}
                           >
                             <Link href={item.href} className="flex items-center gap-3 w-full">
                               <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
-                              <span className="text-xs uppercase tracking-widest text-sidebar-foreground/80">{item.title}</span>
+                              <span className="text-xs   text-sidebar-foreground/80">{item.title}</span>
                               <ChevronDown className="ml-auto w-4 h-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180 opacity-40 shrink-0" />
                             </Link>
                           </SidebarMenuButton>
@@ -220,7 +220,7 @@ export default function TeacherLayout({
                                         asChild 
                                         isActive={isSubActive}
                                         className={cn(
-                                          "h-8 px-4 rounded-lg transition-all text-xs tracking-widest uppercase",
+                                          "h-8 px-4  transition-all text-xs  ",
                                           isSubActive 
                                             ? "text-primary bg-primary/5 font-bold" 
                                             : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 font-normal"
@@ -248,30 +248,30 @@ export default function TeacherLayout({
       </Sidebar>
 
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-primary/5 bg-card/40 backdrop-blur-xl px-8">
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b    px-8">
           <SidebarTrigger className="-ml-2" />
           <div className="flex-1" />
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-4 outline-none hover:opacity-80 transition-opacity">
-              <span className="hidden md:inline-block font-medium text-xs text-muted-foreground opacity-60 uppercase tracking-widest">
+              <span className="hidden md:inline-block font-medium text-xs text-muted-foreground opacity-60  ">
                 {user?.name}
               </span>
-              <Avatar className="h-8 w-8 border border-primary/10 shadow-sm">
+              <Avatar className="h-8 w-8 border  shadow-sm">
                 <AvatarImage src={user?.avatar} alt={user?.name} />
                 <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
                   {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-xl border-primary/5 shadow-premium">
-              <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
-                <Link href="/teacher/settings" className="flex items-center gap-2 w-full text-xs uppercase tracking-widest p-2">
+            <DropdownMenuContent align="end" className="w-48   ">
+              <DropdownMenuItem asChild className="cursor-pointer ">
+                <Link href="/teacher/settings" className="flex items-center gap-2 w-full text-xs   p-2">
                   <Settings className="w-4 h-4 text-muted-foreground" />
                   <span>Settings</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive rounded-lg text-xs uppercase tracking-widest p-2" 
+                className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive  text-xs   p-2" 
                 onSelect={() => logout()}
               >
                 <LogOut className="w-4 h-4 mr-2" />

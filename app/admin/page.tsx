@@ -115,7 +115,7 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Page Header */}
       <motion.div
         initial="hidden"
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
         className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="font-serif text-3xl tracking-normal text-foreground font-normal">
+          <h1 className="font-serif text-3xl text-foreground">
             Welcome, {user?.name?.split(' ')[0] || 'Admin'}
           </h1>
         </motion.div>
@@ -143,17 +143,17 @@ export default function AdminDashboard() {
             variants={STAGGER_ITEM}
           >
             <Link href={stat.href}>
-              <Card className="hover-lift cursor-pointer transition-premium border-primary/5 bg-card/40 backdrop-blur-md shadow-premium">
+              <Card className="glass-1 hover-lift cursor-pointer transition-premium">
                 <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4">
-                  <CardTitle className="text-editorial-label">
+                  <CardTitle className="text-editorial-label text-xl font-serif">
                     {stat.title}
                   </CardTitle>
                   <stat.icon className="h-4 w-4 text-muted-foreground opacity-50" />
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <div className="text-2xl font-serif tracking-tight font-normal">{stat.value}</div>
+                  <div className="text-2xl font-serif  font-normal">{stat.value}</div>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-normal">{stat.sub}</span>
+                    <span className="text-xs text-muted-foreground   font-normal">{stat.sub}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
         {/* Enrollment Trend Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-xl font-serif">
               <UserPlus className="w-5 h-5 text-primary" />
               Enrollment Trend
             </CardTitle>
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
         {/* Course Popularity Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-xl font-serif">
               <Award className="w-5 h-5 text-accent" />
               Class Popularity
             </CardTitle>
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
       {/* Recent Activity & Quick Actions */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent Students */}
-        <Card className="lg:col-span-2">
+        <Card className="glass-1 lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Students</CardTitle>
@@ -270,30 +270,30 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {students.slice(0, 5).map((student) => (
-                <div key={student.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/30 transition-premium group">
+                <div key={student.id} className="flex items-center justify-between p-3  hover:bg-muted/30 transition-premium group">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:scale-105 transition-transform">
-                      <span className="text-xs font-normal text-primary tracking-tighter">
+                    <div className="w-10 h-10  bg-primary/5 flex items-center justify-center border  group-hover:scale-105 transition-transform">
+                      <span className="text-xs font-normal text-primary ">
                         {student.name.split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>
                     <div>
                       <p className="font-serif text-base leading-tight font-normal">{student.name}</p>
-                      <p className="text-editorial-label text-[11px] lowercase opacity-70">{student.email}</p>
+                      <p className="text-editorial-label text-xs lowercase opacity-70">{student.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="hidden sm:flex flex-col items-end gap-1">
-                      <span className="text-editorial-label text-[9px]">Term Progress</span>
+                      <span className="text-editorial-label text-xs">Term Progress</span>
                       <div className="flex items-center gap-2">
                         <Progress value={student.progress} className="w-16 h-1" />
-                        <span className="text-[10px] font-normal">{student.progress}%</span>
+                        <span className="text-xs font-normal">{student.progress}%</span>
                       </div>
                     </div>
                     <Badge 
                       variant="outline"
                       className={cn(
-                        "text-[10px] uppercase tracking-widest font-normal px-2 py-0.5",
+                        "text-xs   font-normal px-2 py-0.5",
                         student.status === 'active' 
                           ? 'text-success border-success/20 bg-success/5' 
                           : 'text-muted-foreground border-border bg-muted/20'
@@ -315,19 +315,19 @@ export default function AdminDashboard() {
             <CardDescription>Common administrative tasks</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 py-4">
-            <Button className="w-full justify-start py-6 text-base" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="outline" asChild>
               <Link href="/admin/students?action=add">
                 <UserPlus className="w-5 h-5 mr-3 text-primary" />
                 Add New Student
               </Link>
             </Button>
-            <Button className="w-full justify-start py-6 text-base" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="outline" asChild>
               <Link href="/admin/teachers?action=add">
                 <Users className="w-5 h-5 mr-3 text-primary" />
                 Add New Teacher
               </Link>
             </Button>
-            <Button className="w-full justify-start py-6 text-base" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="outline" asChild>
               <Link href="/admin/classes?action=add">
                 <BookOpen className="w-5 h-5 mr-3 text-primary" />
                 Create Class
@@ -344,7 +344,7 @@ export default function AdminDashboard() {
             <CardTitle>Active Classes</CardTitle>
             <CardDescription>Overview of current educational cycles</CardDescription>
           </div>
-          <Button variant="ghost" size="sm" asChild className="text-primary hover:bg-primary/5">
+          <Button variant="ghost" size="sm" asChild className="hover:bg-primary/5">
             <Link href="/admin/classes" className="flex items-center">
               Manage Registry
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -356,10 +356,10 @@ export default function AdminDashboard() {
             {courses?.filter(c => c.status === 'active').slice(0, 6).map((course) => (
               <div 
                 key={course.id} 
-                className="group p-5 rounded-2xl border bg-card hover-lift transition-premium cursor-pointer"
+                className="group p-5  border bg-card hover-lift transition-premium cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <Badge variant="outline" className="text-[10px] uppercase tracking-widest font-normal border-primary/20 bg-primary/5 text-primary">
+                  <Badge variant="outline" className="text-xs   font-normal  bg-primary/5 text-primary">
                     {course.level}
                   </Badge>
                   <span className="text-xs text-muted-foreground">

@@ -121,7 +121,7 @@ export default function AssessmentLibraryPage() {
   if (!isInitialized) return <AssessmentSkeleton />
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-20">
+    <div className="space-y-6 max-w-7xl mx-auto pb-20">
       {/* Header */}
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between px-2">
         <div className="space-y-1">
@@ -132,14 +132,14 @@ export default function AssessmentLibraryPage() {
             className="mb-4 hover:bg-primary/5 text-primary p-0 h-auto font-normal opacity-60"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
-            <span className="text-[10px] uppercase tracking-widest">Back to Assessments</span>
+            <span className="text-xs  ">Back to Assessments</span>
           </Button>
           <div className="flex items-center gap-4">
-             <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+             <div className="p-3 bg-primary/10  border ">
                 <Library className="w-6 h-6 text-primary" />
              </div>
              <div>
-                <h1 className="text-4xl font-serif font-normal text-foreground leading-none">Assessment Design Library</h1>
+                <h1 className="font-serif text-foreground leading-none text-3xl font-serif">Assessment Design Library</h1>
                 <p className="mt-2 text-muted-foreground text-editorial-meta opacity-70">
                     Manage institutional question blocks for automated exam generation.
                 </p>
@@ -149,13 +149,13 @@ export default function AssessmentLibraryPage() {
 
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button className="h-14 px-8 rounded-2xl bg-primary text-white shadow-premium hover:shadow-massive hover-lift transition-premium">
+            <Button className=" bg-primary  hover: hover-lift transition-premium">
               <Plus className="w-5 h-5 mr-3" />
-              <span className="text-[10px] uppercase tracking-widest font-bold">Add Institutional Block</span>
+              <span className="text-xs   font-bold">Add Institutional Block</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
-            <DialogHeader className="bg-muted/5 border-b border-primary/5 pb-6">
+            <DialogHeader className="bg-muted/5 border-b  pb-6">
               <DialogTitle className="text-3xl font-serif font-normal">Create Design Block</DialogTitle>
               <DialogDescription className="text-editorial-meta text-xs">
                 Blocks are modular components used to build complex examination papers.
@@ -165,9 +165,9 @@ export default function AssessmentLibraryPage() {
               <div className="max-h-[min(650px,70vh)] overflow-y-auto px-1 space-y-6 premium-scrollbar">
                 <div className="grid grid-cols-2 gap-6">
                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest font-bold opacity-40">Pedagogical Category</label>
+                      <label className="text-xs   font-bold opacity-40">Pedagogical Category</label>
                       <Select defaultValue="Grammar" onValueChange={(v) => setValue('category', v as any)}>
-                         <SelectTrigger className="h-12 bg-muted/20 border-primary/5 rounded-xl">
+                         <SelectTrigger className="h-12 bg-muted/20  ">
                             <SelectValue placeholder="Select Category" />
                          </SelectTrigger>
                          <SelectContent>
@@ -181,9 +181,9 @@ export default function AssessmentLibraryPage() {
                       </Select>
                    </div>
                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest font-bold opacity-40">Institutional Block Type</label>
+                      <label className="text-xs   font-bold opacity-40">Institutional Block Type</label>
                       <Select defaultValue="MCQ" onValueChange={(v) => setValue('type', v as any)}>
-                         <SelectTrigger className="h-12 bg-muted/20 border-primary/5 rounded-xl">
+                         <SelectTrigger className="h-12 bg-muted/20  ">
                             <SelectValue placeholder="Select Type" />
                          </SelectTrigger>
                          <SelectContent>
@@ -200,29 +200,29 @@ export default function AssessmentLibraryPage() {
                 </div>
 
                 <div className="space-y-2">
-                   <label className="text-[10px] uppercase tracking-widest font-bold opacity-40">Block Content / Narrative</label>
+                   <label className="text-xs   font-bold opacity-40">Block Content / Narrative</label>
                    <Textarea 
                       {...register('content')}
                       placeholder="Input the core pedagogical content here..."
-                      className="min-h-[120px] bg-muted/20 border-primary/5 rounded-2xl p-4 text-sm resize-none focus:ring-1 focus:ring-primary/20"
+                      className="min-h-[120px] bg-muted/20   p-4 text-sm resize-none focus:ring-1 focus:ring-primary/20"
                    />
-                   {errors.content && <p className="text-[10px] text-destructive uppercase tracking-widest font-bold">{errors.content.message}</p>}
+                   {errors.content && <p className="text-xs text-destructive   font-bold">{errors.content.message}</p>}
                 </div>
 
                 {watchType === 'Reading' && (
                   <div className="space-y-2 pt-2">
-                    <label className="text-[10px] uppercase tracking-widest font-bold opacity-40">Reading Passage</label>
+                    <label className="text-xs   font-bold opacity-40">Reading Passage</label>
                     <Textarea 
                       {...register('passageText')}
                       placeholder="Input the analysis text..."
-                      className="min-h-[180px] bg-primary/5 border-primary/5 rounded-2xl p-4 text-sm italic"
+                      className="min-h-[180px] bg-primary/5   p-4 text-sm italic"
                     />
                   </div>
                 )}
 
                 {watchType === 'MCQ' && (
-                  <div className="space-y-4 pt-4 border-t border-primary/5">
-                    <label className="text-[10px] uppercase tracking-widest font-bold opacity-40">Distractor Options</label>
+                  <div className="space-y-4 pt-4 border-t ">
+                    <label className="text-xs   font-bold opacity-40">Distractor Options</label>
                     <div className="grid grid-cols-2 gap-4">
                        {[0, 1, 2, 3].map(i => (
                          <div key={i} className="relative">
@@ -233,7 +233,7 @@ export default function AssessmentLibraryPage() {
                                 opt[i] = e.target.value
                                 setValue('options', opt)
                               }}
-                              className="h-12 bg-muted/10 border-primary/5 rounded-xl"
+                              className="h-12 bg-muted/10  "
                             />
                          </div>
                        ))}
@@ -241,19 +241,19 @@ export default function AssessmentLibraryPage() {
                   </div>
                 )}
 
-                <div className="space-y-2 pt-4 border-t border-primary/5">
-                   <label className="text-[10px] uppercase tracking-widest font-bold opacity-40">Validated Key (Institutional Resolution)</label>
+                <div className="space-y-2 pt-4 border-t ">
+                   <label className="text-xs   font-bold opacity-40">Validated Key (Institutional Resolution)</label>
                    <Input 
                       {...register('correctAnswer')}
                       placeholder="The correct solution for auto-grading..."
-                      className="h-12 bg-success/5 border-success/10 rounded-xl font-medium"
+                      className="h-12 bg-success/5 border-success/10  font-medium"
                    />
                 </div>
 
-                <div className="space-y-2 pt-4 border-t border-primary/5">
-                   <label className="text-[10px] uppercase tracking-widest font-bold opacity-40">Curricular Phase</label>
+                <div className="space-y-2 pt-4 border-t ">
+                   <label className="text-xs   font-bold opacity-40">Curricular Phase</label>
                    <Select defaultValue="Both" onValueChange={(v) => setValue('phase', v as any)}>
-                      <SelectTrigger className="h-12 bg-muted/20 border-primary/5 rounded-xl">
+                      <SelectTrigger className="h-12 bg-muted/20  ">
                          <SelectValue placeholder="Target Phase" />
                       </SelectTrigger>
                       <SelectContent>
@@ -265,10 +265,10 @@ export default function AssessmentLibraryPage() {
                 </div>
               </div>
 
-              <DialogFooter className="bg-muted/5 border-t border-primary/5 pt-6 flex gap-3">
-                 <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="h-12 rounded-xl px-6 border-primary/10 text-[10px] uppercase tracking-widest font-bold">Abandon</Button>
-                 <Button type="submit" disabled={isSubmitting} className="h-12 rounded-xl px-10 bg-primary text-white shadow-premium">
-                    {isSubmitting ? "Persisting..." : <span className="text-[10px] uppercase tracking-widest font-bold">Publish to Library</span>}
+              <DialogFooter className="bg-muted/5 border-t  pt-6 flex gap-3">
+                 <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="h-12  px-6  text-xs   font-bold">Abandon</Button>
+                 <Button type="submit" disabled={isSubmitting} className=" bg-primary ">
+                    {isSubmitting ? "Persisting..." : <span className="text-xs   font-bold">Publish to Library</span>}
                  </Button>
               </DialogFooter>
             </form>
@@ -284,12 +284,12 @@ export default function AssessmentLibraryPage() {
               placeholder="Query institutional block content..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-14 pl-12 bg-card/40 backdrop-blur-md border-primary/5 rounded-[1.5rem] focus:ring-1 focus:ring-primary/20 transition-premium"
+              className="h-14 pl-12     focus:ring-1 focus:ring-primary/20 transition-premium"
             />
          </div>
          <div className="flex items-center gap-4">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-               <SelectTrigger className="w-[180px] h-14 bg-card/40 backdrop-blur-md border-primary/5 rounded-[1.5rem] text-[10px] uppercase tracking-widest font-bold">
+               <SelectTrigger className="w-[180px] h-14     text-xs   font-bold">
                   <SelectValue placeholder="All Design Nature" />
                </SelectTrigger>
                <SelectContent>
@@ -302,7 +302,7 @@ export default function AssessmentLibraryPage() {
                </SelectContent>
             </Select>
             <Select value={phaseFilter} onValueChange={setPhaseFilter}>
-               <SelectTrigger className="w-[180px] h-14 bg-card/40 backdrop-blur-md border-primary/5 rounded-[1.5rem] text-[10px] uppercase tracking-widest font-bold">
+               <SelectTrigger className="w-[180px] h-14     text-xs   font-bold">
                   <SelectValue placeholder="All Term Cycles" />
                </SelectTrigger>
                <SelectContent>
@@ -329,17 +329,17 @@ export default function AssessmentLibraryPage() {
               layout
               className="group"
             >
-              <Card className="h-full border-primary/5 bg-card/40 backdrop-blur-md shadow-premium rounded-[2.5rem] overflow-hidden flex flex-col hover-lift hover:shadow-massive transition-premium">
+              <Card className="glass-1 h-full overflow-hidden flex flex-col hover-lift hover: transition-premium">
                 <CardHeader className="p-8 pb-4 space-y-4">
                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-[9px] uppercase tracking-widest font-black border-primary/10 bg-primary/5 text-primary px-3 h-6">
+                      <Badge variant="outline" className="text-xs   font-black  bg-primary/5 text-primary px-3 h-6">
                         {q.type}
                       </Badge>
                       <div className="flex items-center gap-1">
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all"
+                          className="w-8  opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover: transition-all"
                           onClick={() => {
                             deleteQuestion(q.id)
                             toast.success("Institutional block removed")
@@ -349,7 +349,7 @@ export default function AssessmentLibraryPage() {
                         </Button>
                       </div>
                    </div>
-                   <div className="flex items-center gap-2 text-muted-foreground/60 text-[9px] uppercase tracking-widest font-bold">
+                   <div className="flex items-center gap-2 text-muted-foreground/60 text-xs   font-bold">
                       <Zap className="w-3 h-3 text-warning" />
                       <span>{q.category}</span>
                       <span className="opacity-20">•</span>
@@ -366,7 +366,7 @@ export default function AssessmentLibraryPage() {
                    {q.type === 'MCQ' && q.options && (
                       <div className="grid grid-cols-2 gap-3 pt-4">
                          {q.options?.filter(o => !!o).map((opt, i) => (
-                           <div key={i} className="p-3 rounded-2xl bg-muted/10 border border-primary/5 text-[10px] font-normal truncate">
+                           <div key={i} className="p-3  bg-muted/10 border  text-xs font-normal truncate">
                              <span className="opacity-30 mr-2">{String.fromCharCode(65 + i)}:</span>
                              {opt}
                            </div>
@@ -375,22 +375,22 @@ export default function AssessmentLibraryPage() {
                    )}
 
                    {q.passageText && (
-                      <div className="p-4 rounded-2xl bg-primary/5 border border-primary/5 text-[10px] font-normal italic line-clamp-2 opacity-60">
+                      <div className="p-4  bg-primary/5 border  text-xs font-normal italic line-clamp-2 opacity-60">
                          {q.passageText}
                       </div>
                    )}
 
-                   <div className="pt-6 border-t border-primary/5 flex items-center justify-between">
+                   <div className="pt-6 border-t  flex items-center justify-between">
                       <div className="space-y-0.5">
-                         <span className="text-[8px] uppercase tracking-widest font-bold text-muted-foreground opacity-40">System Resolution</span>
+                         <span className="text-xs   font-bold text-muted-foreground opacity-40">System Resolution</span>
                          <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                             <span className="text-xs font-normal text-success">{q.correctAnswer || 'Manual Logic'}</span>
                          </div>
                       </div>
-                      <Button variant="ghost" size="sm" className="h-10 rounded-xl px-4 group/btn hover:bg-primary/5 hover:text-primary transition-all">
+                      <Button variant="ghost" size="sm" className=" group/btn hover:bg-primary/5 hover: transition-all">
                          <Eye className="w-3.5 h-3.5 mr-2 opacity-40 group-hover/btn:opacity-100" />
-                         <span className="text-[9px] uppercase tracking-widest font-bold">View Block</span>
+                         <span className="text-xs   font-bold">View Block</span>
                       </Button>
                    </div>
                 </CardContent>
@@ -400,12 +400,12 @@ export default function AssessmentLibraryPage() {
         </AnimatePresence>
         {filteredQuestions.length === 0 && (
           <div className="col-span-full py-20 text-center space-y-6">
-             <div className="bg-primary/5 p-8 rounded-full w-fit mx-auto border border-primary/5">
+             <div className="bg-primary/5 p-8  w-fit mx-auto border ">
                 <BrainCircuit className="w-12 h-12 text-primary opacity-20" />
              </div>
              <div className="space-y-1">
                 <p className="text-2xl font-serif text-muted-foreground opacity-40">No institutional blocks found.</p>
-                <p className="text-[10px] uppercase tracking-widest font-normal text-muted-foreground opacity-30">Modify search query or nature categorization.</p>
+                <p className="text-xs   font-normal text-muted-foreground opacity-30">Modify search query or nature categorization.</p>
              </div>
           </div>
         )}
