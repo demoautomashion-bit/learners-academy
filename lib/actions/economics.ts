@@ -2,8 +2,9 @@
 
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import { ActionResult } from '../types'
 
-export async function getEconomicStats() {
+export async function getEconomicStats(): Promise<ActionResult> {
   try {
     const expenditures = await db.expenditure.findMany({ orderBy: { date: 'desc' } })
     const feePayments = await db.feePayment.findMany({ include: { student: true, course: true } })
@@ -13,8 +14,8 @@ export async function getEconomicStats() {
     const projectedRevenue = feePayments.reduce((acc, pay) => acc + pay.totalAmount, 0)
     
     // Automation: Calculate Payroll Liabilities
-    const teachers = await db.teacher.findMany({ where: { status: 'active' } })
-    const totalPayroll = teachers.reduce((acc, t) => acc + t.salary, 0)
+    const activeTeachers = await db.teacher.findMany({ where: { status: 'active' } })
+    const totalPayroll = activeTeachers.reduce((acc, t: any) => acc + (t.salary || 0), 0)
     
     // The "Bottom Line"
     const netMargin = actualRevenue - totalExpenditure
@@ -67,7 +68,7 @@ export async function getEconomicStats() {
           date: pay.paymentDate || pay.updatedAt,
           person: pay.student.name
         }))
-    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    ].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
     // Growth Metrics: New enrollments last 30 days
     const thirtyDaysAgo = new Date()
@@ -81,25 +82,28 @@ export async function getEconomicStats() {
     const newEnrollments = students.length
 
     return {
-      totalExpenditure,
-      actualRevenue,
-      projectedRevenue,
-      totalPayroll,
-      netMargin,
-      newEnrollments,
-      categoryBreakdown,
-      historicalData,
-      expenditures,
-      feePayments,
-      transactions
+      success: true,
+      data: {
+        totalExpenditure,
+        actualRevenue,
+        projectedRevenue,
+        totalPayroll,
+        netMargin,
+        newEnrollments,
+        categoryBreakdown,
+        historicalData,
+        expenditures,
+        feePayments,
+        transactions
+      }
     }
   } catch (error) {
     console.error('DATABASE_ERROR [getEconomicStats]:', error)
-    throw new Error('Failed to fetch institutional economics')
+    return { success: false, error: 'Institutional fiscal transparency layer failed' }
   }
 }
 
-export async function addExpenditure(data: { amount: number, category: string, description: string, date?: Date }) {
+export async function addExpenditure(data: { amount: number, category: string, description: string, date?: Date }): Promise<ActionResult> {
   try {
     const result = await db.expenditure.create({
       data: {
@@ -110,9 +114,9 @@ export async function addExpenditure(data: { amount: number, category: string, d
       }
     })
     revalidatePath('/')
-    return result
+    return { success: true, data: result }
   } catch (error) {
     console.error('DATABASE_ERROR [addExpenditure]:', error)
-    throw new Error('Failed to record expenditure')
+    return { success: false, error: 'Fiscal record creation failed' }
   }
 }

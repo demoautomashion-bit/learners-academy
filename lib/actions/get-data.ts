@@ -1,8 +1,15 @@
 'use server'
 
 import db from '@/lib/db'
+import { ActionResult } from '../types'
 
-export async function getInitialData() {
+/**
+ * Institutional Data Synchronization Engine
+ * Fetches core registry data with error isolation and role-based filtering.
+ * 
+ * TODO: Implement pagination markers for >1000 records
+ */
+export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'): Promise<ActionResult> {
   const fetchEntity = async (name: string, query: any) => {
     try {
       return await query
@@ -13,6 +20,11 @@ export async function getInitialData() {
   }
 
   try {
+    // Audit: Role-based filtering for performance
+    const studentFilter = role === 'teacher' && userId 
+      ? { enrolledCourses: { hasSome: await db.course.findMany({ where: { teacherId: userId }, select: { id: true } }).then(courses => courses.map(c => c.id)) } }
+      : {}
+
     const [
       teachers,
       students,
@@ -23,8 +35,9 @@ export async function getInitialData() {
       assessments,
       assignments
     ] = await Promise.all([
+      // FUTURE: Add .take(100) for pagination
       fetchEntity('teachers', db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })),
-      fetchEntity('students', db.student.findMany({ orderBy: { enrolledAt: 'desc' } })),
+      fetchEntity('students', db.student.findMany({ where: studentFilter, orderBy: { enrolledAt: 'desc' } })),
       fetchEntity('courses', db.course.findMany({ orderBy: { startDate: 'desc' } })),
       fetchEntity('submissions', db.submission.findMany({ orderBy: { submittedAt: 'desc' } })),
       fetchEntity('schedules', db.schedule.findMany({ orderBy: { classTitle: 'asc' } })),

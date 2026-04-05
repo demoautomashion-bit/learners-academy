@@ -47,7 +47,8 @@ import { cn } from '@/lib/utils'
 const assessmentSchema = z.object({
   title: z.string().min(5, 'Institutional title must be formal and descriptive'),
   phase: z.enum(['First Test', 'Last Test']),
-  classLevel: z.string().min(1, 'Please select a target academic level'),
+  courseId: z.string().min(1, 'Please select a target academic course'), // UUID based
+  classLevel: z.string().optional(), // Legacy display name
   nature: z.enum(['MCQ', 'Subjective', 'Mixed', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening']),
   totalMarks: z.coerce.number().optional(),
   markAllocation: z.object({
@@ -144,11 +145,14 @@ export default function AssessmentGeneratorPage() {
       return
     }
 
+    const selectedCourse = courses.find(c => c.id === data.courseId)
+
     const newAssessment: AssessmentTemplate = {
       id: `test-${Date.now()}`,
       title: data.title,
       phase: data.phase,
-      classLevels: [data.classLevel],
+      courseIds: [data.courseId], // ID-based linking
+      classLevels: [selectedCourse?.title || 'Unknown'], // Fallback for display
       nature: data.nature,
       totalMarks: totalCalculatedMarks > 0 ? totalCalculatedMarks : (data.totalMarks || 100),
       markAllocation: data.markAllocation,
@@ -248,17 +252,18 @@ export default function AssessmentGeneratorPage() {
                                </Select>
                             </div>
                             <div className="space-y-2">
-                               <label className="text-xs   font-normal opacity-40">Target Academic Level</label>
-                               <Select onValueChange={(val) => setValue('classLevel', val)}>
+                               <label className="text-xs   font-normal opacity-40">Target Academic Course</label>
+                               <Select onValueChange={(val) => setValue('courseId', val)}>
                                   <SelectTrigger className="h-12 bg-muted/5   px-6 text-xs   font-normal">
-                                     <SelectValue placeholder="Select Class Level" />
+                                     <SelectValue placeholder="Select Course" />
                                   </SelectTrigger>
                                   <SelectContent className="">
                                      {myClasses?.map(c => (
-                                        <SelectItem key={c.id} value={c.title} className="text-xs  ">{c.title}</SelectItem>
+                                        <SelectItem key={c.id} value={c.id} className="text-xs  ">{c.title}</SelectItem>
                                      ))}
                                   </SelectContent>
-                               </Select>
+                                </Select>
+                                {errors.courseId && <p className="text-xs text-destructive font-normal mt-1">{errors.courseId.message}</p>}
                             </div>
                          </div>
 

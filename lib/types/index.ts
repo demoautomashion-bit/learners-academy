@@ -139,11 +139,18 @@ export interface Question {
   isApproved: boolean
 }
 
+export interface ActionResult<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+}
+
 export interface AssessmentTemplate {
   id: string
   title: string
   phase: 'First Test' | 'Last Test'
-  classLevels: string[]
+  classLevels: string[] // Keep for legacy/UI display
+  courseIds?: string[]  // New ID-based linking
   nature: 'MCQ' | 'Subjective' | 'Mixed' | 'True/False' | 'Fill in the Blanks' | 'Writing' | 'Matching' | 'Reading' | 'Listening'
   totalMarks: number
   markAllocation?: Record<string, number>

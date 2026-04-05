@@ -19,6 +19,8 @@ import { getSchedules, addSchedule as dbAddSchedule, updateSchedule as dbUpdateS
 import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount } from '@/lib/actions/fees'
 import { getEconomicStats, addExpenditure as dbAddExpenditure } from '@/lib/actions/economics'
 import { getInitialData } from '@/lib/actions/get-data'
+import { useAuth } from '@/contexts/auth-context'
+import { calculateStudentOverallProgress } from '@/lib/utils/student-progress'
 
 interface DataContextType {
   teachers: Teacher[]
@@ -77,7 +79,14 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
-function computeStats(teachers: Teacher[], students: Student[], courses: Course[], econ: any | null): DashboardStats {
+function computeStats(
+  teachers: Teacher[], 
+  students: Student[], 
+  courses: Course[], 
+  submissions: Submission[],
+  assessments: AssessmentTemplate[],
+  econ: any | null
+): DashboardStats {
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
@@ -86,15 +95,20 @@ function computeStats(teachers: Teacher[], students: Student[], courses: Course[
     return d >= thirtyDaysAgo
   }).length
 
+  // Use centralized utility for completion rate
+  const totalStudents = students.length
+  const totalCompletionProgress = students.reduce((acc, s) => acc + calculateStudentOverallProgress(s, submissions, assessments), 0)
+  const averageCompletion = totalStudents > 0 ? Math.round(totalCompletionProgress / totalStudents) : 0
+
   return {
-    totalStudents: students.length,
+    totalStudents,
     totalTeachers: teachers.length,
     totalCourses: courses.length,
     activeEnrollments: students.filter(s => s.status === 'active').length,
     revenue: econ?.actualRevenue || 0,
-    revenueChange: (econ?.actualRevenue / (econ?.totalExpenditure || 1)) * 100,
+    revenueChange: econ?.revenueChange || 0,
     newEnrollments: econ?.newEnrollments || newEnrollments,
-    completionRate: 0,
+    completionRate: averageCompletion,
     netMargin: econ?.netMargin || 0
   }
 }
@@ -116,6 +130,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [hasError, setHasError] = useState(false)
   const [isPending, startTransition] = useTransition()
 
+  const { user } = useAuth()
   const refresh = useCallback(async () => {
     // Basic guard: Prevent duplicate concurrent refreshes
     if (isLoading && isInitialized) return;
@@ -124,11 +139,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const normalizeDate = (d: any) => (d instanceof Date ? d.toISOString() : d)
 
     try {
-      console.log("[DataProvider] Syncing with institutional registry...")
+      console.log(`[DataProvider] Syncing with institutional registry for user: ${user?.id || 'Public'}...`)
       setHasError(false)
       
       const [initRes, econData] = await Promise.all([
-        getInitialData(),
+        getInitialData(user?.id, user?.role as any),
         getEconomicStats().catch(err => {
           console.error("FAILED_TO_FETCH_SECONDARY_ECONOMICS:", err)
           return null
@@ -189,7 +204,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     refresh()
   }, [refresh])
 
-  const stats = computeStats(teachers, students, courses, economics)
+  const stats = computeStats(teachers, students, courses, submissions, assessments, economics)
   const [isRefreshing, startTransitionAction] = useTransition()
 
   const executeAction = useCallback(async (
@@ -222,57 +237,109 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // --- Teachers ---
   const addTeacher = useCallback(async (teacher: Teacher) => {
-    await executeAction(() => dbAddTeacher(teacher), "Teacher added to registry", "Failed to add teacher")
-  }, [executeAction])
+    if (!user?.id) return
+    await executeAction(async () => {
+      const res = await dbAddTeacher(teacher)
+      if (res.success && res.data) {
+        setTeachers(prev => [res.data as Teacher, ...prev])
+      }
+      return res
+    }, "Teacher added to registry", "Failed to add teacher")
+  }, [executeAction, user])
 
   const updateTeacherStatus = useCallback(async (id: string, status: 'active' | 'inactive') => {
+    if (!user?.id) return
     setTeachers(prev => prev.map(t => t.id === id ? { ...t, status } : t))
     await executeAction(() => dbUpdateTeacherStatus(id, status))
-  }, [executeAction])
+  }, [executeAction, user])
 
   const removeTeacher = useCallback(async (id: string) => {
-    await executeAction(() => dbRemoveTeacher(id), "Teacher removed", "Failed to remove teacher")
-  }, [executeAction])
+    if (!user?.id) return
+    await executeAction(async () => {
+      const res = await dbRemoveTeacher(id)
+      if (res.success) {
+        setTeachers(prev => prev.filter(t => t.id !== id))
+      }
+      return res
+    }, "Teacher removed", "Failed to remove teacher")
+  }, [executeAction, user])
 
   // --- Students ---
   const enrollStudent = useCallback(async (student: any) => {
-    await executeAction(() => dbEnrollStudent(student), "Student enrolled successfully", "Enrollment failed")
-  }, [executeAction])
+    if (!user?.id) return
+    await executeAction(async () => {
+      const res = await dbEnrollStudent(student)
+      if (res.success && res.data) {
+        setStudents(prev => [res.data as Student, ...prev])
+      }
+      return res
+    }, "Student enrolled successfully", "Enrollment failed")
+  }, [executeAction, user])
 
   const removeStudent = useCallback(async (id: string) => {
-    await executeAction(() => dbRemoveStudent(id), "Student registry purged")
-  }, [executeAction])
+    if (!user?.id) return
+    await executeAction(async () => {
+      const res = await dbRemoveStudent(id)
+      if (res.success) {
+        setStudents(prev => prev.filter(s => s.id !== id))
+      }
+      return res
+    }, "Student registry purged")
+  }, [executeAction, user])
 
   const updateStudentStatus = useCallback(async (id: string, status: Student['status']) => {
+    if (!user?.id) return
     setStudents(prev => prev.map(s => s.id === id ? { ...s, status } : s))
     await executeAction(() => dbUpdateStudentStatus(id, status))
-  }, [executeAction])
+  }, [executeAction, user])
 
   const updateStudent = useCallback(async (id: string, data: Partial<Student>) => {
+    if (!user?.id) return
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, ...data } : s))
     await executeAction(() => dbUpdateStudent(id, data), "Academic profile updated")
-  }, [executeAction])
+  }, [executeAction, user])
 
   const updateStudentSuccessMetrics = useCallback(async (id: string, progress: number, grade?: string) => {
-    await executeAction(() => dbUpdateStudentSuccessMetrics(id, progress, grade))
-  }, [executeAction])
+    if (!user?.id) return
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, progress, grade } : s))
+    await executeAction(() => dbUpdateStudentSuccessMetrics(id, progress, user.id, grade))
+  }, [executeAction, user])
 
 
   // --- Courses ---
   const addCourse = useCallback(async (course: Course) => {
-    await executeAction(() => dbAddCourse(course), "Course created")
-  }, [executeAction])
+    if (!user?.id) return
+    await executeAction(async () => {
+      const res = await dbAddCourse(course)
+      if (res.success && res.data) {
+        setCourses(prev => [res.data as Course, ...prev])
+      }
+      return res
+    }, "Course created")
+  }, [executeAction, user])
 
   const removeCourse = useCallback(async (id: string) => {
-    await executeAction(() => dbRemoveCourse(id), "Course deleted")
-  }, [executeAction])
+    if (!user?.id) return
+    await executeAction(async () => {
+      const res = await dbRemoveCourse(id)
+      if (res.success) {
+        setCourses(prev => prev.filter(c => c.id !== id))
+      }
+      return res
+    }, "Course deleted")
+  }, [executeAction, user])
 
   const updateCourseStatus = useCallback(async (id: string, status: Course['status']) => {
+    if (!user?.id) return
+    setCourses(prev => prev.map(c => c.id === id ? { ...c, status } : c))
     await executeAction(() => dbUpdateCourseStatus(id, status))
-  }, [executeAction])
+  }, [executeAction, user])
 
   const updateCourse = useCallback(async (id: string, data: Partial<Course>) => {
+    if (!user?.id) return
+    setCourses(prev => prev.map(c => c.id === id ? { ...c, ...data } : c))
     await executeAction(() => dbUpdateCourse(id, data), "Course curriculum updated")
-  }, [executeAction])
+  }, [executeAction, user])
 
   const updateCourseProgress = useCallback((courseId: string, progress: number) => {
     setCourses(prev => prev.map(c => c.id === courseId ? { ...c, enrolled: progress } : c))
@@ -280,16 +347,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // --- Questions ---
   const addQuestion = useCallback(async (question: Question) => {
-    await executeAction(() => dbAddQuestion(question), "Block added to library")
-  }, [executeAction])
+    if (!user?.id) return
+    await executeAction(async () => {
+      const res = await dbAddQuestion(question)
+      if (res.success && res.data) {
+        setQuestions(prev => [res.data as Question, ...prev])
+      }
+      return res
+    }, "Block added to library")
+  }, [executeAction, user])
 
   const deleteQuestion = useCallback(async (id: string) => {
-    await executeAction(() => dbDeleteQuestion(id), "Block removed")
-  }, [executeAction])
+    if (!user?.id) return
+    await executeAction(async () => {
+      const res = await dbDeleteQuestion(id)
+      if (res.success) {
+        setQuestions(prev => prev.filter(q => q.id !== id))
+      }
+      return res
+    }, "Block removed")
+  }, [executeAction, user])
 
   const updateQuestion = useCallback(async (id: string, data: Partial<Question>) => {
+    if (!user?.id) return
+    setQuestions(prev => prev.map(q => q.id === id ? { ...q, ...data } : q))
     await executeAction(() => dbUpdateQuestion(id, data), "Block updated")
-  }, [executeAction])
+  }, [executeAction, user])
 
   // --- Assessments & Tests ---
   const publishAssessment = useCallback(async (assessment: AssessmentTemplate) => {

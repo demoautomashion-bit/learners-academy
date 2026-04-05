@@ -3,98 +3,125 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { getSeedFromId, createPRNG, shuffleArray } from '@/lib/utils/random'
-import type { AssessmentTemplate, Question } from '@/lib/types'
+import type { AssessmentTemplate, Question, ActionResult } from '@/lib/types'
 
-export async function getAssessments() {
-  return db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })
-}
-
-export async function publishAssessment(assessment: Omit<AssessmentTemplate, 'id' | 'createdAt'>) {
-  // Check for uniqueness if an access code is provided
-  if (assessment.accessCode) {
-    const existing = await db.assessmentTemplate.findFirst({
-      where: { 
-        accessCode: assessment.accessCode,
-        status: 'active'
-      }
-    })
-    if (existing) {
-      throw new Error(`Token "${assessment.accessCode}" is already in use by another active assessment. Please choose a different one.`)
-    }
+export async function getAssessments(): Promise<ActionResult<AssessmentTemplate[]>> {
+  try {
+    const data = await db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })
+    return { success: true, data }
+  } catch (error) {
+    console.error('DATABASE_ERROR [getAssessments]:', error)
+    return { success: false, error: 'Failed to fetch assessment registry' }
   }
-
-  const accessCode = assessment.accessCode || Math.random().toString(36).substring(2, 8).toUpperCase()
-  const result = await db.assessmentTemplate.create({ 
-    data: { 
-      id: `test-${Date.now()}`,
-      title: assessment.title,
-      phase: assessment.phase,
-      classLevels: assessment.classLevels,
-      nature: assessment.nature,
-      totalMarks: assessment.totalMarks,
-      markAllocation: assessment.markAllocation as any,
-      durationMinutes: assessment.durationMinutes,
-      questionCount: assessment.questionCount || 0,
-      status: assessment.status || 'active',
-      accessCode: accessCode,
-      submittedByTeacherId: assessment.submittedByTeacherId,
-      submittedByTeacherName: assessment.submittedByTeacherName,
-      createdAt: new Date()
-    } 
-  })
-  revalidatePath('/')
-  return result
 }
 
-export async function updateAssessmentReviewAction(id: string, status: AssessmentTemplate['status'], feedback?: string) {
-  const result = await db.assessmentTemplate.update({
-    where: { id },
-    data: { 
-      status,
-      adminFeedback: feedback 
-    }
-  })
-  revalidatePath('/')
-  return result
-}
-
-export async function updateAssessmentStatus(id: string, status: AssessmentTemplate['status']) {
-  if (status === 'active') {
-    const assessment = await db.assessmentTemplate.findUnique({ where: { id } })
-    if (assessment?.accessCode) {
+export async function publishAssessment(assessment: Omit<AssessmentTemplate, 'id' | 'createdAt'>): Promise<ActionResult<AssessmentTemplate>> {
+  try {
+    // Check for uniqueness if an access code is provided
+    if (assessment.accessCode) {
       const existing = await db.assessmentTemplate.findFirst({
         where: { 
           accessCode: assessment.accessCode,
-          status: 'active',
-          id: { not: id }
+          status: 'active'
         }
       })
       if (existing) {
-        throw new Error(`Token "${assessment.accessCode}" is already in use by another active assessment. Please archive it first.`)
+        return { success: false, error: `Token "${assessment.accessCode}" is already in use by another active assessment.` }
       }
     }
-  }
 
-  const result = await db.assessmentTemplate.update({
-    where: { id },
-    data: { status }
-  })
-  revalidatePath('/')
-  return result
+    const accessCode = assessment.accessCode || Math.random().toString(36).substring(2, 8).toUpperCase()
+    const result = await db.assessmentTemplate.create({ 
+      data: { 
+        id: `test-${Date.now()}`,
+        title: assessment.title,
+        phase: assessment.phase,
+        classLevels: assessment.classLevels,
+        courseIds: assessment.courseIds || [], // Task 1: ID-based linking
+        nature: assessment.nature,
+        totalMarks: assessment.totalMarks,
+        markAllocation: assessment.markAllocation as any,
+        durationMinutes: assessment.durationMinutes,
+        questionCount: assessment.questionCount || 0,
+        status: assessment.status || 'active',
+        accessCode: accessCode,
+        submittedByTeacherId: assessment.submittedByTeacherId,
+        submittedByTeacherName: assessment.submittedByTeacherName,
+        createdAt: new Date()
+      } 
+    })
+    revalidatePath('/')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [publishAssessment]:', error)
+    return { success: false, error: 'Registry entry failed' }
+  }
 }
 
-export async function removeAssessment(id: string) {
-  const result = await db.assessmentTemplate.delete({ where: { id } })
-  revalidatePath('/')
-  return result
+export async function updateAssessmentReviewAction(id: string, status: AssessmentTemplate['status'], feedback?: string): Promise<ActionResult<AssessmentTemplate>> {
+  try {
+    const result = await db.assessmentTemplate.update({
+      where: { id },
+      data: { 
+        status,
+        adminFeedback: feedback 
+      }
+    })
+    revalidatePath('/')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [updateAssessmentReviewAction]:', error)
+    return { success: false, error: 'Review action failed' }
+  }
+}
+
+export async function updateAssessmentStatus(id: string, status: AssessmentTemplate['status']): Promise<ActionResult<AssessmentTemplate>> {
+  try {
+    if (status === 'active') {
+      const assessment = await db.assessmentTemplate.findUnique({ where: { id } })
+      if (assessment?.accessCode) {
+        const existing = await db.assessmentTemplate.findFirst({
+          where: { 
+            accessCode: assessment.accessCode,
+            status: 'active',
+            id: { not: id }
+          }
+        })
+        if (existing) {
+          return { success: false, error: `Token "${assessment.accessCode}" is already in use.` }
+        }
+      }
+    }
+
+    const result = await db.assessmentTemplate.update({
+      where: { id },
+      data: { status }
+    })
+    revalidatePath('/')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [updateAssessmentStatus]:', error)
+    return { success: false, error: 'Status update failed' }
+  }
+}
+
+export async function removeAssessment(id: string): Promise<ActionResult> {
+  try {
+    const result = await db.assessmentTemplate.delete({ where: { id } })
+    revalidatePath('/')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [removeAssessment]:', error)
+    return { success: false, error: 'Deletion failed' }
+  }
 }
 
 export async function validateAccessToken(token: string, studentId: string, className: string) {
   try {
+    // Task 1: Robust linking logic
     const assessment = await db.assessmentTemplate.findFirst({
       where: { 
         accessCode: token,
-        classLevels: { has: className },
         status: 'active' 
       }
     })
@@ -102,7 +129,7 @@ export async function validateAccessToken(token: string, studentId: string, clas
     if (!assessment) {
       return { 
         success: false, 
-        error: 'Invalid or Inactive Token for this class. Please wait for your instructor to open the assessment.' 
+        error: 'Invalid or Inactive Token. Please wait for your instructor to open the assessment.' 
       }
     }
 
@@ -120,6 +147,18 @@ export async function validateAccessToken(token: string, studentId: string, clas
       }
     }
 
+    // Task 1: Verify enrollment via ID or legacy Name matching
+    const isEnrolled = (assessment.courseIds && assessment.courseIds.length > 0)
+      ? assessment.courseIds.some(cid => student.enrolledCourses.includes(cid))
+      : assessment.classLevels.includes(className) // Fallback
+
+    if (!isEnrolled) {
+      return {
+        success: false,
+        error: `Dossier Error: Student profile "${studentId}" is not authorized for this specific academic block.`
+      }
+    }
+
     return { 
       success: true, 
       data: { assessment, student }
@@ -130,26 +169,18 @@ export async function validateAccessToken(token: string, studentId: string, clas
   }
 }
 
-/**
- * PRODUCTION-GRADE DETERMINISTIC RANDOMIZATION (Step 6 of Audit Fix)
- * Moves logic to server to ensure cross-device consistency and prevent tampering.
- */
 export async function generateRandomizedQuestions(studentId: string, assessmentId: string) {
   try {
-    // Hard Validation (Step 3 & 6 of Audit Fix)
     if (!studentId || studentId === 'undefined' || studentId === 'null') {
-      console.error('[Assessment Engine] FATAL: Invalid identity passed to randomizer', { studentId, assessmentId })
       throw new Error('Identity Verification Failed: Question sequence cannot be generated without a valid institutional record.')
     }
 
-    // 1. Fetch Template
     const assessment = await db.assessmentTemplate.findUnique({
       where: { id: assessmentId }
     })
     
     if (!assessment) throw new Error('Assessment registry entry not found')
 
-    // 2. Fetch Question Pool
     const pool = await db.question.findMany({
       where: {
         isApproved: true,
@@ -157,27 +188,18 @@ export async function generateRandomizedQuestions(studentId: string, assessmentI
           { phase: assessment.phase },
           { phase: 'Both' }
         ],
-        // If nature is Mixed we take all, otherwise filter by type
         ...(assessment.nature !== 'Mixed' ? { type: assessment.nature } : {})
       }
     })
 
     if (pool.length === 0) throw new Error('No approved institutional blocks found for this assessment criteria')
 
-    // 3. Stable Seed Construction
     const rawSeed = `${studentId}::${assessmentId}`
     const seed = getSeedFromId(rawSeed)
     const prng = createPRNG(seed)
 
-    // 4. Robust Shuffle
     const shuffled = shuffleArray(pool as unknown as Question[], prng)
-
-    // 5. Select target count
     const selected = shuffled.slice(0, assessment.questionCount || 10)
-
-    // Debug Logging (Temporary - Step 7)
-    console.log(`[Assessment Engine] SEED_AUDIT | Student: ${studentId} | Test: ${assessmentId} | Seed: ${seed}`)
-    console.log(`[Assessment Engine] SEQ_AUDIT  | ${selected.slice(0,3).map(q => q.id).join(' -> ')}`)
 
     return {
       success: true,

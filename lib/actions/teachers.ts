@@ -2,18 +2,20 @@
 
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
-import type { Teacher } from '@/lib/types'
+import type { Teacher, ActionResult } from '@/lib/types'
 
-export async function getTeachers() {
+export async function getTeachers(): Promise<ActionResult<Teacher[]>> {
   try {
-    return await db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })
+    const data = await db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })
+    return { success: true, data }
   } catch (error) {
     console.error('DATABASE_ERROR [getTeachers]:', error)
-    throw new Error('Database connection failed. Please check server logs.')
+    return { success: false, error: 'Database connection failed' }
   }
 }
 
-export async function addTeacher(teacher: Omit<Teacher, 'coursesCount' | 'studentsCount'>) {
+export async function addTeacher(teacher: Omit<Teacher, 'coursesCount' | 'studentsCount'>): Promise<ActionResult<Teacher>> {
+  try {
     const newTeacher = await db.teacher.create({
       data: {
         ...teacher,
@@ -21,35 +23,59 @@ export async function addTeacher(teacher: Omit<Teacher, 'coursesCount' | 'studen
       } as any
     })
     revalidatePath('/')
-    return newTeacher
+    return { success: true, data: newTeacher }
+  } catch (error) {
+    console.error('DATABASE_ERROR [addTeacher]:', error)
+    return { success: false, error: 'Failed to add teacher to registry' }
+  }
 }
 
-export async function removeTeacher(id: string) {
+export async function removeTeacher(id: string): Promise<ActionResult> {
+  try {
     const result = await db.teacher.delete({ where: { id } })
     revalidatePath('/')
-    return result
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [removeTeacher]:', error)
+    return { success: false, error: 'Failed to remove teacher record' }
+  }
 }
 
-export async function updateTeacherStatus(id: string, status: string) {
+export async function updateTeacherStatus(id: string, status: string): Promise<ActionResult<Teacher>> {
+  try {
     const result = await db.teacher.update({ where: { id }, data: { status } })
     revalidatePath('/')
-    return result
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [updateTeacherStatus]:', error)
+    return { success: false, error: 'Failed to update teacher status' }
+  }
 }
 
-export async function updateTeacherReviewFlag(id: string, flag: boolean) {
-  const result = await db.teacher.update({ 
-    where: { id }, 
-    data: { requiresReview: flag } 
-  })
-  revalidatePath('/')
-  return result
+export async function updateTeacherReviewFlag(id: string, flag: boolean): Promise<ActionResult<Teacher>> {
+  try {
+    const result = await db.teacher.update({ 
+      where: { id }, 
+      data: { requiresReview: flag } 
+    })
+    revalidatePath('/')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [updateTeacherReviewFlag]:', error)
+    return { success: false, error: 'Failed to update review status' }
+  }
 }
 
-export async function updateTeacher(id: string, data: Partial<Teacher>) {
-  const result = await db.teacher.update({ 
-    where: { id }, 
-    data: data as any 
-  })
-  revalidatePath('/')
-  return result
+export async function updateTeacher(id: string, data: Partial<Teacher>): Promise<ActionResult<Teacher>> {
+  try {
+    const result = await db.teacher.update({ 
+      where: { id }, 
+      data: data as any 
+    })
+    revalidatePath('/')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [updateTeacher]:', error)
+    return { success: false, error: 'Failed to update institutional record' }
+  }
 }
