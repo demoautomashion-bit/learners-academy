@@ -121,7 +121,7 @@ export default function TestReviewsPage() {
         className="flex flex-col gap-1"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Test Review Queue
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -132,23 +132,23 @@ export default function TestReviewsPage() {
 
       {/* Stats Row */}
       <motion.div
-        className="grid gap-4 md:grid-cols-3"
+        className="grid gap-4 md:grid-cols-3 items-stretch"
         initial="hidden"
         animate="visible"
         variants={STAGGER_CONTAINER}
       >
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium border-warning/10">
+          <Card className="glass-1 hover-lift transition-premium border-warning/10 rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="pb-1 pt-4 px-4">
-              <CardDescription className="text-editorial-label flex items-center gap-2">
+              <CardDescription className="text-editorial-label flex items-center gap-2 text-sm">
                 <Clock className="w-3.5 h-3.5 text-warning" />
                 Pending Review
               </CardDescription>
-              <CardTitle className="font-serif text-warning text-xl font-serif">
+              <CardTitle className="font-serif text-warning text-xl font-serif font-medium">
                 {pendingAssessments.length}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
+            <CardContent className="px-4 pb-4 flex-1">
               <span className="text-xs text-muted-foreground  ">
                 Awaiting your decision
               </span>
@@ -157,17 +157,17 @@ export default function TestReviewsPage() {
         </motion.div>
 
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium border-success/10">
+          <Card className="glass-1 hover-lift transition-premium border-success/10 rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="pb-1 pt-4 px-4">
-              <CardDescription className="text-editorial-label flex items-center gap-2">
+              <CardDescription className="text-editorial-label flex items-center gap-2 text-sm">
                 <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                 Approved
               </CardDescription>
-              <CardTitle className="font-serif text-success text-xl font-serif">
+              <CardTitle className="font-serif text-success text-xl font-serif font-medium">
                 {approvedCount}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
+            <CardContent className="px-4 pb-4 flex-1">
               <span className="text-xs text-muted-foreground  ">
                 Live this term
               </span>
@@ -176,17 +176,17 @@ export default function TestReviewsPage() {
         </motion.div>
 
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium border-destructive/10">
+          <Card className="glass-1 hover-lift transition-premium border-destructive/10 rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="pb-1 pt-4 px-4">
-              <CardDescription className="text-editorial-label flex items-center gap-2">
+              <CardDescription className="text-editorial-label flex items-center gap-2 text-sm">
                 <AlertCircle className="w-3.5 h-3.5 text-destructive" />
                 Sent for Revision
               </CardDescription>
-              <CardTitle className="font-serif text-destructive text-xl font-serif">
+              <CardTitle className="font-serif text-destructive text-xl font-serif font-medium">
                 {rejectedCount}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
+            <CardContent className="px-4 pb-4 flex-1">
               <span className="text-xs text-muted-foreground  ">
                 Awaiting teacher correction
               </span>
@@ -206,13 +206,13 @@ export default function TestReviewsPage() {
             <ShieldCheck className="w-10 h-10 text-success/40" />
           </div>
           <div>
-            <h2 className="font-serif text-2xl text-foreground">Queue is clear</h2>
+            <h2 className="font-serif text-2xl text-foreground font-medium">Queue is clear</h2>
             <p className="text-muted-foreground mt-1">All submitted papers have been reviewed.</p>
           </div>
         </motion.div>
       ) : (
         <motion.div
-          className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 items-stretch"
           initial="hidden"
           animate="visible"
           variants={STAGGER_CONTAINER}
@@ -226,7 +226,7 @@ export default function TestReviewsPage() {
                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="glass-1 hover-lift overflow-hidden border-none shadow-sm ring-1 ring-warning/20 h-full flex flex-col bg-card">
+                <Card className="glass-1 hover-lift overflow-hidden border-none ring-1 ring-warning/20 h-full flex flex-col rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px]">
                   {/* Amber top accent */}
                   <div className="h-0.5 w-full bg-gradient-to-r from-warning/40 via-warning to-warning/40" />
 
@@ -234,11 +234,11 @@ export default function TestReviewsPage() {
                     <div className="space-y-1.5">
                       <Badge
                         variant="outline"
-                        className="text-xs   font-bold  bg-primary/5 text-primary"
+                        className="text-xs     bg-primary/5 text-primary"
                       >
                         {assessment.phase}
                       </Badge>
-                      <CardTitle className="font-serif text-xl leading-tight">
+                      <CardTitle className="font-serif text-xl leading-tight font-medium">
                         {assessment.title}
                       </CardTitle>
                       <p className="text-xs text-muted-foreground   font-normal opacity-70">
@@ -247,13 +247,13 @@ export default function TestReviewsPage() {
                     </div>
                     <div className="flex items-center gap-1.5 px-2.5 py-1  bg-warning/10 border border-warning/20 shrink-0 ml-2">
                       <Clock className="w-3 h-3 text-warning" />
-                      <span className="text-xs   font-bold text-warning">Pending</span>
+                      <span className="text-xs    text-warning">Pending</span>
                     </div>
                   </CardHeader>
 
                   <CardContent className="space-y-5 flex-1 flex flex-col">
                     {/* Meta grid */}
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs   font-bold text-muted-foreground/80">
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs text-muted-foreground/80 items-stretch">
                       <div className="flex items-center gap-2">
                         <Users className="w-3.5 h-3.5 text-primary/60" />
                         <span className="truncate">{assessment.classLevels[0]}</span>
@@ -276,8 +276,8 @@ export default function TestReviewsPage() {
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between p-3  bg-muted/30 border ">
                         <div className="flex flex-col">
-                          <span className="text-xs   font-bold text-muted-foreground">Access Token</span>
-                          <span className="font-sans text-sm font-bold  text-primary">{assessment.accessCode}</span>
+                          <span className="text-xs    text-muted-foreground">Access Token</span>
+                          <span className="font-sans text-sm   text-primary">{assessment.accessCode}</span>
                         </div>
                         <span className="text-xs   text-muted-foreground">Locked</span>
                       </div>
@@ -285,10 +285,10 @@ export default function TestReviewsPage() {
                       {/* Pool Strength Indicator */}
                       <div className="flex items-center justify-between p-3  bg-primary/[0.02] border ">
                         <div className="flex flex-col">
-                          <span className="text-xs   font-bold text-primary/60">Library Strength</span>
+                          <span className="text-xs    text-primary/60">Library Strength</span>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <LibraryIcon className="w-3 h-3 text-primary" />
-                            <span className="font-sans text-sm font-bold text-foreground">
+                            <span className="font-sans text-sm  text-foreground">
                               {getPoolStrength(assessment).count} Approved <span className="font-normal text-muted-foreground">Questions</span>
                             </span>
                           </div>
@@ -296,7 +296,7 @@ export default function TestReviewsPage() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="group hover:bg-primary/5 font-bold gap-1.5 "
+                          className="group hover:bg-primary/5  gap-1.5 "
                           onClick={() => setInspectPoolId(assessment.id)}
                         >
                           Inspect Pool <Eye className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
@@ -379,14 +379,14 @@ export default function TestReviewsPage() {
               <DialogHeader className="p-8 pb-6 border-b ">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Badge variant="outline" className="text-xs   font-bold text-primary mb-2 ">{selectedAssessmentForPool.phase}</Badge>
+                    <Badge variant="outline" className="text-xs    text-primary mb-2 ">{selectedAssessmentForPool.phase}</Badge>
                     <DialogTitle className="font-serif text-3xl font-normal">Content Selection Pool</DialogTitle>
                     <DialogDescription className="text-editorial-meta mt-1">
                       Showing all approved questions eligible for the randomized <b>{selectedAssessmentForPool.questionCount}</b> question slots.
                     </DialogDescription>
                   </div>
                   <div className="hidden sm:flex flex-col items-end">
-                    <span className="text-xs   font-bold text-muted-foreground">Pool Strength</span>
+                    <span className="text-xs    text-muted-foreground">Pool Strength</span>
                     <span className="text-3xl font-serif text-primary">{poolQuestions.length}</span>
                   </div>
                 </div>
@@ -404,10 +404,10 @@ export default function TestReviewsPage() {
                       poolQuestions?.map((q, i) => (
                         <div key={q.id} className="group relative bg-muted/20 hover:bg-muted/40 border   p-4 transition-premium">
                            <div className="flex items-start gap-4">
-                             <span className="flex-shrink-0 w-6 h-6  bg-background border flex items-center justify-center text-xs font-bold text-muted-foreground/40">{i+1}</span>
+                             <span className="flex-shrink-0 w-6 h-6  bg-background border flex items-center justify-center text-xs  text-muted-foreground/40">{i+1}</span>
                              <div className="space-y-2 flex-1">
                                <div className="flex items-center gap-2">
-                                 <Badge variant="secondary" className="text-xs px-1.5 h-4 font-bold   bg-primary/10 text-primary border-none">{q.type}</Badge>
+                                 <Badge variant="secondary" className="text-xs px-1.5 h-4    bg-primary/10 text-primary border-none">{q.type}</Badge>
                                  <Badge variant="outline" className="text-xs px-1.5 h-4 font-normal   border-muted-foreground/20 text-muted-foreground">{q.category}</Badge>
                                </div>
                                <p className="text-sm font-normal leading-relaxed text-foreground/80">{q.content}</p>
@@ -432,7 +432,7 @@ export default function TestReviewsPage() {
               <div className="p-8 pt-6 border-t  flex items-center justify-between">
                 <div className="flex items-center gap-2 text-warning">
                   <ShieldCheck className="w-4 h-4" />
-                  <span className="text-xs   font-bold">Encrypted Audit Trail</span>
+                  <span className="text-xs   ">Encrypted Audit Trail</span>
                 </div>
                 <Button variant="outline" className=" font-normal" onClick={() => setInspectPoolId(null)}>
                   Close Audit

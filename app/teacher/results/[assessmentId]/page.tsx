@@ -60,7 +60,7 @@ export default function AssessmentWorkspacePage() {
   if (!assessment) return (
     <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
       <AlertCircle className="w-12 h-12 text-destructive opacity-30" />
-      <h2 className="text-2xl font-serif">Assessment Registry Not Found</h2>
+      <h2 className="text-2xl font-serif font-medium">Assessment Registry Not Found</h2>
       <Button variant="ghost" onClick={() => router.back()}>
         <ChevronLeft className="w-4 h-4 mr-2" />
         Back to Results
@@ -97,7 +97,7 @@ export default function AssessmentWorkspacePage() {
           </Button>
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-foreground font-serif text-3xl font-serif">
+              <h1 className="text-foreground font-serif text-3xl font-serif font-medium">
                 {assessment.title}
               </h1>
               <Badge variant="outline" className="text-xs   font-normal h-6  text-primary/80 bg-primary/5 px-3">
@@ -128,7 +128,7 @@ export default function AssessmentWorkspacePage() {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-12 items-start mt-8">
+      <div className="grid gap-8 lg:grid-cols-12 items-start mt-8 items-stretch">
         {/* Left Column: List */}
         <div className="lg:col-span-8 space-y-6">
           <div className="flex items-center justify-between gap-4">
@@ -147,8 +147,8 @@ export default function AssessmentWorkspacePage() {
              </Button>
           </div>
 
-          <Card className="glass-1 overflow-hidden">
-             <CardContent className="p-6">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+             <CardContent className="p-6 flex-1">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/10 border-b  h-16">
@@ -164,7 +164,7 @@ export default function AssessmentWorkspacePage() {
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
                                             <Avatar className="h-11 w-11 shadow-sm border-2 border-background ring-2 ring-primary/5">
-                                                <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+                                                <AvatarFallback className="bg-primary/5 text-primary text-xs ">
                                                     {s.studentName.split(' ').map((n: string) => n[0]).join('')}
                                                 </AvatarFallback>
                                             </Avatar>
@@ -217,12 +217,12 @@ export default function AssessmentWorkspacePage() {
 
         {/* Right Column: Context/Stats */}
         <div className="lg:col-span-4 space-y-6">
-            <Card className="glass-1 overflow-hidden">
+            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="bg-primary/5 border-b  py-6">
-                    <CardTitle className="font-serif text-xl">Assessment Schema</CardTitle>
+                    <CardTitle className="font-serif text-xl font-medium">Assessment Schema</CardTitle>
                     <CardDescription className="text-xs text-muted-foreground font-normal">Core parameters for this examination block.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="p-6 space-y-6 flex-1">
                     <div className="space-y-4">
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground font-normal">Token Registry</span>
@@ -240,19 +240,19 @@ export default function AssessmentWorkspacePage() {
                 </CardContent>
             </Card>
 
-            <Card className="glass-1 bg-primary/5 overflow-hidden p-8">
+            <Card className="glass-1 bg-primary/5 overflow-hidden p-8 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <div className="space-y-6">
                     <div className="flex items-center gap-3">
                         <Award className="w-6 h-6 text-primary opacity-60" />
-                        <h4 className="font-serif text-lg">Performance Insights</h4>
+                        <h4 className="font-serif text-lg font-medium">Performance Insights</h4>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed font-normal">
-                        This batch is performing <span className="text-primary font-bold">{avgPercent}%</span> effectively against the {assessment.phase} benchmarks.
+                        This batch is performing <span className="text-primary ">{avgPercent}%</span> effectively against the {assessment.phase} benchmarks.
                     </p>
                     <div className="pt-4 border-t ">
                          <div className="flex items-center justify-between mb-2">
-                             <span className="text-xs  font-bold text-primary/40 ">Audit Progress</span>
-                             <span className="text-xs font-bold text-primary">{assessmentSubmissions.length > 0 ? Math.round((completedCount / assessmentSubmissions.length) * 100) : 0}%</span>
+                             <span className="text-xs   text-primary/40 ">Audit Progress</span>
+                             <span className="text-xs  text-primary">{assessmentSubmissions.length > 0 ? Math.round((completedCount / assessmentSubmissions.length) * 100) : 0}%</span>
                          </div>
                          <div className="h-2 bg-background/50  overflow-hidden border ">
                              <motion.div 
@@ -280,21 +280,21 @@ export default function AssessmentWorkspacePage() {
             </Badge>
           </div>
 
-          <div className="flex-1 overflow-hidden grid md:grid-cols-2">
+          <div className="flex-1 overflow-hidden grid md:grid-cols-2 items-stretch">
             {/* Left Hand: Student Responses */}
             <div className="p-8 overflow-y-auto space-y-6 bg-background border-r  premium-scrollbar">
-               <h4 className="text-xs   font-black opacity-30 sticky top-0 bg-background py-2">Candidate responses</h4>
+               <h4 className="text-xs opacity-30 sticky top-0 bg-background py-2 font-medium">Candidate responses</h4>
                {selectedSubmission?.randomizedQuestions?.map((q: any, i: number) => (
                     <div key={q.id} className="space-y-4 pb-8 border-b  last:border-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-primary  ">Block {i+1} • {q.category}</span>
+                        <span className="text-xs  text-primary  ">Block {i+1} • {q.category}</span>
                         {q.correctAnswer && (
                           <span className="text-xs text-success/60 font-normal   italic">Reference: {q.correctAnswer}</span>
                         )}
                       </div>
                       <p className="text-base font-sans font-normal text-foreground/80 leading-relaxed bg-muted/5 p-4  border ">{q.content}</p>
                       <div className="p-5  bg-primary/5 border-l-4  text-sm font-normal">
-                        <label className="text-xs  font-bold text-primary/40 block mb-2">Student Submission</label>
+                        <label className="text-xs   text-primary/40 block mb-2">Student Submission</label>
                         {selectedSubmission?.answers?.[q.id] || <span className="italic opacity-30">No response captured.</span>}
                       </div>
                     </div>
@@ -303,7 +303,7 @@ export default function AssessmentWorkspacePage() {
                 <div className="p-6 bg-warning/5  border border-warning/20">
                     <div className="flex items-center gap-2 mb-3">
                         <AlertCircle className="w-4 h-4 text-warning" />
-                        <span className="text-xs font-bold text-warning  ">AI Audit Delta</span>
+                        <span className="text-xs  text-warning  ">AI Audit Delta</span>
                     </div>
                     <p className="text-sm font-normal italic text-muted-foreground leading-relaxed">
                         "{selectedSubmission?.aiJustification || 'No specific AI analysis data available.'}"
@@ -315,7 +315,7 @@ export default function AssessmentWorkspacePage() {
             <div className="p-10 bg-muted/5 flex flex-col justify-between overflow-y-auto">
                <div className="space-y-6">
                   <div className="space-y-4">
-                     <h4 className="text-xs   font-black opacity-30">Final evaluation</h4>
+                     <h4 className="text-xs opacity-30 font-medium">Final evaluation</h4>
                      <label className="text-xs font-normal text-muted-foreground">Absolute Marks (0 - {assessment.totalMarks})</label>
                      <div className="flex items-center gap-4">
                         <Input 

@@ -98,7 +98,7 @@ export default function ResultsPage() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="text-3xl font-serif text-foreground">
+          <h1 className="text-3xl font-serif text-foreground font-medium">
             Academic Results
           </h1>
           <p className="text-muted-foreground mt-1 text-sm opacity-70">
@@ -114,42 +114,42 @@ export default function ResultsPage() {
       </motion.div>
 
       <motion.div 
-        className="grid gap-6 md:grid-cols-4"
+        className="grid gap-6 md:grid-cols-4 items-stretch"
         variants={STAGGER_CONTAINER}
         initial="hidden"
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium">
+          <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="p-6 pb-2">
-              <CardDescription className="flex items-center gap-2 text-xs   font-normal opacity-60">
+              <CardDescription className="flex items-center gap-2 text-xs font-normal opacity-60">
                 <TrendingUp className="w-3 h-3" /> Academy Average
               </CardDescription>
-              <CardTitle className="font-sans text-xl font-serif">{totalAvg > 0 ? `${totalAvg}%` : '--'}</CardTitle>
+              <CardTitle className="font-sans text-xl font-serif font-medium">{totalAvg > 0 ? `${totalAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium">
+          <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="p-6 pb-2">
-              <CardDescription className="text-xs   font-normal opacity-60">Pending Audits</CardDescription>
-              <CardTitle className="font-sans text-warning text-xl font-serif">{pendingCount > 0 ? pendingCount : '--'}</CardTitle>
+              <CardDescription className="text-xs font-normal opacity-60">Pending Audits</CardDescription>
+              <CardTitle className="font-sans text-warning text-xl font-serif font-medium">{pendingCount > 0 ? pendingCount : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium">
+          <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="p-6 pb-2">
-              <CardDescription className="text-xs   font-normal opacity-60">Mid-Term Avg</CardDescription>
-              <CardTitle className="font-sans text-xl font-serif">{firstTestAvg > 0 ? `${firstTestAvg}%` : '--'}</CardTitle>
+              <CardDescription className="text-xs font-normal opacity-60">Mid-Term Avg</CardDescription>
+              <CardTitle className="font-sans text-xl font-serif font-medium">{firstTestAvg > 0 ? `${firstTestAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium">
+          <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="p-6 pb-2">
-              <CardDescription className="text-xs   font-normal opacity-60">Final-Term Avg</CardDescription>
-              <CardTitle className="font-sans text-xl font-serif">{lastTestAvg > 0 ? `${lastTestAvg}%` : '--'}</CardTitle>
+              <CardDescription className="text-xs font-normal opacity-60">Final-Term Avg</CardDescription>
+              <CardTitle className="font-sans text-xl font-serif font-medium">{lastTestAvg > 0 ? `${lastTestAvg}%` : '--'}</CardTitle>
             </CardHeader>
           </Card>
         </motion.div>
@@ -192,8 +192,8 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      <Card className="glass-1 overflow-hidden">
-        <CardContent className="p-6">
+      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+        <CardContent className="p-6 flex-1">
           <div className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -238,7 +238,7 @@ export default function ResultsPage() {
                            <div className="space-y-1.5">
                                 <div className="flex items-center justify-between min-w-[120px]">
                                     <span className="text-xs   font-normal text-muted-foreground opacity-50">Audited</span>
-                                    <span className="text-xs font-bold text-foreground">{total - pending} / {total}</span>
+                                    <span className="text-xs  text-foreground">{total - pending} / {total}</span>
                                 </div>
                                 <div className="h-1 w-full bg-muted/20  overflow-hidden">
                                      <div 

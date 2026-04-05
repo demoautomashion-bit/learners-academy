@@ -158,7 +158,7 @@ export default function TeacherLayout({
                             className={cn(
                               "transition-all duration-300 h-10 px-4  font-normal",
                               isActive 
-                                ? "bg-primary/10 text-primary font-bold shadow-sm" 
+                                ? "bg-primary/10 text-primary  shadow-sm" 
                                 : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
                             )}
                             tooltip={item.title}
@@ -203,11 +203,15 @@ export default function TeacherLayout({
                             animate="visible"
                             variants={{
                               visible: { 
-                                height: "auto", 
                                 opacity: 1, 
-                                transition: { height: { duration: 0.3 }, opacity: { duration: 0.2, delay: 0.1 } } 
+                                y: 0,
+                                transition: { duration: 0.2, ease: "easeOut" } 
                               },
-                              hidden: { height: 0, opacity: 0 }
+                              hidden: { 
+                                opacity: 0, 
+                                y: -10,
+                                transition: { duration: 0.2, ease: "easeOut" }
+                              }
                             }}
                             className="overflow-hidden"
                           >
@@ -222,7 +226,7 @@ export default function TeacherLayout({
                                         className={cn(
                                           "h-8 px-4  transition-all text-xs  ",
                                           isSubActive 
-                                            ? "text-primary bg-primary/5 font-bold" 
+                                            ? "text-primary bg-primary/5 " 
                                             : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 font-normal"
                                         )}
                                       >
@@ -258,7 +262,7 @@ export default function TeacherLayout({
               </span>
               <Avatar className="h-8 w-8 border  shadow-sm">
                 <AvatarImage src={user?.avatar} alt={user?.name} />
-                <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+                <AvatarFallback className="bg-primary/5 text-primary text-xs ">
                   {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
                 </AvatarFallback>
               </Avatar>

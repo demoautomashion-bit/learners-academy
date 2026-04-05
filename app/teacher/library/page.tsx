@@ -149,7 +149,7 @@ export default function QuestionLibraryPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-serif text-foreground">Assessment Library</h1>
+          <h1 className="text-3xl font-serif text-foreground font-medium">Assessment Library</h1>
           <p className="text-muted-foreground mt-1 text-sm opacity-70">
             Curate your institutional question bank across {CATEGORIES.length} academic categories.
           </p>
@@ -175,7 +175,7 @@ export default function QuestionLibraryPage() {
               <div className="p-6 max-h-[min(500px,50vh)] overflow-y-auto space-y-4 premium-scrollbar">
                 <FieldGroup className="space-y-4">
                   {/* Category + Phase row */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 items-stretch">
                     <Field>
                       <FieldLabel className="text-xs   opacity-60">Category</FieldLabel>
                       <Select value={watch('category')} onValueChange={(v) => setValue('category', v)}>
@@ -260,7 +260,7 @@ export default function QuestionLibraryPage() {
                         : 'Enter your question here...'
                       }
                     />
-                    {errors.content && <p className="text-xs text-destructive font-bold mt-0.5">{errors.content.message}</p>}
+                    {errors.content && <p className="text-xs text-destructive  mt-0.5">{errors.content.message}</p>}
                   </Field>
 
                   {/* Image URL — all types except Listening */}
@@ -296,13 +296,13 @@ export default function QuestionLibraryPage() {
                     <Field>
                       <FieldLabel className="text-xs">Match Pairs</FieldLabel>
                       <div className="space-y-1.5">
-                        <div className="grid grid-cols-[1fr_1fr_20px] gap-1.5 px-0.5">
-                          <span className="text-xs font-bold   text-muted-foreground/60">Column A</span>
-                          <span className="text-xs font-bold   text-muted-foreground/60">Column B</span>
+                        <div className="grid grid-cols-[1fr_1fr_20px] gap-1.5 px-0.5 items-stretch">
+                          <span className="text-xs    text-muted-foreground/60">Column A</span>
+                          <span className="text-xs    text-muted-foreground/60">Column B</span>
                           <span />
                         </div>
                         {matchPairs?.map((pair, i) => (
-                          <div key={i} className="grid grid-cols-[1fr_1fr_20px] gap-1.5 items-center">
+                          <div key={i} className="grid grid-cols-[1fr_1fr_20px] gap-1.5 items-center items-stretch">
                             <Input value={pair.left} onChange={e => updatePair(i, 'left', e.target.value)}
                               className="h-7 text-xs" placeholder={`Term ${i + 1}`} />
                             <Input value={pair.right} onChange={e => updatePair(i, 'right', e.target.value)}
@@ -328,10 +328,10 @@ export default function QuestionLibraryPage() {
                     <Field>
                       <FieldLabel className="text-xs">Correct Answer</FieldLabel>
                       {selectedType === 'True/False' ? (
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-2 items-stretch">
                           {['True', 'False'].map(opt => (
                             <button key={opt} type="button" onClick={() => setValue('correctAnswer', opt)}
-                              className={`h-8  border-2 text-xs font-bold transition-premium ${correctAnswer === opt ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:'}`}>
+                              className={`h-8  border-2 text-xs  transition-premium ${correctAnswer === opt ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:'}`}>
                               {opt}
                             </button>
                           ))}
@@ -360,7 +360,7 @@ export default function QuestionLibraryPage() {
       </div>
 
       {/* Library Grid */}
-      <div className="grid gap-6 md:grid-cols-[1fr_200px]">
+      <div className="grid gap-6 md:grid-cols-[1fr_200px] items-stretch">
         <div className="space-y-4">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
             <TabsList className="  border  p-1 w-full justify-start overflow-x-auto no-scrollbar h-12 ">
@@ -383,7 +383,7 @@ export default function QuestionLibraryPage() {
                 animate="visible"
               >
                 {filteredQuestions.length === 0 ? (
-                  <Card className="glass-1 border-dashed py-16 bg-muted/5">
+                  <Card className="glass-1 border-dashed py-16 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                     <div className="flex flex-col items-center justify-center text-center">
                       <div className="bg-primary/5 p-4  mb-4">
                         <LibraryIcon className="w-8 h-8 text-primary/30" />
@@ -395,7 +395,7 @@ export default function QuestionLibraryPage() {
                 ) : (
                   filteredQuestions?.map(q => (
                     <motion.div key={q.id} variants={STAGGER_ITEM}>
-                      <Card className="glass-1 overflow-hidden hover-lift transition-premium flex flex-col">
+                      <Card className="glass-1 overflow-hidden hover-lift transition-premium flex flex-col rounded-2xl shadow-premium hover:translate-y-[-2px] h-full">
                         <div className="p-6">
                           <div className="flex justify-between items-start gap-6">
                             <div className="space-y-3 flex-1 min-w-0">
@@ -417,7 +417,7 @@ export default function QuestionLibraryPage() {
                                   <Volume2 className="w-2.5 h-2.5" /> Audio
                                 </Badge>
                               )}
-                              <Badge variant={q.isApproved ? 'outline' : 'secondary'} className={`text-xs px-2 h-5 font-bold   ${q.isApproved ? 'border-success/30 bg-success/5 text-success' : 'border-warning/30 bg-warning/5 text-warning'}`}>
+                              <Badge variant={q.isApproved ? 'outline' : 'secondary'} className={`text-xs px-2 h-5    ${q.isApproved ? 'border-success/30 bg-success/5 text-success' : 'border-warning/30 bg-warning/5 text-warning'}`}>
                                 {q.isApproved ? 'Approved' : 'Pending Review'}
                               </Badge>
                             </div>
@@ -431,7 +431,7 @@ export default function QuestionLibraryPage() {
                                 {(q.matchPairs as { left: string; right: string }[]).slice(0, 3).map((pair, i) => (
                                   <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-xs">{pair.left}</span>
-                                    <span className="text-muted-foreground/30 font-bold">::</span>
+                                    <span className="text-muted-foreground/30 ">::</span>
                                     <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-xs">{pair.right}</span>
                                   </div>
                                 ))}
@@ -466,7 +466,7 @@ export default function QuestionLibraryPage() {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="border-success/30 hover:bg-success/10  transition-premium font-bold gap-2"
+                                className="border-success/30 hover:bg-success/10  transition-premium  gap-2"
                                 onClick={() => { approveQuestion(q.id, true); toast.success('Question Approved') }}
                               >
                                 <Check className="w-3 h-3" /> Quick Approve
@@ -496,9 +496,9 @@ export default function QuestionLibraryPage() {
 
         {/* Stats sidebar */}
         <div className="space-y-4">
-          <Card className="glass-1 overflow-hidden">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="p-6 border-b ">
-              <CardTitle className="opacity-60 text-xl font-serif">Block Registry Intelligence</CardTitle>
+              <CardTitle className="opacity-60 text-xl font-serif font-medium">Block Registry Intelligence</CardTitle>
             </CardHeader>
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-end">

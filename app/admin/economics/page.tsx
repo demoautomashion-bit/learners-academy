@@ -215,7 +215,7 @@ export default function EconomicsPage() {
       {/* Header section */}
       <motion.div variants={STAGGER_ITEM} className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Institutional Economics
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-normal max-w-2xl opacity-80">
@@ -232,7 +232,7 @@ export default function EconomicsPage() {
             <DialogContent className="max-w-md">
               <DialogHeader className="mb-6">
                 <DialogTitle className="font-serif text-3xl font-normal">Record Outflow</DialogTitle>
-                <CardDescription className="text-xs   font-normal opacity-60">Add a new financial transaction to the ledger.</CardDescription>
+                <CardDescription className="text-xs font-normal opacity-60">Add a new financial transaction to the ledger.</CardDescription>
               </DialogHeader>
               <div className="space-y-6">
                 <div className="space-y-2">
@@ -299,7 +299,7 @@ export default function EconomicsPage() {
       </motion.div>
 
       {/* Main KPI Row */}
-      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
         {[
           { label: 'Projected Portfolio', value: economics.projectedRevenue, sub: 'Total Contractual Value', icon: Building, color: 'text-primary', progress: (economics.actualRevenue / economics.projectedRevenue) * 100 },
           { label: 'Realized Revenue', value: economics.actualRevenue, sub: 'Fees Collected (Actual)', icon: TrendingUp, color: 'text-success', progress: 100 },
@@ -307,12 +307,12 @@ export default function EconomicsPage() {
         ].map((stat, i) => (
           <Card key={i} className="     overflow-hidden group relative isolate">
             <div className={cn("absolute inset-x-0 -bottom-1 h-1 transition-all opacity-20", stat.color.replace('text-', 'bg-'))} style={{ width: `${Math.min(stat.progress, 100)}%` }} />
-            <CardContent className="pt-10 pb-8 relative">
+            <CardContent className="pt-10 pb-8 relative flex-1">
               <div className="absolute right-8 top-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
                 <stat.icon className="w-20 h-20" />
               </div>
               <p className="text-xs   text-muted-foreground mb-4 font-normal opacity-50">{stat.label}</p>
-              <h3 className="font-serif mb-4 text-xl font-serif">
+              <h3 className="font-serif mb-4 text-xl font-serif font-medium">
                 Rs. {stat.value.toLocaleString()}
               </h3>
               <div className="flex items-center justify-between mt-6">
@@ -328,14 +328,14 @@ export default function EconomicsPage() {
       </motion.div>
 
       {/* Charts Layer */}
-      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
         {/* Expenditure Trend */}
-        <Card className="glass-1 lg:col-span-2 overflow-hidden">
+        <Card className="glass-1 lg:col-span-2 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="bg-muted/5 border-b  p-8">
-            <h3 className="font-serif text-xl font-serif">Capital Expenditure Velocity</h3>
+            <h3 className="font-serif text-xl font-serif font-medium">Capital Expenditure Velocity</h3>
             <p className="text-xs   text-muted-foreground font-normal opacity-60">Outflow analysis over the trailing 6-month cycle.</p>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-6 flex-1">
             <div className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={economics.historicalData}>
@@ -384,12 +384,12 @@ export default function EconomicsPage() {
         </Card>
 
         {/* Categorical Breakdown */}
-        <Card className="glass-1 overflow-hidden">
+        <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="bg-muted/5 border-b  p-8 text-center">
-            <h3 className="font-serif text-xl font-serif">Allocation Model</h3>
+            <h3 className="font-serif text-xl font-serif font-medium">Allocation Model</h3>
             <p className="text-xs   text-muted-foreground font-normal opacity-60">Distribution across institutional categories.</p>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-6 flex-1">
             <div className="h-[250px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <RePieChart>
@@ -442,7 +442,7 @@ export default function EconomicsPage() {
       {/* Transaction Log Layer */}
       <motion.div variants={STAGGER_ITEM} className="space-y-6">
         <div className="flex items-center justify-between px-2">
-          <h2 className="font-serif text-foreground text-2xl font-serif">Transaction Registry</h2>
+          <h2 className="font-serif text-foreground text-2xl font-serif font-medium">Transaction Registry</h2>
           <div className="flex items-center gap-4">
             <span className="text-xs   text-muted-foreground font-normal opacity-50">Descending Chronological Record</span>
             <Button variant="ghost" size="icon" className="w-10 border   hover:bg-primary/5">
@@ -451,8 +451,8 @@ export default function EconomicsPage() {
           </div>
         </div>
 
-        <Card className="glass-1 overflow-hidden">
-          <CardContent className="p-6">
+        <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+          <CardContent className="p-6 flex-1">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-muted/10 border-b ">

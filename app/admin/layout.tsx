@@ -147,7 +147,7 @@ export default function AdminLayout({
   const pendingReviewCount = assessments?.filter(a => a.status === 'pending_review').length
 
   return (
-    <SidebarProvider style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, var(--font-inter), Inter, sans-serif' }}>
+    <SidebarProvider style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif' }}>
       <Sidebar className="border-r border-white/5 bg-sidebar transition-premium">
         <AdminSidebarHeader />
 
@@ -219,11 +219,15 @@ export default function AdminLayout({
                             animate="visible"
                             variants={{
                               visible: { 
-                                height: "auto", 
                                 opacity: 1, 
-                                transition: { height: { duration: 0.3 }, opacity: { duration: 0.2, delay: 0.1 } } 
+                                y: 0,
+                                transition: { duration: 0.2, ease: "easeOut" } 
                               },
-                              hidden: { height: 0, opacity: 0 }
+                              hidden: { 
+                                opacity: 0, 
+                                y: -10,
+                                transition: { duration: 0.2, ease: "easeOut" }
+                              }
                             }}
                             className="overflow-hidden"
                           >

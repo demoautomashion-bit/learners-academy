@@ -110,7 +110,7 @@ export default function TeacherRegistrationPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="font-serif text-3xl">Faculty Onboarding</h1>
+            <h1 className="font-serif text-3xl font-medium">Faculty Onboarding</h1>
             <p className="text-muted-foreground text-sm   opacity-60">Register New Academic Instructor</p>
           </div>
         </div>
@@ -123,12 +123,12 @@ export default function TeacherRegistrationPage() {
         </Button>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: Personal Protocols */}
-          <Card className="glass-1 overflow-hidden">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="bg-primary/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3">
+              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
                 <div className="w-8 h-8  bg-primary/10 flex items-center justify-center">
                   <User className="w-4 h-4 text-primary" />
                 </div>
@@ -136,19 +136,19 @@ export default function TeacherRegistrationPage() {
               </CardTitle>
               <CardDescription>Verified identity and contact information</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-6 space-y-6 flex-1">
               <Field>
-                <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Full Name</FieldLabel>
+                <FieldLabel className="text-editorial-label text-xs    opacity-60">Full Name</FieldLabel>
                 <Input 
                   {...form.register('name')} 
                   placeholder="Instructor Full Name" 
                   className="h-12 bg-background/50  "
                 />
-                {form.formState.errors.name && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.name.message}</p>}
+                {form.formState.errors.name && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.name.message}</p>}
               </Field>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Academic Email</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Academic Email</FieldLabel>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
                     <Input 
@@ -157,10 +157,10 @@ export default function TeacherRegistrationPage() {
                       className="h-12 pl-10 bg-background/50  "
                     />
                   </div>
-                  {form.formState.errors.email && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.email.message}</p>}
+                  {form.formState.errors.email && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.email.message}</p>}
                 </Field>
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Phone Number</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Phone Number</FieldLabel>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
                     <Input 
@@ -169,16 +169,16 @@ export default function TeacherRegistrationPage() {
                       className="h-12 pl-10 bg-background/50  "
                     />
                   </div>
-                  {form.formState.errors.phone && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.phone.message}</p>}
+                  {form.formState.errors.phone && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.phone.message}</p>}
                 </Field>
               </div>
             </CardContent>
           </Card>
 
           {/* Section 2: Institutional Security */}
-          <Card className="glass-1 overflow-hidden">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="bg-success/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3">
+              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
                 <div className="w-8 h-8  bg-success/10 flex items-center justify-center">
                   <ShieldCheck className="w-4 h-4 text-success" />
                 </div>
@@ -186,10 +186,10 @@ export default function TeacherRegistrationPage() {
               </CardTitle>
               <CardDescription>Authentication and employee identity records</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="p-6 space-y-6 flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Employee ID</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Employee ID</FieldLabel>
                   <div className="relative">
                     <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
                     <Input 
@@ -198,25 +198,25 @@ export default function TeacherRegistrationPage() {
                       className="h-12 pl-10 bg-background/50  "
                     />
                   </div>
-                  {form.formState.errors.employeeId && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.employeeId.message}</p>}
+                  {form.formState.errors.employeeId && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.employeeId.message}</p>}
                 </Field>
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Portal Password</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Portal Password</FieldLabel>
                   <SecureInput 
                     {...form.register('password')} 
                     placeholder="Min. 8 characters" 
                     className="h-12 bg-background/50  "
                   />
-                  {form.formState.errors.password && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.password.message}</p>}
+                  {form.formState.errors.password && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.password.message}</p>}
                 </Field>
               </div>
             </CardContent>
           </Card>
 
           {/* Section 3: Academic Specialization */}
-          <Card className="glass-1 overflow-hidden">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="bg-accent/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3">
+              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
                 <div className="w-8 h-8  bg-accent/10 flex items-center justify-center">
                   <Award className="w-4 h-4 text-accent" />
                 </div>
@@ -224,24 +224,24 @@ export default function TeacherRegistrationPage() {
               </CardTitle>
               <CardDescription>Subject expertise and official qualifications</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-6 space-y-6 flex-1">
               <Field>
-                <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Primary Subjects</FieldLabel>
+                <FieldLabel className="text-editorial-label text-xs    opacity-60">Primary Subjects</FieldLabel>
                 <Input 
                   {...form.register('subjects')} 
                   placeholder="e.g. English Grammar, IELTS, Speaking (Comma separated)" 
                   className="h-12 bg-background/50  "
                 />
-                {form.formState.errors.subjects && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.subjects.message}</p>}
+                {form.formState.errors.subjects && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.subjects.message}</p>}
               </Field>
               <Field>
-                <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Qualifications</FieldLabel>
+                <FieldLabel className="text-editorial-label text-xs    opacity-60">Qualifications</FieldLabel>
                 <Input 
                   {...form.register('qualifications')} 
                   placeholder="e.g. MA English, CELTA Certified (Comma separated)" 
                   className="h-12 bg-background/50  "
                 />
-                {form.formState.errors.qualifications && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.qualifications.message}</p>}
+                {form.formState.errors.qualifications && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.qualifications.message}</p>}
               </Field>
             </CardContent>
           </Card>
@@ -249,14 +249,14 @@ export default function TeacherRegistrationPage() {
 
         {/* Sidebar Preview */}
         <div className="space-y-6">
-          <Card className="glass-1 bg-gradient-to-br from-primary/10 to-accent/10 p-1 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500">
+          <Card className="glass-1 bg-gradient-to-br from-primary/10 to-accent/10 p-1 relative overflow-hidden group hover: hover: transition-all duration-500 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:opacity-20 transition-opacity">
                <Sparkles className="w-32 h-32" />
             </div>
             <div className="   p-8 space-y-6 relative z-10 h-full border border-white/20">
                <div className="flex items-center gap-3 mb-2">
                   <div className="w-2 h-2  bg-primary animate-pulse" />
-                  <h4 className="text-xs   font-bold text-primary">Live Dossier Preview</h4>
+                  <h4 className="text-xs text-primary font-medium">Live Dossier Preview</h4>
                </div>
                
                <div className="space-y-6">
@@ -291,7 +291,7 @@ export default function TeacherRegistrationPage() {
                     <Button 
                       type="submit" 
                       disabled={form.formState.isSubmitting}
-                      className="w-full  bg-primary font-bold shadow-xl shadow-primary/20 group overflow-hidden relative"
+                      className="w-full  bg-primary  shadow-xl shadow-primary/20 group overflow-hidden relative"
                     >
                       <span className="relative z-10 flex items-center justify-center gap-2">
                         {form.formState.isSubmitting ? 'Onboarding...' : (
@@ -308,13 +308,13 @@ export default function TeacherRegistrationPage() {
             </div>
           </Card>
           
-          <Card className="glass-1 p-6 border-dashed border-2">
+          <Card className="glass-1 p-6 border-dashed border-2 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
              <div className="flex items-center gap-3 text-muted-foreground">
                 <CheckCircle2 className="w-4 h-4 text-success" />
-                <p className="text-xs font-bold   text-foreground">Security Compliance</p>
+                <p className="text-xs    text-foreground">Security Compliance</p>
              </div>
              <p className="text-xs mt-2 text-muted-foreground leading-relaxed">
-               All new faculty onboarding triggers an automatic <span className="text-primary font-bold">Paper Review Protocol</span>. Direct publication access is granted post administrative audit.
+               All new faculty onboarding triggers an automatic <span className="text-primary ">Paper Review Protocol</span>. Direct publication access is granted post administrative audit.
              </p>
           </Card>
         </div>

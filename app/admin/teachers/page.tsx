@@ -128,7 +128,7 @@ export default function TeachersPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Academic Faculty
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -144,25 +144,25 @@ export default function TeachersPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="glass-1 hover-lift transition-premium">
+      <div className="grid gap-4 md:grid-cols-3 items-stretch">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="pb-2">
             <CardDescription>Total Teachers</CardDescription>
-            <CardTitle className="text-xl font-serif">{teachers.length}</CardTitle>
+            <CardTitle className="text-xl font-serif font-medium">{teachers.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="glass-1 hover-lift transition-premium">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="pb-2">
             <CardDescription>Active Teachers</CardDescription>
-            <CardTitle className="text-success text-xl font-serif">
+            <CardTitle className="text-success text-xl font-serif font-medium">
               {teachers?.filter(t => t.status === 'active').length}
             </CardTitle>
           </CardHeader>
         </Card>
-        <Card className="glass-1 hover-lift transition-premium">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="pb-2">
             <CardDescription>Inactive Teachers</CardDescription>
-            <CardTitle className="text-muted-foreground text-xl font-serif">
+            <CardTitle className="text-muted-foreground text-xl font-serif font-medium">
               {teachers?.filter(t => t.status === 'inactive').length}
             </CardTitle>
           </CardHeader>
@@ -170,7 +170,7 @@ export default function TeachersPage() {
       </div>
 
       {/* Teachers Table */}
-      <Card className="glass-1 overflow-hidden">
+      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <CardTitle>All Teachers</CardTitle>
@@ -347,7 +347,7 @@ export default function TeachersPage() {
                       </Avatar>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h4 className="font-serif font-normal text-base leading-none mb-1">{teacher.name}</h4>
+                          <h4 className="font-serif text-base leading-none mb-1 font-medium">{teacher.name}</h4>
                           {teacher.requiresReview && (
                             <ShieldCheck className="w-3.5 h-3.5 text-warning" />
                           )}
@@ -365,7 +365,7 @@ export default function TeachersPage() {
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
+                  <div className="grid grid-cols-2 gap-4 mb-4 text-xs items-stretch">
                     <div className="space-y-1">
                       <p className="text-muted-foreground font-normal   text-xs">Registry Email</p>
                       <p className="font-normal line-clamp-1">{teacher.email}</p>
@@ -479,7 +479,7 @@ export default function TeachersPage() {
                     <FieldLabel className="text-xs   text-muted-foreground mb-1.5 h-auto">Legal Identity</FieldLabel>
                     <Input name="name" defaultValue={selectedTeacher?.name} required className="bg-background/50 h-10" placeholder="Full name as per registry" />
                   </Field>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 items-stretch">
                     <Field>
                       <FieldLabel className="text-xs   text-muted-foreground mb-1 h-auto">Employee ID</FieldLabel>
                       <Input name="employeeId" defaultValue={selectedTeacher?.employeeId} required className="bg-background/50 h-10 font-mono" />
@@ -489,7 +489,7 @@ export default function TeachersPage() {
                       <SecureInput name="password" placeholder="••••••••" className="bg-background/50 h-10" />
                     </Field>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 items-stretch">
                     <Field>
                       <FieldLabel className="text-xs   text-muted-foreground mb-1 h-auto">Registry Contact</FieldLabel>
                       <Input name="phone" defaultValue={selectedTeacher?.phone} required className="bg-background/50 h-10" />

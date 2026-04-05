@@ -113,14 +113,14 @@ export default function ScheduleIntelligencePage() {
             className="group -ml-2 text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-xs   font-bold">Return to Batches</span>
+            <span className="text-xs   ">Return to Batches</span>
           </Button>
           <div className="flex items-center gap-4">
              <div className="p-3 bg-primary/10  border ">
                 <Clock className="w-6 h-6 text-primary" />
              </div>
              <div>
-                <h1 className="font-serif text-foreground leading-none text-3xl font-serif">Schedule Intelligence</h1>
+                <h1 className="font-serif text-foreground leading-none text-3xl font-serif font-medium">Schedule Intelligence</h1>
                 <p className="mt-2 text-muted-foreground text-editorial-meta opacity-70">
                     Master timing registry with real-time institutional conflict detection.
                 </p>
@@ -134,7 +134,7 @@ export default function ScheduleIntelligencePage() {
                <div className="flex items-center gap-3 px-6 py-3 bg-destructive/5 border border-destructive/20  animate-in fade-in slide-in-from-right-4 duration-700">
                   <AlertTriangle className="w-5 h-5 text-destructive animate-pulse" />
                   <div>
-                    <p className="text-xs  font-bold  text-destructive">{conflicts.length} Critical Conflicts</p>
+                    <p className="text-xs    text-destructive">{conflicts.length} Critical Conflicts</p>
                     <p className="text-xs text-muted-foreground">Action required in timing registry.</p>
                   </div>
                </div>
@@ -142,7 +142,7 @@ export default function ScheduleIntelligencePage() {
                 <div className="flex items-center gap-3 px-6 py-3 bg-success/5 border border-success/20 ">
                     <CheckCircle2 className="w-5 h-5 text-success" />
                     <div>
-                        <p className="text-xs  font-bold  text-success">Schedule Optimized</p>
+                        <p className="text-xs    text-success">Schedule Optimized</p>
                         <p className="text-xs text-muted-foreground">Zero institutional overlaps detected.</p>
                     </div>
                 </div>
@@ -150,16 +150,16 @@ export default function ScheduleIntelligencePage() {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-4">
+      <div className="grid gap-8 lg:grid-cols-4 items-stretch">
         {/* Left Column: Metrics & Controls */}
         <div className="lg:col-span-1 space-y-6">
-            <Card className="glass-1 overflow-hidden">
+            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="pb-4">
-                    <CardTitle className="font-black text-muted-foreground opacity-40 text-xl font-serif">Intelligence Filters</CardTitle>
+                    <CardTitle className="text-muted-foreground opacity-40 text-xl font-serif font-medium">Intelligence Filters</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 flex-1">
                     <div className="space-y-4">
-                        <label className="text-xs   font-bold text-muted-foreground">Timing Search</label>
+                        <label className="text-xs    text-muted-foreground">Timing Search</label>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30" />
                             <Input 
@@ -172,7 +172,7 @@ export default function ScheduleIntelligencePage() {
                     </div>
 
                     <div className="space-y-4">
-                        <label className="text-xs   font-bold text-muted-foreground">Active Term Cycle</label>
+                        <label className="text-xs    text-muted-foreground">Active Term Cycle</label>
                         <Select defaultValue="spring-2024">
                             <SelectTrigger className="h-11 bg-muted/20  ">
                                 <SelectValue placeholder="Select Cycle" />
@@ -195,7 +195,7 @@ export default function ScheduleIntelligencePage() {
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="space-y-4"
                     >
-                        <h4 className="px-4 text-xs   font-bold text-destructive">Active Registry Issues</h4>
+                        <h4 className="px-4 text-xs text-destructive font-medium">Active Registry Issues</h4>
                         {conflicts?.map((conflict, idx) => (
                             <div 
                                 key={idx}
@@ -225,24 +225,24 @@ export default function ScheduleIntelligencePage() {
 
         {/* Center/Right Column: Master Timing Grid */}
         <div className="lg:col-span-3 space-y-6">
-            <Card className="glass-1 overflow-hidden">
+            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="bg-muted/5 border-b  p-8 flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle className="font-serif text-xl font-serif">Institutional Timing Registry</CardTitle>
-                        <CardDescription className="text-xs   font-bold opacity-30 mt-1">Global Session Audit</CardDescription>
+                        <CardTitle className="font-serif text-xl font-serif font-medium">Institutional Timing Registry</CardTitle>
+                        <CardDescription className="text-xs opacity-30 mt-1">Global Session Audit</CardDescription>
                     </div>
                     <div className="flex items-center gap-3">
                         <Button variant="outline" size="sm" className="">
                             <Layers className="w-4 h-4 mr-2 text-primary" />
-                            <span className="text-xs   font-black">Export Schedule</span>
+                            <span className="text-xs   ">Export Schedule</span>
                         </Button>
                         <Button size="sm" className=" bg-primary hover:shadow-lg transition-premium">
                             <Plus className="w-4 h-4 mr-2" />
-                            <span className="text-xs   font-black">Force Shift Slot</span>
+                            <span className="text-xs   ">Force Shift Slot</span>
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-6 flex-1">
                     <Table>
                         <TableHeader className="bg-muted/5 h-14 border-b ">
                             <TableRow>
@@ -279,7 +279,7 @@ export default function ScheduleIntelligencePage() {
                                                         return (
                                                             <div 
                                                                 key={c.id} 
-                                                                className="h-10 w-10 ring-4 ring-card  bg-primary/10 border  flex items-center justify-center text-xs font-bold text-primary"
+                                                                className="h-10 w-10 ring-4 ring-card  bg-primary/10 border  flex items-center justify-center text-xs  text-primary"
                                                                 title={`${c.title} by ${c.teacherName}`}
                                                             >
                                                                 {initials}
@@ -287,10 +287,10 @@ export default function ScheduleIntelligencePage() {
                                                         )
                                                     })
                                                 ) : (
-                                                    <span className="text-xs  font-bold text-muted-foreground opacity-20">No active batches</span>
+                                                    <span className="text-xs   text-muted-foreground opacity-20">No active batches</span>
                                                 )}
                                                 {batchesInTime.length > 4 && (
-                                                    <div className="h-10 w-10 ring-4 ring-card  bg-muted/20 flex items-center justify-center text-xs font-bold text-muted-foreground">
+                                                    <div className="h-10 w-10 ring-4 ring-card  bg-muted/20 flex items-center justify-center text-xs  text-muted-foreground">
                                                         +{batchesInTime.length - 4}
                                                     </div>
                                                 )}
@@ -298,7 +298,7 @@ export default function ScheduleIntelligencePage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="w-32 py-2">
-                                                <div className="flex justify-between text-xs   font-black text-muted-foreground mb-1.5 px-0.5">
+                                                <div className="flex justify-between text-xs    text-muted-foreground mb-1.5 px-0.5">
                                                     <span>Room Occupancy</span>
                                                     <span>{batchesInTime.length}/10</span>
                                                 </div>
@@ -331,20 +331,20 @@ export default function ScheduleIntelligencePage() {
             </Card>
 
             {/* Room Availability Matrix Placeholder */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="glass-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="font-black opacity-30 text-xl font-serif">Teacher Load Balance</CardTitle>
+                        <CardTitle className="opacity-30 text-xl font-serif font-medium">Teacher Load Balance</CardTitle>
                         <RefreshCw className="w-4 h-4 text-muted-foreground opacity-20" />
                     </CardHeader>
-                    <CardContent className="pt-2">
+                    <CardContent className="pt-2 flex-1">
                          <div className="space-y-4">
                             {teachers.slice(0, 3).map(t => {
                                 const tCourses = courses?.filter(c => c.teacherId === t.id)
                                 return (
                                     <div key={t.id} className="flex items-center justify-between p-4  bg-muted/5 border ">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8  bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
+                                            <div className="h-8 w-8  bg-primary/10 flex items-center justify-center  text-primary text-xs">
                                                 {t.name[0]}
                                             </div>
                                             <span className="text-xs font-semibold">{t.name}</span>
@@ -356,15 +356,15 @@ export default function ScheduleIntelligencePage() {
                          </div>
                     </CardContent>
                 </Card>
-                <Card className="glass-1">
+                <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="font-black opacity-30 text-xl font-serif">Institutional Density</CardTitle>
+                        <CardTitle className="opacity-30 text-xl font-serif font-medium">Institutional Density</CardTitle>
                         <Filter className="w-4 h-4 text-muted-foreground opacity-20" />
                     </CardHeader>
-                    <CardContent className="pt-2">
+                    <CardContent className="pt-2 flex-1">
                          <div className="flex flex-wrap gap-2">
                             {['Morning', 'Afternoon', 'Evening', 'Night'].map(shift => (
-                                <div key={shift} className="px-4 py-2  bg-muted/5 border  text-xs  font-bold  text-muted-foreground hover:bg-primary/5 hover:text-primary transition-premium cursor-pointer">
+                                <div key={shift} className="px-4 py-2  bg-muted/5 border  text-xs    text-muted-foreground hover:bg-primary/5 hover:text-primary transition-premium cursor-pointer">
                                     {shift}
                                 </div>
                             ))}

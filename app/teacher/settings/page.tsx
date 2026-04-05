@@ -47,7 +47,7 @@ export default function TeacherSettingsPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl text-foreground">
+        <h1 className="text-3xl text-foreground font-medium">
           Profile Settings
         </h1>
         <p className="text-muted-foreground mt-1 text-editorial-meta opacity-70">
@@ -55,7 +55,7 @@ export default function TeacherSettingsPage() {
         </p>
       </div>
 
-      <Card className="glass-1 overflow-hidden">
+      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
         <CardHeader className="bg-muted/10 border-b  p-8">
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-6">
@@ -74,7 +74,7 @@ export default function TeacherSettingsPage() {
                 )}
               </div>
               <div>
-                <CardTitle className="leading-none text-foreground/80 text-xl font-serif">{user?.name}</CardTitle>
+                <CardTitle className="leading-none text-foreground/80 text-xl font-serif font-medium">{user?.name}</CardTitle>
                 <div className="flex items-center gap-3 mt-3">
                   <Badge variant="outline" className="text-xs h-5 px-2 py-0   font-normal text-primary/70  bg-primary/5">
                     Registry: Teacher
@@ -88,8 +88,8 @@ export default function TeacherSettingsPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 gap-px bg-primary/5">
+        <CardContent className="p-6 flex-1">
+          <div className="grid grid-cols-2 gap-px bg-primary/5 items-stretch">
             {profileData?.map((item, index) => (
               <div key={index} className="bg-card p-8 hover:bg-muted/5 transition-premium group">
                 <div className="flex flex-col gap-4">
@@ -111,7 +111,7 @@ export default function TeacherSettingsPage() {
             <ShieldCheck className="w-4 h-4 text-primary/60" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-primary opacity-80 text-xl font-serif">Institutional Protection</h3>
+            <h3 className="text-primary opacity-80 text-xl font-serif font-medium">Institutional Protection</h3>
             <p className="text-sm text-muted-foreground leading-relaxed opacity-70">
               These records are synchronized directly with the central administration database. 
               Contact the Registrar&apos;s Office to initiate any formal institutional updates or credential changes.

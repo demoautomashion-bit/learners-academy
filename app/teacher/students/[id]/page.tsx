@@ -51,7 +51,7 @@ export default function StudentProfileDossierPage() {
   if (!student) return (
     <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
       <AlertCircle className="w-12 h-12 text-destructive opacity-30" />
-      <h2 className="text-2xl font-serif">Student Identity Not Found</h2>
+      <h2 className="text-2xl font-serif font-medium">Student Identity Not Found</h2>
       <Button variant="ghost" onClick={() => router.back()}>
         <ChevronLeft className="w-4 h-4 mr-2" />
         Back to Registry
@@ -64,9 +64,9 @@ export default function StudentProfileDossierPage() {
   const progress = studentEnrollment?.progress || 0
   
   const getPerformanceBadge = (p: number) => {
-    if (p >= 80) return <Badge className="bg-success text-white border-none text-xs  font-bold  px-4 py-1.5 ">Exceptional Performance</Badge>
-    if (p >= 60) return <Badge className="bg-primary text-white border-none text-xs  font-bold  px-4 py-1.5 ">Strong Progress</Badge>
-    return <Badge className="bg-warning/20 text-warning border-warning/10 text-xs  font-bold  px-4 py-1.5 ">Academic Review Required</Badge>
+    if (p >= 80) return <Badge className="bg-success text-white border-none text-xs    px-4 py-1.5 ">Exceptional Performance</Badge>
+    if (p >= 60) return <Badge className="bg-primary text-white border-none text-xs    px-4 py-1.5 ">Strong Progress</Badge>
+    return <Badge className="bg-warning/20 text-warning border-warning/10 text-xs    px-4 py-1.5 ">Academic Review Required</Badge>
   }
 
   const handleUpdateEvaluation = async () => {
@@ -112,7 +112,7 @@ export default function StudentProfileDossierPage() {
           <div className="flex-1 space-y-4 text-center md:text-left">
             <div className="space-y-1">
                <div className="flex items-center justify-center md:justify-start gap-4">
-                  <h1 className="font-serif text-foreground leading-none text-3xl font-serif">
+                  <h1 className="font-serif text-foreground leading-none text-3xl font-serif font-medium">
                     {student.name}
                   </h1>
                   {getPerformanceBadge(progress)}
@@ -145,50 +145,50 @@ export default function StudentProfileDossierPage() {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-12 items-start">
+      <div className="grid gap-8 lg:grid-cols-12 items-start items-stretch">
         {/* Core Metrics */}
-        <div className="lg:col-span-12 grid gap-4 md:grid-cols-4">
-             <Card className="glass-1 hover-lift transition-premium">
+        <div className="lg:col-span-12 grid gap-4 md:grid-cols-4 items-stretch">
+             <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="pb-3">
-                    <CardDescription className="text-editorial-label text-xs   font-normal opacity-60">Academic Mastery</CardDescription>
-                    <CardTitle className="font-sans text-xl font-serif">{progress}%</CardTitle>
+                    <CardDescription className="text-editorial-label text-xs font-normal opacity-60">Academic Mastery</CardDescription>
+                    <CardTitle className="font-sans text-xl font-serif font-medium">{progress}%</CardTitle>
                 </CardHeader>
                 <div className="px-6 pb-6">
                     <Progress value={progress} className="h-1.5 bg-primary/5" />
                 </div>
              </Card>
-             <Card className="glass-1 hover-lift transition-premium">
+             <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="pb-3">
-                    <CardDescription className="text-editorial-label text-xs   font-normal opacity-60">Assessments Taken</CardDescription>
-                    <CardTitle className="font-sans text-xl font-serif">{studentSubmissions.length}</CardTitle>
+                    <CardDescription className="text-editorial-label text-xs font-normal opacity-60">Assessments Taken</CardDescription>
+                    <CardTitle className="font-sans text-xl font-serif font-medium">{studentSubmissions.length}</CardTitle>
                 </CardHeader>
              </Card>
-             <Card className="glass-1 hover-lift transition-premium">
+             <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="pb-3">
-                    <CardDescription className="text-editorial-label text-xs   font-normal opacity-60">Current Rank</CardDescription>
-                    <CardTitle className="font-sans text-xl font-serif">Elite</CardTitle>
+                    <CardDescription className="text-editorial-label text-xs font-normal opacity-60">Current Rank</CardDescription>
+                    <CardTitle className="font-sans text-xl font-serif font-medium">Elite</CardTitle>
                 </CardHeader>
              </Card>
-             <Card className="glass-1 hover-lift transition-premium">
+             <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="pb-3">
-                    <CardDescription className="text-editorial-label text-xs   font-normal opacity-60">Session Attendance</CardDescription>
-                    <CardTitle className="font-sans text-xl font-serif">94%</CardTitle>
+                    <CardDescription className="text-editorial-label text-xs font-normal opacity-60">Session Attendance</CardDescription>
+                    <CardTitle className="font-sans text-xl font-serif font-medium">94%</CardTitle>
                 </CardHeader>
              </Card>
         </div>
 
         {/* Left Column (Academic History) */}
         <div className="lg:col-span-8 space-y-6">
-            <Card className="glass-1 overflow-hidden">
+            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="p-8 bg-muted/5 border-b ">
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle className="font-serif text-xl font-serif">Academic History Registry</CardTitle>
-                            <CardDescription className="text-editorial-meta opacity-60">Historical performance data for this candidate across all examination blocks.</CardDescription>
+                            <CardTitle className="font-serif text-xl font-serif font-medium">Academic History Registry</CardTitle>
+                            <CardDescription className="text-editorial-meta opacity-60 text-sm">Historical performance data for this candidate across all examination blocks.</CardDescription>
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-6 flex-1">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-muted/10 h-16">
@@ -251,11 +251,11 @@ export default function StudentProfileDossierPage() {
 
         {/* Right Column (Evaluation & Notes) */}
         <div className="lg:col-span-4 space-y-6">
-            <Card className="glass-1 overflow-hidden flex flex-col h-full">
+            <Card className="glass-1 overflow-hidden flex flex-col h-full rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px]">
                 <CardHeader className="p-8 bg-muted/5 border-b  space-y-2">
                     <div className="flex items-center gap-3">
                         <BrainCircuit className="w-5 h-5 text-primary opacity-60" />
-                        <CardTitle className="font-serif text-xl">Institutional Evaluation</CardTitle>
+                        <CardTitle className="font-serif text-xl font-medium">Institutional Evaluation</CardTitle>
                     </div>
                     <CardDescription className="text-xs text-muted-foreground font-normal">Record qualitative insights and academic goals for the student registry.</CardDescription>
                 </CardHeader>

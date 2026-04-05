@@ -124,7 +124,7 @@ export default function AdminDashboard() {
         className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Welcome, {user?.name?.split(' ')[0] || 'Admin'}
           </h1>
         </motion.div>
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <motion.div 
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 items-stretch"
         initial="hidden"
         animate="visible"
         variants={STAGGER_CONTAINER}
@@ -143,14 +143,14 @@ export default function AdminDashboard() {
             variants={STAGGER_ITEM}
           >
             <Link href={stat.href}>
-              <Card className="glass-1 hover-lift cursor-pointer transition-premium">
+              <Card className="glass-1 hover-lift cursor-pointer transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4">
-                  <CardTitle className="text-editorial-label text-xl font-serif">
+                  <CardTitle className="text-editorial-label text-xl font-serif font-medium">
                     {stat.title}
                   </CardTitle>
                   <stat.icon className="h-4 w-4 text-muted-foreground opacity-50" />
                 </CardHeader>
-                <CardContent className="px-4 pb-4">
+                <CardContent className="px-4 pb-4 flex-1">
                   <div className="text-2xl font-serif  font-normal">{stat.value}</div>
                   <div className="flex items-center gap-1.5 mt-1">
                     <span className="text-xs text-muted-foreground   font-normal">{stat.sub}</span>
@@ -163,11 +163,11 @@ export default function AdminDashboard() {
       </motion.div>
 
       {/* Charts Row */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 items-stretch">
         {/* Enrollment Trend Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl font-serif">
+            <CardTitle className="flex items-center gap-2 text-xl font-serif font-medium">
               <UserPlus className="w-5 h-5 text-primary" />
               Enrollment Trend
             </CardTitle>
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
         {/* Course Popularity Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl font-serif">
+            <CardTitle className="flex items-center gap-2 text-xl font-serif font-medium">
               <Award className="w-5 h-5 text-accent" />
               Class Popularity
             </CardTitle>
@@ -252,9 +252,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Activity & Quick Actions */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
         {/* Recent Students */}
-        <Card className="glass-1 lg:col-span-2">
+        <Card className="glass-1 lg:col-span-2 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Students</CardTitle>
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Common administrative tasks</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5 py-4">
+          <CardContent className="space-y-5 py-4 flex-1">
             <Button className="w-full justify-start" variant="outline" asChild>
               <Link href="/admin/students?action=add">
                 <UserPlus className="w-5 h-5 mr-3 text-primary" />
@@ -352,7 +352,7 @@ export default function AdminDashboard() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
             {courses?.filter(c => c.status === 'active').slice(0, 6).map((course) => (
               <div 
                 key={course.id} 

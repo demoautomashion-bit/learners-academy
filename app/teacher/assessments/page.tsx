@@ -93,7 +93,7 @@ export default function AssessmentsPage() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="text-3xl font-serif text-foreground">
+          <h1 className="text-3xl font-serif text-foreground font-medium">
             Assessment Registry
           </h1>
           <p className="text-muted-foreground mt-1 text-sm opacity-70">
@@ -131,7 +131,7 @@ export default function AssessmentsPage() {
         </div>
 
         <motion.div 
-          className="grid gap-8 md:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 items-stretch"
           variants={STAGGER_CONTAINER}
           initial="hidden"
           animate="visible"
@@ -150,13 +150,13 @@ export default function AssessmentsPage() {
                 variants={STAGGER_ITEM}
                 layout
               >
-                <Card className="glass-1 hover-lift overflow-hidden h-full flex flex-col hover: transition-premium">
+                <Card className="glass-1 hover-lift overflow-hidden h-full flex flex-col hover: transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px]">
                   <CardHeader className="pb-4 flex flex-row items-start justify-between space-y-0 p-6">
                     <div className="space-y-3">
                       <Badge variant={assessment.phase === 'First Test' ? 'outline' : 'secondary'} className="text-xs   font-normal h-5 border-none bg-primary/5 text-primary px-2">
                         {assessment.phase}
                       </Badge>
-                      <CardTitle className="text-xl font-serif group-hover:text-primary transition-colors leading-tight">
+                      <CardTitle className="text-xl font-serif group-hover:text-primary transition-colors leading-tight font-medium">
                         {assessment.title}
                       </CardTitle>
                     </div>
@@ -173,7 +173,7 @@ export default function AssessmentsPage() {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-6 flex-1 flex flex-col p-6 pt-0">
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-xs   font-normal text-muted-foreground opacity-50">
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-xs font-normal text-muted-foreground opacity-50 items-stretch">
                       <div className="flex items-center gap-3">
                         <Users className="w-3.5 h-3.5 text-primary/60" />
                         <span className="truncate">{assessment.classLevels[0]}</span>
@@ -203,7 +203,7 @@ export default function AssessmentsPage() {
                           {/* Status chip */}
                           {assessment.status === 'active' && (
                              <div className="flex items-center gap-3">
-                                <span className="text-xs   font-black text-primary">Live</span>
+                                <span className="text-xs    text-primary">Live</span>
                                 <Switch 
                                     checked={true}
                                     onCheckedChange={async (checked) => {
@@ -221,7 +221,7 @@ export default function AssessmentsPage() {
                           )}
                           {assessment.status === 'archived' && (
                              <div className="flex items-center gap-3">
-                                <span className="text-xs   font-black opacity-30">Suspended</span>
+                                <span className="text-xs    opacity-30">Suspended</span>
                                 <Switch 
                                     checked={false}
                                     onCheckedChange={async (checked) => {
@@ -235,7 +235,7 @@ export default function AssessmentsPage() {
                              </div>
                           )}
                           {assessment.status === 'pending_review' && (
-                             <Badge variant="outline" className="border-warning/20 bg-warning/5 text-warning text-xs  font-bold  h-6 px-3">Reviewing</Badge>
+                             <Badge variant="outline" className="border-warning/20 bg-warning/5 text-warning text-xs    h-6 px-3">Reviewing</Badge>
                           )}
                         </div>
                       </div>
@@ -243,7 +243,7 @@ export default function AssessmentsPage() {
                       {/* Admin feedback block — shown when revision is required */}
                       {assessment.status === 'draft' && assessment.adminFeedback && (
                         <div className="border-l-4 border-warning/60 bg-warning/5 -2xl p-6">
-                          <p className="text-xs   font-bold text-warning mb-2">Revision Directive</p>
+                          <p className="text-xs    text-warning mb-2">Revision Directive</p>
                           <p className="text-sm italic text-muted-foreground leading-relaxed">"{assessment.adminFeedback}"</p>
                         </div>
                       )}

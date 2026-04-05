@@ -139,7 +139,7 @@ export default function AssessmentLibraryPage() {
                 <Library className="w-6 h-6 text-primary" />
              </div>
              <div>
-                <h1 className="font-serif text-foreground leading-none text-3xl font-serif">Assessment Design Library</h1>
+                <h1 className="font-serif text-foreground leading-none text-3xl font-serif font-medium">Assessment Design Library</h1>
                 <p className="mt-2 text-muted-foreground text-editorial-meta opacity-70">
                     Manage institutional question blocks for automated exam generation.
                 </p>
@@ -151,7 +151,7 @@ export default function AssessmentLibraryPage() {
           <DialogTrigger asChild>
             <Button className=" bg-primary  hover: hover-lift transition-premium">
               <Plus className="w-5 h-5 mr-3" />
-              <span className="text-xs   font-bold">Add Institutional Block</span>
+              <span className="text-xs   ">Add Institutional Block</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
@@ -163,9 +163,9 @@ export default function AssessmentLibraryPage() {
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-6">
               <div className="max-h-[min(650px,70vh)] overflow-y-auto px-1 space-y-6 premium-scrollbar">
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-6 items-stretch">
                    <div className="space-y-2">
-                      <label className="text-xs   font-bold opacity-40">Pedagogical Category</label>
+                      <label className="text-xs    opacity-40">Pedagogical Category</label>
                       <Select defaultValue="Grammar" onValueChange={(v) => setValue('category', v as any)}>
                          <SelectTrigger className="h-12 bg-muted/20  ">
                             <SelectValue placeholder="Select Category" />
@@ -181,7 +181,7 @@ export default function AssessmentLibraryPage() {
                       </Select>
                    </div>
                    <div className="space-y-2">
-                      <label className="text-xs   font-bold opacity-40">Institutional Block Type</label>
+                      <label className="text-xs    opacity-40">Institutional Block Type</label>
                       <Select defaultValue="MCQ" onValueChange={(v) => setValue('type', v as any)}>
                          <SelectTrigger className="h-12 bg-muted/20  ">
                             <SelectValue placeholder="Select Type" />
@@ -200,18 +200,18 @@ export default function AssessmentLibraryPage() {
                 </div>
 
                 <div className="space-y-2">
-                   <label className="text-xs   font-bold opacity-40">Block Content / Narrative</label>
+                   <label className="text-xs    opacity-40">Block Content / Narrative</label>
                    <Textarea 
                       {...register('content')}
                       placeholder="Input the core pedagogical content here..."
                       className="min-h-[120px] bg-muted/20   p-4 text-sm resize-none focus:ring-1 focus:ring-primary/20"
                    />
-                   {errors.content && <p className="text-xs text-destructive   font-bold">{errors.content.message}</p>}
+                   {errors.content && <p className="text-xs text-destructive   ">{errors.content.message}</p>}
                 </div>
 
                 {watchType === 'Reading' && (
                   <div className="space-y-2 pt-2">
-                    <label className="text-xs   font-bold opacity-40">Reading Passage</label>
+                    <label className="text-xs    opacity-40">Reading Passage</label>
                     <Textarea 
                       {...register('passageText')}
                       placeholder="Input the analysis text..."
@@ -222,8 +222,8 @@ export default function AssessmentLibraryPage() {
 
                 {watchType === 'MCQ' && (
                   <div className="space-y-4 pt-4 border-t ">
-                    <label className="text-xs   font-bold opacity-40">Distractor Options</label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <label className="text-xs    opacity-40">Distractor Options</label>
+                    <div className="grid grid-cols-2 gap-4 items-stretch">
                        {[0, 1, 2, 3].map(i => (
                          <div key={i} className="relative">
                             <Input 
@@ -242,7 +242,7 @@ export default function AssessmentLibraryPage() {
                 )}
 
                 <div className="space-y-2 pt-4 border-t ">
-                   <label className="text-xs   font-bold opacity-40">Validated Key (Institutional Resolution)</label>
+                   <label className="text-xs    opacity-40">Validated Key (Institutional Resolution)</label>
                    <Input 
                       {...register('correctAnswer')}
                       placeholder="The correct solution for auto-grading..."
@@ -251,7 +251,7 @@ export default function AssessmentLibraryPage() {
                 </div>
 
                 <div className="space-y-2 pt-4 border-t ">
-                   <label className="text-xs   font-bold opacity-40">Curricular Phase</label>
+                   <label className="text-xs    opacity-40">Curricular Phase</label>
                    <Select defaultValue="Both" onValueChange={(v) => setValue('phase', v as any)}>
                       <SelectTrigger className="h-12 bg-muted/20  ">
                          <SelectValue placeholder="Target Phase" />
@@ -266,9 +266,9 @@ export default function AssessmentLibraryPage() {
               </div>
 
               <DialogFooter className="bg-muted/5 border-t  pt-6 flex gap-3">
-                 <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="h-12  px-6  text-xs   font-bold">Abandon</Button>
+                 <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="h-12  px-6  text-xs   ">Abandon</Button>
                  <Button type="submit" disabled={isSubmitting} className=" bg-primary ">
-                    {isSubmitting ? "Persisting..." : <span className="text-xs   font-bold">Publish to Library</span>}
+                    {isSubmitting ? "Persisting..." : <span className="text-xs   ">Publish to Library</span>}
                  </Button>
               </DialogFooter>
             </form>
@@ -289,7 +289,7 @@ export default function AssessmentLibraryPage() {
          </div>
          <div className="flex items-center gap-4">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-               <SelectTrigger className="w-[180px] h-14     text-xs   font-bold">
+               <SelectTrigger className="w-[180px] h-14     text-xs   ">
                   <SelectValue placeholder="All Design Nature" />
                </SelectTrigger>
                <SelectContent>
@@ -302,7 +302,7 @@ export default function AssessmentLibraryPage() {
                </SelectContent>
             </Select>
             <Select value={phaseFilter} onValueChange={setPhaseFilter}>
-               <SelectTrigger className="w-[180px] h-14     text-xs   font-bold">
+               <SelectTrigger className="w-[180px] h-14     text-xs   ">
                   <SelectValue placeholder="All Term Cycles" />
                </SelectTrigger>
                <SelectContent>
@@ -316,7 +316,7 @@ export default function AssessmentLibraryPage() {
 
       {/* Questions Grid */}
       <motion.div 
-        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 px-2"
+        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 px-2 items-stretch"
         variants={STAGGER_CONTAINER}
         initial="hidden"
         animate="visible"
@@ -329,10 +329,10 @@ export default function AssessmentLibraryPage() {
               layout
               className="group"
             >
-              <Card className="glass-1 h-full overflow-hidden flex flex-col hover-lift hover: transition-premium">
+              <Card className="glass-1 h-full overflow-hidden flex flex-col hover-lift hover: transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px]">
                 <CardHeader className="p-8 pb-4 space-y-4">
                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs   font-black  bg-primary/5 text-primary px-3 h-6">
+                      <Badge variant="outline" className="text-xs     bg-primary/5 text-primary px-3 h-6">
                         {q.type}
                       </Badge>
                       <div className="flex items-center gap-1">
@@ -349,7 +349,7 @@ export default function AssessmentLibraryPage() {
                         </Button>
                       </div>
                    </div>
-                   <div className="flex items-center gap-2 text-muted-foreground/60 text-xs   font-bold">
+                   <div className="flex items-center gap-2 text-muted-foreground/60 text-xs   ">
                       <Zap className="w-3 h-3 text-warning" />
                       <span>{q.category}</span>
                       <span className="opacity-20">•</span>
@@ -364,7 +364,7 @@ export default function AssessmentLibraryPage() {
                    </div>
                    
                    {q.type === 'MCQ' && q.options && (
-                      <div className="grid grid-cols-2 gap-3 pt-4">
+                      <div className="grid grid-cols-2 gap-3 pt-4 items-stretch">
                          {q.options?.filter(o => !!o).map((opt, i) => (
                            <div key={i} className="p-3  bg-muted/10 border  text-xs font-normal truncate">
                              <span className="opacity-30 mr-2">{String.fromCharCode(65 + i)}:</span>
@@ -382,7 +382,7 @@ export default function AssessmentLibraryPage() {
 
                    <div className="pt-6 border-t  flex items-center justify-between">
                       <div className="space-y-0.5">
-                         <span className="text-xs   font-bold text-muted-foreground opacity-40">System Resolution</span>
+                         <span className="text-xs    text-muted-foreground opacity-40">System Resolution</span>
                          <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                             <span className="text-xs font-normal text-success">{q.correctAnswer || 'Manual Logic'}</span>
@@ -390,7 +390,7 @@ export default function AssessmentLibraryPage() {
                       </div>
                       <Button variant="ghost" size="sm" className=" group/btn hover:bg-primary/5 hover: transition-all">
                          <Eye className="w-3.5 h-3.5 mr-2 opacity-40 group-hover/btn:opacity-100" />
-                         <span className="text-xs   font-bold">View Block</span>
+                         <span className="text-xs   ">View Block</span>
                       </Button>
                    </div>
                 </CardContent>

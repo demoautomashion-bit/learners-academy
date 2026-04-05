@@ -65,11 +65,11 @@ export default function TeacherStudentsPage() {
 
   const getPerformanceBadge = (progress: number) => {
     if (progress >= 80) {
-      return <Badge className="bg-success text-white border-none text-xs   font-black h-5 px-3 ">Elite</Badge>
+      return <Badge className="bg-success text-white border-none text-xs    h-5 px-3 ">Elite</Badge>
     } else if (progress >= 60) {
-      return <Badge className="bg-primary text-white border-none text-xs   font-black h-5 px-3 ">Strong</Badge>
+      return <Badge className="bg-primary text-white border-none text-xs    h-5 px-3 ">Strong</Badge>
     } else if (progress >= 0) {
-      return <Badge className="bg-warning text-white border-none text-xs   font-black h-5 px-3 ">Pending</Badge>
+      return <Badge className="bg-warning text-white border-none text-xs    h-5 px-3 ">Pending</Badge>
     }
   }
 
@@ -119,13 +119,13 @@ export default function TeacherStudentsPage() {
 
       {/* Stats Summary Panel */}
       <motion.div 
-        className="grid gap-6 sm:grid-cols-3"
+        className="grid gap-6 sm:grid-cols-3 items-stretch"
         variants={STAGGER_CONTAINER}
         initial="hidden"
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift p-8 overflow-hidden group">
+          <Card className="glass-1 hover-lift p-8 overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <div className="flex flex-col items-center justify-center text-center space-y-2">
                 <p className="text-4xl font-sans font-normal text-foreground/80 group-hover:text-primary transition-colors">{studentsInTeacherCourses.length}</p>
                 <p className="text-xs   font-normal opacity-50">Enrolled Candidates</p>
@@ -136,7 +136,7 @@ export default function TeacherStudentsPage() {
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift p-8 overflow-hidden group">
+          <Card className="glass-1 hover-lift p-8 overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <div className="flex flex-col items-center justify-center text-center space-y-2">
                 <p className="text-4xl font-sans font-normal text-foreground/80 group-hover:text-success transition-colors">
                   {studentsInTeacherCourses.length > 0 ? Math.round(studentsInTeacherCourses.reduce((acc, s) => acc + (mockEnrollments.find(e => e.studentId === s.id)?.progress || 0), 0) / studentsInTeacherCourses.length) : 0}%
@@ -149,7 +149,7 @@ export default function TeacherStudentsPage() {
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift p-8 overflow-hidden group">
+          <Card className="glass-1 hover-lift p-8 overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <div className="flex flex-col items-center justify-center text-center space-y-2">
                 <p className="text-4xl font-sans font-normal text-foreground/80 group-hover:text-warning transition-colors">
                   {studentsInTeacherCourses?.filter(s => {
@@ -167,17 +167,17 @@ export default function TeacherStudentsPage() {
       </motion.div>
 
       {/* Main Student Hub */}
-      <Card className="glass-1 overflow-hidden">
+      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
         <CardHeader className="p-10 border-b  flex flex-row items-center justify-between">
            <div className="space-y-1">
-              <CardTitle className="font-serif text-xl font-serif">Candidate Profiles</CardTitle>
+              <CardTitle className="font-serif text-xl font-serif font-medium">Candidate Profiles</CardTitle>
               <CardDescription className="text-xs text-muted-foreground font-normal">Review academic dossiers and evaluate pupil performance.</CardDescription>
            </div>
            <Button variant="ghost" className="w-12  group hover:bg-primary/5 transition-all">
                 <Users className="w-4 h-4 text-primary opacity-40 group-hover:opacity-100" />
            </Button>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-6 flex-1">
           {filteredStudents.length === 0 ? (
             <div className="py-24 text-center">
               <div className="bg-primary/5 p-8  w-fit mx-auto mb-6 border ">
@@ -187,7 +187,7 @@ export default function TeacherStudentsPage() {
             </div>
           ) : (
             <motion.div 
-              className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 items-stretch"
               variants={STAGGER_CONTAINER}
               initial="hidden"
               animate="visible"
@@ -199,10 +199,10 @@ export default function TeacherStudentsPage() {
                 return (
                   <motion.div key={student.id} variants={STAGGER_ITEM}>
                     <Card 
-                      className="glass-1 cursor-pointer transition-premium bg-muted/10 hover:bg-card hover: hover-lift overflow-hidden group border border-transparent hover:"
+                      className="glass-1 cursor-pointer transition-premium hover: hover: hover-lift overflow-hidden group border border-transparent hover: rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col"
                       onClick={() => router.push(`/teacher/students/${student.id}`)}
                     >
-                      <CardContent className="p-6">
+                      <CardContent className="p-6 flex-1">
                         <div className="flex flex-col gap-8">
                           <div className="flex items-center justify-between">
                             <Avatar className="h-20 w-20 ring-4 ring-primary/5 transition-all group-hover:ring-primary/20 ">
@@ -218,7 +218,7 @@ export default function TeacherStudentsPage() {
                           </div>
                           
                           <div className="space-y-1">
-                            <h3 className="font-serif text-foreground group-hover:text-primary transition-colors leading-tight text-xl font-serif">{student.name}</h3>
+                            <h3 className="font-serif text-foreground group-hover:text-primary transition-colors leading-tight text-xl font-serif font-medium">{student.name}</h3>
                             <p className="text-xs text-muted-foreground/60 font-normal   truncate">{student.email}</p>
                           </div>
                           
@@ -236,7 +236,7 @@ export default function TeacherStudentsPage() {
                             </div>
                           </div>
                           
-                          <Button variant="ghost" className="w-full justify-between  group/btn hover:bg-primary hover: transition-all font-bold shadow-sm border ">
+                          <Button variant="ghost" className="w-full justify-between  group/btn hover:bg-primary hover: transition-all  shadow-sm border ">
                             Deep Audit Intelligence
                             <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-all" />
                           </Button>

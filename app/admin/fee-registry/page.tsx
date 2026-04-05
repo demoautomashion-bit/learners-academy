@@ -156,7 +156,7 @@ export default function FeeRegistryPage() {
       {/* Header Area */}
       <motion.div variants={STAGGER_ITEM} className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Institutional Fee Registry
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-normal max-w-2xl opacity-80 leading-relaxed">
@@ -178,7 +178,7 @@ export default function FeeRegistryPage() {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleAddAccount} className="p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-6 text-left">
+                <div className="grid grid-cols-2 gap-6 text-left items-stretch">
                   <div className="space-y-2">
                     <Label className="text-xs   opacity-40 ml-1">Select Student</Label>
                     <Select name="studentId" required>
@@ -230,7 +230,7 @@ export default function FeeRegistryPage() {
       </motion.div>
 
       {/* Metric Cards - Daily, Weekly, Monthly */}
-      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-stretch">
         {[
           { label: 'Daily Collection', value: stats.daily, info: 'Today', icon: Clock, color: 'text-primary' },
           { label: 'Weekly Velocity', value: stats.weekly, info: 'Current Week', icon: ArrowUpRight, color: 'text-success' },
@@ -238,14 +238,14 @@ export default function FeeRegistryPage() {
           { label: 'Total Outstanding', value: stats.totalOutstanding, info: 'Uncollected', icon: AlertCircle, color: 'text-destructive' },
         ].map((stat, i) => (
           <Card key={i} className="    hover-lift transition-premium">
-            <CardContent className="pt-8 pb-7">
+            <CardContent className="pt-8 pb-7 flex-1">
               <div className="flex flex-col gap-4">
                 <div className="w-10 h-10  bg-primary/5 flex items-center justify-center border ">
                   <stat.icon className={cn("h-4 w-4", stat.color)} />
                 </div>
                 <div>
                   <p className="text-xs   text-muted-foreground mb-2 font-normal opacity-60">{stat.label}</p>
-                  <h3 className="font-serif mb-3 text-xl font-serif">
+                  <h3 className="font-serif mb-3 text-xl font-serif font-medium">
                     Rs. {stat.value.toLocaleString()}
                   </h3>
                   <p className="text-xs text-muted-foreground mt-2 font-normal opacity-70  ">{stat.info}</p>
@@ -260,7 +260,7 @@ export default function FeeRegistryPage() {
       <motion.div variants={STAGGER_ITEM} className="space-y-6">
         <div className="flex items-center justify-between gap-4 px-2">
           <div className="flex items-center gap-6">
-            <h2 className="font-serif text-2xl text-foreground">Student Accounts</h2>
+            <h2 className="font-serif text-2xl text-foreground font-medium">Student Accounts</h2>
             <div className="flex gap-1 bg-muted/20 p-1  border ">
               {['All', 'Paid', 'Partial', 'Unpaid'].map((status) => (
                 <button
@@ -289,8 +289,8 @@ export default function FeeRegistryPage() {
           </div>
         </div>
 
-        <Card className="glass-1 overflow-hidden">
-          <CardContent className="p-6">
+        <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+          <CardContent className="p-6 flex-1">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-muted/5 h-16 border-b ">

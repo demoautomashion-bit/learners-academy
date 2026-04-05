@@ -156,7 +156,7 @@ export default function StudentsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Students
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -172,17 +172,17 @@ export default function StudentsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="glass-1 hover-lift transition-premium">
+      <div className="grid gap-4 md:grid-cols-2 items-stretch">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="pb-2">
             <CardDescription>Total Students</CardDescription>
-            <CardTitle className="text-xl font-serif">{students.length}</CardTitle>
+            <CardTitle className="text-xl font-serif font-medium">{students.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="glass-1 hover-lift transition-premium">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="pb-2">
             <CardDescription>Active Students</CardDescription>
-            <CardTitle className="text-success text-xl font-serif">
+            <CardTitle className="text-success text-xl font-serif font-medium">
               {students?.filter(s => s.status === 'active').length}
             </CardTitle>
           </CardHeader>
@@ -190,7 +190,7 @@ export default function StudentsPage() {
       </div>
 
       {/* Students Table */}
-      <Card className="glass-1 overflow-hidden">
+      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <CardTitle>All Students</CardTitle>
@@ -357,7 +357,7 @@ export default function StudentsPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h4 className="font-serif font-normal text-base leading-none mb-1">{student.name}</h4>
+                        <h4 className="font-serif text-base leading-none mb-1 font-medium">{student.name}</h4>
                         <p className="text-xs text-muted-foreground   font-normal opacity-60">
                           {student.studentId || 'ID-TBC'}
                         </p>
@@ -371,7 +371,7 @@ export default function StudentsPage() {
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4 text-xs font-sans">
+                  <div className="grid grid-cols-2 gap-4 mb-4 text-xs font-sans items-stretch">
                     <div className="space-y-1">
                       <p className="text-muted-foreground font-normal   text-xs">Guardian</p>
                       <p className="font-normal line-clamp-1">{student.guardianName || 'N/A'}</p>
@@ -445,7 +445,7 @@ export default function StudentsPage() {
           </DialogHeader>
           <form onSubmit={editForm.handleSubmit(onEditSubmit)}>
             <FieldGroup className="py-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 items-stretch">
                 <Field>
                   <FieldLabel className="text-editorial-label">Student Name</FieldLabel>
                   <Input {...editForm.register('name')} className="bg-background/50 h-10" />
@@ -455,7 +455,7 @@ export default function StudentsPage() {
                   <Input {...editForm.register('guardianName')} className="bg-background/50 h-10" />
                 </Field>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 items-stretch">
                 <Field>
                   <FieldLabel className="text-editorial-label">Student ID</FieldLabel>
                   <Input {...editForm.register('studentId')} className="bg-background/50 h-10" />
@@ -465,7 +465,7 @@ export default function StudentsPage() {
                   <Input {...editForm.register('phone')} className="bg-background/50 h-10" />
                 </Field>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 items-stretch">
                 <Field>
                   <FieldLabel className="text-editorial-label">Registry Class</FieldLabel>
                   <Select 

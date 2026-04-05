@@ -97,7 +97,7 @@ export default function TeacherClassesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-serif text-foreground">
+        <h1 className="text-3xl font-serif text-foreground font-medium">
           My Classes
         </h1>
         <p className="text-muted-foreground mt-1 text-sm opacity-70">
@@ -106,17 +106,17 @@ export default function TeacherClassesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="glass-1 hover-lift transition-premium">
+      <div className="grid gap-6 md:grid-cols-2 items-stretch">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="p-6 pb-2">
-            <CardDescription className="text-xs   font-normal opacity-60">Total Assigned Classes</CardDescription>
-            <CardTitle className="font-sans text-xl font-serif">{myCourses.length}</CardTitle>
+            <CardDescription className="text-xs font-normal opacity-60">Total Assigned Classes</CardDescription>
+            <CardTitle className="font-sans text-xl font-serif font-medium">{myCourses.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="glass-1 hover-lift transition-premium">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="p-6 pb-2">
-            <CardDescription className="text-xs   font-normal opacity-60">Total Enrolled Students</CardDescription>
-            <CardTitle className="font-sans text-xl font-serif">
+            <CardDescription className="text-xs font-normal opacity-60">Total Enrolled Students</CardDescription>
+            <CardTitle className="font-sans text-xl font-serif font-medium">
               {mockStudents?.filter(s => (s.enrolledCourses || []).some(courseId => myCourses.some(mc => mc.id === courseId))).length}
             </CardTitle>
           </CardHeader>
@@ -124,11 +124,11 @@ export default function TeacherClassesPage() {
       </div>
 
       {/* Student Registry Table */}
-      <Card className="glass-1 overflow-hidden">
+      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
         <CardHeader className="border-b  p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="text-xl font-serif">Student Registry</CardTitle>
+              <CardTitle className="text-xl font-serif font-medium">Student Registry</CardTitle>
               <CardDescription className="text-xs opacity-70">
                 Active roster management for your assigned academic sessions.
               </CardDescription>
@@ -159,7 +159,7 @@ export default function TeacherClassesPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-6 flex-1">
           <div className="overflow-hidden">
             <Table>
               <TableHeader className="bg-muted/10 border-b  h-14">
@@ -242,11 +242,11 @@ export default function TeacherClassesPage() {
                         {selectedCourse.status}
                       </Badge>
                     </div>
-                    <h3 className="text-xl font-serif">{selectedCourse.title}</h3>
+                    <h3 className="text-xl font-serif font-medium">{selectedCourse.title}</h3>
                     <p className="text-muted-foreground mt-2 text-editorial-meta opacity-70">{selectedCourse.description}</p>
                   </div>
 
-                  <div className="grid gap-4 grid-cols-2">
+                  <div className="grid gap-4 grid-cols-2 items-stretch">
                     <div className="p-6  border  ">
                       <div className="flex items-center gap-2 mb-2">
                         <Users className="w-3 h-3 text-muted-foreground" />
@@ -416,16 +416,16 @@ export default function TeacherClassesPage() {
                   </div>
                 </DialogHeader>
 
-                <div className="p-8 grid md:grid-cols-2 gap-8 overflow-y-auto premium-scrollbar max-h-[60vh]">
+                <div className="p-8 grid md:grid-cols-2 gap-8 overflow-y-auto premium-scrollbar max-h-[60vh] items-stretch">
                   
                   {/* Left Column: Input Panel */}
                   <div className="space-y-6">
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
                         <ClipboardList className="w-4 h-4 text-primary/50" />
-                        <h4 className="text-xs   font-normal text-muted-foreground opacity-80">Institutional Assessments</h4>
+                        <h4 className="text-xs text-muted-foreground opacity-80 font-medium">Institutional Assessments</h4>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3 items-stretch">
                         <div className="p-4  bg-muted/20 border ">
                           <p className="text-xs   font-normal text-muted-foreground mb-1">Midterm</p>
                           <p className="font-sans text-xl font-normal text-foreground/80">{midtermScore} <span className="text-xs text-muted-foreground opacity-50">/100</span></p>
@@ -440,7 +440,7 @@ export default function TeacherClassesPage() {
                     <div className="space-y-4 pt-2">
                       <div className="flex items-center gap-2">
                         <Eye className="w-4 h-4 text-primary/50" />
-                        <h4 className="text-xs   font-normal text-muted-foreground opacity-80">Subjective Scoring</h4>
+                        <h4 className="text-xs text-muted-foreground opacity-80 font-medium">Subjective Scoring</h4>
                       </div>
                       
                       <div className="space-y-3">

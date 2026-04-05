@@ -74,19 +74,19 @@ export default function InstitutionalAnalyticsPage() {
 
       {/* Analytics Command Center */}
       <motion.div 
-        className="grid gap-6 md:grid-cols-4"
+        className="grid gap-6 md:grid-cols-4 items-stretch"
         variants={STAGGER_CONTAINER}
         initial="hidden"
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift overflow-hidden group">
+          <Card className="glass-1 hover-lift overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="pb-2">
-              <CardDescription className="text-xs   font-bold opacity-40">System-Wide Mastery</CardDescription>
-              <CardTitle className="font-sans text-primary text-xl font-serif">{averageMastery}%</CardTitle>
+              <CardDescription className="text-xs opacity-40">System-Wide Mastery</CardDescription>
+              <CardTitle className="font-sans text-primary text-xl font-serif font-medium">{averageMastery}%</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-               <div className="flex items-center gap-2 text-xs text-success font-bold">
+            <CardContent className="pt-0 flex-1">
+               <div className="flex items-center gap-2 text-xs text-success ">
                   <TrendingUp className="w-3 h-3" />
                   <span>+4.2% Optimization</span>
                </div>
@@ -95,36 +95,36 @@ export default function InstitutionalAnalyticsPage() {
         </motion.div>
         
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift overflow-hidden group">
+          <Card className="glass-1 hover-lift overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="pb-2">
-              <CardDescription className="text-xs   font-bold opacity-40">Elite Cohort</CardDescription>
-              <CardTitle className="font-sans text-xl font-serif">{highPerformers}</CardTitle>
+              <CardDescription className="text-xs opacity-40">Elite Cohort</CardDescription>
+              <CardTitle className="font-sans text-xl font-serif font-medium">{highPerformers}</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 flex-1">
                <span className="text-xs text-muted-foreground font-normal">Candidates with &gt;80% Score</span>
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift overflow-hidden group">
+          <Card className="glass-1 hover-lift overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="pb-2">
-              <CardDescription className="text-xs   font-bold opacity-40">Protocol Completion</CardDescription>
-              <CardTitle className="font-sans text-success text-xl font-serif">{completionRate}%</CardTitle>
+              <CardDescription className="text-xs opacity-40">Protocol Completion</CardDescription>
+              <CardTitle className="font-sans text-success text-xl font-serif font-medium">{completionRate}%</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 flex-1">
                <span className="text-xs text-muted-foreground font-normal">Audited Results vs Total Submissions</span>
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift overflow-hidden group">
+          <Card className="glass-1 hover-lift overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="pb-2">
-              <CardDescription className="text-xs   font-bold opacity-40">Active Protocols</CardDescription>
-              <CardTitle className="font-sans text-xl font-serif">{teacherAssessments.length}</CardTitle>
+              <CardDescription className="text-xs opacity-40">Active Protocols</CardDescription>
+              <CardTitle className="font-sans text-xl font-serif font-medium">{teacherAssessments.length}</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 flex-1">
                <span className="text-xs text-muted-foreground font-normal">Examination Blocks Published</span>
             </CardContent>
           </Card>
@@ -132,18 +132,18 @@ export default function InstitutionalAnalyticsPage() {
       </motion.div>
 
       {/* Mastery Heatmap & Trajectory */}
-      <div className="grid gap-10 lg:grid-cols-12">
-        <Card className="glass-1 lg:col-span-8 overflow-hidden">
+      <div className="grid gap-10 lg:grid-cols-12 items-stretch">
+        <Card className="glass-1 lg:col-span-8 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="p-10 border-b ">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <CardTitle className="font-serif text-foreground/80 text-xl font-serif">Class-Level Performance Audit</CardTitle>
-                <CardDescription className="text-xs   font-normal opacity-40">Institutional benchmarks across active pedagogical levels.</CardDescription>
+                <CardTitle className="font-serif text-foreground/80 text-xl font-serif font-medium">Class-Level Performance Audit</CardTitle>
+                <CardDescription className="text-xs font-normal opacity-40">Institutional benchmarks across active pedagogical levels.</CardDescription>
               </div>
               <Target className="w-5 h-5 text-primary opacity-30" />
             </div>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-6 space-y-6 flex-1">
             {myCourses?.map((course) => {
               const courseResults = gradedResults?.filter(r => r.assignmentId && assessments.find(a => a.id === r.assignmentId)?.classLevels.includes(course.title))
               const courseAvg = courseResults.length > 0 
@@ -186,12 +186,12 @@ export default function InstitutionalAnalyticsPage() {
 
         {/* Intelligence Feeds */}
         <div className="lg:col-span-4 space-y-6">
-          <Card className="glass-1 bg-primary/5 overflow-hidden p-10 space-y-6 flex flex-col items-center text-center">
+          <Card className="glass-1 bg-primary/5 overflow-hidden p-10 space-y-6 flex flex-col items-center text-center rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full">
             <div className="p-4 bg-white/40   ">
               <ShieldCheck className="w-8 h-8 text-primary" />
             </div>
             <div className="space-y-2">
-              <h3 className="font-serif text-xl font-serif">Audit Intelligence</h3>
+              <h3 className="font-serif text-xl font-serif font-medium">Audit Intelligence</h3>
               <p className="text-xs leading-relaxed text-muted-foreground/60   font-normal">LA-Automated System Review</p>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed font-normal italic px-4">
@@ -199,14 +199,14 @@ export default function InstitutionalAnalyticsPage() {
             </p>
             <div className="pt-4 w-full">
                <div className="flex justify-between items-center bg-white/20 p-4  border border-white/40">
-                  <span className="text-xs   font-bold opacity-60">Status</span>
-                  <Badge className="bg-success text-white border-none text-xs px-3 font-black">STABLE</Badge>
+                  <span className="text-xs    opacity-60">Status</span>
+                  <Badge className="bg-success text-white border-none text-xs px-3 ">STABLE</Badge>
                </div>
             </div>
           </Card>
 
-          <Card className="glass-1 overflow-hidden p-8 space-y-6">
-            <h4 className="text-xs   font-normal opacity-40">Dossier Highlights</h4>
+          <Card className="glass-1 overflow-hidden p-8 space-y-6 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+            <h4 className="text-xs opacity-40 font-medium">Dossier Highlights</h4>
             {gradedResults.slice(0, 3).map((result, i) => (
               <div key={i} className="flex items-center justify-between border-b  pb-4 last:border-none">
                 <div className="flex flex-col">

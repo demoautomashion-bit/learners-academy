@@ -106,7 +106,7 @@ export default function SchedulePage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Academic Schedule
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -129,7 +129,7 @@ export default function SchedulePage() {
             </DialogHeader>
             <form onSubmit={handleAddSchedule}>
               <FieldGroup className="py-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Class Level</FieldLabel>
                     <Select name="className" required>
@@ -158,7 +158,7 @@ export default function SchedulePage() {
                   </Field>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Slot Selection</FieldLabel>
                     <Select name="slotId" required>
@@ -203,7 +203,7 @@ export default function SchedulePage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
         {filteredSchedules?.map((item) => (
           <Card key={item.id} className="  hover-lift   ring-1 ring-border group transition-premium">
             <CardHeader className="pb-3 flex flex-row items-start justify-between">
@@ -211,8 +211,8 @@ export default function SchedulePage() {
                 <Badge variant="outline" className="text-xs   font-normal text-primary  bg-primary/5">
                   {item.slotId || 'S-TBC'}
                 </Badge>
-                <CardTitle className="text-xl font-serif text-foreground leading-tight">{item.classTitle}</CardTitle>
-                <CardDescription className="font-normal text-accent">
+                <CardTitle className="text-xl font-serif text-foreground leading-tight font-medium">{item.classTitle}</CardTitle>
+                <CardDescription className="font-normal text-accent text-sm">
                   Prof. {item.teacherName}
                 </CardDescription>
               </div>
@@ -230,7 +230,7 @@ export default function SchedulePage() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 pt-0">
+            <CardContent className="space-y-4 pt-0 flex-1">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <div className="p-1.5 rounded bg-muted/50">
@@ -271,7 +271,7 @@ export default function SchedulePage() {
           {selectedSchedule && (
             <form onSubmit={handleEditSchedule}>
               <FieldGroup className="py-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Course Module</FieldLabel>
                     <Input name="className" defaultValue={selectedSchedule.classTitle} placeholder="e.g. EC Beginner 1" required className="bg-background/50 h-10" />
@@ -282,7 +282,7 @@ export default function SchedulePage() {
                   </Field>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Time Slot Config</FieldLabel>
                     <Select name="slotId" defaultValue={selectedSchedule.slotId} required>

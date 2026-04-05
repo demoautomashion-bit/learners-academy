@@ -108,7 +108,7 @@ export default function StudentRegistrationPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="font-serif text-3xl">Onboarding Registry</h1>
+            <h1 className="font-serif text-3xl font-medium">Onboarding Registry</h1>
             <p className="text-muted-foreground text-sm   opacity-60">Register New Academic Candidate</p>
           </div>
         </div>
@@ -121,12 +121,12 @@ export default function StudentRegistrationPage() {
         </Button>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: Personal Identity */}
-          <Card className="glass-1 overflow-hidden">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="bg-primary/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3">
+              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
                 <div className="w-8 h-8  bg-primary/10 flex items-center justify-center">
                   <User className="w-4 h-4 text-primary" />
                 </div>
@@ -134,19 +134,19 @@ export default function StudentRegistrationPage() {
               </CardTitle>
               <CardDescription>Official name and portal authentication credentials</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="p-6 space-y-6 flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Full Name</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Full Name</FieldLabel>
                   <Input 
                     {...form.register('name')} 
                     placeholder="Candidate Name" 
                     className="h-12 bg-background/50   focus:ring-primary/20"
                   />
-                  {form.formState.errors.name && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.name.message}</p>}
+                  {form.formState.errors.name && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.name.message}</p>}
                 </Field>
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Student ID</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Student ID</FieldLabel>
                   <div className="relative">
                     <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
                     <Input 
@@ -155,25 +155,25 @@ export default function StudentRegistrationPage() {
                       className="h-12 pl-10 bg-background/50   focus:ring-primary/20"
                     />
                   </div>
-                  {form.formState.errors.studentId && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.studentId.message}</p>}
+                  {form.formState.errors.studentId && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.studentId.message}</p>}
                 </Field>
               </div>
               <Field>
-                <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Portal Password</FieldLabel>
+                <FieldLabel className="text-editorial-label text-xs    opacity-60">Portal Password</FieldLabel>
                 <SecureInput 
                   {...form.register('password')} 
                   placeholder="Min. 8 characters required" 
                   className="h-12 bg-background/50   focus:ring-primary/20"
                 />
-                {form.formState.errors.password && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.password.message}</p>}
+                {form.formState.errors.password && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.password.message}</p>}
               </Field>
             </CardContent>
           </Card>
 
           {/* Section 2: Guardian Protocols */}
-          <Card className="glass-1 overflow-hidden">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="bg-success/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3">
+              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
                 <div className="w-8 h-8  bg-success/10 flex items-center justify-center">
                   <ShieldCheck className="w-4 h-4 text-success" />
                 </div>
@@ -181,19 +181,19 @@ export default function StudentRegistrationPage() {
               </CardTitle>
               <CardDescription>Primary contact for administrative and fee management</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="p-6 space-y-6 flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Guardian Name</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Guardian Name</FieldLabel>
                   <Input 
                     {...form.register('guardianName')} 
                     placeholder="Full Name" 
                     className="h-12 bg-background/50   focus:ring-primary/20"
                   />
-                  {form.formState.errors.guardianName && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.guardianName.message}</p>}
+                  {form.formState.errors.guardianName && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.guardianName.message}</p>}
                 </Field>
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Contact Phone</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Contact Phone</FieldLabel>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
                     <Input 
@@ -202,16 +202,16 @@ export default function StudentRegistrationPage() {
                       className="h-12 pl-10 bg-background/50   focus:ring-primary/20"
                     />
                   </div>
-                  {form.formState.errors.phone && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.phone.message}</p>}
+                  {form.formState.errors.phone && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.phone.message}</p>}
                 </Field>
               </div>
             </CardContent>
           </Card>
 
           {/* Section 3: Academic Pathway */}
-          <Card className="glass-1 overflow-hidden">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="bg-accent/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3">
+              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
                 <div className="w-8 h-8  bg-accent/10 flex items-center justify-center">
                   <GraduationCap className="w-4 h-4 text-accent" />
                 </div>
@@ -219,10 +219,10 @@ export default function StudentRegistrationPage() {
               </CardTitle>
               <CardDescription>Batch assignment and schedule configuration</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="p-6 space-y-6 flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Assigned Batch</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Assigned Batch</FieldLabel>
                   <Select onValueChange={(val) => form.setValue('course', val)}>
                     <SelectTrigger className="h-12 bg-background/50  ">
                       <SelectValue placeholder="Select batch level" />
@@ -235,10 +235,10 @@ export default function StudentRegistrationPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {form.formState.errors.course && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.course.message}</p>}
+                  {form.formState.errors.course && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.course.message}</p>}
                 </Field>
                 <Field>
-                  <FieldLabel className="text-editorial-label text-xs font-bold   opacity-60">Class Timing</FieldLabel>
+                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Class Timing</FieldLabel>
                   <Select onValueChange={(val) => form.setValue('timing', val)}>
                     <SelectTrigger className="h-12 bg-background/50  ">
                       <SelectValue placeholder="Select session" />
@@ -251,7 +251,7 @@ export default function StudentRegistrationPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {form.formState.errors.timing && <p className="text-xs text-destructive mt-1 font-bold">{form.formState.errors.timing.message}</p>}
+                  {form.formState.errors.timing && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.timing.message}</p>}
                 </Field>
               </div>
             </CardContent>
@@ -260,14 +260,14 @@ export default function StudentRegistrationPage() {
 
         {/* Sidebar Summary */}
         <div className="space-y-6">
-          <Card className="glass-1 bg-gradient-to-br from-primary/10 to-accent/10 p-1 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500">
+          <Card className="glass-1 bg-gradient-to-br from-primary/10 to-accent/10 p-1 relative overflow-hidden group hover: hover: transition-all duration-500 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:opacity-20 transition-opacity">
                <Sparkles className="w-32 h-32" />
             </div>
             <div className="   p-8 space-y-6 relative z-10 h-full border border-white/20">
                <div className="flex items-center gap-3 mb-2">
                   <div className="w-2 h-2  bg-primary animate-pulse" />
-                  <h4 className="text-xs   font-bold text-primary">Protocol Preview</h4>
+                  <h4 className="text-xs text-primary font-medium">Protocol Preview</h4>
                </div>
                
                <div className="space-y-6">
@@ -300,7 +300,7 @@ export default function StudentRegistrationPage() {
                     <Button 
                       type="submit" 
                       disabled={form.formState.isSubmitting}
-                      className="w-full  bg-primary font-bold shadow-xl shadow-primary/20 group overflow-hidden relative"
+                      className="w-full  bg-primary  shadow-xl shadow-primary/20 group overflow-hidden relative"
                     >
                       <span className="relative z-10 flex items-center justify-center gap-2">
                         {form.formState.isSubmitting ? 'Processing...' : (
@@ -320,13 +320,13 @@ export default function StudentRegistrationPage() {
             </div>
           </Card>
           
-          <Card className="glass-1 p-6 border-dashed border-2">
+          <Card className="glass-1 p-6 border-dashed border-2 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
              <div className="flex items-center gap-3 text-muted-foreground">
                 <Target className="w-4 h-4" />
-                <p className="text-xs font-bold  ">Enrollment Quota</p>
+                <p className="text-xs   ">Enrollment Quota</p>
              </div>
              <p className="text-xs mt-2 text-muted-foreground leading-relaxed">
-               Assigned batches are currently at <span className="text-primary font-bold">84%</span> capacity institutional-wide. Ensure correct timing allocation.
+               Assigned batches are currently at <span className="text-primary ">84%</span> capacity institutional-wide. Ensure correct timing allocation.
              </p>
           </Card>
         </div>

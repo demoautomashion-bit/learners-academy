@@ -97,7 +97,7 @@ export default function TeacherDashboard() {
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <h1 className="text-3xl font-serif text-foreground">
+          <h1 className="text-3xl font-serif text-foreground font-medium">
             Welcome, {user?.name?.split(' ')[0] || 'Teacher'}
           </h1>
           <p className="text-editorial-meta text-base mt-1 opacity-70">
@@ -121,7 +121,7 @@ export default function TeacherDashboard() {
 
       {/* Stats Grid */}
       <motion.div 
-        className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch"
         initial="hidden"
         animate="visible"
         variants={STAGGER_CONTAINER}
@@ -132,16 +132,16 @@ export default function TeacherDashboard() {
             variants={STAGGER_ITEM}
           >
             <Link href={stat.href}>
-              <Card className="glass-1 hover-lift cursor-pointer transition-premium">
+              <Card className="glass-1 hover-lift cursor-pointer transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
-                  <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif">
+                  <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
                     {stat.title}
                   </CardTitle>
                   <div className={`p-2  ${stat.bgColor} opacity-60`}>
                     <stat.icon className={`h-4 w-4 ${stat.color}`} />
                   </div>
                 </CardHeader>
-                <CardContent className="px-6 pb-6">
+                <CardContent className="px-6 pb-6 flex-1">
                   <div className="text-3xl font-sans  font-normal">{stat.value}</div>
                   <div className="flex items-center gap-1.5 mt-2">
                     <div className="h-1 w-1  bg-primary/40" />
@@ -155,13 +155,13 @@ export default function TeacherDashboard() {
       </motion.div>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 items-stretch">
         {/* Active Assessments */}
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium h-full flex flex-col overflow-hidden">
+          <Card className="glass-1 hover-lift transition-premium h-full flex flex-col overflow-hidden rounded-2xl shadow-premium hover:translate-y-[-2px]">
             <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
               <div>
-                <CardTitle className="text-xl font-serif">Active Assessments</CardTitle>
+                <CardTitle className="text-xl font-serif font-medium">Active Assessments</CardTitle>
                 <CardDescription className="text-editorial-meta text-xs opacity-60">Track ongoing test participation</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10  transition-premium group">
@@ -216,10 +216,10 @@ export default function TeacherDashboard() {
 
         {/* Class Performance */}
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift transition-premium h-full flex flex-col overflow-hidden">
+          <Card className="glass-1 hover-lift transition-premium h-full flex flex-col overflow-hidden rounded-2xl shadow-premium hover:translate-y-[-2px]">
             <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
               <div>
-                <CardTitle className="text-xl font-serif">Class Performance</CardTitle>
+                <CardTitle className="text-xl font-serif font-medium">Class Performance</CardTitle>
                 <CardDescription className="text-editorial-meta text-xs opacity-60">Success metrics & average tracking</CardDescription>
               </div>
               <TrendingUp className="w-5 h-5 text-primary opacity-40" />
@@ -271,16 +271,16 @@ export default function TeacherDashboard() {
 
       {/* Assessment Phases */}
       <motion.div 
-        className="grid gap-6 md:grid-cols-2"
+        className="grid gap-6 md:grid-cols-2 items-stretch"
         variants={STAGGER_CONTAINER}
         initial="hidden"
         animate="visible"
       >
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift border-l-4 border-l-primary/40 overflow-hidden">
+          <Card className="glass-1 hover-lift border-l-4 border-l-primary/40 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="p-6">
-              <CardTitle className="text-primary mb-2 text-xl font-serif">First Test Phase</CardTitle>
-              <CardContent className="p-6">
+              <CardTitle className="text-primary mb-2 text-xl font-serif font-medium">First Test Phase</CardTitle>
+              <CardContent className="p-6 flex-1">
                 <p className="text-sm text-muted-foreground leading-relaxed opacity-70">
                   Targeted registry block consisting of 12 queries filtered from core disciplines for mid-term academic vetting.
                 </p>
@@ -289,10 +289,10 @@ export default function TeacherDashboard() {
           </Card>
         </motion.div>
         <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift border-l-4 border-l-accent/40 overflow-hidden">
+          <Card className="glass-1 hover-lift border-l-4 border-l-accent/40 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="p-6">
-              <CardTitle className="text-accent mb-2 text-xl font-serif">Last Test Phase</CardTitle>
-              <CardContent className="p-6">
+              <CardTitle className="text-accent mb-2 text-xl font-serif font-medium">Last Test Phase</CardTitle>
+              <CardContent className="p-6 flex-1">
                 <p className="text-sm text-muted-foreground leading-relaxed opacity-70">
                   Summative evaluation registry encompassing comprehensive curriculum goals and advanced performance benchmarks.
                 </p>

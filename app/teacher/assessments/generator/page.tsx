@@ -194,7 +194,7 @@ export default function AssessmentGeneratorPage() {
                    <div className="p-3 bg-primary/10  border ">
                       <BrainCircuit className="w-6 h-6 text-primary" />
                    </div>
-                   <h1 className="text-3xl font-serif text-foreground leading-none">Examination Workshop</h1>
+                   <h1 className="text-3xl font-serif text-foreground leading-none font-medium">Examination Workshop</h1>
                 </div>
                 <p className="text-muted-foreground text-sm opacity-70">
                     Automated pedagogical engine for cross-cycle assessment synthesis and registry.
@@ -208,20 +208,20 @@ export default function AssessmentGeneratorPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
          {/* Configuration Side */}
          <div className="lg:col-span-8 space-y-6">
-            <Card className="glass-1 overflow-hidden">
+            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                <CardHeader className="p-8 border-b ">
                   <div className="flex items-center justify-between">
                      <div className="space-y-1">
-                        <CardTitle className="text-xl font-serif text-foreground/80">Generative Logic Configuration</CardTitle>
-                        <CardDescription className="text-xs   font-normal opacity-40">System parameters for academic block selection.</CardDescription>
+                        <CardTitle className="text-xl font-serif text-foreground/80 font-medium">Generative Logic Configuration</CardTitle>
+                        <CardDescription className="text-xs font-normal opacity-40">System parameters for academic block selection.</CardDescription>
                      </div>
                      <Settings className="w-5 h-5 text-primary/30" />
                   </div>
                </CardHeader>
-               <CardContent className="p-6">
+               <CardContent className="p-6 flex-1">
                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                       <div className="grid gap-6">
                          <div className="space-y-2">
@@ -234,7 +234,7 @@ export default function AssessmentGeneratorPage() {
                             {errors.title && <p className="text-xs text-destructive   font-normal mt-1">{errors.title.message}</p>}
                          </div>
  
-                         <div className="grid grid-cols-2 gap-6">
+                         <div className="grid grid-cols-2 gap-6 items-stretch">
                             <div className="space-y-2">
                                <label className="text-xs   font-normal opacity-40">Target Term Cycle</label>
                                <Select onValueChange={(val) => setValue('phase', val as any)}>
@@ -262,7 +262,7 @@ export default function AssessmentGeneratorPage() {
                             </div>
                          </div>
 
-                         <div className="grid grid-cols-2 gap-6">
+                         <div className="grid grid-cols-2 gap-6 items-stretch">
                             <div className="space-y-2">
                                <label className="text-xs   font-normal opacity-40">Examination Nature</label>
                                <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
@@ -292,7 +292,7 @@ export default function AssessmentGeneratorPage() {
                                   />
                                   <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                      <Zap className="w-3.5 h-3.5 text-primary opacity-40" />
-                                     <span className="text-xs   font-bold opacity-30">Selection Target</span>
+                                     <span className="text-xs    opacity-30">Selection Target</span>
                                   </div>
                                </div>
                             </div>
@@ -302,14 +302,14 @@ export default function AssessmentGeneratorPage() {
                       <div className="space-y-6 pt-8 border-t ">
                         <div className="flex items-center gap-3">
                            <Boxes className="w-5 h-5 text-primary opacity-50" />
-                           <h3 className="opacity-50 font-sans text-xl font-serif">Synthesized Mark Allocation (Total: {totalCalculatedMarks})</h3>
+                           <h3 className="opacity-50 font-sans text-xl font-serif font-medium">Synthesized Mark Allocation (Total: {totalCalculatedMarks})</h3>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-stretch">
                            {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening'].map(type => {
                               const isDisabled = watchNature !== 'Mixed' && watchNature !== type
                               return (
                                  <div key={type} className={cn("space-y-2 transition-premium", isDisabled && "opacity-20 pointer-events-none")}>
-                                    <label className="text-xs   font-bold text-muted-foreground truncate">{type}</label>
+                                    <label className="text-xs    text-muted-foreground truncate">{type}</label>
                                     <Input 
                                        type="number"
                                        {...register(`markAllocation.${type}` as any, { valueAsNumber: true })}
@@ -321,7 +321,7 @@ export default function AssessmentGeneratorPage() {
                         </div>
                      </div>
 
-                      <div className="grid grid-cols-2 gap-6 pt-8 border-t ">
+                      <div className="grid grid-cols-2 gap-6 pt-8 border-t items-stretch">
                         <div className="space-y-2">
                            <label className="text-xs   font-normal opacity-40">Access Code</label>
                            <div className="flex gap-2">
@@ -380,15 +380,15 @@ export default function AssessmentGeneratorPage() {
          </div>
 
          <div className="lg:col-span-4 space-y-6 focus-mode-sidebar sticky top-10">
-            <Card className="glass-1 overflow-hidden">
+            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="p-6 bg-primary/5 border-b  space-y-2">
                     <div className="flex items-center gap-3">
                         <Terminal className="w-5 h-5 text-primary opacity-60" />
-                        <CardTitle className="font-serif text-xl">Synthesis Intelligence</CardTitle>
+                        <CardTitle className="font-serif text-xl font-medium">Synthesis Intelligence</CardTitle>
                     </div>
-                    <CardDescription className="text-xs   font-normal opacity-40">LA-Automated Block Audit</CardDescription>
+                    <CardDescription className="text-xs font-normal opacity-40">LA-Automated Block Audit</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="p-6 space-y-6 flex-1">
                    <div className="space-y-4">
                       <div className="flex items-baseline justify-between">
                          <span className="text-xs   font-normal opacity-40">Available Blocks</span>
@@ -403,7 +403,7 @@ export default function AssessmentGeneratorPage() {
                    </div>
 
                    <div className="space-y-4 pt-6 border-t ">
-                      <h4 className="text-xs   font-normal opacity-40">Block Nature Density</h4>
+                      <h4 className="text-xs opacity-40 font-medium">Block Nature Density</h4>
                       <div className="grid gap-2">
                          {['MCQ', 'Subjective', 'Reading', 'Listening', 'Writing'].map(type => (
                            <div key={type} className="flex items-center justify-between p-4  bg-muted/5 border  group transition-premium hover:bg-card">
@@ -431,10 +431,10 @@ export default function AssessmentGeneratorPage() {
                 </CardContent>
             </Card>
 
-            <Card className="glass-1 bg-primary/5 border overflow-hidden p-6 space-y-4">
+            <Card className="glass-1 bg-primary/5 border overflow-hidden p-6 space-y-4 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <div className="flex items-center gap-3">
                    <Target className="w-5 h-5 text-primary opacity-60" />
-                   <h3 className="font-serif text-foreground/80 text-xl font-serif">Institutional Audit</h3>
+                   <h3 className="font-serif text-foreground/80 text-xl font-serif font-medium">Institutional Audit</h3>
                 </div>
                 <div className="space-y-4">
                    <div className="flex items-center justify-between">

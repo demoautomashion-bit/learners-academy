@@ -181,7 +181,7 @@ export default function ClassesPage() {
   if (!isInitialized) return (
     <div className="space-y-6 animate-pulse p-4">
       <div className="h-12 w-1/3 bg-primary/5 " />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 items-stretch">
          {[1,2].map(i => <div key={i} className="h-32 bg-card  border " />)}
       </div>
       <div className="h-[400px] w-full bg-card  border " />
@@ -193,7 +193,7 @@ export default function ClassesPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Academic Batches
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -207,14 +207,14 @@ export default function ClassesPage() {
             className="h-14 px-8      hover:bg-primary/5 transition-premium group"
           >
              <Layers className="w-5 h-5 mr-3 text-primary group-hover:scale-110 transition-transform" />
-             <span className="text-xs   font-bold">Global Schedule Audit</span>
+             <span className="text-xs   ">Global Schedule Audit</span>
           </Button>
 
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className=" bg-primary  hover: hover-lift transition-premium">
                 <Plus className="w-5 h-5 mr-3" />
-                <span className="text-xs   font-bold">Create New Batch</span>
+                <span className="text-xs   ">Create New Batch</span>
               </Button>
             </DialogTrigger>
           <DialogContent className="max-w-xl">
@@ -226,7 +226,7 @@ export default function ClassesPage() {
             </DialogHeader>
             <form onSubmit={handleAddCourse}>
               <FieldGroup className="py-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Academic Level</FieldLabel>
                     <Select name="title" required>
@@ -255,7 +255,7 @@ export default function ClassesPage() {
                   </Field>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Session Timing</FieldLabel>
                     <Select name="schedule" required>
@@ -276,7 +276,7 @@ export default function ClassesPage() {
                   </Field>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Tuition Fee (PKR)</FieldLabel>
                     <Input name="feeAmount" type="number" placeholder="e.g. 5000" required className="bg-background/50 h-10 font-normal font-serif text-editorial-meta" />
@@ -296,17 +296,17 @@ export default function ClassesPage() {
     </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="glass-1 hover-lift transition-premium">
+      <div className="grid gap-4 md:grid-cols-2 items-stretch">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="pb-2">
             <CardDescription>Total Batches</CardDescription>
-            <CardTitle className="text-xl font-serif">{courses.length}</CardTitle>
+            <CardTitle className="text-xl font-serif font-medium">{courses.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="glass-1 hover-lift transition-premium">
+        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="pb-2">
             <CardDescription>Active Batches</CardDescription>
-            <CardTitle className="text-success text-xl font-serif">
+            <CardTitle className="text-success text-xl font-serif font-medium">
               {courses?.filter(c => c.status === 'active').length}
             </CardTitle>
           </CardHeader>
@@ -340,8 +340,8 @@ export default function ClassesPage() {
         </div>
       </div>
 
-      <Card className="glass-1 overflow-hidden">
-        <CardContent className="p-6 overflow-hidden">
+      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+        <CardContent className="p-6 overflow-hidden flex-1">
           <div className="hidden md:block">
             <Table>
             <TableHeader className="bg-muted/5 h-16 border-b ">
@@ -461,7 +461,7 @@ export default function ClassesPage() {
                   </div>
                   <div className="p-4 space-y-3">
                     <div>
-                      <h4 className="font-serif font-normal text-lg leading-tight mb-1">{course.title}</h4>
+                      <h4 className="font-serif text-lg leading-tight mb-1 font-medium">{course.title}</h4>
                       <div className="flex items-center gap-2">
                          <Badge variant="outline" className={cn("text-xs h-4 px-1 py-0  ", getLevelColor(course.level))}>
                           {course.level}
@@ -469,7 +469,7 @@ export default function ClassesPage() {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div className="grid grid-cols-2 gap-3 pt-2 items-stretch">
                        <div className="flex flex-col gap-1">
                           <p className="text-xs  font-normal text-muted-foreground ">Timing</p>
                           <p className="text-xs font-normal">{course.schedule}</p>
@@ -509,11 +509,11 @@ export default function ClassesPage() {
                     {selectedCourse.status}
                   </Badge>
                 </div>
-                <h3 className="text-xl">{selectedCourse.title}</h3>
+                <h3 className="text-xl font-medium">{selectedCourse.title}</h3>
                 <p className="text-muted-foreground mt-2">{selectedCourse.description}</p>
               </div>
 
-              <div className="grid gap-4 grid-cols-2">
+              <div className="grid gap-4 grid-cols-2 items-stretch">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-muted-foreground" />
                   <div>
@@ -548,7 +548,7 @@ export default function ClassesPage() {
                 <p className="font-serif font-normal text-lg text-primary">Rs. {(selectedCourse.feeAmount || 0).toLocaleString()}</p>
               </div>
 
-              <div className="grid gap-4 grid-cols-2 pt-4 border-t">
+              <div className="grid gap-4 grid-cols-2 pt-4 border-t items-stretch">
                 <div>
                   <p className="text-sm text-muted-foreground">Start Date</p>
                   <p className="font-normal flex items-center gap-2">
@@ -581,7 +581,7 @@ export default function ClassesPage() {
           {selectedCourse && (
             <form onSubmit={handleEditCourse}>
               <FieldGroup className="py-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Academic Level</FieldLabel>
                     <Select name="title" defaultValue={selectedCourse.title} required>
@@ -610,7 +610,7 @@ export default function ClassesPage() {
                   </Field>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Session Timing</FieldLabel>
                     <Select name="schedule" defaultValue={selectedCourse.schedule} required>
@@ -631,7 +631,7 @@ export default function ClassesPage() {
                   </Field>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 items-stretch">
                   <Field>
                     <FieldLabel className="text-editorial-label">Tuition Fee (PKR)</FieldLabel>
                     <Input name="feeAmount" type="number" defaultValue={selectedCourse.feeAmount || 0} placeholder="e.g. 5000" required className="bg-background/50 h-10 font-normal font-serif text-editorial-meta" />

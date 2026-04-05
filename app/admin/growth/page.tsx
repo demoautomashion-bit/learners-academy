@@ -122,7 +122,7 @@ export default function GrowthPage() {
       {/* Editorial Header */}
       <motion.div variants={STAGGER_ITEM} className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="max-w-3xl">
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Growth & Analytics
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-normal max-w-2xl opacity-80">
@@ -138,7 +138,7 @@ export default function GrowthPage() {
       </motion.div>
 
       {/* Primary Conversion Row */}
-      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-stretch">
         {[
           { label: 'Daily Admissions', value: stats.daily, context: 'Active Registry', icon: UserPlus, color: 'text-primary' },
           { label: 'Weekly Growth', value: stats.weekly, context: 'Market Cycle', icon: TrendingUp, color: 'text-success' },
@@ -147,10 +147,10 @@ export default function GrowthPage() {
         ].map((stat, i) => (
           <Card key={i} className="     group relative overflow-hidden flex flex-col justify-between h-56">
             <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5  blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <CardContent className="pt-10 pb-6 relative z-10">
+            <CardContent className="pt-10 pb-6 relative z-10 flex-1">
               <p className="text-xs   text-muted-foreground mb-4 font-normal opacity-50">{stat.label}</p>
               <div className="flex items-baseline gap-3">
-                <h3 className="font-serif text-xl font-serif">
+                <h3 className="font-serif text-xl font-serif font-medium">
                   {stat.value}
                 </h3>
                 {i === 2 && (
@@ -172,13 +172,13 @@ export default function GrowthPage() {
       </motion.div>
 
       {/* Rich Visual Data Row */}
-      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-stretch">
         {/* Admission Velocity Chart */}
-        <Card className="glass-1 lg:col-span-3 overflow-hidden">
+        <Card className="glass-1 lg:col-span-3 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="bg-muted/10 border-b  p-10">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-serif text-xl font-serif">Recruitment Velocity</h3>
+                <h3 className="font-serif text-xl font-serif font-medium">Recruitment Velocity</h3>
                 <p className="text-xs   text-muted-foreground font-normal opacity-60 mt-1">Stochastic entry distribution (Trailing 30-Day Window)</p>
               </div>
               <div className="flex gap-4">
@@ -189,7 +189,7 @@ export default function GrowthPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-6 pt-16">
+          <CardContent className="p-6 pt-16 flex-1">
             <div className="h-[380px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData}>
@@ -241,13 +241,13 @@ export default function GrowthPage() {
         </Card>
 
         {/* Level Distribution Bar Chart */}
-        <Card className="glass-1 lg:col-span-2 overflow-hidden">
+        <Card className="glass-1 lg:col-span-2 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
           <CardHeader className="bg-muted/10 border-b  p-10 text-center relative overflow-hidden">
             <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5  blur-3xl opacity-20" />
-            <h3 className="font-serif text-xl font-serif">Tiers Composition</h3>
+            <h3 className="font-serif text-xl font-serif font-medium">Tiers Composition</h3>
             <p className="text-xs   text-muted-foreground font-normal opacity-60 mt-1">Cross-sectional study by institutional rank.</p>
           </CardHeader>
-          <CardContent className="p-6 flex flex-col items-center justify-center gap-6 min-h-[400px]">
+          <CardContent className="p-6 flex flex-col items-center justify-center gap-6 min-h-[400px] flex-1">
             {/* Term Lifecycle Progress */}
             <div className="relative w-40 h-40 group mb-4">
               <svg className="w-full h-full transform -rotate-90">
@@ -295,7 +295,7 @@ export default function GrowthPage() {
       </motion.div>
 
       {/* Detailed Insights / Narrative */}
-      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <motion.div variants={STAGGER_ITEM} className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
         {[
           { label: 'Strategic Momentum', description: stats.growthDelta > 0 ? "Institutional growth velocity has hit peak metrics for the current cycle." : "Admission cadence is stabilizing after a high-volume registration window.", icon: Sparkle, color: 'text-success' },
           { label: 'Operational Scale', description: `Cross-institutional reach has successfully expanded to ${stats.totalStudents} active student identifiers.`, icon: GraduationCap, color: 'text-primary' },

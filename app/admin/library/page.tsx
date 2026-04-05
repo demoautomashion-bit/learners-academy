@@ -57,7 +57,7 @@ export default function AdminLibraryPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">Content Audit & Registry</h1>
+          <h1 className="font-serif text-3xl text-foreground font-medium">Content Audit & Registry</h1>
           <p className="text-muted-foreground mt-1 text-editorial-meta opacity-70">
             Institutional oversight and approval for the academic question library.
           </p>
@@ -66,14 +66,14 @@ export default function AdminLibraryPage() {
           {pendingCount > 0 && (
             <Badge variant="destructive" className="animate-pulse gap-1.5 px-3 py-1 bg-destructive/10 text-destructive border-destructive/20 h-9 ">
               <AlertCircle className="w-3.5 h-3.5" />
-              <span className="text-xs   font-bold">{pendingCount} Awaiting Audit</span>
+              <span className="text-xs   ">{pendingCount} Awaiting Audit</span>
             </Badge>
           )}
         </div>
       </div>
 
       {/* Control Strip */}
-      <Card className="glass-1 overflow-hidden">
+      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
         <div className="p-4 flex flex-col gap-4 md:flex-row md:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
@@ -130,7 +130,7 @@ export default function AdminLibraryPage() {
                     <div className="p-6 flex-1 flex flex-col md:flex-row gap-6">
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="outline" className={`text-xs px-2 h-5 font-bold   border-none ${TYPE_BADGE_COLORS[q.type] || ''}`}>
+                          <Badge variant="outline" className={`text-xs px-2 h-5    border-none ${TYPE_BADGE_COLORS[q.type] || ''}`}>
                             {q.type}
                           </Badge>
                           <Badge variant="secondary" className="text-xs px-2 h-5 font-normal   bg-muted/40">
@@ -140,7 +140,7 @@ export default function AdminLibraryPage() {
                             {q.category}
                           </Badge>
                           {!q.isApproved && (
-                            <Badge className="bg-warning text-warning-foreground text-xs font-bold   px-1.5 h-4">
+                            <Badge className="bg-warning text-warning-foreground text-xs    px-1.5 h-4">
                               Awaiting Audit
                             </Badge>
                           )}
@@ -151,7 +151,7 @@ export default function AdminLibraryPage() {
                           {q.type === 'Fill in the Blanks' && <span className="ml-2 font-serif text-primary border-b-2  px-2 italic">{q.correctAnswer}</span>}
                         </p>
 
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground  font-bold ">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground   ">
                           {q.passageText && <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" /> Passage Included</span>}
                           {q.audioUrl && <span className="flex items-center gap-1"><Volume2 className="w-3 h-3" /> Audio Clip Linked</span>}
                           {q.type === 'MCQ' && <span>{q.options?.length} Options Configured</span>}
@@ -160,7 +160,7 @@ export default function AdminLibraryPage() {
 
                       <div className="flex flex-row md:flex-col items-center justify-between md:justify-center gap-4 md:border-l  md:pl-8">
                         <div className="flex flex-col items-center gap-1.5">
-                          <span className={`text-xs   font-bold ${q.isApproved ? 'text-success' : 'text-warning'}`}>
+                          <span className={`text-xs    ${q.isApproved ? 'text-success' : 'text-warning'}`}>
                             {q.isApproved ? 'Approved' : 'Verify'}
                           </span>
                           <Switch 

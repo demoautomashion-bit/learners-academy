@@ -252,7 +252,7 @@ export default function AttendancePage() {
       {/* Header section - Main Dashboard View */}
       <motion.div variants={STAGGER_ITEM} className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between print:hidden">
         <div className="max-w-2xl">
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Attendance Registry
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-normal opacity-90 leading-relaxed">
@@ -298,17 +298,17 @@ export default function AttendancePage() {
       </motion.div>
 
       {/* Main Content Registry */}
-      <div className="grid gap-8 lg:grid-cols-4 print:grid-cols-1">
+      <div className="grid gap-8 lg:grid-cols-4 print:grid-cols-1 items-stretch">
         {/* Faculty Directory - Hidden in print */}
         <motion.div variants={STAGGER_ITEM} className="lg:col-span-1 space-y-6 print:hidden">
-          <Card className="glass-1 overflow-hidden">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="bg-muted/5 border-b  px-6 py-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs   text-muted-foreground font-normal opacity-60">Faculty Roster</span>
                 <Users className="w-4 h-4 text-muted-foreground opacity-30" />
               </div>
             </CardHeader>
-            <CardContent className="p-6 space-y-1.5 max-h-[700px] overflow-y-auto scrollbar-thin">
+            <CardContent className="p-6 space-y-1.5 max-h-[700px] overflow-y-auto scrollbar-thin flex-1">
               {teachers?.map(teacher => (
                 <button
                   key={teacher.id}
@@ -339,7 +339,7 @@ export default function AttendancePage() {
         {/* Dynamic Registry Table */}
         <motion.div variants={STAGGER_ITEM} className="lg:col-span-3 space-y-6">
           {selectedTeacher ? (
-            <Card className="glass-1 overflow-hidden">
+            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
               <CardHeader className="border-b  bg-muted/5 p-8">
                 <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-5">
@@ -351,7 +351,7 @@ export default function AttendancePage() {
                     </Avatar>
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="font-serif leading-none text-xl font-serif">{selectedTeacher.name}</h3>
+                        <h3 className="font-serif leading-none text-xl font-serif font-medium">{selectedTeacher.name}</h3>
                         <Badge variant="outline" className="text-xs   font-normal  opacity-60">Faculty Member</Badge>
                       </div>
                     <p className="text-xs   font-normal opacity-70">
@@ -402,7 +402,7 @@ export default function AttendancePage() {
                 </div>
               </div>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-6 flex-1">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader className="bg-muted/10 border-b  h-16">
@@ -551,7 +551,7 @@ export default function AttendancePage() {
                                         </Button>
                                       </div>
                                       
-                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                                         {details.length === 0 ? (
                                           <div className="col-span-full py-12 flex flex-col items-center justify-center border border-dashed   opacity-40">
                                             <History className="w-8 h-8 mb-3 opacity-20" />

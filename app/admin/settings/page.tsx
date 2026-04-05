@@ -56,7 +56,7 @@ export default function SettingsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-serif text-3xl text-foreground font-medium">
             Settings
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -82,10 +82,10 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card className="glass-1 md:col-span-2">
+          <div className="grid gap-6 md:grid-cols-3 items-stretch">
+            <Card className="glass-1 md:col-span-2 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="font-serif text-xl font-serif">Institute Information</CardTitle>
+                <CardTitle className="font-serif text-xl font-serif font-medium">Institute Information</CardTitle>
                 <CardDescription>
                   Core academic identity and branding parameters.
                 </CardDescription>
@@ -112,14 +112,14 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            <Card className="glass-1">
+            <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="font-serif text-xl font-serif">Academy Branding</CardTitle>
+                <CardTitle className="font-serif text-xl font-serif font-medium">Academy Branding</CardTitle>
                 <CardDescription>
                   Manage the official logo and institutional profile icon.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-6">
+              <CardContent className="flex flex-col items-center justify-center py-6 flex-1">
                 <div className="relative group cursor-pointer mb-6">
                   <div className="w-32 h-32  border-2 border-dashed  flex items-center justify-center bg-muted/30 overflow-hidden transition-all group-hover:">
                     {user?.avatar ? (
@@ -157,7 +157,7 @@ export default function SettingsPage() {
 
         {/* Security Settings */}
         <TabsContent value="security" className="space-y-6">
-          <Card className="glass-1">
+          <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader>
               <CardTitle>Password</CardTitle>
               <CardDescription>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="glass-1">
+          <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader>
               <CardTitle>Two-Factor Authentication</CardTitle>
               <CardDescription>
@@ -205,14 +205,14 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="glass-1">
+          <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader>
               <CardTitle>Session Management</CardTitle>
               <CardDescription>
                 Manage your active sessions across devices
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 flex-1">
               <div className="flex items-center justify-between p-3  border">
                 <div>
                   <p className="font-normal">Current Session</p>
@@ -235,14 +235,14 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="appearance" className="space-y-6">
-          <Card className="glass-1">
+          <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader>
-              <CardTitle className="font-serif text-xl font-serif">Interface Configuration</CardTitle>
+              <CardTitle className="font-serif text-xl font-serif font-medium">Interface Configuration</CardTitle>
               <CardDescription>
                 Tailor the visual intensity and density of your administration portal.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 flex-1">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <p className="font-normal">Dark Mode Appearance</p>

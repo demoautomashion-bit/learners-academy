@@ -106,7 +106,7 @@ function PayrollContent() {
   if (!teacher) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <h2 className="text-2xl font-serif">Professional Record Missing</h2>
+        <h2 className="text-2xl font-serif font-medium">Professional Record Missing</h2>
         <p className="text-muted-foreground">The requested instructor's financial data could not be localized.</p>
         <Button variant="outline" asChild className="">
           <Link href="/admin/teachers">
@@ -129,7 +129,7 @@ function PayrollContent() {
             </Link>
           </Button>
           <div>
-            <h1 className="font-serif text-3xl">Institutional Payroll</h1>
+            <h1 className="font-serif text-3xl font-medium">Institutional Payroll</h1>
             <div className="flex items-center gap-2 mt-1">
                <Avatar className="w-5 h-5 ring-1 ring-primary/20">
                   <AvatarFallback className="text-xs bg-primary/10 text-primary">
@@ -149,50 +149,50 @@ function PayrollContent() {
       </div>
 
       {/* Global Financial Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="glass-1">
-          <CardContent className="p-6">
-             <p className="text-xs   text-muted-foreground font-bold mb-2">Total Faculty Revenue</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-stretch">
+        <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+          <CardContent className="p-6 flex-1">
+             <p className="text-xs   text-muted-foreground  mb-2">Total Faculty Revenue</p>
              <p className="text-3xl font-serif">Rs. {financialData.totalPaidRevenue.toLocaleString()}</p>
              <div className="flex items-center gap-1 mt-2 text-success">
                 <TrendingUp className="w-3 h-3" />
-                <span className="text-xs font-bold">12% growth vs last period</span>
+                <span className="text-xs ">12% growth vs last period</span>
              </div>
           </CardContent>
         </Card>
         
-        <Card className="glass-1 border-success/5">
-          <CardContent className="p-6">
-             <p className="text-xs   text-muted-foreground font-bold mb-2">Paid Enrolments</p>
+        <Card className="glass-1 border-success/5 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+          <CardContent className="p-6 flex-1">
+             <p className="text-xs   text-muted-foreground  mb-2">Paid Enrolments</p>
              <p className="text-3xl font-serif text-success">{financialData.paidCount}</p>
              <p className="text-xs text-muted-foreground mt-2 italic font-serif">Verified institutional payments</p>
           </CardContent>
         </Card>
 
-        <Card className="glass-1 border-destructive/5">
-          <CardContent className="p-6">
-             <p className="text-xs   text-muted-foreground font-bold mb-2">Outstanding Dues</p>
+        <Card className="glass-1 border-destructive/5 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+          <CardContent className="p-6 flex-1">
+             <p className="text-xs   text-muted-foreground  mb-2">Outstanding Dues</p>
              <p className="text-3xl font-serif text-destructive">{financialData.unpaidCount}</p>
              <p className="text-xs text-muted-foreground mt-2 italic font-serif">Pending audit resolution</p>
           </CardContent>
         </Card>
 
-        <Card className="glass-1 bg-primary/5 shadow-inner-premium border-2 border-dashed">
-          <CardContent className="p-6 flex flex-col justify-center h-full">
-             <p className="text-xs   text-primary font-bold mb-1">Calculated Payout</p>
+        <Card className="glass-1 bg-primary/5 border-2 border-dashed rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+          <CardContent className="p-6 flex flex-col justify-center h-full flex-1">
+             <p className="text-xs   text-primary  mb-1">Calculated Payout</p>
              <p className="text-3xl font-serif text-primary">Rs. {computedSalary.toLocaleString()}</p>
              <p className="text-xs text-primary/60 mt-2  ">*Engineered based on {compensationModel} model</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-stretch">
         {/* Main Ledger */}
         <div className="lg:col-span-3 space-y-6">
-           <Card className="glass-1 overflow-hidden">
+           <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
               <CardHeader className="border-b  bg-muted/10 h-20 flex flex-row items-center justify-between px-8">
                  <div>
-                    <CardTitle className="font-serif flex items-center gap-3 text-xl">
+                    <CardTitle className="font-serif flex items-center gap-3 text-xl font-medium">
                        <ShieldCheck className="w-5 h-5 text-primary" />
                        Instructor Batch Ledger
                     </CardTitle>
@@ -207,7 +207,7 @@ function PayrollContent() {
                     />
                  </div>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-6 flex-1">
                  <Table>
                     <TableHeader className="bg-muted/5 h-12   text-xs">
                        <TableRow className="hover:bg-transparent ">
@@ -260,17 +260,17 @@ function PayrollContent() {
 
         {/* Salary Engine Sidebar */}
         <div className="space-y-6">
-           <Card className="glass-1 bg-gradient-to-br from-primary/10 to-accent/10 overflow-hidden border-2">
+           <Card className="glass-1 bg-gradient-to-br from-primary/10 to-accent/10 overflow-hidden border-2 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
               <CardHeader className="bg-white/10 p-8 pb-4">
-                 <CardTitle className="font-serif text-xl flex items-center gap-3">
+                 <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
                    <Calculator className="w-5 h-5 text-primary" />
                    Salary Engine
                  </CardTitle>
                  <CardDescription className="text-xs">Adjust compensation parameters for the active period</CardDescription>
               </CardHeader>
-              <CardContent className="p-6 pt-6 space-y-6">
+              <CardContent className="p-6 pt-6 space-y-6 flex-1">
                 <div className="space-y-2">
-                   <label className="text-xs   text-muted-foreground font-bold">Calculation Model</label>
+                   <label className="text-xs   text-muted-foreground ">Calculation Model</label>
                    <Select value={compensationModel} onValueChange={(val: any) => setCompensationModel(val)}>
                       <SelectTrigger className="h-12 bg-background/50  ">
                          <SelectValue />
@@ -283,7 +283,7 @@ function PayrollContent() {
                 </div>
 
                 <div className="space-y-2">
-                   <label className="text-xs   text-muted-foreground font-bold">Baseline Rate</label>
+                   <label className="text-xs   text-muted-foreground ">Baseline Rate</label>
                    <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-serif text-xs">
                         {compensationModel === 'fixed' ? 'Rs.' : '%'}
@@ -310,17 +310,17 @@ function PayrollContent() {
                       </div>
                       <Wallet className="w-8 h-8 text-primary opacity-20" />
                    </div>
-                   <Button className="w-full  bg-primary font-bold shadow-xl shadow-primary/20">
+                   <Button className="w-full  bg-primary  shadow-xl shadow-primary/20">
                       Generate Payout Logic
                    </Button>
                 </div>
               </CardContent>
            </Card>
 
-           <Card className="glass-1 p-6">
+           <Card className="glass-1 p-6 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                  <Users className="w-4 h-4 text-muted-foreground opacity-40" />
-                 <h4 className="text-xs   font-bold">Faculty Composition</h4>
+                 <h4 className="text-xs font-medium">Faculty Composition</h4>
               </div>
               <div className="space-y-4">
                  <div className="flex items-center justify-between">
@@ -344,7 +344,7 @@ export default function FacultyPayrollPage() {
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <Calculator className="w-12 h-12 animate-pulse opacity-20" />
-        <p className="text-xs   opacity-40 font-bold">Synchronizing Financial Registry...</p>
+        <p className="text-xs   opacity-40 ">Synchronizing Financial Registry...</p>
       </div>
     }>
       <PayrollContent />
