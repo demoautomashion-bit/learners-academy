@@ -6,16 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { SecureInput } from '@/components/ui/secure-input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +21,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   Select,
@@ -47,32 +36,29 @@ import {
   Plus,
   Search,
   MoreHorizontal,
-  Mail,
-  Phone,
   Edit,
   Trash2,
   Eye,
   UserCheck,
   UserX,
-  GraduationCap,
-  BookOpen,
-  Award,
 } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
 import { cn } from '@/lib/utils'
-import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
+import { SESSION_TIMINGS } from '@/lib/registry'
 import type { Student } from '@/lib/types'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { PageShell } from '@/components/shared/page-shell'
+import { PageHeader } from '@/components/shared/page-header'
+import { EntityCardGrid } from '@/components/shared/entity-card-grid'
+import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 
 const studentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   guardianName: z.string().min(2, 'Guardian name must be at least 2 characters'),
   studentId: z.string().min(3, 'Student ID must be at least 3 characters'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
   phone: z.string().min(5, 'Enter a valid phone number'),
   course: z.string().min(1, 'Please select a class'),
   timing: z.string().min(1, 'Please select a timing'),
@@ -80,17 +66,13 @@ const studentSchema = z.object({
 
 type StudentFormValues = z.infer<typeof studentSchema>
 
-const ACADEMY_CLASSES = ACADEMY_LEVELS
-const CLASS_TIMINGS = SESSION_TIMINGS
-
 export default function StudentsPage() {
-  const router = useRouter()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
-  const { students, courses: mockCourses, enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, feePayments, isInitialized } = useData()
+  const { students, courses: mockCourses, removeStudent, updateStudentStatus, updateStudent, isInitialized } = useData()
 
   if (!isInitialized) return <DashboardSkeleton />
 
@@ -143,336 +125,220 @@ export default function StudentsPage() {
     }
   }
 
-  const getGradeColor = (grade?: number) => {
-    if (!grade) return 'text-muted-foreground'
-    if (grade >= 80) return 'text-success'
-    if (grade >= 60) return 'text-primary'
-    if (grade >= 40) return 'text-warning'
-    return 'text-destructive'
-  }
+  const columns: Column<Student>[] = [
+    {
+      label: 'Student ID',
+      render: (student) => (
+        <span className="font-sans font-normal text-primary">
+          {student.studentId || 'ID-TBC'}
+        </span>
+      ),
+      width: '120px'
+    },
+    {
+      label: 'Name',
+      render: (student) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-primary/5 text-primary text-xs font-normal">
+              {student.name.split(' ').map(n => n[0]).join('')}
+            </AvatarFallback>
+          </Avatar>
+          <p className="font-normal">{student.name}</p>
+        </div>
+      ),
+      width: '250px'
+    },
+    {
+      label: 'Guardian Name',
+      render: (student) => (
+        <span className="text-muted-foreground font-normal opacity-60">
+          {student.guardianName || 'N/A'}
+        </span>
+      )
+    },
+    {
+      label: 'Class (Timing)',
+      render: (student) => (
+        <div className="flex flex-col">
+          <span className="font-normal text-sm">
+            {mockCourses.find(c => c.id === student.enrolledCourses[0])?.title || 'Registry Level'}
+          </span>
+          <span className="text-xs text-muted-foreground font-normal opacity-50">
+            {student.classTiming || 'Timing TBC'}
+          </span>
+        </div>
+      )
+    },
+    {
+      label: 'Phone Number',
+      render: (student) => (
+        <span className="font-sans text-xs opacity-70 font-normal">
+          {student.phone}
+        </span>
+      )
+    },
+    {
+      label: '',
+      render: (student) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="hover:bg-primary/5">
+              <MoreHorizontal className="w-4 h-4 opacity-40" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 p-1.5 overflow-hidden">
+            <DropdownMenuLabel className="text-xs font-normal opacity-40 px-4 py-2">Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem asChild className="cursor-pointer py-2.5">
+              <Link href={`/admin/students/${student.id}`} className="flex items-center w-full">
+                <Eye className="w-4 h-4 mr-2 opacity-60" />
+                View Details
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {
+              setSelectedStudent(student)
+              editForm.reset({
+                name: student.name,
+                guardianName: student.guardianName || '',
+                studentId: student.studentId || '',
+                phone: student.phone,
+                course: student.enrolledCourses[0] || '',
+                timing: student.classTiming || '',
+              })
+              setIsEditDialogOpen(true)
+            }} className="cursor-pointer py-2.5">
+              <Edit className="w-4 h-4 mr-2 opacity-60" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleToggleStatus(student)} className="cursor-pointer py-2.5">
+              {student.status === 'active' ? (
+                <>
+                  <UserX className="w-4 h-4 mr-2 opacity-60" />
+                  Deactivate
+                </>
+              ) : (
+                <>
+                  <UserCheck className="w-4 h-4 mr-2 opacity-60" />
+                  Activate
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem 
+              className="text-destructive focus:text-destructive cursor-pointer py-2.5"
+              onClick={() => handleDelete(student)}
+            >
+              <Trash2 className="w-4 h-4 mr-2 opacity-60" />
+              Remove
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      width: '70px'
+    }
+  ]
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-serif text-3xl text-foreground font-medium">
-            Students
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage student enrollments and track their progress
-          </p>
-        </div>
-        <Button asChild className="shadow-lg shadow-primary/20 font-normal ">
-          <Link href="/admin/students/registration">
-            <Plus className="w-4 h-4 mr-2" />
-            Enroll Student
-          </Link>
-        </Button>
-      </div>
+    <PageShell>
+      <PageHeader 
+        title="Students"
+        description="Manage student enrollments and track their progress."
+        actions={
+          <Button asChild className="shadow-lg shadow-primary/20 font-normal">
+            <Link href="/admin/students/registration">
+              <Plus className="w-4 h-4 mr-2" />
+              Enroll Student
+            </Link>
+          </Button>
+        }
+      />
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 items-stretch">
-        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
-          <CardHeader className="pb-2">
-            <CardDescription>Total Students</CardDescription>
-            <CardTitle className="text-xl font-serif font-medium">{students.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="glass-1 hover-lift transition-premium rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col">
-          <CardHeader className="pb-2">
-            <CardDescription>Active Students</CardDescription>
-            <CardTitle className="text-success text-xl font-serif font-medium">
-              {students?.filter(s => s.status === 'active').length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+      <EntityCardGrid 
+        data={[
+          { label: 'Total Students', value: students.length, sub: 'Academy Roster' },
+          { label: 'Active Students', value: students?.filter(s => s.status === 'active').length, sub: 'Currently Enrolled', color: 'text-success' },
+        ]}
+        renderItem={(stat, i) => (
+          <Card key={i} className="hover-lift transition-premium">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs font-normal opacity-60">{stat.label}</CardDescription>
+              <CardTitle className={cn("text-2xl font-serif font-medium", stat.color)}>
+                {stat.value}
+              </CardTitle>
+              <p className="text-[10px] text-muted-foreground font-normal opacity-40 mt-1">{stat.sub}</p>
+            </CardHeader>
+          </Card>
+        )}
+        columns={2}
+      />
 
-      {/* Students Table */}
-      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-        <CardHeader>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <CardTitle>All Students</CardTitle>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Filter status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="graduated">Graduated</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search students..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+      <EntityDataGrid 
+        title="All Students"
+        data={filteredStudents}
+        columns={columns}
+        actions={
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[140px] h-10 text-xs font-normal">
+                <SelectValue placeholder="Filter status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="graduated">Graduated</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30" />
+              <Input
+                placeholder="Search students..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-muted/10 focus:bg-background transition-all h-10 text-sm font-normal"
+              />
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {/* Desktop Table View */}
-          <div className="hidden md:block  border">
-            <Table>
-              <TableHeader className="bg-muted/5 h-16 border-b ">
-                <TableRow>
-                  <TableHead>Student ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Guardian Name</TableHead>
-                  <TableHead>Class (Timing)</TableHead>
-                  <TableHead>Phone Number</TableHead>
-                  <TableHead className="w-[70px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No students found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredStudents?.map((student) => (
-                    <TableRow key={student.id}>
-                      <TableCell className="font-sans font-normal text-primary ">
-                        {student.studentId || 'ID-TBC'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                            <AvatarFallback className="bg-primary/5 text-primary text-xs font-normal">
-                              {student.name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <p className="font-serif text-base font-normal">{student.name}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground font-normal">
-                        {student.guardianName || 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-normal text-sm">
-                            {mockCourses.find(c => c.id === student.enrolledCourses[0])?.title || 'Registry Level'}
-                          </span>
-                          <span className="text-xs text-muted-foreground  font-normal">
-                            {student.classTiming || 'Timing TBC'}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-sans text-xs opacity-70">
-                        {student.phone}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                              <Link href={`/admin/students/${student.id}`} className="flex items-center w-full">
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Details
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => {
-                              setSelectedStudent(student)
-                              editForm.reset({
-                                name: student.name,
-                                guardianName: student.guardianName || '',
-                                studentId: student.studentId || '',
-                                phone: student.phone,
-                                course: student.enrolledCourses[0] || '',
-                                timing: student.classTiming || '',
-                              })
-                              setIsEditDialogOpen(true)
-                            }}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleStatus(student)}>
-                              {student.status === 'active' ? (
-                                <>
-                                  <UserX className="w-4 h-4 mr-2" />
-                                  Deactivate
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="w-4 h-4 mr-2" />
-                                  Activate
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => handleDelete(student)}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Remove
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+        }
+      />
 
-          {/* Mobile Card List View */}
-          <div className="grid gap-4 md:hidden">
-            {filteredStudents.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground bg-muted/10  border border-dashed">
-                No students found matching your criteria.
-              </div>
-            ) : (
-              filteredStudents?.map((student) => (
-                <motion.div
-                  key={student.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-card border  p-4 shadow-sm hover:shadow-md transition-premium cursor-pointer"
-                  onClick={() => router.push(`/admin/students/${student.id}`)}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 ring-2 ring-primary/5">
-                        <AvatarFallback className="bg-primary/10 text-primary font-normal">
-                          {student.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h4 className="font-serif text-base leading-none mb-1 font-medium">{student.name}</h4>
-                        <p className="text-xs text-muted-foreground   font-normal opacity-60">
-                          {student.studentId || 'ID-TBC'}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge 
-                      variant={student.status === 'inactive' ? 'secondary' : 'default'}
-                      className={cn("text-xs px-1.5 py-0  ", getStatusColor(student.status))}
-                    >
-                      {student.status}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-4 text-xs font-sans items-stretch">
-                    <div className="space-y-1">
-                      <p className="text-muted-foreground font-normal   text-xs">Guardian</p>
-                      <p className="font-normal line-clamp-1">{student.guardianName || 'N/A'}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-muted-foreground font-normal   text-xs">Class & Timing</p>
-                      <p className="font-normal text-primary truncate">
-                        {mockCourses.find(c => c.id === student.enrolledCourses[0])?.title} ({student.classTiming})
-                      </p>
-                    </div>
-                  </div>
-
-
-
-                  <div className="mt-4 pt-4 border-t flex items-center justify-between gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      asChild
-                      className="flex-1  font-normal"
-                    >
-                      <Link href={`/admin/students/${student.id}`}>
-                        <Eye className="w-3.5 h-3.5 mr-1.5" />
-                        View Profile
-                      </Link>
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="w-9 ">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48  p-1 ">
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation()
-                          handleToggleStatus(student)
-                        }} className="">
-                          {student.status === 'active' ? (
-                            <><UserX className="w-4 h-4 mr-2" /> Deactivate</>
-                          ) : (
-                            <><UserCheck className="w-4 h-4 mr-2" /> Activate</>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-destructive focus:text-destructive "
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDelete(student)
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Remove Student
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Edit Student Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="font-serif text-3xl  text-primary font-normal">Edit Record</DialogTitle>
-            <DialogDescription className="text-editorial-meta">Modify essential student protocols and enrollment settings.</DialogDescription>
+            <DialogTitle className="font-serif text-3xl text-primary font-medium">Edit Record</DialogTitle>
+            <DialogDescription className="text-xs font-normal opacity-60">Modify essential student protocols and enrollment settings.</DialogDescription>
           </DialogHeader>
           <form onSubmit={editForm.handleSubmit(onEditSubmit)}>
             <FieldGroup className="py-6 space-y-6">
               <div className="grid grid-cols-2 gap-4 items-stretch">
                 <Field>
-                  <FieldLabel className="text-editorial-label">Student Name</FieldLabel>
-                  <Input {...editForm.register('name')} className="bg-background/50 h-10" />
+                  <FieldLabel className="text-xs text-muted-foreground mb-1.5 h-auto font-normal">Student Name</FieldLabel>
+                  <Input {...editForm.register('name')} className="bg-background h-10 font-normal" />
                 </Field>
                 <Field>
-                  <FieldLabel className="text-editorial-label">Guardian Name</FieldLabel>
-                  <Input {...editForm.register('guardianName')} className="bg-background/50 h-10" />
-                </Field>
-              </div>
-              <div className="grid grid-cols-2 gap-4 items-stretch">
-                <Field>
-                  <FieldLabel className="text-editorial-label">Student ID</FieldLabel>
-                  <Input {...editForm.register('studentId')} className="bg-background/50 h-10" />
-                </Field>
-                <Field>
-                  <FieldLabel className="text-editorial-label">Phone</FieldLabel>
-                  <Input {...editForm.register('phone')} className="bg-background/50 h-10" />
+                  <FieldLabel className="text-xs text-muted-foreground mb-1.5 h-auto font-normal">Guardian Name</FieldLabel>
+                  <Input {...editForm.register('guardianName')} className="bg-background h-10 font-normal" />
                 </Field>
               </div>
               <div className="grid grid-cols-2 gap-4 items-stretch">
                 <Field>
-                  <FieldLabel className="text-editorial-label">Registry Class</FieldLabel>
+                  <FieldLabel className="text-xs text-muted-foreground mb-1.5 h-auto font-normal">Student ID</FieldLabel>
+                  <Input {...editForm.register('studentId')} className="bg-background h-10 font-normal" />
+                </Field>
+                <Field>
+                  <FieldLabel className="text-xs text-muted-foreground mb-1.5 h-auto font-normal">Phone</FieldLabel>
+                  <Input {...editForm.register('phone')} className="bg-background h-10 font-normal" />
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-4 items-stretch">
+                <Field>
+                  <FieldLabel className="text-xs text-muted-foreground mb-1.5 h-auto font-normal">Registry Class</FieldLabel>
                   <Select 
                     onValueChange={(val) => editForm.setValue('course', val)}
                     defaultValue={selectedStudent?.enrolledCourses[0]}
                   >
-                    <SelectTrigger className="bg-background/50 h-10">
+                    <SelectTrigger className="bg-background h-10 font-normal text-sm">
                       <SelectValue placeholder="Select class level" />
                     </SelectTrigger>
                     <SelectContent>
@@ -483,16 +349,16 @@ export default function StudentsPage() {
                   </Select>
                 </Field>
                 <Field>
-                  <FieldLabel className="text-editorial-label">Timing</FieldLabel>
+                  <FieldLabel className="text-xs text-muted-foreground mb-1.5 h-auto font-normal">Timing</FieldLabel>
                   <Select 
                     onValueChange={(val) => editForm.setValue('timing', val)}
                     defaultValue={selectedStudent?.classTiming}
                   >
-                    <SelectTrigger className="bg-background/50 h-10">
+                    <SelectTrigger className="bg-background h-10 font-normal text-sm">
                       <SelectValue placeholder="Select session" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CLASS_TIMINGS?.map((time) => (
+                      {SESSION_TIMINGS?.map((time) => (
                         <SelectItem key={time} value={time}>{time}</SelectItem>
                       ))}
                     </SelectContent>
@@ -500,13 +366,13 @@ export default function StudentsPage() {
                 </Field>
               </div>
             </FieldGroup>
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={editForm.formState.isSubmitting} className="font-normal">Save Changes</Button>
+            <DialogFooter className="pt-2 border-t pt-4">
+              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-xs font-normal">Cancel</Button>
+              <Button type="submit" disabled={editForm.formState.isSubmitting} className="font-normal shadow-xl shadow-primary/20">Save Changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   )
 }

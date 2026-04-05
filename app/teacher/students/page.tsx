@@ -15,49 +15,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { motion, AnimatePresence } from "framer-motion"
-import { STAGGER_CONTAINER, STAGGER_ITEM } from "@/lib/premium-motion"
 import { Progress } from "@/components/ui/progress"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
-import { Search, Users, TrendingUp, Award, Mail, Phone, Calendar, ArrowRight, Filter } from "lucide-react"
+import { Search, Users, TrendingUp, Award, ArrowRight, Filter } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { PageShell } from "@/components/shared/page-shell"
+import { PageHeader } from "@/components/shared/page-header"
+import { EntityCardGrid } from "@/components/shared/entity-card-grid"
+import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 export default function TeacherStudentsPage() {
   const router = useRouter()
   const { user } = useAuth()
-  if (!user?.id) return null
   const { students: mockStudents, courses: mockCourses, enrollments: mockEnrollments, isInitialized } = useData()
 
-  // All hooks MUST be declared before any early returns (Rules of Hooks)
   const [searchQuery, setSearchQuery] = useState("")
   const [courseFilter, setCourseFilter] = useState("all")
 
+  if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
 
-  // Get students enrolled in teacher's courses
-  const teacherCourses = mockCourses?.filter(c => c.teacherId === user?.id)
-  const teacherCourseIds = teacherCourses?.map(c => c.id)
+  const teacherCourses = mockCourses?.filter(c => c.teacherId === user?.id) || []
+  const teacherCourseIds = teacherCourses.map(c => c.id)
   
   const studentsInTeacherCourses = mockStudents?.filter(student => {
-    const studentEnrollments = mockEnrollments?.filter(e => e.studentId === student.id)
+    const studentEnrollments = mockEnrollments?.filter(e => e.studentId === student.id) || []
     return studentEnrollments.some(e => teacherCourseIds.includes(e.courseId))
-  })
+  }) || []
 
-  const filteredStudents = studentsInTeacherCourses?.filter(student => {
+  const filteredStudents = studentsInTeacherCourses.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.id.toLowerCase().includes(searchQuery.toLowerCase())
     
     if (courseFilter === "all") return matchesSearch
     
-    const studentEnrollments = mockEnrollments?.filter(e => e.studentId === student.id)
+    const studentEnrollments = mockEnrollments?.filter(e => e.studentId === student.id) || []
     const matchesCourse = studentEnrollments.some(e => e.courseId === courseFilter)
     
     return matchesSearch && matchesCourse
@@ -65,193 +59,156 @@ export default function TeacherStudentsPage() {
 
   const getPerformanceBadge = (progress: number) => {
     if (progress >= 80) {
-      return <Badge className="bg-success text-white border-none text-xs    h-5 px-3 ">Elite</Badge>
+      return <Badge className="bg-success text-white border-none text-[10px] uppercase font-normal h-5 px-3">Elite</Badge>
     } else if (progress >= 60) {
-      return <Badge className="bg-primary text-white border-none text-xs    h-5 px-3 ">Strong</Badge>
-    } else if (progress >= 0) {
-      return <Badge className="bg-warning text-white border-none text-xs    h-5 px-3 ">Pending</Badge>
+      return <Badge className="bg-primary text-white border-none text-[10px] uppercase font-normal h-5 px-3">Strong</Badge>
+    } else {
+      return <Badge className="bg-warning text-white border-none text-[10px] uppercase font-normal h-5 px-3">Pending</Badge>
     }
   }
 
+  const passRate = studentsInTeacherCourses.length > 0 
+    ? Math.round(studentsInTeacherCourses.reduce((acc, s) => acc + (mockEnrollments.find(e => e.studentId === s.id)?.progress || 0), 0) / studentsInTeacherCourses.length) 
+    : 0
+
+  const distinctions = studentsInTeacherCourses.filter(s => {
+    const enrollment = mockEnrollments.find(e => e.studentId === s.id)
+    return enrollment && enrollment.progress >= 80
+  }).length
+
+  const stats = [
+    { label: 'Enrolled Candidates', value: studentsInTeacherCourses.length, icon: Users },
+    { label: 'Institutional Pass Rate', value: `${passRate}%`, icon: TrendingUp, color: 'text-success' },
+    { label: 'Dossier Distinctions', value: distinctions, icon: Award, color: 'text-warning' },
+  ]
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <motion.div 
-        variants={STAGGER_CONTAINER}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.h1 variants={STAGGER_ITEM} className="text-4xl font-serif font-normal text-foreground leading-none">Student Registry</motion.h1>
-        <motion.p variants={STAGGER_ITEM} className="mt-2 text-muted-foreground text-editorial-meta opacity-70">
-            Institutional management for academic dossiers and pupil intelligence reports.
-        </motion.p>
-      </motion.div>
+    <PageShell>
+      <PageHeader 
+        title="Student Registry"
+        description="Institutional management for academic dossiers and pupil intelligence reports."
+      />
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-30" />
-          <Input
-            placeholder="Search student ID or identity..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-11 h-14     text-sm transition-premium focus:ring-1 focus:ring-primary/20"
-          />
+      <EntityCardGrid 
+        data={stats}
+        renderItem={(stat, i) => (
+          <Card key={i} className="hover-lift p-8 overflow-hidden group transition-premium h-full flex flex-col relative">
+            <div className="flex flex-col items-center justify-center text-center space-y-2">
+                <p className={cn("text-4xl font-sans font-normal transition-colors", stat.color)}>{stat.value}</p>
+                <p className="text-[10px] font-normal opacity-50 uppercase">{stat.label}</p>
+            </div>
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                {stat.icon && <stat.icon className="w-12 h-12" />}
+            </div>
+          </Card>
+        )}
+        columns={3}
+      />
+
+      <div className="flex flex-col gap-6 mt-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-30" />
+            <Input
+              placeholder="Search student ID or identity..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-11 h-12 text-sm bg-muted/5 font-normal"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <Select value={courseFilter} onValueChange={setCourseFilter}>
+              <SelectTrigger className="w-[180px] h-12 text-xs font-normal bg-muted/5">
+                <SelectValue placeholder="All Levels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                {teacherCourses.map(course => (
+                  <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" className="opacity-40 hover:opacity-100 transition-all h-12 px-6 font-normal">
+               <Filter className="w-4 h-4 mr-2" />
+               <span className="text-xs">Filters</span>
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Select value={courseFilter} onValueChange={setCourseFilter}>
-            <SelectTrigger className="w-[220px] h-14     text-xs   font-normal">
-              <SelectValue placeholder="All Academic Levels" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Academic Levels</SelectItem>
-              {teacherCourses?.map(course => (
-                <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" className="   opacity-40 hover:opacity-100 transition-all">
-             <Filter className="w-4 h-4 mr-2" />
-             <span className="text-xs   font-normal">Filters</span>
-          </Button>
-        </div>
-      </div>
 
-      {/* Stats Summary Panel */}
-      <motion.div 
-        className="grid gap-6 sm:grid-cols-3 items-stretch"
-        variants={STAGGER_CONTAINER}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift p-8 overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <div className="flex flex-col items-center justify-center text-center space-y-2">
-                <p className="text-4xl font-sans font-normal text-foreground/80 group-hover:text-primary transition-colors">{studentsInTeacherCourses.length}</p>
-                <p className="text-xs   font-normal opacity-50">Enrolled Candidates</p>
-            </div>
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Users className="w-12 h-12" />
-            </div>
-          </Card>
-        </motion.div>
-        <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift p-8 overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <div className="flex flex-col items-center justify-center text-center space-y-2">
-                <p className="text-4xl font-sans font-normal text-foreground/80 group-hover:text-success transition-colors">
-                  {studentsInTeacherCourses.length > 0 ? Math.round(studentsInTeacherCourses.reduce((acc, s) => acc + (mockEnrollments.find(e => e.studentId === s.id)?.progress || 0), 0) / studentsInTeacherCourses.length) : 0}%
-                </p>
-                <p className="text-xs   font-normal opacity-50">Institutional Pass Rate</p>
-            </div>
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <TrendingUp className="w-12 h-12 text-success" />
-            </div>
-          </Card>
-        </motion.div>
-        <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift p-8 overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <div className="flex flex-col items-center justify-center text-center space-y-2">
-                <p className="text-4xl font-sans font-normal text-foreground/80 group-hover:text-warning transition-colors">
-                  {studentsInTeacherCourses?.filter(s => {
-                    const enrollment = mockEnrollments.find(e => e.studentId === s.id)
-                    return enrollment && enrollment.progress >= 80
-                  }).length}
-                </p>
-                <p className="text-xs   font-normal opacity-50">Dossier Distinctions</p>
-            </div>
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Award className="w-12 h-12 text-warning" />
-            </div>
-          </Card>
-        </motion.div>
-      </motion.div>
-
-      {/* Main Student Hub */}
-      <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-        <CardHeader className="p-10 border-b  flex flex-row items-center justify-between">
-           <div className="space-y-1">
-              <CardTitle className="font-serif text-xl font-serif font-medium">Candidate Profiles</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground font-normal">Review academic dossiers and evaluate pupil performance.</CardDescription>
-           </div>
-           <Button variant="ghost" className="w-12  group hover:bg-primary/5 transition-all">
-                <Users className="w-4 h-4 text-primary opacity-40 group-hover:opacity-100" />
-           </Button>
-        </CardHeader>
-        <CardContent className="p-6 flex-1">
-          {filteredStudents.length === 0 ? (
-            <div className="py-24 text-center">
-              <div className="bg-primary/5 p-8  w-fit mx-auto mb-6 border ">
-                <Users className="w-12 h-12 text-primary/30" />
+        <Card className="overflow-hidden hover-lift transition-premium">
+          <CardHeader className="p-10 border-b flex flex-row items-center justify-between">
+             <div className="space-y-1">
+                <CardTitle className="font-serif text-xl font-medium">Candidate Profiles</CardTitle>
+                <CardDescription className="text-xs font-normal opacity-60">Review academic dossiers and evaluate pupil performance.</CardDescription>
+             </div>
+             <div className="p-2 rounded-lg bg-primary/5 opacity-40">
+                  <Users className="w-4 h-4 text-primary" />
+             </div>
+          </CardHeader>
+          <CardContent className="p-10">
+            {filteredStudents.length === 0 ? (
+              <div className="py-24 text-center">
+                <div className="bg-primary/5 p-8 w-fit mx-auto mb-6 border rounded-2xl">
+                  <Users className="w-12 h-12 text-primary/30" />
+                </div>
+                <p className="font-serif text-2xl opacity-40 font-normal">No academic candidates found in selected registry.</p>
               </div>
-              <p className="font-serif text-2xl opacity-40">No academic candidates found in selected registry.</p>
-            </div>
-          ) : (
-            <motion.div 
-              className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 items-stretch"
-              variants={STAGGER_CONTAINER}
-              initial="hidden"
-              animate="visible"
-            >
-              {filteredStudents?.map((student) => {
-                const enrollment = mockEnrollments.find(e => e.studentId === student.id)
-                const progress = enrollment?.progress || 0
-                
-                return (
-                  <motion.div key={student.id} variants={STAGGER_ITEM}>
+            ) : (
+              <EntityCardGrid 
+                data={filteredStudents}
+                renderItem={(student) => {
+                  const enrollment = mockEnrollments.find(e => e.studentId === student.id)
+                  const progress = enrollment?.progress || 0
+                  
+                  return (
                     <Card 
-                      className="glass-1 cursor-pointer transition-premium hover: hover: hover-lift overflow-hidden group border border-transparent hover: rounded-2xl shadow-premium hover:translate-y-[-2px] h-full flex flex-col"
+                      key={student.id}
+                      className="cursor-pointer transition-premium hover-lift overflow-hidden group h-full flex flex-col"
                       onClick={() => router.push(`/teacher/students/${student.id}`)}
                     >
                       <CardContent className="p-6 flex-1">
                         <div className="flex flex-col gap-8">
                           <div className="flex items-center justify-between">
-                            <Avatar className="h-20 w-20 ring-4 ring-primary/5 transition-all group-hover:ring-primary/20 ">
+                            <Avatar className="h-16 w-16 ring-4 ring-primary/5 transition-all group-hover:ring-primary/10">
                               <AvatarImage src={student.avatar} alt={student.name} />
-                              <AvatarFallback className="bg-primary/5 text-primary text-2xl font-serif">
+                              <AvatarFallback className="bg-primary/5 text-primary text-xl font-serif">
                                 {student.name.split(" ").map(n => n[0]).join("")}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col items-end gap-2">
                                {getPerformanceBadge(progress)}
-                               <Badge variant="outline" className="text-xs   font-normal text-muted-foreground/40 border-none px-0">{student.id}</Badge>
+                               <span className="text-[10px] font-normal text-muted-foreground opacity-40 uppercase">{student.id}</span>
                             </div>
                           </div>
                           
                           <div className="space-y-1">
-                            <h3 className="font-serif text-foreground group-hover:text-primary transition-colors leading-tight text-xl font-serif font-medium">{student.name}</h3>
-                            <p className="text-xs text-muted-foreground/60 font-normal   truncate">{student.email}</p>
+                            <h3 className="font-serif text-lg leading-tight font-medium group-hover:text-primary transition-colors">{student.name}</h3>
+                            <p className="text-[10px] text-muted-foreground opacity-60 font-normal truncate">{student.email}</p>
                           </div>
                           
-                          <div className="pt-6 border-t  space-y-4">
+                          <div className="pt-6 border-t space-y-4">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs   font-semibold opacity-40 font-sans">Institutional Mastery</span>
-                              <span className="text-base font-normal text-primary font-serif">{progress}%</span>
+                              <span className="text-[10px] font-normal opacity-40 uppercase">Institutional Mastery</span>
+                              <span className="text-base font-serif font-normal text-primary">{progress}%</span>
                             </div>
-                            <div className="h-1.5 bg-primary/5  overflow-hidden border ">
-                                <motion.div 
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progress}%` }}
-                                    className="h-full bg-primary" 
-                                />
-                            </div>
+                            <Progress value={progress} className="h-1 bg-primary/10" />
                           </div>
                           
-                          <Button variant="ghost" className="w-full justify-between  group/btn hover:bg-primary hover: transition-all  shadow-sm border ">
+                          <Button variant="ghost" className="w-full justify-between h-10 bg-primary/5 hover:bg-primary text-primary hover:text-white transition-all font-normal text-[10px]">
                             Deep Audit Intelligence
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-all" />
+                            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                           </Button>
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
-                )
-              })}
-            </motion.div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                  )
+                }}
+                columns={3}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </PageShell>
   )
 }
-
-
