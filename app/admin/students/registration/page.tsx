@@ -25,25 +25,22 @@ import {
   ShieldCheck, 
   GraduationCap, 
   Phone, 
-  User, 
   IdCard,
-  Target,
-  Clock,
   Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
 import type { Student } from '@/lib/types'
-import { SESSION_TIMINGS } from '@/lib/registry'
+import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
 
 const registrationSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   guardianName: z.string().min(2, 'Guardian name must be at least 2 characters'),
   studentId: z.string().min(3, 'Student ID must be at least 3 characters'),
-  password: z.string().min(8, 'Portal password must be at least 8 characters'),
-  phone: z.string().min(5, 'Valid contact number is required for portal alerts'),
+  phone: z.string().regex(/^\+92\s?3\d{2}\s?\d{7}$/, 'Valid Pakistan contact number (+92 3XX XXXXXXX) is required'),
   course: z.string().min(1, 'Please select an academic batch'),
   timing: z.string().min(1, 'Please select a session timing'),
 })
+
 
 type RegistrationFormValues = z.infer<typeof registrationSchema>
 
@@ -59,8 +56,7 @@ export default function StudentRegistrationPage() {
       name: '',
       guardianName: '',
       studentId: '',
-      password: '',
-      phone: '',
+      phone: '+92 ',
       course: '',
       timing: '',
     }
@@ -74,19 +70,20 @@ export default function StudentRegistrationPage() {
     }
 
     const newStudent: Student = {
-      id: Math.random().toString(36).substr(2, 9), // Fallback if enrollStudent doesn't generate
+      id: Math.random().toString(36).substr(2, 9),
       studentId: data.studentId,
       name: data.name,
       email: `${data.studentId.toLowerCase()}@learnersacademy.com`,
       phone: data.phone,
       guardianName: data.guardianName,
-      password: data.password,
+      password: data.studentId, // DEFAULT PORTAL ACCESS
       enrolledCourses: [data.course],
       classTiming: data.timing,
       status: 'active',
       enrolledAt: new Date().toISOString(),
       progress: 0,
     }
+
 
     try {
       await enrollStudent(newStudent)
@@ -98,237 +95,142 @@ export default function StudentRegistrationPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="">
-            <Link href="/admin/students">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="font-serif text-3xl font-medium">Onboarding Registry</h1>
-            <p className="text-muted-foreground text-sm   opacity-60">Register New Academic Candidate</p>
-          </div>
+    <div className="max-w-xl mx-auto space-y-8 py-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      {/* Premium Header */}
+      <div className="text-center space-y-3">
+        <div className="mx-auto w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-4 ring-1 ring-primary/20 rotate-3 hover:rotate-0 transition-transform duration-500">
+            <GraduationCap className="w-7 h-7 text-primary opacity-80" />
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => form.reset()}
-          className="  hover:bg-primary/5 font-normal text-xs  "
-        >
-          Clear Protocol
-        </Button>
+        <h1 className="font-serif text-4xl font-medium tracking-tight bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Enrollment Registry
+        </h1>
+        <p className="text-muted-foreground text-[10px] tracking-[0.4em] uppercase opacity-40 font-bold">
+          Institutional Candidate Induction
+        </p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Section 1: Personal Identity */}
-          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader className="bg-primary/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
-                <div className="w-8 h-8  bg-primary/10 flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary" />
-                </div>
-                Personal Identity
-              </CardTitle>
-              <CardDescription>Official name and portal authentication credentials</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-6 flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                <Field>
-                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Full Name</FieldLabel>
-                  <Input 
-                    {...form.register('name')} 
-                    placeholder="Candidate Name" 
-                    className="h-12 bg-background/50   focus:ring-primary/20"
-                  />
-                  {form.formState.errors.name && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.name.message}</p>}
-                </Field>
-                <Field>
-                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Student ID</FieldLabel>
-                  <div className="relative">
-                    <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
-                    <Input 
-                      {...form.register('studentId')} 
-                      placeholder="e.g. STU-001" 
-                      className="h-12 pl-10 bg-background/50   focus:ring-primary/20"
-                    />
-                  </div>
-                  {form.formState.errors.studentId && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.studentId.message}</p>}
-                </Field>
-              </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Card className="glass-1 border-white/10 shadow-premium overflow-hidden rounded-[2.5rem] hover:translate-y-[-2px] transition-all duration-500">
+          <CardHeader className="text-center pt-10 pb-2 border-b border-white/5 bg-white/5">
+             <CardTitle className="font-serif text-2xl font-light tracking-wide">Candidate Dossier</CardTitle>
+             <CardDescription className="text-[9px] uppercase tracking-[0.2em] opacity-30 mt-1">Official Academic Record Entry</CardDescription>
+          </CardHeader>
+          <CardContent className="p-10 space-y-8">
+            
+            {/* Row 1: Identity */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field>
-                <FieldLabel className="text-editorial-label text-xs    opacity-60">Portal Password</FieldLabel>
-                <SecureInput 
-                  {...form.register('password')} 
-                  placeholder="Min. 8 characters required" 
-                  className="h-12 bg-background/50   focus:ring-primary/20"
+                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Candidate Full Name</FieldLabel>
+                <Input 
+                  {...form.register('name')} 
+                  placeholder="Master/Miss Candidate" 
+                  className="h-14 bg-background/20 border-white/5 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-base placeholder:opacity-10"
                 />
-                {form.formState.errors.password && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.password.message}</p>}
+                {form.formState.errors.name && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.name.message}</p>}
               </Field>
-            </CardContent>
-          </Card>
 
-          {/* Section 2: Guardian Protocols */}
-          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader className="bg-success/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
-                <div className="w-8 h-8  bg-success/10 flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4 text-success" />
-                </div>
-                Guardian Protocols
-              </CardTitle>
-              <CardDescription>Primary contact for administrative and fee management</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-6 flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                <Field>
-                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Guardian Name</FieldLabel>
-                  <Input 
-                    {...form.register('guardianName')} 
-                    placeholder="Full Name" 
-                    className="h-12 bg-background/50   focus:ring-primary/20"
-                  />
-                  {form.formState.errors.guardianName && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.guardianName.message}</p>}
-                </Field>
-                <Field>
-                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Contact Phone</FieldLabel>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
+              <Field>
+                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Institutional ID</FieldLabel>
+                <div className="relative">
+                    <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20" />
                     <Input 
-                      {...form.register('phone')} 
-                      placeholder="+1 (555) 000-0000" 
-                      className="h-12 pl-10 bg-background/50   focus:ring-primary/20"
+                    {...form.register('studentId')} 
+                    placeholder="STU-000" 
+                    className="h-14 pl-12 bg-background/20 border-white/5 focus:border-primary/30 transition-all font-mono text-sm uppercase tracking-widest placeholder:opacity-10"
                     />
-                  </div>
-                  {form.formState.errors.phone && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.phone.message}</p>}
-                </Field>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Section 3: Academic Pathway */}
-          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader className="bg-accent/5 border-b  py-6">
-              <CardTitle className="font-serif text-xl flex items-center gap-3 font-medium">
-                <div className="w-8 h-8  bg-accent/10 flex items-center justify-center">
-                  <GraduationCap className="w-4 h-4 text-accent" />
                 </div>
-                Academic Pathway
-              </CardTitle>
-              <CardDescription>Batch assignment and schedule configuration</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-6 flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                <Field>
-                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Assigned Batch</FieldLabel>
-                  <Select onValueChange={(val) => form.setValue('course', val)}>
-                    <SelectTrigger className="h-12 bg-background/50  ">
-                      <SelectValue placeholder="Select batch level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courses?.filter(c => c.status === 'active').map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
-                          {course.title} ({course.teacherName})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.formState.errors.course && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.course.message}</p>}
-                </Field>
-                <Field>
-                  <FieldLabel className="text-editorial-label text-xs    opacity-60">Class Timing</FieldLabel>
-                  <Select onValueChange={(val) => form.setValue('timing', val)}>
-                    <SelectTrigger className="h-12 bg-background/50  ">
-                      <SelectValue placeholder="Select session" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SESSION_TIMINGS?.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.formState.errors.timing && <p className="text-xs text-destructive mt-1 ">{form.formState.errors.timing.message}</p>}
-                </Field>
+                {form.formState.errors.studentId && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.studentId.message}</p>}
+              </Field>
+            </div>
+
+            {/* Row 2: Guardianship */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
+              <Field>
+                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Guardian Identity</FieldLabel>
+                <Input 
+                  {...form.register('guardianName')} 
+                  placeholder="Guardian Name" 
+                  className="h-14 bg-background/20 border-white/5 focus:border-primary/30 transition-all text-sm placeholder:opacity-10"
+                />
+                {form.formState.errors.guardianName && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.guardianName.message}</p>}
+              </Field>
+
+              <Field>
+                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Primary Contact (+92)</FieldLabel>
+                <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20" />
+                    <Input 
+                    {...form.register('phone')} 
+                    placeholder="+92 3XX XXXXXXX" 
+                    className="h-14 pl-12 bg-background/20 border-white/5 focus:border-primary/30 transition-all text-sm placeholder:opacity-10"
+                    />
+                </div>
+                {form.formState.errors.phone && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.phone.message}</p>}
+              </Field>
+            </div>
+
+            {/* Row 3: Class & Session */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
+              <Field>
+                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Academic Batch</FieldLabel>
+                <Select onValueChange={(val) => form.setValue('course', val)}>
+                  <SelectTrigger className="h-14 bg-background/20 border-white/5 focus:border-primary/30 transition-all text-sm">
+                    <SelectValue placeholder="Select Level" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {ACADEMY_LEVELS.map((level) => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.course && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.course.message}</p>}
+              </Field>
+
+              <Field>
+                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Institutional Slot</FieldLabel>
+                <Select onValueChange={(val) => form.setValue('timing', val)}>
+                  <SelectTrigger className="h-14 bg-background/20 border-white/5 focus:border-primary/30 transition-all text-sm">
+                    <SelectValue placeholder="Select Timing" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {SESSION_TIMINGS.map((slot) => (
+                      <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.timing && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.timing.message}</p>}
+              </Field>
+            </div>
+
+            <div className="pt-8">
+              <Button 
+                type="submit" 
+                disabled={form.formState.isSubmitting}
+                className="w-full h-16 rounded-[1.25rem] bg-primary text-primary-foreground font-serif text-xl tracking-wide hover-lift shadow-2xl shadow-primary/30 group relative overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-3">
+                  {form.formState.isSubmitting ? 'Securing Registry...' : 'Finalize Institutional Enrollment'}
+                  <Sparkles className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+              </Button>
+              
+              <div className="flex items-center justify-center gap-2 mt-8 opacity-20">
+                 <ShieldCheck className="w-3 h-3 text-primary" />
+                 <span className="text-[8px] uppercase tracking-[0.5em] font-black italic">Institutional Security Layer Active</span>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar Summary */}
-        <div className="space-y-6">
-          <Card className="glass-1 bg-gradient-to-br from-primary/10 to-accent/10 p-1 relative overflow-hidden group hover: hover: transition-all duration-500 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <div className="absolute -top-10 -right-10 opacity-10 group-hover:opacity-20 transition-opacity">
-               <Sparkles className="w-32 h-32" />
             </div>
-            <div className="   p-8 space-y-6 relative z-10 h-full border border-white/20">
-               <div className="flex items-center gap-3 mb-2">
-                  <div className="w-2 h-2  bg-primary animate-pulse" />
-                  <h4 className="text-xs text-primary font-medium">Protocol Preview</h4>
-               </div>
-               
-               <div className="space-y-6">
-                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12  bg-primary/10 flex items-center justify-center font-serif text-lg text-primary">
-                      {form.watch('name')?.[0] || '?'}
-                    </div>
-                    <div>
-                       <p className="text-sm font-serif">{form.watch('name') || 'Pending Identity'}</p>
-                       <p className="text-xs text-muted-foreground ">{form.watch('studentId') || 'ID Pending'}</p>
-                    </div>
-                 </div>
+          </CardContent>
+        </Card>
 
-                 <div className="pt-6 border-t  space-y-4">
-                    <div className="flex items-center gap-3">
-                       <Target className="w-4 h-4 text-muted-foreground opacity-40" />
-                       <p className="text-xs font-sans">
-                         <span className="text-muted-foreground italic">Course:</span> {courses.find(c => c.id === form.watch('course'))?.title || 'Not Selected'}
-                       </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                       <Clock className="w-4 h-4 text-muted-foreground opacity-40" />
-                       <p className="text-xs font-sans">
-                         <span className="text-muted-foreground italic">Session:</span> {form.watch('timing') || 'Not Selected'}
-                       </p>
-                    </div>
-                 </div>
-
-                 <div className="pt-8 pt-4">
-                    <Button 
-                      type="submit" 
-                      disabled={form.formState.isSubmitting}
-                      className="w-full  bg-primary  shadow-xl shadow-primary/20 group overflow-hidden relative"
-                    >
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        {form.formState.isSubmitting ? 'Processing...' : (
-                          <>
-                            <UserPlus className="w-4 h-4" />
-                            Finalize Registry
-                          </>
-                        )}
-                      </span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    </Button>
-                    <p className="text-xs text-center text-muted-foreground mt-4 italic opacity-60">
-                      This action will generate permanent institutional credentials.
-                    </p>
-                 </div>
-               </div>
-            </div>
-          </Card>
-          
-          <Card className="glass-1 p-6 border-dashed border-2 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-             <div className="flex items-center gap-3 text-muted-foreground">
-                <Target className="w-4 h-4" />
-                <p className="text-xs   ">Enrollment Quota</p>
-             </div>
-             <p className="text-xs mt-2 text-muted-foreground leading-relaxed">
-               Assigned batches are currently at <span className="text-primary ">84%</span> capacity institutional-wide. Ensure correct timing allocation.
-             </p>
-          </Card>
+        {/* Navigation */}
+        <div className="flex justify-center">
+            <Button variant="link" asChild className="text-muted-foreground/30 hover:text-primary transition-colors text-[10px] uppercase tracking-widest font-bold group">
+                <Link href="/admin/students" className="flex items-center gap-3">
+                    <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+                    Student Body Dashboard
+                </Link>
+            </Button>
         </div>
       </form>
     </div>
