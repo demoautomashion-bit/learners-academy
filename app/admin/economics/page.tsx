@@ -14,7 +14,12 @@ import {
   Users,
   Building,
   Briefcase,
-  Filter
+  Filter,
+  DollarSign,
+  ArrowUpRight,
+  Clock,
+  History,
+  Activity
 } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
@@ -59,7 +64,7 @@ import {
 } from 'recharts'
 import { useData } from '@/contexts/data-context'
 import { EXPENDITURE_CATEGORIES } from '@/lib/registry'
-import { format } from 'date-fns'
+import { format, isSameDay, isSameWeek, isSameMonth, subDays } from 'date-fns'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { PageShell } from '@/components/shared/page-shell'
@@ -67,12 +72,15 @@ import { PageHeader } from '@/components/shared/page-header'
 import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 
+type TimePeriod = 'all' | 'today' | 'week' | 'month' | 'semester'
+
 export default function EconomicsPage() {
   const { economics, addExpenditure, isInitialized } = useData()
 
   if (!isInitialized) return <DashboardSkeleton />
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false)
   const [newExpense, setNewExpense] = useState({ amount: '', category: '', description: '' })
+  const [periodFilter, setPeriodFilter] = useState<TimePeriod>('all')
 
   const categoryIcons: Record<string, any> = {
     'Salaries': Users,
@@ -82,6 +90,41 @@ export default function EconomicsPage() {
     'Utilities': Briefcase,
     'Other': List
   }
+
+  // Filtered Data Calculations
+  const filteredTransactions = useMemo(() => {
+    if (!economics?.transactions) return []
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+    const week = now.getTime() - 7 * 24 * 60 * 60 * 1000
+    const month = now.getTime() - 30 * 24 * 60 * 60 * 1000
+    const semester = now.getTime() - 90 * 24 * 60 * 60 * 1000
+
+    return economics.transactions.filter((tx: any) => {
+      const txDate = new Date(tx.date).getTime()
+      if (periodFilter === 'all') return true
+      if (periodFilter === 'today') return txDate >= today
+      if (periodFilter === 'week') return txDate >= week
+      if (periodFilter === 'month') return txDate >= month
+      if (periodFilter === 'semester') return txDate >= semester
+      return true
+    })
+  }, [economics?.transactions, periodFilter])
+
+  const periodStats = useMemo(() => {
+    const inflow = filteredTransactions
+      .filter(tx => tx.type === 'Credit')
+      .reduce((sum, tx) => sum + tx.amount, 0)
+    
+    const outflow = filteredTransactions
+      .filter(tx => tx.type === 'Debit')
+      .reduce((sum, tx) => sum + tx.amount, 0)
+    
+    const net = inflow - outflow
+    const count = filteredTransactions.length
+
+    return { inflow, outflow, net, count }
+  }, [filteredTransactions])
 
   const handleAddExpense = async () => {
     if (!newExpense.amount || !newExpense.category || !newExpense.description) return
@@ -102,9 +145,9 @@ export default function EconomicsPage() {
   }
 
   const handleExportCSV = () => {
-    if (!economics?.transactions) return
+    if (!filteredTransactions) return
     const headers = ["Date", "Log ID", "Entity", "Category", "Description", "Type", "Amount"]
-    const rows = economics.transactions?.map((tx: any) => [
+    const rows = filteredTransactions?.map((tx: any) => [
       format(new Date(tx.date), 'yyyy-MM-dd'),
       tx.id,
       tx.person,
@@ -117,7 +160,7 @@ export default function EconomicsPage() {
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
     link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `Economics_Registry_${format(new Date(), 'yyyy_MM_dd')}.csv`)
+    link.setAttribute("download", `Economics_Registry_${periodFilter}_${format(new Date(), 'yyyy_MM_dd')}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -125,33 +168,38 @@ export default function EconomicsPage() {
   }
 
   const handleExportPDF = () => {
-    if (!economics?.transactions) return
+    if (!filteredTransactions) return
     const doc = new jsPDF() as any
     const title = "THE LEARNER'S ACADEMY - INSTITUTIONAL AUDIT LEDGER"
-    const date = `Generated on: ${format(new Date(), 'PPPP')}`
+    const periodLabel = periodFilter === 'all' ? 'FULL HISTORY' : periodFilter.toUpperCase()
+    const date = `Generated on: ${format(new Date(), 'PPPP')} | View: ${periodLabel}`
+    
     doc.setFont("times", "normal")
     doc.setFontSize(18)
     doc.text(title, 14, 22)
     doc.setFontSize(10)
     doc.setTextColor(100)
     doc.text(date, 14, 30)
+    
     doc.setFillColor(245, 245, 245)
     doc.rect(14, 40, 182, 35, 'F')
     doc.setTextColor(0)
     doc.setFontSize(12)
-    doc.text("CAPITAL SUMMARY", 18, 48)
+    doc.text(`${periodLabel} CAPITAL SUMMARY`, 18, 48)
     doc.setFontSize(10)
-    doc.text(`Total Realized Revenue: Rs. ${economics.actualRevenue.toLocaleString()}`, 18, 56)
-    doc.text(`Total Operational Expenditure: Rs. ${economics.totalExpenditure.toLocaleString()}`, 18, 63)
-    doc.text(`Current Net Margin: Rs. ${economics.netMargin.toLocaleString()}`, 18, 70)
+    doc.text(`Total Period Earning: Rs. ${periodStats.inflow.toLocaleString()}`, 18, 56)
+    doc.text(`Total Period Spending: Rs. ${periodStats.outflow.toLocaleString()}`, 18, 63)
+    doc.text(`Net Institutional Margin: Rs. ${periodStats.net.toLocaleString()}`, 18, 70)
+    
     const tableHeaders = [["DATE", "ENTITY", "CATEGORY", "TYPE", "AMOUNT"]]
-    const tableData = economics.transactions?.map((tx: any) => [
+    const tableData = filteredTransactions?.map((tx: any) => [
       format(new Date(tx.date), 'MMM d, yyyy'),
       tx.person,
       tx.category,
       tx.type,
       `Rs. ${tx.amount.toLocaleString()}`
     ])
+    
     doc.autoTable({
       head: tableHeaders,
       body: tableData,
@@ -161,7 +209,7 @@ export default function EconomicsPage() {
       styles: { fontSize: 8, font: "helvetica", cellPadding: 3 },
       columnStyles: { 4: { halign: 'right' } }
     })
-    doc.save(`Economics_Audit_${format(new Date(), 'yyyy_MM_dd')}.pdf`)
+    doc.save(`Economics_Audit_${periodFilter}_${format(new Date(), 'yyyy_MM_dd')}.pdf`)
     toast.success("Branded PDF Registry generated.")
   }
 
@@ -173,68 +221,88 @@ export default function EconomicsPage() {
       render: (tx) => (
         <div className="flex items-center gap-3">
           <div className={cn(
-            "w-10 h-10 flex items-center justify-center text-xs transition-all",
+            "w-10 h-10 flex items-center justify-center text-[10px] tracking-widest font-normal transition-all",
             tx.type === 'Credit' ? "bg-success/5 text-success border border-success/10" : "bg-destructive/5 text-destructive border border-destructive/10"
           )}>
             {tx.type === 'Credit' ? 'CR' : 'DB'}
           </div>
           <div>
             <p className="text-xs font-normal text-foreground leading-none mb-1">{format(new Date(tx.date), 'MMM d, yyyy')}</p>
-            <p className="text-xs text-muted-foreground opacity-50 font-normal">{tx.id.substring(0, 12)}</p>
+            <p className="text-[10px] text-muted-foreground opacity-40 font-normal tracking-wider">{tx.id.substring(0, 12)}</p>
           </div>
         </div>
       ),
-      width: '220px'
+      width: '200px'
     },
     { label: 'Entity Identifier', render: (tx) => <span className="text-xs font-normal opacity-60 text-foreground">{tx.person}</span> },
-    { label: 'Curated Category', render: (tx) => <Badge variant="outline" className="text-xs px-3 py-0.5 font-normal opacity-70">{tx.category}</Badge> },
-    { label: 'Functional Description', render: (tx) => <span className="text-xs text-muted-foreground font-normal opacity-80">{tx.description}</span> },
-    { label: 'Currency Amount', render: (tx) => (
-      <span className={cn("font-serif text-lg font-normal", tx.type === 'Credit' ? "text-success" : "text-foreground")}>
+    { label: 'Asset Category', render: (tx) => <Badge variant="outline" className="text-[10px] px-3 py-0.5 font-normal opacity-70 uppercase tracking-widest">{tx.category}</Badge> },
+    { label: 'Description', render: (tx) => <span className="text-[11px] text-muted-foreground font-normal opacity-80 leading-tight">{tx.description}</span> },
+    { label: 'Amount', render: (tx) => (
+      <span className={cn("font-serif text-lg font-medium tracking-tight", tx.type === 'Credit' ? "text-success" : "text-foreground")}>
         {tx.type === 'Credit' ? '+' : '-'}Rs. {tx.amount.toLocaleString()}
       </span>
     )}
   ]
 
+  const cardData = [
+    { label: 'Period Earnings', value: periodStats.inflow, sub: 'Total Inflow (Credits)', icon: TrendingUp, color: 'text-success' },
+    { label: 'Period Spending', value: periodStats.outflow, sub: 'Total Outflow (Debits)', icon: TrendingDown, color: 'text-destructive' },
+    { label: 'Net Institutional Margin', value: periodStats.net, sub: 'Operating Result', icon: DollarSign, color: 'text-primary' },
+    { label: 'Protocol Volume', value: periodStats.count, sub: 'Transactions Logged', icon: Activity, color: 'text-indigo-400', isCount: true }
+  ]
+
   return (
     <PageShell>
       <PageHeader 
-        title="Institutional Economics"
+        title="Economics Ledger"
         description="Comprehensive audit of institutional capital deployment, operational costs, and faculty expenditure tracking."
         actions={
-          <>
+          <div className="flex items-center gap-4">
+             <Select value={periodFilter} onValueChange={(v: TimePeriod) => setPeriodFilter(v)}>
+              <SelectTrigger className="w-[180px] h-11 text-xs font-normal border-primary/10 shadow-sm">
+                <SelectValue placeholder="Analyze Period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Full Audit History</SelectItem>
+                <SelectItem value="today">Daily Pulse (Today)</SelectItem>
+                <SelectItem value="week">Weekly Velocity</SelectItem>
+                <SelectItem value="month">Monthly Volume</SelectItem>
+                <SelectItem value="semester">Seasonal Trend (90d)</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Dialog open={isAddExpenseOpen} onOpenChange={setIsAddExpenseOpen}>
               <DialogTrigger asChild>
-                <Button className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                  <Plus className="w-4 h-4 mr-3 opacity-60" /> Log Expenditure
+                <Button className="h-11 font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                  <Plus className="w-4 h-4 mr-3 opacity-60" /> Log Outflow
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader className="mb-6">
-                  <DialogTitle className="font-serif text-3xl font-normal">Record Outflow</DialogTitle>
-                  <p className="text-xs font-normal opacity-60">Add a new financial transaction to the ledger.</p>
+              <DialogContent className="max-w-md p-0 overflow-hidden rounded-[2rem] border-white/10 glass-3">
+                <DialogHeader className="p-10 pb-0">
+                  <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Record Asset Outflow</DialogTitle>
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-normal opacity-40 mt-2">Fiscal Institutional Entry Protocol</p>
                 </DialogHeader>
-                <div className="space-y-6">
+                <div className="p-10 pt-8 space-y-6">
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-normal ml-1">Capital Amount (Rs.)</label>
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Capital Amount (Rs.)</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground opacity-40 font-normal">Rs.</span>
                       <Input 
                         type="number" 
                         placeholder="0.00" 
-                        className="pl-12 h-12 bg-muted/20 font-normal text-sm focus:bg-background"
+                        className="pl-12 h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all rounded-xl"
                         value={newExpense.amount}
                         onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-normal ml-1">Asset Category</label>
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Asset Category</label>
                     <Select onValueChange={(val) => setNewExpense({...newExpense, category: val})}>
-                      <SelectTrigger className="h-12 bg-muted/20 font-normal text-sm focus:bg-background">
+                      <SelectTrigger className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all rounded-xl">
                         <SelectValue placeholder="Select classification..." />
                       </SelectTrigger>
-                      <SelectContent className="p-1.5 focus:bg-card">
+                      <SelectContent className="p-1.5">
                         {EXPENDITURE_CATEGORIES?.map(cat => (
                           <SelectItem key={cat} value={cat} className="py-3 cursor-pointer">{cat}</SelectItem>
                         ))}
@@ -242,30 +310,30 @@ export default function EconomicsPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-normal ml-1">Audit Description</label>
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Audit Justification</label>
                     <Input 
-                      placeholder="Enter transactional justification..." 
-                      className="h-12 bg-muted/20 font-normal text-sm focus:bg-background"
+                      placeholder="Functional description..." 
+                      className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all rounded-xl"
                       value={newExpense.description}
                       onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
                     />
                   </div>
                 </div>
-                <DialogFooter className="mt-10 gap-3">
-                  <Button variant="ghost" className="font-normal opacity-60 hover:opacity-100" onClick={() => setIsAddExpenseOpen(false)}>Ignore</Button>
-                  <Button className="flex-1 font-normal" onClick={handleAddExpense}>Process Transaction</Button>
+                <DialogFooter className="p-10 pt-2 gap-3 flex flex-col sm:flex-row">
+                  <Button variant="ghost" className="rounded-xl flex-1 font-normal opacity-60 hover:opacity-100" onClick={() => setIsAddExpenseOpen(false)}>Ignore</Button>
+                  <Button className="rounded-xl flex-1 font-normal bg-primary text-primary-foreground shadow-xl shadow-primary/20" onClick={handleAddExpense}>Process Transaction</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="font-normal transition-all hover:bg-primary/5">
+                <Button variant="outline" className="h-11 font-normal transition-all hover:bg-primary/5 border-primary/10">
                   <Download className="w-4 h-4 mr-3 opacity-40" /> Export Registry
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 p-1.5">
-                <DropdownMenuLabel className="text-xs opacity-40 px-4 py-3 font-normal">Select Format</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56 p-1.5 overflow-hidden">
+                <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Audit Export Options</DropdownMenuLabel>
                 <DropdownMenuSeparator className="opacity-5" />
                 <DropdownMenuItem onClick={handleExportCSV} className="gap-3 cursor-pointer py-3 focus:bg-primary/5 font-normal">
                   <FileSpreadsheet className="w-4 h-4 text-primary opacity-60" /> <span className="text-xs">Export as CSV Ledger</span>
@@ -275,54 +343,53 @@ export default function EconomicsPage() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </>
+          </div>
         }
       />
 
       <EntityCardGrid 
-        data={[
-          { label: 'Projected Portfolio', value: economics?.projectedRevenue || 0, sub: 'Total Contractual Value', icon: Building, color: 'text-primary', progress: (economics?.actualRevenue / (economics?.projectedRevenue || 1)) * 100 },
-          { label: 'Realized Revenue', value: economics?.actualRevenue || 0, sub: 'Fees Collected (Actual)', icon: TrendingUp, color: 'text-success', progress: 100 },
-          { label: 'Institutional Expenditure', value: economics?.totalExpenditure || 0, sub: 'Outflow vs Capital Pool', icon: TrendingDown, color: 'text-destructive', progress: (economics?.totalExpenditure / (economics?.actualRevenue || 1)) * 100 },
-        ]}
+        data={cardData}
         renderItem={(stat, i) => (
-          <Card key={i} className="overflow-hidden group relative isolate">
-            <div className={cn("absolute inset-x-0 -bottom-1 h-1 transition-all opacity-20", stat.color.replace('text-', 'bg-'))} style={{ width: `${Math.min(stat.progress, 100)}%` }} />
-            <CardContent className="pt-10 pb-8 relative flex-1">
-              <div className="absolute right-8 top-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                <stat.icon className="w-20 h-20" />
+          <Card key={i} className="hover-lift transition-premium bg-gradient-to-br from-background to-primary/[0.01] border-primary/5">
+            <CardContent className="pt-8 pb-6 relative isolate">
+              <div className="absolute right-6 top-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                <stat.icon className="w-12 h-12" />
               </div>
-              <p className="text-xs text-muted-foreground mb-4 font-normal opacity-50">{stat.label}</p>
-              <h3 className="font-serif mb-4 text-xl font-serif font-medium">
-                Rs. {stat.value.toLocaleString()}
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30 mb-4">{stat.label}</p>
+              <h3 className={cn("font-serif text-2xl font-medium tracking-tight mb-4", stat.color)}>
+                {stat.isCount ? stat.value : `Rs. ${stat.value.toLocaleString()}`}
               </h3>
-              <div className="flex items-center justify-between mt-6">
-                <div className="flex items-center gap-2">
-                  <div className={cn("w-1.5 h-1.5 shadow-sm shadow-black/20", stat.color.replace('text-', 'bg-'))} />
-                  <span className="text-xs text-muted-foreground font-normal opacity-40">{stat.sub}</span>
-                </div>
-                <span className="text-xs font-normal opacity-30">{Math.round(stat.progress)}%</span>
+              <div className="flex items-center gap-2">
+                <div className={cn("w-1.5 h-1.5 rounded-full ", stat.color.replace('text-', 'bg-'))} />
+                <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-normal opacity-40">{stat.sub}</span>
               </div>
             </CardContent>
           </Card>
         )}
-        columns={3}
-        gap={8}
+        columns={4}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-        <Card className="glass-1 lg:col-span-2 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-          <CardHeader className="bg-muted/5 border-b p-8">
-            <h3 className="font-serif text-xl font-serif font-medium">Capital Expenditure Velocity</h3>
-            <p className="text-xs text-muted-foreground font-normal opacity-60">Outflow analysis over the trailing 6-month cycle.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch mb-12">
+        <Card className="glass-1 lg:col-span-2 overflow-hidden rounded-2xl shadow-premium transition-premium h-full flex flex-col border-primary/5">
+          <CardHeader className="bg-muted/5 border-b p-8 flex flex-row items-center justify-between">
+            <div>
+                <h3 className="font-serif text-xl font-medium">Outflow Visualization</h3>
+                <p className="text-xs text-muted-foreground font-normal opacity-60">Expenditure velocity over the trailing 6-month cycle.</p>
+            </div>
+            <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 bg-primary/20 border border-primary/30 rounded-sm" />
+                    <span className="text-[10px] opacity-40">Debit</span>
+                 </div>
+            </div>
           </CardHeader>
-          <CardContent className="p-6 flex-1">
-            <div className="h-[350px]">
+          <CardContent className="p-6 pt-12 flex-1">
+            <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={economics?.historicalData || []}>
                   <defs>
                     <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.2} />
+                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.1} />
                       <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -330,74 +397,62 @@ export default function EconomicsPage() {
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, opacity: 0.4 }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, opacity: 0.4 }} />
                   <Tooltip 
-                    cursor={{ stroke: 'var(--color-primary)', strokeWidth: 1, strokeDasharray: '4 4' }}
                     contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
-                      borderRadius: '16px', border: '1px solid hsl(var(--primary) / 0.1)',
-                      boxShadow: '0 10px 30px -10px rgba(0,0,0,0.1)',
-                      fontSize: '11px', fontFamily: 'Helvetica Neue'
+                      backgroundColor: 'hsl(var(--card) / 0.9)', 
+                      borderRadius: '16px', border: '1px solid hsl(var(--primary) / 0.08)',
+                      fontSize: '11px'
                     }}
                   />
-                  <Area type="monotone" dataKey="expenditure" stroke="var(--color-primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExp)" />
+                  <Area type="monotone" dataKey="expenditure" stroke="var(--color-primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorExp)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-          <CardHeader className="bg-muted/5 border-b p-8 text-center">
-            <h3 className="font-serif text-xl font-serif font-medium">Allocation Model</h3>
-            <p className="text-xs text-muted-foreground font-normal opacity-60">Distribution across institutional categories.</p>
-          </CardHeader>
-          <CardContent className="p-6 flex-1">
-            <div className="h-[250px] relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <RePieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={90} paddingAngle={8} dataKey="value" stroke="transparent">
-                    {pieData?.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={`oklch(0.62 0.17 ${240 + (index * 40)})`} opacity={1 - (index * 0.15)} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', background: 'hsl(var(--card))', fontSize: '10px' }} />
-                </RePieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-xs text-muted-foreground opacity-50 font-normal">Total Share</span>
-                <span className="font-serif text-2xl font-normal">Rs. {(economics?.totalExpenditure || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-              </div>
+        <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium h-full flex flex-col border-primary/5 text-center p-8">
+            <div className="mx-auto w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center mb-6">
+                <History className="w-6 h-6 text-primary opacity-40" />
             </div>
-            <div className="space-y-4 mt-6">
-              {pieData?.map((item, index) => {
-                const Icon = categoryIcons[item.name as string] || List
-                return (
-                  <div key={index} className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary/5 flex items-center justify-center border group-hover:bg-primary/10 transition-all">
-                        <Icon className="w-3.5 h-3.5 text-primary opacity-50" />
-                      </div>
-                      <span className="text-xs font-normal text-muted-foreground group-hover:text-foreground transition-colors">{item.name}</span>
-                    </div>
-                    <span className="text-xs font-normal opacity-70 group-hover:opacity-100 transition-opacity">Rs. {item.value.toLocaleString()}</span>
-                  </div>
-                )
-              })}
+            <h3 className="font-serif text-xl font-medium tracking-tight">Period Net Flow</h3>
+            <p className="text-xs text-muted-foreground font-normal opacity-50 mt-2">Institutional result for the selected range.</p>
+            
+            <div className="flex-1 flex flex-col items-center justify-center py-8">
+                <span className={cn(
+                    "font-serif text-5xl font-normal leading-none",
+                    periodStats.net >= 0 ? "text-success" : "text-destructive"
+                )}>
+                    {periodStats.net >= 0 ? '+' : ''}
+                    {Math.round(periodStats.net / 1000)}k
+                </span>
+                <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-[0.3em] font-normal mt-6">Institutional Margin</span>
             </div>
-          </CardContent>
+
+            <div className="pt-8 border-t border-primary/5 space-y-4">
+                <div className="flex justify-between items-center px-4">
+                    <span className="text-[10px] opacity-40 font-normal uppercase tracking-widest">Inflow Ratio</span>
+                    <span className="text-xs font-normal">{(periodStats.inflow / (periodStats.inflow + periodStats.outflow || 1) * 100).toFixed(0)}%</span>
+                </div>
+                <div className="w-full bg-primary/5 h-1.5 overflow-hidden">
+                    <div 
+                        className="bg-primary h-full transition-all duration-1000" 
+                        style={{ width: `${(periodStats.inflow / (periodStats.inflow + periodStats.outflow || 1) * 100)}%` }} 
+                    />
+                </div>
+            </div>
         </Card>
       </div>
 
       <EntityDataGrid 
         title="Transaction Registry"
-        description="Descending Chronological Record"
-        data={economics.transactions || []}
+        description={`Displaying records for the window: ${periodFilter.toUpperCase()}`}
+        data={filteredTransactions}
         columns={transactionColumns}
-        actions={
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground font-normal opacity-50">Curated Historical Audit</span>
-            <Button variant="ghost" size="icon" className="w-10 border hover:bg-primary/5">
-              <Filter className="w-4 h-4 opacity-40" />
-            </Button>
+        emptyState={
+          <div className="text-center py-32 opacity-20">
+            <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p className="font-serif text-xl font-normal">No transactional records</p>
+            <p className="text-xs mt-2 font-normal">System awaiting chronological data entry</p>
           </div>
         }
       />

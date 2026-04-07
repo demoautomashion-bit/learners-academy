@@ -84,7 +84,6 @@ const adminNavItems = [
     items: [
       { title: 'Student Registry', href: '/admin/students', icon: GraduationCap },
       { title: 'Enrollment Registry', href: '/admin/students/registration', icon: PlusCircle },
-      { title: 'Enrollment Trend', href: '/admin/students/enrollment-trend', icon: TrendingUp },
     ]
   },
   {
@@ -104,7 +103,7 @@ const adminNavItems = [
     items: [
       { title: 'Fee Tracking', href: '/admin/fee-registry', icon: DollarSign },
       { title: 'Economics Ledger', href: '/admin/economics', icon: TrendingUp },
-      { title: 'Growth Framework', href: '/admin/growth', icon: BarChart },
+      { title: 'Enrollment Trend', href: '/admin/students/enrollment-trend', icon: BarChart },
     ]
   },
   {
