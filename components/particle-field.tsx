@@ -85,14 +85,17 @@ export function ParticleField() {
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('resize',    onResize)
 
+    let isMounted = true
+
     const draw = () => {
+      if (!isMounted || !ctx || !canvas) return
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       const mx = mouseRef.current.x
       const my = mouseRef.current.y
 
       for (const p of particlesRef.current) {
-
         // Vector from cursor to particle
         const dx   = p.x - mx
         const dy   = p.y - my
@@ -120,7 +123,6 @@ export function ParticleField() {
             p.vx += nx * repel
             p.vy += ny * repel
           }
-
         } else {
           // Far from cursor — gentle random wander keeps field alive
           p.vx += (Math.random() - 0.5) * WANDER_STRENGTH
@@ -136,9 +138,9 @@ export function ParticleField() {
         p.y += p.vy
 
         // Seamless screen wrap
-        if (p.x < 0)             p.x = canvas.width
-        if (p.x > canvas.width)  p.x = 0
-        if (p.y < 0)             p.y = canvas.height
+        if (p.x < 0) p.x = canvas.width
+        if (p.x > canvas.width) p.x = 0
+        if (p.y < 0) p.y = canvas.height
         if (p.y > canvas.height) p.y = 0
 
         // Tilt stroke slightly toward velocity direction for momentum feel
@@ -146,7 +148,6 @@ export function ParticleField() {
           p.angle += (Math.atan2(p.vy, p.vx) - p.angle) * 0.08
         }
 
-        // Draw stroke
         ctx.save()
         ctx.translate(p.x, p.y)
         ctx.rotate(p.angle + Math.PI / 2)
@@ -167,6 +168,7 @@ export function ParticleField() {
     frameRef.current = requestAnimationFrame(draw)
 
     return () => {
+      isMounted = false
       cancelAnimationFrame(frameRef.current)
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('resize',    onResize)

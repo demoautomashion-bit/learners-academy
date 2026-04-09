@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback, useTransition, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useTransition, useMemo, useRef, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import type { 
   Teacher, Student, Course, Assignment, Submission, 
@@ -133,10 +133,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isPending, startTransition] = useTransition()
 
   const { user } = useAuth()
+  const [hasMounted, setHasMounted] = useState(false)
+  const isRefreshingRef = useRef(false)
+
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
+
   const refresh = useCallback(async () => {
     // Basic guard: Prevent duplicate concurrent refreshes
-    if (isLoading && isInitialized) return;
+    if (isRefreshingRef.current) return;
     
+    isRefreshingRef.current = true
     setIsLoading(true)
     const normalizeDate = (d: any) => (d instanceof Date ? d.toISOString() : d)
 
@@ -205,8 +213,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsInitialized(true)
       setIsLoading(false)
+      isRefreshingRef.current = false
     }
-  }, [isLoading, isInitialized])
+  }, [user?.id, user?.role]) // Only re-create refresh when auth identity changes
 
   useEffect(() => {
     refresh()
@@ -215,7 +224,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // Stability Guard: Ensure stats are only calculated with a stable date on the client
   // or use a fixed date for server-side pre-rendering to match initial client state
   const stats = useMemo(() => {
-    if (!isInitialized) {
+    if (!isInitialized || !hasMounted) {
       return {
         totalStudents: 0,
         totalTeachers: 0,
@@ -229,7 +238,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
     }
     return computeStats(teachers, students, courses, submissions, assessments, economics)
-  }, [teachers, students, courses, submissions, assessments, economics, isInitialized])
+  }, [teachers, students, courses, submissions, assessments, economics, isInitialized, hasMounted])
 
   const [isRefreshing, startTransitionAction] = useTransition()
 
