@@ -48,17 +48,17 @@ function PayrollContent() {
   
   const { teachers, courses, students, feePayments, isInitialized } = useData()
   const hasMounted = useHasMounted()
-
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
   
   const [compensationModel, setCompensationModel] = useState<'fixed' | 'percentage'>('fixed')
   const [compensationRate, setCompensationRate] = useState<number>(1000)
   const [ledgerSearch, setLedgerSearch] = useState('')
 
-  const teacher = teachers.find(t => t.id === teacherId || t.employeeId === teacherId)
+  const teacher = useMemo(() => 
+    teachers.find(t => t.id === teacherId || t.employeeId === teacherId)
+  , [teachers, teacherId])
   
   const financialData = useMemo(() => {
-    if (!teacher) return { roster: [], paidCount: 0, unpaidCount: 0, totalPaidRevenue: 0 }
+    if (!hasMounted || !teacher) return { roster: [], paidCount: 0, unpaidCount: 0, totalPaidRevenue: 0 }
     
     const teacherCourses = courses?.filter(c => c.teacherId === teacher.id)
     let paidCount = 0
@@ -93,14 +93,17 @@ function PayrollContent() {
     })
 
     return { roster, paidCount, unpaidCount, totalPaidRevenue }
-  }, [teacher, courses, students, feePayments])
+  }, [teacher, courses, students, feePayments, hasMounted])
 
   const filteredRoster = useMemo(() => {
+    if (!hasMounted) return []
     return financialData.roster?.filter(item => 
       item.studentName.toLowerCase().includes(ledgerSearch.toLowerCase()) ||
       item.courseName.toLowerCase().includes(ledgerSearch.toLowerCase())
     )
-  }, [financialData.roster, ledgerSearch])
+  }, [financialData.roster, ledgerSearch, hasMounted])
+
+  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
 
   const computedSalary = compensationModel === 'fixed' 
     ? financialData.paidCount * compensationRate 

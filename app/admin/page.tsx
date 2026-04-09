@@ -42,11 +42,9 @@ export default function AdminDashboard() {
   const { students, teachers, courses, stats, isInitialized } = useData()
   const hasMounted = useHasMounted()
 
-  if (!user?.id) return null
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
-
   // Dynamic Chart Data Generation
   const enrollmentTrendData = useMemo(() => {
+    if (!hasMounted || !students) return []
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     // Initialize last 6 months buckets relative to a stable reference
     const nowRef = new Date()
@@ -75,9 +73,10 @@ export default function AdminDashboard() {
     })
 
     return trend?.map(({ name, value }) => ({ name, value }))
-  }, [students])
+  }, [students, hasMounted])
 
   const coursePopularityData = useMemo(() => {
+    if (!hasMounted || !courses) return []
     // Sort courses by current specific enrollment and take top 5
     return [...courses]
       .sort((a, b) => b.enrolled - a.enrolled)
@@ -86,7 +85,10 @@ export default function AdminDashboard() {
         name: course.title.length > 15 ? course.title.substring(0, 15) + '...' : course.title,
         value: course.enrolled
       }))
-  }, [courses])
+  }, [courses, hasMounted])
+
+  if (!user?.id) return null
+  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
 
   const statCards = [
     {

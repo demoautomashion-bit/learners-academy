@@ -79,24 +79,13 @@ type TimePeriod = 'all' | 'today' | 'week' | 'month' | 'semester'
 export default function EconomicsPage() {
   const { economics, addExpenditure, isInitialized } = useData()
   const hasMounted = useHasMounted()
-
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false)
   const [newExpense, setNewExpense] = useState({ amount: '', category: '', description: '' })
   const [periodFilter, setPeriodFilter] = useState<TimePeriod>('all')
 
-  const categoryIcons: Record<string, any> = {
-    'Salaries': Users,
-    'Supplies': Package,
-    'Marketing': TrendingUp,
-    'Infrastructure': Building,
-    'Utilities': Briefcase,
-    'Other': List
-  }
-
   // Filtered Data Calculations
   const filteredTransactions = useMemo(() => {
-    if (!economics?.transactions) return []
+    if (!hasMounted || !economics?.transactions) return []
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
     const week = now.getTime() - 7 * 24 * 60 * 60 * 1000
@@ -112,9 +101,10 @@ export default function EconomicsPage() {
       if (periodFilter === 'semester') return txDate >= semester
       return true
     })
-  }, [economics?.transactions, periodFilter])
+  }, [economics?.transactions, periodFilter, hasMounted])
 
   const periodStats = useMemo(() => {
+    if (!hasMounted) return { inflow: 0, outflow: 0, net: 0, count: 0 }
     const inflow = filteredTransactions
       .filter(tx => tx.type === 'Credit')
       .reduce((sum, tx) => sum + tx.amount, 0)
@@ -127,7 +117,18 @@ export default function EconomicsPage() {
     const count = filteredTransactions.length
 
     return { inflow, outflow, net, count }
-  }, [filteredTransactions])
+  }, [filteredTransactions, hasMounted])
+
+  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
+  const categoryIcons: Record<string, any> = {
+    'Salaries': Users,
+    'Supplies': Package,
+    'Marketing': TrendingUp,
+    'Infrastructure': Building,
+    'Utilities': Briefcase,
+    'Other': List
+  }
 
   const handleAddExpense = async () => {
     if (!newExpense.amount || !newExpense.category || !newExpense.description) return

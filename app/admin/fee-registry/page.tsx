@@ -60,8 +60,6 @@ import { ClientDate } from '@/components/shared/client-date'
 export default function FeeRegistryPage() {
   const { students, courses, feePayments, recordPayment, addFeeAccount, isInitialized } = useData()
   const hasMounted = useHasMounted()
-
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'All' | 'Paid' | 'Partial' | 'Unpaid'>('All')
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false)
@@ -71,9 +69,10 @@ export default function FeeRegistryPage() {
   const [tempTotal, setTempTotal] = useState(0)
   const [tempDiscount, setTempDiscount] = useState(0)
 
-  const today = new Date()
+  const today = useMemo(() => new Date(), [hasMounted])
   
   const stats = useMemo(() => {
+    if (!hasMounted) return { daily: 0, weekly: 0, monthly: 0, totalOutstanding: 0, totalDiscounts: 0 }
     const safePayments = Array.isArray(feePayments) ? feePayments : []
     const daily = safePayments
       .filter(p => p.paymentDate && isSameDay(new Date(p.paymentDate), today))
@@ -94,9 +93,10 @@ export default function FeeRegistryPage() {
       .reduce((sum, p) => sum + (p.discount || 0), 0)
 
     return { daily, weekly, monthly, totalOutstanding, totalDiscounts }
-  }, [feePayments])
+  }, [feePayments, today, hasMounted])
 
   const filteredPayments = useMemo(() => {
+    if (!hasMounted) return []
     return (Array.isArray(feePayments) ? feePayments : []).filter(p => {
       if (!p.student || !p.course) return false
       const matchesSearch = (p.student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -104,7 +104,9 @@ export default function FeeRegistryPage() {
       const matchesStatus = filterStatus === 'All' || p.status === filterStatus
       return matchesSearch && matchesStatus
     })
-  }, [feePayments, searchQuery, filterStatus])
+  }, [feePayments, searchQuery, filterStatus, hasMounted])
+
+  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
 
   const handleAddAccount = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
