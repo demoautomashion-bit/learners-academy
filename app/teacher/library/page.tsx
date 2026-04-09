@@ -69,7 +69,6 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
 
 export default function QuestionLibraryPage() {
   const { user } = useAuth()
-  if (!user?.id) return null
   const { questions, addQuestion, deleteQuestion, isInitialized, teachers, approveQuestion } = useData()
   
   // Find current teacher's requiresReview flag
@@ -98,6 +97,7 @@ export default function QuestionLibraryPage() {
     q.category === activeTab && q.content.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
 
   const handleClose = () => {

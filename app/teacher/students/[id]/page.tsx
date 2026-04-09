@@ -36,18 +36,16 @@ export default function StudentProfileDossierPage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
-  if (!user?.id) return null
   const { students, enrollments, submissions, assessments, updateStudent, isInitialized } = useData()
-
-  if (!isInitialized) return <DashboardSkeleton />
-  
-  const studentId = params.id as string
-  const student = students.find(s => s.id === studentId)
-  
   const [evaluationInput, setEvaluationInput] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
 
-  if (!isInitialized) return <AssessmentSkeleton />
+  if (!user?.id) return null
+  if (!isInitialized) return <DashboardSkeleton />
+
+  const studentId = params.id as string
+  const student = students.find(s => s.id === studentId)
+
   if (!student) return (
     <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
       <AlertCircle className="w-12 h-12 text-destructive opacity-30" />

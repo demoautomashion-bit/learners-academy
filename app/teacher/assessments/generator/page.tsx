@@ -79,7 +79,6 @@ export default function AssessmentGeneratorPage() {
     teachers,
     isInitialized 
   } = useData()
-  if (!user?.id) return null
 
   const currentTeacher = teachers.find(t => t.id === user?.id)
   const requiresReview = !!currentTeacher?.requiresReview
@@ -180,6 +179,7 @@ export default function AssessmentGeneratorPage() {
     }
   }
 
+  if (!user?.id) return null
   if (!isInitialized) return <AssessmentSkeleton />
 
   return (
