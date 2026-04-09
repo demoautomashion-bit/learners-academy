@@ -72,10 +72,10 @@ export default function ClassesPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
-  const filteredCourses = courses?.filter(course => {
+  const filteredCourses = (Array.isArray(courses) ? courses : []).filter(course => {
     const matchesSearch = 
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.teacherName.toLowerCase().includes(searchQuery.toLowerCase())
+      (course.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (course.teacherName || '').toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === 'all' || course.status === statusFilter
     return matchesSearch && matchesStatus
   })

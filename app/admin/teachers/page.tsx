@@ -65,12 +65,15 @@ export default function TeachersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
 
-  const filteredTeachers = teachers?.filter(teacher =>
-    teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    teacher.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    teacher.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (teacher.assignedClass && teacher.assignedClass.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
+  const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter(teacher => {
+    if (!teacher) return false
+    return (
+      (teacher.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (teacher.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (teacher.employeeId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (teacher.assignedClass && teacher.assignedClass.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+  })
 
   const handleToggleStatus = (teacher: Teacher) => {
     updateTeacherStatus(teacher.id, teacher.status === 'active' ? 'inactive' : 'active')

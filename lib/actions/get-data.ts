@@ -61,15 +61,15 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
     return {
       success: true,
       data: {
-        teachers,
-        students,
-        courses,
-        submissions,
-        schedules,
-        questions,
-        assessments,
-        assignments, 
-        enrollments, 
+        teachers: teachers || [],
+        students: students || [],
+        courses: courses || [],
+        submissions: submissions || [],
+        schedules: schedules || [],
+        questions: questions || [],
+        assessments: assessments || [],
+        assignments: assignments || [], 
+        enrollments: enrollments || [], 
       }
     }
   } catch (error) {

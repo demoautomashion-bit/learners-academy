@@ -74,31 +74,33 @@ export default function FeeRegistryPage() {
   const today = new Date()
   
   const stats = useMemo(() => {
-    const daily = feePayments
+    const safePayments = Array.isArray(feePayments) ? feePayments : []
+    const daily = safePayments
       .filter(p => p.paymentDate && isSameDay(new Date(p.paymentDate), today))
       .reduce((sum, p) => sum + p.amountPaid, 0)
     
-    const weekly = feePayments
+    const weekly = safePayments
       .filter(p => p.paymentDate && isSameWeek(new Date(p.paymentDate), today))
       .reduce((sum, p) => sum + p.amountPaid, 0)
     
-    const monthly = feePayments
+    const monthly = safePayments
       .filter(p => p.paymentDate && isSameMonth(new Date(p.paymentDate), today))
       .reduce((sum, p) => sum + p.amountPaid, 0)
 
-    const totalOutstanding = feePayments
+    const totalOutstanding = safePayments
       .reduce((sum, p) => sum + (p.totalAmount - (p.discount || 0) - p.amountPaid), 0)
 
-    const totalDiscounts = feePayments
+    const totalDiscounts = safePayments
       .reduce((sum, p) => sum + (p.discount || 0), 0)
 
     return { daily, weekly, monthly, totalOutstanding, totalDiscounts }
   }, [feePayments])
 
   const filteredPayments = useMemo(() => {
-    return feePayments?.filter(p => {
-      const matchesSearch = p.student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            p.course.title.toLowerCase().includes(searchQuery.toLowerCase())
+    return (Array.isArray(feePayments) ? feePayments : []).filter(p => {
+      if (!p.student || !p.course) return false
+      const matchesSearch = (p.student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            (p.course.title || '').toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = filterStatus === 'All' || p.status === filterStatus
       return matchesSearch && matchesStatus
     })

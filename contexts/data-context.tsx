@@ -106,7 +106,7 @@ function computeStats(
     totalStudents,
     totalTeachers: teachers.length,
     totalCourses: courses.length,
-    activeEnrollments: students.filter(s => s.status === 'active').length,
+    activeEnrollments: (students || []).filter(s => s && s.status === 'active').length,
     revenue: econ?.actualRevenue || 0,
     revenueChange: econ?.revenueChange || 0,
     newEnrollments: econ?.newEnrollments || newEnrollments,
@@ -157,10 +157,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
 
       const { 
-        teachers: t, students: s, courses: c, questions: q, 
-        assessments: a, submissions: sub, schedules: sch, 
-        assignments: asgn, enrollments: enr 
-      } = initRes.data
+        teachers: t = [], 
+        students: s = [], 
+        courses: c = [], 
+        questions: q = [], 
+        assessments: a = [], 
+        submissions: sub = [], 
+        schedules: sch = [], 
+        assignments: asgn = [], 
+        enrollments: enr = [] 
+      } = initRes.data || {}
 
       startTransition(() => {
         setTeachers((t || []).map((item: any) => ({ ...item, joinedAt: normalizeDate(item.joinedAt) })) as unknown as Teacher[])
@@ -209,8 +215,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // Stability Guard: Ensure stats are only calculated with a stable date on the client
   // or use a fixed date for server-side pre-rendering to match initial client state
   const stats = useMemo(() => {
+    if (!isInitialized) {
+      return {
+        totalStudents: 0,
+        totalTeachers: 0,
+        totalCourses: 0,
+        activeEnrollments: 0,
+        revenue: 0,
+        revenueChange: 0,
+        newEnrollments: 0,
+        completionRate: 0,
+        netMargin: 0
+      }
+    }
     return computeStats(teachers, students, courses, submissions, assessments, economics)
-  }, [teachers, students, courses, submissions, assessments, economics])
+  }, [teachers, students, courses, submissions, assessments, economics, isInitialized])
 
   const [isRefreshing, startTransitionAction] = useTransition()
 

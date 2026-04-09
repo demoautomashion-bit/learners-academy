@@ -12,6 +12,8 @@ export function calculateStudentOverallProgress(
   allSubmissions: Submission[],
   allAssessments: AssessmentTemplate[]
 ): number {
+  if (!student || !Array.isArray(allSubmissions) || !Array.isArray(allAssessments)) return 0
+
   const studentSubmissions = allSubmissions.filter(s => s.studentId === student.id)
   if (studentSubmissions.length === 0) return 0
 
@@ -19,10 +21,12 @@ export function calculateStudentOverallProgress(
   const completedCount = studentSubmissions.filter(s => s.status === 'graded').length
   
   // Find assessments applicable to student's enrolled levels/courses
-  const relevantAssessments = allAssessments.filter(a => 
-    (a.courseIds && a.courseIds.some(cid => student.enrolledCourses.includes(cid))) ||
-    (a.classLevels && a.classLevels.some(level => student.classTiming?.includes(level))) // Fallback for legacy
-  )
+  const relevantAssessments = allAssessments.filter(a => {
+    const enrolledCourses = Array.isArray(student.enrolledCourses) ? student.enrolledCourses : []
+    const hasCourseMatch = Array.isArray(a.courseIds) && a.courseIds.some(cid => enrolledCourses.includes(cid))
+    const hasLevelMatch = Array.isArray(a.classLevels) && a.classLevels.some(level => student.classTiming?.includes(level))
+    return hasCourseMatch || hasLevelMatch
+  })
   
   if (relevantAssessments.length === 0) return 0
 
@@ -34,6 +38,8 @@ export function calculateStudentAverageGrade(
   allSubmissions: Submission[],
   allAssessments: AssessmentTemplate[]
 ): number {
+  if (!student || !Array.isArray(allSubmissions) || !Array.isArray(allAssessments)) return 0
+
   const gradedSubmissions = allSubmissions.filter(s => 
     s.studentId === student.id && 
     s.status === 'graded' && 

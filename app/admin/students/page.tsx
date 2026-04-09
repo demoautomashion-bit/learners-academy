@@ -82,14 +82,17 @@ export default function StudentsPage() {
     resolver: zodResolver(studentSchema)
   })
 
-  const filteredStudents = students?.filter(student => {
+  const filteredStudents = (Array.isArray(students) ? students : []).filter(student => {
+    if (!student) return false
+    
     const matchesSearch = 
-      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.studentId?.toLowerCase().includes(searchQuery.toLowerCase())
+      (student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (student.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (student.studentId || '').toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesStatus = statusFilter === 'all' || student.status === statusFilter
-    const matchesClass = classFilter === 'all' || student.enrolledCourses.includes(classFilter)
+    const enrolledCourses = Array.isArray(student.enrolledCourses) ? student.enrolledCourses : []
+    const matchesClass = classFilter === 'all' || enrolledCourses.includes(classFilter)
     const matchesTiming = timingFilter === 'all' || student.classTiming === timingFilter
 
     return matchesSearch && matchesStatus && matchesClass && matchesTiming

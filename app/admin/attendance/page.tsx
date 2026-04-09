@@ -201,13 +201,15 @@ export default function AttendancePage() {
   }
 
   const getTeacherStats = (teacherId: string) => {
-    if (!teacherId) return { present: 0, absent: 0, late: 0, leave: 0, substitutions: 0 }
-    const teacherRecords = attendanceData?.filter(a => a.teacherId === teacherId)
+    if (!teacherId || !Array.isArray(attendanceData)) {
+      return { present: 0, absent: 0, late: 0, leave: 0, substitutions: 0 }
+    }
+    const teacherRecords = attendanceData.filter(a => a.teacherId === teacherId)
     return {
-      present: teacherRecords?.filter(r => r.status === 'Present').length,
-      absent: teacherRecords?.filter(r => r.status === 'Absent').length,
-      late: teacherRecords?.filter(r => r.status === 'Late').length,
-      leave: teacherRecords?.filter(r => r.status === 'Leave').length,
+      present: teacherRecords.filter(r => r.status === 'Present').length || 0,
+      absent: teacherRecords.filter(r => r.status === 'Absent').length || 0,
+      late: teacherRecords.filter(r => r.status === 'Late').length || 0,
+      leave: teacherRecords.filter(r => r.status === 'Leave').length || 0,
       substitutions: teacherRecords.reduce((sum, r) => sum + (r.substituteCount || 0), 0)
     }
   }
