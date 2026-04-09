@@ -137,6 +137,7 @@ export interface Question {
   audioUrl?: string      // For Listening: audio clip URL
   matchPairs?: { left: string; right: string }[] // For Matching: column pairs
   isApproved: boolean
+  teacherId?: string
 }
 
 export interface ActionResult<T = any> {

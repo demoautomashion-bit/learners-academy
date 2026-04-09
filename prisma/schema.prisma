@@ -168,6 +168,7 @@ model Question {
   matchPairs    Json?
   passageText   String?
   isApproved    Boolean  @default(false)
+  teacherId     String?
 }
 
 model AssessmentTemplate {

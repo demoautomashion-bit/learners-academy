@@ -55,8 +55,8 @@ export default function AssessmentsPage() {
   return (
     <PageShell>
       <PageHeader 
-        title="Assessment Registry"
-        description="Define and coordinate active examination blocks."
+        title="Personal Test Registry"
+        description="Private portal to coordinate and manage your generated assessments."
         actions={
           <div className="flex gap-2">
             <Button variant="outline" asChild className="hover-lift font-normal">

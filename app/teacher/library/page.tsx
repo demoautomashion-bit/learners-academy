@@ -133,12 +133,13 @@ export default function QuestionLibraryPage() {
       audioUrl: data.audioUrl || undefined,
       matchPairs: data.type === 'Matching' ? validPairs : undefined,
       isApproved: !requiresReview,
+      teacherId: user.id
     }
 
     try {
       await addQuestion(newQuestion)
       handleClose()
-      toast.success('Question added to library')
+      toast.success('Question added to your bank')
     } catch {
       // Error handled by context
     }
@@ -149,9 +150,9 @@ export default function QuestionLibraryPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-serif text-foreground font-medium">Assessment Library</h1>
+          <h1 className="text-3xl font-serif text-foreground font-medium">Academic Question Bank</h1>
           <p className="text-muted-foreground mt-1 text-sm opacity-70">
-            Curate your institutional question bank across {CATEGORIES.length} academic categories.
+            Personalize your private repository of {CATEGORIES.length} academic categories.
           </p>
         </div>
 

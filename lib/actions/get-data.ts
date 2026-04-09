@@ -21,9 +21,13 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
 
   try {
     // Audit: Role-based filtering for performance
-    const studentFilter = role === 'teacher' && userId 
+    const isTeacher = role === 'teacher' && userId
+    const studentFilter = isTeacher
       ? { enrolledCourses: { hasSome: await db.course.findMany({ where: { teacherId: userId }, select: { id: true } }).then(courses => courses.map(c => c.id)) } }
       : {}
+
+    const questionFilter = isTeacher ? { teacherId: userId } : {}
+    const assessmentFilter = isTeacher ? { submittedByTeacherId: userId } : {}
 
     const [
       teachers,
@@ -41,8 +45,8 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       fetchEntity('courses', db.course.findMany({ orderBy: { startDate: 'desc' } })),
       fetchEntity('submissions', db.submission.findMany({ orderBy: { submittedAt: 'desc' } })),
       fetchEntity('schedules', db.schedule.findMany({ orderBy: { classTitle: 'asc' } })),
-      fetchEntity('questions', db.question.findMany({ orderBy: { category: 'asc' } })),
-      fetchEntity('assessments', db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })),
+      fetchEntity('questions', db.question.findMany({ where: questionFilter, orderBy: { category: 'asc' } })),
+      fetchEntity('assessments', db.assessmentTemplate.findMany({ where: assessmentFilter, orderBy: { createdAt: 'desc' } })),
       fetchEntity('assignments', db.assignment.findMany({ orderBy: { createdAt: 'desc' } }))
     ])
 

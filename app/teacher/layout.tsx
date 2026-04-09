@@ -74,20 +74,12 @@ const teacherNavItems = [
     ]
   },
   {
-    title: 'Content Registry',
+    title: 'Academic Workshop',
     href: '/teacher/library',
-    icon: Library,
-    items: [
-        { title: 'Institutional Library', href: '/teacher/library', icon: Library },
-        { title: 'Personal Resources', href: '/teacher/library', icon: BookMarked },
-    ]
-  },
-  {
-    title: 'Assessment Protocol',
-    href: '/teacher/assessments',
     icon: ClipboardList,
     items: [
-        { title: 'Question Registry', href: '/teacher/assessments', icon: ClipboardList },
+        { title: 'Question Bank', href: '/teacher/library', icon: Library },
+        { title: 'Test Registry', href: '/teacher/assessments', icon: ClipboardList },
         { title: 'Test Generator', href: '/teacher/assessments/generator', icon: Sparkles },
     ]
   },
