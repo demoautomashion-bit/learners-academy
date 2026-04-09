@@ -241,7 +241,20 @@ export default function FeeRegistryPage() {
               <Plus className="w-4 h-4 text-primary opacity-60" /> <span className="text-xs font-medium text-primary">Record Payment</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => {
-              window.open(`/admin/print/receipt?studentId=${entry.student.id}&courseId=${entry.course.id}`, '_blank')
+              const dues = entry.totalAmount - (entry.discount || 0) - entry.amountPaid
+              const params = new URLSearchParams({
+                studentId:     entry.student.id,
+                courseId:      entry.course.id,
+                tuitionFee:    String(entry.totalAmount || 0),
+                admissionFee:  String(0),
+                discount:      String(entry.discount || 0),
+                totalFee:      String((entry.totalAmount || 0) - (entry.discount || 0)),
+                paid:          String(entry.amountPaid || 0),
+                dues:          String(dues > 0 ? dues : 0),
+                term:          'Spring-2026',
+                teacherName:   entry.course.teacherName || '',
+              })
+              window.open(`/admin/print/receipt?${params.toString()}`, '_blank')
             }} className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal">
               <Printer className="w-4 h-4 text-muted-foreground opacity-60" /> <span className="text-xs">Generate Receipt</span>
             </DropdownMenuItem>

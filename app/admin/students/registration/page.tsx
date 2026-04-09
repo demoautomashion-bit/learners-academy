@@ -270,7 +270,20 @@ export default function StudentRegistrationPage() {
             <div className="grid grid-cols-1 gap-3 mt-8">
               <Button 
                 onClick={() => {
-                  window.open(`/admin/print/receipt?studentId=${registeredStudent.id}&courseId=${selectedCourseObj.id}`, '_blank')
+                  const courseObj = selectedCourseObj
+                  const params = new URLSearchParams({
+                    studentId:    registeredStudent.id,
+                    courseId:     courseObj?.id || '',
+                    tuitionFee:   String(0),
+                    admissionFee: String(0),
+                    discount:     String(0),
+                    totalFee:     String(0),
+                    paid:         String(0),
+                    dues:         String(0),
+                    term:         'Spring-2026',
+                    teacherName:  courseObj?.teacherName || '',
+                  })
+                  window.open(`/admin/print/receipt?${params.toString()}`, '_blank')
                 }}
                 className="h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-normal"
               >
