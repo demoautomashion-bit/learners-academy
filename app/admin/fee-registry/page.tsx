@@ -80,10 +80,22 @@ export default function FeeRegistryPage() {
   const [tempTotal, setTempTotal] = useState(0)
   const [tempDiscount, setTempDiscount] = useState(0)
 
-  const today = useMemo(() => new Date(), [hasMounted])
-  const currentYear = useMemo(() => new Date().getFullYear(), [])
-  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear])
-  const activeTrimester = useMemo(() => getActiveTrimester(), [])
+  const today = useMemo(() => {
+    if (!hasMounted) return new Date()
+    return new Date()
+  }, [hasMounted])
+
+  const currentYear = useMemo(() => {
+    if (!hasMounted) return new Date().getFullYear()
+    return new Date().getFullYear()
+  }, [hasMounted])
+
+  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear, hasMounted])
+  
+  const activeTrimester = useMemo(() => {
+    if (!hasMounted) return null
+    return getActiveTrimester()
+  }, [hasMounted])
 
   const stats = useMemo(() => {
     if (!hasMounted) return { daily: 0, weekly: 0, monthly: 0, totalOutstanding: 0, totalDiscounts: 0, trimesterCollection: 0 }

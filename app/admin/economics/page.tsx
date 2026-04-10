@@ -90,18 +90,23 @@ export default function EconomicsPage() {
   const [newExpense, setNewExpense] = useState({ amount: '', category: '', description: '' })
   const [periodFilter, setPeriodFilter] = useState<TimePeriod>('all')
 
-  const currentYear = useMemo(() => new Date().getFullYear(), [])
-  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear])
+  const currentYear = useMemo(() => {
+    if (!hasMounted) return new Date().getFullYear() // Default for SSR
+    return new Date().getFullYear()
+  }, [hasMounted])
+  
+  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear, hasMounted])
 
   // Human-readable label for the active period (used in exports)
   const periodLabel = useMemo(() => {
+    if (!hasMounted) return '...'
     if (periodFilter === 'all') return 'FULL HISTORY'
     if (periodFilter === 'today') return 'TODAY'
     if (periodFilter === 'week') return 'THIS WEEK'
     if (periodFilter === 'month') return 'THIS MONTH'
     const t = trimesters.find(t => t.filterKey === periodFilter)
     return t ? t.label.toUpperCase() : periodFilter.toUpperCase()
-  }, [periodFilter, trimesters])
+  }, [periodFilter, trimesters, hasMounted])
 
   // Filtered Data Calculations
   const filteredTransactions = useMemo(() => {

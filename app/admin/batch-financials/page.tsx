@@ -59,8 +59,12 @@ export default function BatchFinancialsPage() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
-  const currentYear = useMemo(() => new Date().getFullYear(), [])
-  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear])
+  const currentYear = useMemo(() => {
+    if (!hasMounted) return new Date().getFullYear()
+    return new Date().getFullYear()
+  }, [hasMounted])
+  
+  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear, hasMounted])
 
   // Aggregate Data per Course
   const courseFinancials = useMemo(() => {

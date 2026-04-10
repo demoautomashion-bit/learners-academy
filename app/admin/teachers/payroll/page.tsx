@@ -66,8 +66,12 @@ function PayrollContent() {
   , [teachers, teacherId])
   
   const [periodFilter, setPeriodFilter] = useState<TimePeriod>('all')
-  const currentYear = useMemo(() => new Date().getFullYear(), [])
-  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear])
+  const currentYear = useMemo(() => {
+    if (!hasMounted) return new Date().getFullYear()
+    return new Date().getFullYear()
+  }, [hasMounted])
+  
+  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear, hasMounted])
   
   const financialData = useMemo(() => {
     if (!hasMounted || !teacher) return { roster: [], paidCount: 0, unpaidCount: 0, totalPaidRevenue: 0 }

@@ -2,6 +2,7 @@
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -101,7 +102,7 @@ export default function StudentRegistrationPage() {
     try {
       await enrollStudent(newStudent)
       setRegisteredStudent(newStudent)
-      setSelectedCourseObj(courses.find(c => c.id === data.course) || { title: data.course })
+      setSelectedCourseObj(courses?.find(c => c.id === data.course) || { title: data.course })
       setShowSuccess(true)
       toast.success('Registration Protocol Finalized')
     } catch (err) {
