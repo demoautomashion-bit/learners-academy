@@ -85,10 +85,13 @@ export default function AdminDashboard() {
     return [...courses]
       .sort((a, b) => b.enrolled - a.enrolled)
       .slice(0, 5)
-      .map(course => ({
-        name: course.title.length > 15 ? course.title.substring(0, 15) + '...' : course.title,
-        value: course.enrolled
-      }))
+      .map(course => {
+        const title = course?.title || 'Untitled Course'
+        return {
+          name: title.length > 15 ? title.substring(0, 15) + '...' : title,
+          value: course?.enrolled || 0
+        }
+      })
   }, [courses, hasMounted])
 
   if (!user?.id) return null
@@ -286,9 +289,9 @@ export default function AdminDashboard() {
               {students.slice(0, 5).map((student) => (
                 <div key={student.id} className="flex items-center justify-between p-3  hover:bg-muted/30 transition-premium group">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10  bg-primary/5 flex items-center justify-center border  group-hover:scale-105 transition-transform">
-                      <span className="text-xs font-normal text-primary ">
-                        {student.name.split(' ').map(n => n[0]).join('')}
+                    <div className="w-10 h-10  bg-primary/5 flex items-center justify-center border  group-hover:scale-105 transition-transform text-primary">
+                      <span className="text-xs font-normal">
+                        {student?.name?.split(' ').map(n => n[0]).join('') || 'S'}
                       </span>
                     </div>
                     <div>

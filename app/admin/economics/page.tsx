@@ -260,7 +260,7 @@ export default function EconomicsPage() {
           </div>
           <div>
             <p className="text-xs font-normal text-foreground leading-none mb-1">{format(new Date(tx.date), 'MMM d, yyyy')}</p>
-            <p className="text-[10px] text-muted-foreground opacity-40 font-normal tracking-wider">{tx.id.substring(0, 12)}</p>
+            <p className="text-[10px] text-muted-foreground opacity-40 font-normal tracking-wider">{(tx?.id || 'TX-ID-TBC').substring(0, 12)}</p>
           </div>
         </div>
       ),

@@ -196,7 +196,7 @@ export default function FeeRegistryPage() {
           <Avatar className="h-10 w-10 border shadow-sm group-hover:scale-105 transition-transform">
             <AvatarImage src={entry.student.avatar} />
             <AvatarFallback className="text-xs bg-primary/5 text-primary font-normal">
-              {entry.student.name.split(' ').map((n: string) => n[0]).join('')}
+              {entry?.student?.name?.split(' ').map((n: string) => n[0]).join('') || 'S'}
             </AvatarFallback>
           </Avatar>
           <div>

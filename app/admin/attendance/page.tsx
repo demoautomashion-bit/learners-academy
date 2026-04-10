@@ -288,7 +288,7 @@ export default function AttendancePage() {
                   <Avatar className="h-10 w-10 border group-hover:scale-105 transition-transform">
                     <AvatarImage src={teacher.avatar} />
                     <AvatarFallback className="text-xs bg-primary/5 text-primary font-normal">
-                      {teacher.name.split(' ').map(n => n[0]).join('')}
+                      {teacher?.name?.split(' ').map(n => n[0]).join('') || 'T'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="overflow-hidden">
@@ -312,7 +312,7 @@ export default function AttendancePage() {
                     <Avatar className="h-16 w-16 border-2 border-background shadow-xl">
                       <AvatarImage src={selectedTeacher.avatar} />
                       <AvatarFallback className="bg-primary/5 text-primary text-2xl font-normal">
-                        {selectedTeacher.name.split(' ').map(n => n[0]).join('')}
+                        {selectedTeacher?.name?.split(' ').map(n => n[0]).join('') || 'T'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="space-y-1">

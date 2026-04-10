@@ -209,9 +209,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }))
         setEnrollments(normalizedEnrollments)
         
-        if (econData) {
-          setEconomics(econData)
-          setFeePayments(econData.feePayments || [])
+        if (econData && econData.success) {
+          setEconomics(econData.data)
+          setFeePayments(econData.data?.feePayments || [])
         }
       })
     } catch (err) {

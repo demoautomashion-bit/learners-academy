@@ -151,7 +151,7 @@ export default function StudentsPage() {
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
             <AvatarFallback className="bg-primary/5 text-primary text-xs font-normal">
-              {student.name.split(' ').map(n => n[0]).join('')}
+              {student?.name?.split(' ').map(n => n[0]).join('') || 'S'}
             </AvatarFallback>
           </Avatar>
           <p className="font-normal">{student.name}</p>

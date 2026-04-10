@@ -119,7 +119,7 @@ export default function TeachersPage() {
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarFallback className="bg-primary/10 text-primary font-normal">
-              {teacher.name.split(' ').map(n => n[0]).join('')}
+              {teacher?.name?.split(' ').map(n => n[0]).join('') || 'T'}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -209,8 +209,8 @@ export default function TeachersPage() {
                  e.preventDefault()
                  updateTeacherReviewFlag(teacher.id, !teacher.requiresReview)
                  toast.success(!teacher.requiresReview
-                   ? `${teacher.name.split(' ')[0]}'s papers will require review`
-                   : `${teacher.name.split(' ')[0]} can now publish directly`
+                 ? `${teacher?.name?.split(' ')[0] || 'Teacher'}'s papers will require review`
+                 : `${teacher?.name?.split(' ')[0] || 'Teacher'} can now publish directly`
                  )
                }}
              >
@@ -304,7 +304,7 @@ export default function TeachersPage() {
                 <div className="pt-2">
                   <Avatar className="h-16 w-16 ring-2 ring-primary/10 transition-premium shadow-lg">
                     <AvatarFallback className="bg-primary/5 text-primary font-serif font-normal">
-                      {selectedTeacher?.name.split(' ').map(n => n[0]).join('') || <User className="h-8 w-8" />}
+                    {selectedTeacher?.name?.split(' ').map(n => n[0]).join('') || <User className="h-8 w-8" />}
                     </AvatarFallback>
                   </Avatar>
                 </div>
