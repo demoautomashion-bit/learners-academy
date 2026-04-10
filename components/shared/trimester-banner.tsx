@@ -32,11 +32,12 @@ export function TrimesterBanner({ className }: TrimesterBannerProps) {
     )
   }
 
-  const progress = (() => {
+  const progress = useMemo(() => {
+    if (!hasMounted || !trimester) return 0
     const total = trimester.end.getTime() - trimester.start.getTime()
     const elapsed = new Date().getTime() - trimester.start.getTime()
     return Math.min(Math.max((elapsed / total) * 100, 0), 100)
-  })()
+  }, [hasMounted, trimester])
 
   return (
     <div className={cn(

@@ -141,8 +141,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refresh = useCallback(async () => {
-    // Basic guard: Prevent duplicate concurrent refreshes
+    // Basic guard: Prevent duplicate concurrent refreshes or early sync without auth identity
     if (isRefreshingRef.current) return;
+    
+    // Safety Audit: Ensure we don't fetch role-specific data until the identity is stable
+    // Special exception: allow public home page and student landing to proceed
+    const isPublicPage = typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === '/student')
+    if (!isPublicPage && (!user?.id || !user?.role)) {
+      console.warn('[DataProvider] Sync deferred: User identity not yet verified.')
+      return
+    }
     
     isRefreshingRef.current = true
     setIsLoading(true)
@@ -504,6 +512,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
         >
           Reload Portal
         </button>
+      </div>
+    )
+  }
+
+  if (!isInitialized && isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="space-y-4 text-center">
+           <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+           <p className="text-[10px] uppercase tracking-widest font-bold opacity-30">Syncing Registry Blocks...</p>
+        </div>
       </div>
     )
   }

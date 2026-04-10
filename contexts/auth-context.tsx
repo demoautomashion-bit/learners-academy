@@ -291,7 +291,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      }
   }
 
-  if (!mounted || state.isLoading) return <div id="auth-hydrating" className="min-h-screen bg-background" />
+  // Hydration guard: Do not and I repeat DO NOT render children until auth is stabilized
+  // This prevents child components from reading 'user' or 'isAuthenticated' prematurely
+  if (!mounted || state.isLoading) {
+    return (
+      <div id="auth-hydrating" className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+          <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground animate-pulse">
+            Establishing Secure Link...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <AuthContext.Provider value={{
