@@ -8,7 +8,7 @@ import type {
   AssessmentTemplate, StudentTest 
 } from '@/lib/types'
 
-// Server Actions
+// Server Actions & Validations
 import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus, updateTeacherReviewFlag as dbUpdateTeacherReviewFlag, updateTeacher as dbUpdateTeacher } from '@/lib/actions/teachers'
 import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics } from '@/lib/actions/students'
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse } from '@/lib/actions/courses'
@@ -85,10 +85,9 @@ function computeStats(
   courses: Course[], 
   submissions: Submission[],
   assessments: AssessmentTemplate[],
-  econ: any | null,
-  referenceDate?: Date
+  econ: any | null
 ): DashboardStats {
-  const now = referenceDate || new Date()
+  const now = new Date()
   const thirtyDaysAgo = new Date(now)
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
@@ -97,7 +96,6 @@ function computeStats(
     return d >= thirtyDaysAgo
   }).length
 
-  // Use centralized utility for completion rate
   const totalStudents = students.length
   const totalCompletionProgress = students.reduce((acc, s) => acc + calculateStudentOverallProgress(s, submissions, assessments), 0)
   const averageCompletion = totalStudents > 0 ? Math.round(totalCompletionProgress / totalStudents) : 0
@@ -130,100 +128,49 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
-  const [isPending, startTransition] = useTransition()
-
+  
   const { user } = useAuth()
-  const [hasMounted, setHasMounted] = useState(false)
   const isRefreshingRef = useRef(false)
-
-  useEffect(() => {
-    setHasMounted(true)
-  }, [])
+  const [, startTransition] = useTransition()
 
   const refresh = useCallback(async () => {
-    // Basic guard: Prevent duplicate concurrent refreshes or early sync without auth identity
-    if (isRefreshingRef.current) return;
+    if (isRefreshingRef.current) return
     
-    // Safety Audit: Ensure we don't fetch role-specific data until the identity is stable
-    // Special exception: allow public home page and student landing to proceed
-    const isPublicPage = typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === '/student')
-    if (!isPublicPage && (!user?.id || !user?.role)) {
-      console.warn('[DataProvider] Sync deferred: User identity not yet verified.')
-      setIsLoading(false) // CRITICAL: Release the loading lock for login/public pages
+    // Safety Audit: Only sync if we have a stable identity OR we are on a landing page
+    const isLandingPage = typeof window !== 'undefined' && 
+      (window.location.pathname === '/' || window.location.pathname === '/student')
+      
+    if (!isLandingPage && (!user?.id || !user?.role)) {
+      setIsLoading(false)
       return
     }
     
     isRefreshingRef.current = true
     setIsLoading(true)
-  const normalizeDate = (d: any) => {
-    if (!d) return new Date().toISOString()
-    try {
-      const date = d instanceof Date ? d : new Date(d)
-      return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString()
-    } catch (e) {
-      return new Date().toISOString()
-    }
-  }
 
     try {
-      console.log(`[DataProvider] Syncing with institutional registry for user: ${user?.id || 'Public'}...`)
       setHasError(false)
       
       const [initRes, econData] = await Promise.all([
         getInitialData(user?.id, user?.role as any),
-        getEconomicStats().catch(err => {
-          console.error("FAILED_TO_FETCH_SECONDARY_ECONOMICS:", err)
-          return null
-        })
+        getEconomicStats().catch(() => ({ success: false, data: null }))
       ])
 
       if (!initRes.success || !initRes.data) {
-        throw new Error(initRes.error || "Initialization failed")
+        throw new Error(initRes.error || "Institutional link failure")
       }
 
-      const { 
-        teachers: t = [], 
-        students: s = [], 
-        courses: c = [], 
-        questions: q = [], 
-        assessments: a = [], 
-        submissions: sub = [], 
-        schedules: sch = [], 
-        assignments: asgn = [], 
-        enrollments: enr = [] 
-      } = initRes.data || {}
-
       startTransition(() => {
-        // DATA FIREWALL: Filter out nulls and normalize records before setting state
-        setTeachers((t || []).filter(Boolean).map((item: any) => ({ ...item, joinedAt: normalizeDate(item.joinedAt) })) as unknown as Teacher[])
-        
-        setStudents((s || []).filter(Boolean).map((item: any) => ({ 
-          ...item, 
-          enrolledAt: normalizeDate(item.enrolledAt),
-          progress: Number(item.progress) || 0
-        })) as unknown as Student[])
-        
-        const normalizedCourses = (c || []).filter(Boolean).map((item: any) => ({ 
-          ...item, 
-          startDate: normalizeDate(item.startDate),
-          endDate: normalizeDate(item.endDate),
-          enrolled: Number(item._count?.enrollments) || 0, // Ensure numeric
-          capacity: Math.max(Number(item.capacity) || 1, 1), // Prevent division by zero
-        })) as unknown as Course[]
-        setCourses(normalizedCourses)
-        
-        setQuestions((q || []).filter(Boolean) as unknown as Question[])
-        setAssessments((a || []).filter(Boolean) as unknown as AssessmentTemplate[])
-        setSubmissions((sub || []).filter(Boolean).map((item: any) => ({ ...item, submittedAt: normalizeDate(item.submittedAt) })) as unknown as Submission[])
-        setSchedules((sch || []).filter(Boolean) as unknown as Schedule[])
-        setAssignments((asgn || []).filter(Boolean) as Assignment[])
-        
-        // Advanced Mapping: Link enrollments to course objects by ID
-        const normalizedEnrollments = (enr || []).filter(Boolean).map((en: any) => ({
-          ...en,
-          course: normalizedCourses.find(nc => nc.id === en.courseId)
-        }))
-        setEnrollments(normalizedEnrollments)
+        const d = initRes.data
+        setTeachers(d.teachers)
+        setStudents(d.students)
+        setCourses(d.courses)
+        setQuestions(d.questions)
+        setAssessments(d.assessments)
+        setSubmissions(d.submissions)
+        setSchedules(d.schedules)
+        setAssignments(d.assignments)
+        setEnrollments(d.enrollments)
         
         if (econData && econData.success) {
           setEconomics(econData.data)
@@ -231,41 +178,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       })
     } catch (err) {
-      console.error('CRITICAL_INITIALIZATION_ERROR:', err)
-      // Only set hasError if the entire fetch fails (initRes.success was false)
+      console.error('[DataProvider] CRITICAL_SYNC_ERROR:', err)
       setHasError(true)
-      toast.error("Institutional link disrupted. Attempting recovery...")
+      toast.error("Institutional Link Disrupted", { description: "Attempting automated recovery..." })
     } finally {
       setIsInitialized(true)
       setIsLoading(false)
       isRefreshingRef.current = false
     }
-  }, [user?.id, user?.role]) // Only re-create refresh when auth identity changes
+  }, [user?.id, user?.role])
 
   useEffect(() => {
     refresh()
   }, [refresh])
 
-  // Stability Guard: Ensure stats are only calculated with a stable date on the client
-  // or use a fixed date for server-side pre-rendering to match initial client state
   const stats = useMemo(() => {
-    if (!isInitialized || !hasMounted) {
-      return {
-        totalStudents: 0,
-        totalTeachers: 0,
-        totalCourses: 0,
-        activeEnrollments: 0,
-        revenue: 0,
-        revenueChange: 0,
-        newEnrollments: 0,
-        completionRate: 0,
-        netMargin: 0
-      }
+    if (!isInitialized) return {
+      totalStudents: 0, totalTeachers: 0, totalCourses: 0, activeEnrollments: 0,
+      revenue: 0, revenueChange: 0, newEnrollments: 0, completionRate: 0, netMargin: 0
     }
     return computeStats(teachers, students, courses, submissions, assessments, economics)
-  }, [teachers, students, courses, submissions, assessments, economics, isInitialized, hasMounted])
-
-  const [isRefreshing, startTransitionAction] = useTransition()
+  }, [teachers, students, courses, submissions, assessments, economics, isInitialized])
 
   const executeAction = useCallback(async (
     action: () => Promise<any>, 
@@ -274,244 +207,54 @@ export function DataProvider({ children }: { children: ReactNode }) {
   ) => {
     try {
       const result = await action()
-      
-      // Standardized response handling
-      if (result && typeof result === 'object' && 'success' in result) {
-        if (!result.success) {
-          throw new Error(result.error || 'Operation failed')
-        }
+      if (result && typeof result === 'object' && 'success' in result && !result.success) {
+        throw new Error(result.error || 'Operation failed')
       }
-
       await refresh()
       if (successMsg) toast.success(successMsg)
       return result
     } catch (err) {
       console.error('[DataProvider] ACTION_ERROR:', err)
-      const message = err instanceof Error ? err.message : 'Institutional record sync failed'
-      toast.error(errorMsg || message)
-      // Standard recovery: sync state anyway to ensure UI isn't stale
+      toast.error(errorMsg || (err instanceof Error ? err.message : 'Registry sync failed'))
       await refresh()
       throw err
     }
   }, [refresh])
 
-  // --- Teachers ---
-  const addTeacher = useCallback(async (teacher: Teacher) => {
-    if (!user?.id) return
-    await executeAction(async () => {
-      const res = await dbAddTeacher(teacher)
-      if (res.success && res.data) {
-        setTeachers(prev => [res.data as Teacher, ...prev])
-      }
-      return res
-    }, "Teacher added to registry", "Failed to add teacher")
-  }, [executeAction, user])
-
-  const updateTeacherStatus = useCallback(async (id: string, status: 'active' | 'inactive') => {
-    if (!user?.id) return
-    setTeachers(prev => prev.map(t => t.id === id ? { ...t, status } : t))
-    await executeAction(() => dbUpdateTeacherStatus(id, status))
-  }, [executeAction, user])
-
-  const removeTeacher = useCallback(async (id: string) => {
-    if (!user?.id) return
-    await executeAction(async () => {
-      const res = await dbRemoveTeacher(id)
-      if (res.success) {
-        setTeachers(prev => prev.filter(t => t.id !== id))
-      }
-      return res
-    }, "Teacher removed", "Failed to remove teacher")
-  }, [executeAction, user])
-
-  // --- Students ---
-  const enrollStudent = useCallback(async (student: any) => {
-    if (!user?.id) return
-    await executeAction(async () => {
-      const res = await dbEnrollStudent(student)
-      if (res.success && res.data) {
-        setStudents(prev => [res.data as Student, ...prev])
-      }
-      return res
-    }, "Student enrolled successfully", "Enrollment failed")
-  }, [executeAction, user])
-
-  const removeStudent = useCallback(async (id: string) => {
-    if (!user?.id) return
-    await executeAction(async () => {
-      const res = await dbRemoveStudent(id)
-      if (res.success) {
-        setStudents(prev => prev.filter(s => s.id !== id))
-      }
-      return res
-    }, "Student registry purged")
-  }, [executeAction, user])
-
-  const updateStudentStatus = useCallback(async (id: string, status: Student['status']) => {
-    if (!user?.id) return
-    setStudents(prev => prev.map(s => s.id === id ? { ...s, status } : s))
-    await executeAction(() => dbUpdateStudentStatus(id, status))
-  }, [executeAction, user])
-
-  const updateStudent = useCallback(async (id: string, data: Partial<Student>) => {
-    if (!user?.id) return
-    setStudents(prev => prev.map(s => s.id === id ? { ...s, ...data } : s))
-    await executeAction(() => dbUpdateStudent(id, data), "Academic profile updated")
-  }, [executeAction, user])
-
-  const updateStudentSuccessMetrics = useCallback(async (id: string, progress: number, grade?: string) => {
-    if (!user?.id) return
-    setStudents(prev => prev.map(s => s.id === id ? { ...s, progress, grade } : s))
-    await executeAction(() => dbUpdateStudentSuccessMetrics(id, progress, user.id, grade))
-  }, [executeAction, user])
-
-
-  // --- Courses ---
-  const addCourse = useCallback(async (course: Course) => {
-    if (!user?.id) return
-    await executeAction(async () => {
-      const res = await dbAddCourse(course)
-      if (res.success && res.data) {
-        setCourses(prev => [res.data as Course, ...prev])
-      }
-      return res
-    }, "Course created")
-  }, [executeAction, user])
-
-  const removeCourse = useCallback(async (id: string) => {
-    if (!user?.id) return
-    await executeAction(async () => {
-      const res = await dbRemoveCourse(id)
-      if (res.success) {
-        setCourses(prev => prev.filter(c => c.id !== id))
-      }
-      return res
-    }, "Course deleted")
-  }, [executeAction, user])
-
-  const updateCourseStatus = useCallback(async (id: string, status: Course['status']) => {
-    if (!user?.id) return
-    setCourses(prev => prev.map(c => c.id === id ? { ...c, status } : c))
-    await executeAction(() => dbUpdateCourseStatus(id, status))
-  }, [executeAction, user])
-
-  const updateCourse = useCallback(async (id: string, data: Partial<Course>) => {
-    if (!user?.id) return
-    setCourses(prev => prev.map(c => c.id === id ? { ...c, ...data } : c))
-    await executeAction(() => dbUpdateCourse(id, data), "Course curriculum updated")
-  }, [executeAction, user])
-
-  const updateCourseProgress = useCallback((courseId: string, progress: number) => {
-    setCourses(prev => prev.map(c => c.id === courseId ? { ...c, enrolled: progress } : c))
-  }, [])
-
-  // --- Questions ---
-  const addQuestion = useCallback(async (question: Question) => {
-    if (!user?.id) return
-    await executeAction(async () => {
-      const res = await dbAddQuestion(question)
-      if (res.success && res.data) {
-        setQuestions(prev => [res.data as Question, ...prev])
-      }
-      return res
-    }, "Block added to library")
-  }, [executeAction, user])
-
-  const deleteQuestion = useCallback(async (id: string) => {
-    if (!user?.id) return
-    await executeAction(async () => {
-      const res = await dbDeleteQuestion(id)
-      if (res.success) {
-        setQuestions(prev => prev.filter(q => q.id !== id))
-      }
-      return res
-    }, "Block removed")
-  }, [executeAction, user])
-
-  const updateQuestion = useCallback(async (id: string, data: Partial<Question>) => {
-    if (!user?.id) return
-    setQuestions(prev => prev.map(q => q.id === id ? { ...q, ...data } : q))
-    await executeAction(() => dbUpdateQuestion(id, data), "Block updated")
-  }, [executeAction, user])
-
-  // --- Assessments & Tests ---
-  const publishAssessment = useCallback(async (assessment: AssessmentTemplate) => {
-    await executeAction(() => dbPublishAssessment(assessment), "Assessment published successfully")
-  }, [executeAction])
-
-  const updateAssessmentStatus = useCallback(async (id: string, status: AssessmentTemplate['status']) => {
-    await executeAction(() => dbUpdateAssessmentStatus(id, status), "Assessment status updated")
-  }, [executeAction])
-
-  const removeAssessment = useCallback(async (id: string) => {
-    await executeAction(() => dbRemoveAssessment(id), "Test permanently deleted")
-  }, [executeAction])
-
-  const updateTeacher = useCallback(async (id: string, data: Partial<Teacher>) => {
-    await executeAction(() => dbUpdateTeacher(id, data), "Institutional record updated")
-  }, [executeAction])
-
-  // --- Review System ---
-  const updateTeacherReviewFlag = useCallback(async (id: string, flag: boolean) => {
-    setTeachers(prev => prev.map(t => t.id === id ? { ...t, requiresReview: flag } : t))
-    await executeAction(() => dbUpdateTeacherReviewFlag(id, flag))
-  }, [executeAction])
-
-  const approveQuestion = useCallback(async (id: string, flag: boolean) => {
-    await executeAction(() => dbApproveQuestion(id, flag))
-  }, [executeAction])
-
-  const approveAssessment = useCallback(async (id: string) => {
-    await executeAction(() => updateAssessmentReviewAction(id, 'active'), "Assessment approved")
-  }, [executeAction])
-
-  const rejectAssessment = useCallback(async (id: string, feedback: string) => {
-    await executeAction(() => updateAssessmentReviewAction(id, 'draft', feedback), "Assessment sent back for revision")
-  }, [executeAction])
-
-  // --- Submissions ---
-  const submitTestResult = useCallback(async (result: StudentTest) => {
-    const template = assessments.find(a => a.id === result.templateId)
-    await executeAction(() => dbSubmitTestResult(result, template?.title || 'Test'), "Results stored in registry")
-  }, [assessments, executeAction])
-
-  const gradeSubmission = useCallback(async (id: string, grade: number, feedback: string) => {
-    await executeAction(() => dbGradeSubmission(id, grade, feedback), "Institutional score recorded")
-  }, [executeAction])
-
-  // --- Schedules ---
-  const addSchedule = useCallback(async (schedule: Schedule) => {
-    await executeAction(() => dbAddSchedule(schedule), "Schedule updated")
-  }, [executeAction])
-
-  const updateSchedule = useCallback(async (id: string, data: Partial<Schedule>) => {
-    await executeAction(() => dbUpdateSchedule(id, data), "Schedule entry modified")
-  }, [executeAction])
-
-  const removeSchedule = useCallback(async (id: string) => {
-    await executeAction(() => dbRemoveSchedule(id), "Schedule entry deleted")
-  }, [executeAction])
-
-  // --- Economics & Fees ---
-  const addExpenditure = useCallback(async (data: any) => {
-    await executeAction(() => dbAddExpenditure(data), "Institutional outflow recorded")
-  }, [executeAction])
-
-  const recordPayment = useCallback(async (id: string, amount: number) => {
-    await executeAction(() => dbRecordPayment(id, amount), "Payment captured")
-  }, [executeAction])
-
-  const addFeeAccount = useCallback(async (data: any) => {
-    await executeAction(() => dbAddFeeAccount(data), "Student fee account initialized")
-  }, [executeAction])
-
-  const updateClassFee = useCallback(async (id: string, amount: number) => {
-    await executeAction(() => dbUpdateClassFee(id, amount), "Class tuition fee modified")
-  }, [executeAction])
-
-  const resetToDefaults = useCallback(() => {
-    toast.info('Reset is not available in database mode')
-  }, [])
+  // --- Wrapper Actions ---
+  const addTeacher = useCallback((t: Teacher) => executeAction(() => dbAddTeacher(t), "Teacher added"), [executeAction])
+  const updateTeacherStatus = useCallback((id: string, status: any) => executeAction(() => dbUpdateTeacherStatus(id, status)), [executeAction])
+  const removeTeacher = useCallback((id: string) => executeAction(() => dbRemoveTeacher(id), "Teacher removed"), [executeAction])
+  const enrollStudent = useCallback((s: any) => executeAction(() => dbEnrollStudent(s), "Student enrolled"), [executeAction])
+  const removeStudent = useCallback((id: string) => executeAction(() => dbRemoveStudent(id), "Student registry purged"), [executeAction])
+  const updateStudentStatus = useCallback((id: string, s: any) => executeAction(() => dbUpdateStudentStatus(id, s)), [executeAction])
+  const updateStudent = useCallback((id: string, d: any) => executeAction(() => dbUpdateStudent(id, d), "Profile updated"), [executeAction])
+  const updateStudentSuccessMetrics = useCallback((id: string, p: number, g?: string) => executeAction(() => dbUpdateStudentSuccessMetrics(id, p, user?.id || '', g)), [executeAction, user?.id])
+  const addCourse = useCallback((c: Course) => executeAction(() => dbAddCourse(c), "Course created"), [executeAction])
+  const removeCourse = useCallback((id: string) => executeAction(() => dbRemoveCourse(id), "Course deleted"), [executeAction])
+  const updateCourseStatus = useCallback((id: string, s: any) => executeAction(() => dbUpdateCourseStatus(id, s)), [executeAction])
+  const updateCourse = useCallback((id: string, d: any) => executeAction(() => dbUpdateCourse(id, d), "Curriculum updated"), [executeAction])
+  const updateCourseProgress = useCallback((id: string, p: number) => setCourses(prev => prev.map(c => c.id === id ? { ...c, enrolled: p } : c)), [])
+  const addQuestion = useCallback((q: Question) => executeAction(() => dbAddQuestion(q), "Block added"), [executeAction])
+  const deleteQuestion = useCallback((id: string) => executeAction(() => dbDeleteQuestion(id), "Block removed"), [executeAction])
+  const updateQuestion = useCallback((id: string, d: any) => executeAction(() => dbUpdateQuestion(id, d), "Block updated"), [executeAction])
+  const publishAssessment = useCallback((a: any) => executeAction(() => dbPublishAssessment(a), "Assessment published"), [executeAction])
+  const updateAssessmentStatus = useCallback((id: string, s: any) => executeAction(() => dbUpdateAssessmentStatus(id, s)), [executeAction])
+  const removeAssessment = useCallback((id: string) => executeAction(() => dbRemoveAssessment(id), "Permanently deleted"), [executeAction])
+  const updateTeacherReviewFlag = useCallback((id: string, f: boolean) => executeAction(() => dbUpdateTeacherReviewFlag(id, f)), [executeAction])
+  const approveQuestion = useCallback((id: string, f: boolean) => executeAction(() => dbApproveQuestion(id, f)), [executeAction])
+  const approveAssessment = useCallback((id: string) => executeAction(() => updateAssessmentReviewAction(id, 'active'), "Approved"), [executeAction])
+  const rejectAssessment = useCallback((id: string, f: string) => executeAction(() => updateAssessmentReviewAction(id, 'draft', f), "Sent back"), [executeAction])
+  const submitTestResult = useCallback((r: StudentTest) => executeAction(() => dbSubmitTestResult(r, assessments.find(a => a.id === r.templateId)?.title || 'Test'), "Results stored"), [assessments, executeAction])
+  const gradeSubmission = useCallback((id: string, g: number, f: string) => executeAction(() => dbGradeSubmission(id, g, f), "Score recorded"), [executeAction])
+  const addSchedule = useCallback((s: Schedule) => executeAction(() => dbAddSchedule(s), "Schedule updated"), [executeAction])
+  const updateSchedule = useCallback((id: string, d: any) => executeAction(() => dbUpdateSchedule(id, d)), [executeAction])
+  const removeSchedule = useCallback((id: string) => executeAction(() => dbRemoveSchedule(id)), [executeAction])
+  const addExpenditure = useCallback((d: any) => executeAction(() => dbAddExpenditure(d)), [executeAction])
+  const recordPayment = useCallback((id: string, a: number) => executeAction(() => dbRecordPayment(id, a), "Payment captured"), [executeAction])
+  const addFeeAccount = useCallback((d: any) => executeAction(() => dbAddFeeAccount(d), "Account initialized"), [executeAction])
+  const updateClassFee = useCallback((id: string, a: number) => executeAction(() => dbUpdateClassFee(id, a), "Fee modified"), [executeAction])
+  const updateTeacherProfile = useCallback((id: string, d: any) => executeAction(() => dbUpdateTeacher(id, d)), [executeAction])
 
   if (hasError) {
     return (
@@ -519,32 +262,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
         <div className="h-12 w-12 bg-destructive/10 rounded-full flex items-center justify-center mb-6">
           <div className="h-6 w-6 text-destructive">⚠️</div>
         </div>
-        <h2 className="text-2xl font-serif mb-2">Connection unstable</h2>
-        <p className="text-muted-foreground mb-8 max-w-xs mx-auto">
-          We were unable to synchronize with the institutional database. 
-        </p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="bg-primary text-white px-6 py-2 rounded-xl text-xs uppercase tracking-widest font-normal hover:bg-primary/90 transition-all shadow-premium"
-        >
-          Reload Portal
-        </button>
+        <h2 className="text-2xl font-serif mb-2">Institutional Link Disrupted</h2>
+        <p className="text-muted-foreground mb-8 max-w-xs mx-auto">Unable to synchronize with the registry.</p>
+        <button onClick={() => window.location.reload()} className="bg-primary text-white px-6 py-2 rounded-xl text-xs uppercase tracking-widest font-normal hover:bg-primary/90 transition-all shadow-premium">Reload Portal</button>
       </div>
     )
   }
 
-  // Hydration & Authentication Guard
-  // Only block rendering if we are on a protected route that REQUIRES authenticated data
+  // Stability Guard: Strictly block rendering of protected views while loading
   const isProtectedRoute = typeof window !== 'undefined' && 
-    (window.location.pathname.startsWith('/admin') || 
-     window.location.pathname.startsWith('/teacher') || 
-     (window.location.pathname.startsWith('/student') && window.location.pathname !== '/student'))
+    (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/teacher') || (window.location.pathname.startsWith('/student') && window.location.pathname !== '/student'))
 
   if (!isInitialized && isLoading && isProtectedRoute) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="space-y-4 text-center">
-           <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+           <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
            <p className="text-[10px] uppercase tracking-widest font-bold opacity-30">Syncing Registry Blocks...</p>
         </div>
       </div>
@@ -553,56 +286,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      teachers,
-      students,
-      courses,
-      assignments,
-      submissions,
-      stats,
-      schedules,
-      questions,
-      assessments,
-      economics,
-      feePayments,
-      enrollments,
-      isInitialized,
-      isLoading,
-      hasError,
-      enrollStudent,
-      removeStudent,
-      updateStudentStatus,
-      updateStudent,
-      updateStudentSuccessMetrics,
-      publishAssessment,
-      updateAssessmentStatus,
-      removeAssessment,
-      submitTestResult,
-      gradeSubmission,
-      updateCourseProgress,
-      addQuestion,
-      deleteQuestion,
-      updateQuestion,
-      addTeacher,
-      updateTeacherStatus,
-      removeTeacher,
-      addCourse,
-      updateCourseStatus,
-      updateCourse,
-      removeCourse,
-      addSchedule,
-      updateSchedule,
-      removeSchedule,
-      addExpenditure,
-      recordPayment,
-      addFeeAccount,
-      updateClassFee,
-      updateTeacher,
-      updateTeacherReviewFlag,
-      approveQuestion,
-      approveAssessment,
-      rejectAssessment,
-      resetToDefaults,
-      refresh,
+      teachers, students, courses, assignments, submissions, stats, schedules, questions, assessments, economics, feePayments, enrollments, isInitialized, isLoading, hasError,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addSchedule, updateSchedule, removeSchedule, addExpenditure, recordPayment, addFeeAccount, updateClassFee, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, resetToDefaults: () => {}, refresh,
     }}>
       {children}
     </DataContext.Provider>
@@ -611,8 +296,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
 export function useData() {
   const context = useContext(DataContext)
-  if (context === undefined) {
-    throw new Error('useData must be used within a DataProvider')
-  }
+  if (context === undefined) throw new Error('useData must be used within a DataProvider')
   return context
 }
