@@ -53,17 +53,20 @@ export default function AdminDashboard() {
       const d = new Date(nowRef)
       d.setDate(1) // Avoid month-end overflow issues
       d.setMonth(d.getMonth() - 5 + i)
+      const mIdx = d.getMonth()
       return {
-        name: months[d.getMonth()],
+        name: months[mIdx] || 'Unknown',
         value: 0,
-        monthIdx: d.getMonth(),
+        monthIdx: mIdx,
         year: d.getFullYear()
       }
     })
 
-    students.forEach(student => {
-      if (!student.enrolledAt) return
+    students?.forEach(student => {
+      if (!student || !student.enrolledAt) return
       const date = new Date(student.enrolledAt)
+      if (isNaN(date.getTime())) return // Guard against "Invalid Date"
+      
       const mIdx = date.getMonth()
       const yr = date.getFullYear()
       

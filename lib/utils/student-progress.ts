@@ -14,7 +14,7 @@ export function calculateStudentOverallProgress(
 ): number {
   if (!student || !Array.isArray(allSubmissions) || !Array.isArray(allAssessments)) return 0
 
-  const studentSubmissions = allSubmissions.filter(s => s.studentId === student.id)
+  const studentSubmissions = allSubmissions.filter(s => s && student?.id && s.studentId === student.id)
   if (studentSubmissions.length === 0) return 0
 
   // Only count graded or completed submissions
@@ -22,9 +22,10 @@ export function calculateStudentOverallProgress(
   
   // Find assessments applicable to student's enrolled levels/courses
   const relevantAssessments = allAssessments.filter(a => {
-    const enrolledCourses = Array.isArray(student.enrolledCourses) ? student.enrolledCourses : []
+    if (!a) return false
+    const enrolledCourses = Array.isArray(student?.enrolledCourses) ? student.enrolledCourses : []
     const hasCourseMatch = Array.isArray(a.courseIds) && a.courseIds.some(cid => enrolledCourses.includes(cid))
-    const hasLevelMatch = Array.isArray(a.classLevels) && a.classLevels.some(level => student.classTiming?.includes(level))
+    const hasLevelMatch = student?.classTiming && Array.isArray(a.classLevels) && a.classLevels.some(level => student.classTiming?.includes(level))
     return hasCourseMatch || hasLevelMatch
   })
   

@@ -149,6 +149,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const isPublicPage = typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === '/student')
     if (!isPublicPage && (!user?.id || !user?.role)) {
       console.warn('[DataProvider] Sync deferred: User identity not yet verified.')
+      setIsLoading(false) // CRITICAL: Release the loading lock for login/public pages
       return
     }
     
@@ -516,7 +517,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     )
   }
 
-  if (!isInitialized && isLoading) {
+  // Hydration & Authentication Guard
+  // Only block rendering if we are on a protected route that REQUIRES authenticated data
+  const isProtectedRoute = typeof window !== 'undefined' && 
+    (window.location.pathname.startsWith('/admin') || 
+     window.location.pathname.startsWith('/teacher') || 
+     (window.location.pathname.startsWith('/student') && window.location.pathname !== '/student'))
+
+  if (!isInitialized && isLoading && isProtectedRoute) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="space-y-4 text-center">
