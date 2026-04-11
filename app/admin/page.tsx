@@ -142,7 +142,7 @@ export default function AdminDashboard() {
       >
         <motion.div variants={STAGGER_ITEM}>
           <h1 className="font-serif text-3xl text-foreground font-medium">
-            Welcome, {(user?.name || 'Admin').split(' ').filter(Boolean)[0] || 'Admin'}
+            Welcome, {(String(user?.name || 'Admin')).split(' ').filter(Boolean)[0] || 'Admin'}
           </h1>
         </motion.div>
       </motion.div>
@@ -298,12 +298,12 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10  bg-primary/5 flex items-center justify-center border  group-hover:scale-105 transition-transform text-primary">
                       <span className="text-xs font-normal">
-                        {(student?.name || 'S').split(' ').filter(Boolean).map(n => n?.[0]).join('') || 'S'}
+                        {(String(student?.name || 'S')).split(' ').filter(Boolean).map(n => n?.[0]).join('') || 'S'}
                       </span>
                     </div>
                     <div>
-                      <p className="font-serif text-base leading-tight font-normal">{student?.name || 'Student'}</p>
-                      <p className="text-editorial-label text-xs lowercase opacity-70">{student?.email || 'N/A'}</p>
+                      <p className="font-serif text-base leading-tight font-normal">{String(student?.name || 'Student')}</p>
+                      <p className="text-editorial-label text-xs lowercase opacity-70">{String(student?.email || 'N/A')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
@@ -384,14 +384,14 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <Badge variant="outline" className="text-xs   font-normal  bg-primary/5 text-primary">
-                    {course.level}
+                    {String(course?.level || 'beginner')}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     {course.enrolled}/{course.capacity}
                   </span>
                 </div>
-                <p className="font-normal text-sm mb-1 line-clamp-1">{course.title}</p>
-                <p className="text-xs text-muted-foreground mb-3">{course.teacherName}</p>
+                <p className="font-normal text-sm mb-1 line-clamp-1">{String(course?.title || 'Untitled')}</p>
+                <p className="text-xs text-muted-foreground mb-3">{String(course?.teacherName || 'Unassigned')}</p>
                 <Progress value={Math.min(Math.max((Number(course.enrolled) / (Number(course.capacity) || 1)) * 100, 0), 100)} className="h-1.5" />
               </div>
             ))}

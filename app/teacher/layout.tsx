@@ -251,12 +251,12 @@ export default function TeacherLayout({
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-4 outline-none hover:opacity-80 transition-opacity">
               <span className="hidden md:inline-block font-medium text-xs text-muted-foreground opacity-60  ">
-                {user?.name}
+                {String(user?.name || '')}
               </span>
               <Avatar className="h-8 w-8 border  shadow-sm">
                 <AvatarImage src={user?.avatar} alt={user?.name} />
                 <AvatarFallback className="bg-primary/5 text-primary text-xs ">
-                  {(user?.name || 'User').split(' ').filter(Boolean).map(n => n?.[0]).join('') || 'U'}
+                  {(String(user?.name || 'User')).split(' ').filter(Boolean).map(n => n?.[0]).join('') || 'U'}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>

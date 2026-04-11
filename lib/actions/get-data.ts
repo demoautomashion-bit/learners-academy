@@ -72,23 +72,28 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
     const validData = validation.success ? validation.data : {
       teachers: (teachers || []).map((t: any) => ({ 
         ...t, 
-        name: t?.name || 'Teacher',
+        name: typeof t?.name === 'string' ? t.name : (t?.name ? 'Teacher' : 'Teacher'),
         joinedAt: t?.joinedAt || new Date().toISOString()
       })),
       students: (students || []).map((s: any) => ({ 
         ...s, 
-        name: s?.name || 'Student',
-        progress: s?.progress || 0,
+        name: typeof s?.name === 'string' ? s.name : (s?.name ? 'Student' : 'Student'),
+        progress: Number(s?.progress) || 0,
         enrolledCourses: Array.isArray(s?.enrolledCourses) ? s.enrolledCourses : [],
         enrolledAt: s?.enrolledAt || new Date().toISOString()
       })),
-      courses: sanitizedCourses || [],
+      courses: (sanitizedCourses || []).map((c: any) => ({
+        ...c,
+        title: typeof c?.title === 'string' ? c.title : (c?.title ? 'Untitled Course' : 'Untitled Course'),
+        level: typeof c?.level === 'string' ? c.level : (c?.level ? 'beginner' : 'beginner'),
+        teacherName: typeof c?.teacherName === 'string' ? c.teacherName : 'Unassigned'
+      })),
       submissions: (submissions || []).map((sub: any) => ({
         ...sub,
-        studentName: sub?.studentName || 'Student',
+        studentName: typeof sub?.studentName === 'string' ? sub.studentName : 'Student',
         submittedAt: sub?.submittedAt || new Date().toISOString()
       })),
-      schedules: schedules || [],
+      schedules: (schedules || []).map((sch: any) => ({ ...sch, day: String(sch?.day || 'Monday') })),
       questions: questions || [],
       assessments: assessments || [],
       assignments: assignments || [],
@@ -96,14 +101,17 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
 
     // Derive enrollments from students' enrolledCourses (Logic layer)
     const enrollments = (validData.students || []).flatMap((s: any) => {
+      const studentId = typeof s?.id === 'string' ? s.id : 'unknown'
+      const studentName = typeof s?.name === 'string' ? s.name : 'Student'
       const courses = Array.isArray(s?.enrolledCourses) ? s.enrolledCourses : []
+      
       return courses.map((courseId: string) => ({
-        id: `${s.id}-${courseId}`,
-        studentId: s.id,
-        studentName: s.name,
+        id: `${studentId}-${courseId}`,
+        studentId: studentId,
+        studentName: studentName,
         courseId,
-        progress: s.progress || 0,
-        grade: s.grade || 'N/A'
+        progress: Number(s?.progress) || 0,
+        grade: String(s?.grade || 'N/A')
       }))
     })
 
