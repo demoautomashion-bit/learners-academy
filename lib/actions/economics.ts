@@ -58,15 +58,15 @@ export async function getEconomicStats(): Promise<ActionResult> {
         person: 'Institutional Outflow'
       })),
       ...feePayments
-        .filter(pay => pay.amountPaid > 0)
+        .filter(pay => pay && pay.amountPaid > 0 && pay.student && pay.course)
         .map(pay => ({
           id: pay.id,
           amount: pay.amountPaid,
           type: 'Credit' as const,
           category: 'Tuition Fee',
-          description: `Fee Payment for ${pay.course.title}`,
+          description: `Fee Payment for ${pay.course?.title || 'Unknown Class'}`,
           date: pay.paymentDate || pay.updatedAt,
-          person: pay.student.name
+          person: pay.student?.name || 'Anonymous Student'
         }))
     ].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
 

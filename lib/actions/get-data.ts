@@ -70,10 +70,24 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
 
     // Capture validated data or fallback to raw if critical failures occur
     const validData = validation.success ? validation.data : {
-      teachers: (teachers || []).map((t: any) => ({ ...t, name: t.name || 'Teacher' })),
-      students: (students || []).map((s: any) => ({ ...s, name: s.name || 'Student' })),
+      teachers: (teachers || []).map((t: any) => ({ 
+        ...t, 
+        name: t?.name || 'Teacher',
+        joinedAt: t?.joinedAt || new Date().toISOString()
+      })),
+      students: (students || []).map((s: any) => ({ 
+        ...s, 
+        name: s?.name || 'Student',
+        progress: s?.progress || 0,
+        enrolledCourses: Array.isArray(s?.enrolledCourses) ? s.enrolledCourses : [],
+        enrolledAt: s?.enrolledAt || new Date().toISOString()
+      })),
       courses: sanitizedCourses || [],
-      submissions: submissions || [],
+      submissions: (submissions || []).map((sub: any) => ({
+        ...sub,
+        studentName: sub?.studentName || 'Student',
+        submittedAt: sub?.submittedAt || new Date().toISOString()
+      })),
       schedules: schedules || [],
       questions: questions || [],
       assessments: assessments || [],
@@ -81,8 +95,9 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
     }
 
     // Derive enrollments from students' enrolledCourses (Logic layer)
-    const enrollments = (validData.students || []).flatMap((s: any) => 
-      (s.enrolledCourses || []).map((courseId: string) => ({
+    const enrollments = (validData.students || []).flatMap((s: any) => {
+      const courses = Array.isArray(s?.enrolledCourses) ? s.enrolledCourses : []
+      return courses.map((courseId: string) => ({
         id: `${s.id}-${courseId}`,
         studentId: s.id,
         studentName: s.name,
@@ -90,7 +105,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         progress: s.progress || 0,
         grade: s.grade || 'N/A'
       }))
-    )
+    })
 
     return {
       success: true,
