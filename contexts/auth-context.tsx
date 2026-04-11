@@ -207,13 +207,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear persistence and simulate logout
       sessionStorage.removeItem(AUTH_STORAGE_KEY)
       
-      setState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-      })
-
       router.push('/auth/login')
+      
+      // Delay state update slightly to ensure the router transition has started
+      // and the layouts have begun unmounting before the 'user' object disappears
+      setTimeout(() => {
+        setState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        })
+      }, 50)
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw error

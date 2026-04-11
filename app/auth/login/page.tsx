@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 
-function LoginContent() {
+export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login } = useAuth()
@@ -143,17 +143,5 @@ function LoginContent() {
         </Card>
       </motion.div>
     </div>
-  )
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <div className="w-full h-full min-h-screen flex items-center justify-center bg-linear-to-b from-background to-muted/30">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    }>
-      <LoginContent />
-    </Suspense>
   )
 }
