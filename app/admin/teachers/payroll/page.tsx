@@ -371,8 +371,8 @@ function PayrollContent() {
 }
 
 export default function FacultyPayrollPage() {
-  const { isInitialized } = useData()
   const hasMounted = useHasMounted()
+  const { isInitialized } = useData()
   
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />

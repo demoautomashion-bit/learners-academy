@@ -60,6 +60,7 @@ import { useHasMounted } from '@/hooks/use-has-mounted'
 import { ClientDate } from '@/components/shared/client-date'
 
 export default function ClassesPage() {
+  const hasMounted = useHasMounted()
   const router = useRouter()
   const { courses, teachers, addCourse, removeCourse, updateCourseStatus, updateCourse, isInitialized } = useData()
   
@@ -70,7 +71,6 @@ export default function ClassesPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
-  const hasMounted = useHasMounted()
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 

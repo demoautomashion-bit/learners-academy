@@ -84,32 +84,32 @@ import { TrimesterBanner } from '@/components/shared/trimester-banner'
 type TimePeriod = 'all' | 'today' | 'week' | 'month' | 'spring' | 'summer' | 'autumn' | 'winter'
 
 export default function EconomicsPage() {
+  const hasMounted = useHasMounted()
   const { economics, addExpenditure, isInitialized } = useData()
-    const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false)
+  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false)
   const [newExpense, setNewExpense] = useState({ amount: '', category: '', description: '' })
   const [periodFilter, setPeriodFilter] = useState<TimePeriod>('all')
 
-  const currentYear = useMemo(() => {
-    if (!hasMounted) return new Date().getFullYear() // Default for SSR
-    return new Date().getFullYear()
-  }, [hasMounted])
+  if (!hasMounted) return null
+  if (!isInitialized) return <DashboardSkeleton />
+
+  const currentYear = new Date().getFullYear()
   
-  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear, hasMounted])
+  const trimesters = getTrimesters(currentYear)
 
   // Human-readable label for the active period (used in exports)
-  const periodLabel = useMemo(() => {
-    if (!hasMounted) return '...'
+  const periodLabel = (() => {
     if (periodFilter === 'all') return 'FULL HISTORY'
     if (periodFilter === 'today') return 'TODAY'
     if (periodFilter === 'week') return 'THIS WEEK'
     if (periodFilter === 'month') return 'THIS MONTH'
     const t = trimesters.find(t => t.filterKey === periodFilter)
     return t ? t.label.toUpperCase() : periodFilter.toUpperCase()
-  }, [periodFilter, trimesters, hasMounted])
+  })()
 
   // Filtered Data Calculations
-  const filteredTransactions = useMemo(() => {
-    if (!hasMounted || !economics?.transactions) return []
+  const filteredTransactions = (() => {
+    if (!economics?.transactions) return []
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
     const week = now.getTime() - 7 * 24 * 60 * 60 * 1000
@@ -129,10 +129,9 @@ export default function EconomicsPage() {
       }
       return true
     })
-  }, [economics?.transactions, periodFilter, hasMounted, currentYear])
+  })()
 
-  const periodStats = useMemo(() => {
-    if (!hasMounted) return { inflow: 0, outflow: 0, net: 0, count: 0 }
+  const periodStats = (() => {
     const inflow = filteredTransactions
       .filter(tx => tx.type === 'Credit')
       .reduce((sum, tx) => sum + tx.amount, 0)
@@ -145,11 +144,7 @@ export default function EconomicsPage() {
     const count = filteredTransactions.length
 
     return { inflow, outflow, net, count }
-  }, [filteredTransactions, hasMounted])
-
-  const hasMounted = useHasMounted()
-  if (!hasMounted) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  })()
 
 
 

@@ -110,10 +110,10 @@ function ReceiptPrintContent() {
 }
 
 export default function ReceiptPrintPage() {
-
   const hasMounted = useHasMounted()
-  if (!hasMounted) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  const { isInitialized } = useData()
+
+  if (!hasMounted || !isInitialized) return <DashboardSkeleton />
 
   return (
     <Suspense fallback={<DashboardSkeleton />}>

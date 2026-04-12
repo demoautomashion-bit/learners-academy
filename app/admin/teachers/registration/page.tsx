@@ -35,11 +35,9 @@ const teacherRegistrationSchema = z.object({
 type TeacherRegistrationValues = z.infer<typeof teacherRegistrationSchema>
 
 export default function TeacherRegistrationPage() {
+  const hasMounted = useHasMounted()
   const router = useRouter()
   const { teachers, addTeacher, isInitialized } = useData()
-  const hasMounted = useHasMounted()
-
-
 
   const form = useForm<TeacherRegistrationValues>({
     resolver: zodResolver(teacherRegistrationSchema),
@@ -98,9 +96,6 @@ export default function TeacherRegistrationPage() {
     }
   }
 
-  if (!isInitialized || !hasMounted) {
-    return <DashboardSkeleton />
-  }
 
   return (
     <PageShell>

@@ -33,25 +33,25 @@ import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 
 export default function TeacherProfilePage() {
+  const hasMounted = useHasMounted()
   const params = useParams()
   const router = useRouter()
 
   const { 
-    teachers, 
-    courses: allCourses, 
+    teachers = [], 
+    courses: allCourses = [], 
     updateTeacherStatus, 
     updateTeacherReviewFlag,
     removeTeacher, 
     isInitialized 
   } = useData()
 
-  const hasMounted = useHasMounted()
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
   const teacherId = params.id as string
   const teacher = teachers.find(t => t.id === teacherId || t.employeeId === teacherId)
-  const teacherCourses = (allCourses || []).filter(c => c.teacherId === teacher?.id)
+  const teacherCourses = allCourses.filter(c => c.teacherId === teacher?.id)
   
   if (!teacher) {
     return (

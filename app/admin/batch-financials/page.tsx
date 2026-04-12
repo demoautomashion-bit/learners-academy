@@ -51,23 +51,24 @@ import type { Course, FeePayment, Student } from '@/lib/types'
 type TimePeriod = 'all' | 'spring' | 'summer' | 'autumn' | 'winter'
 
 export default function BatchFinancialsPage() {
+  const hasMounted = useHasMounted()
   const { courses, feePayments, students, isInitialized } = useData()
-    const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [periodFilter, setPeriodFilter] = useState<TimePeriod>('all')
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
-  const currentYear = useMemo(() => {
-    if (!hasMounted) return new Date().getFullYear()
-    return new Date().getFullYear()
-  }, [hasMounted])
+  if (!hasMounted) return null
+  if (!isInitialized) return <DashboardSkeleton />
+
+  const currentYear = new Date().getFullYear()
   
-  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear, hasMounted])
+  const trimesters = getTrimesters(currentYear)
 
   // Aggregate Data per Course
-  const courseFinancials = useMemo(() => {
-    if (!hasMounted || !courses) return []
+  const courseFinancials = (() => {
+    if (!courses) return []
 
     const trimesterRange = getDateRangeFromFilterKey(periodFilter, currentYear)
 
@@ -100,29 +101,25 @@ export default function BatchFinancialsPage() {
         payments: coursePayments
       }
     })
-  }, [courses, feePayments, periodFilter, hasMounted, currentYear])
+  })()
 
-  const filteredFinancials = useMemo(() => {
+  const filteredFinancials = (() => {
     return courseFinancials.filter(cf => {
       const matchesSearch = (cf.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                             (cf.teacherName || '').toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = statusFilter === 'all' || cf.status === statusFilter
       return matchesSearch && matchesStatus
     })
-  }, [courseFinancials, searchQuery, statusFilter])
+  })()
 
-  const stats = useMemo(() => {
+  const stats = (() => {
     const totalExpected = filteredFinancials.reduce((sum, f) => sum + f.expected, 0)
     const totalCollected = filteredFinancials.reduce((sum, f) => sum + f.collected, 0)
     const totalOutstanding = totalExpected - totalCollected
     const avgCollectionRate = totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0
 
     return { totalExpected, totalCollected, totalOutstanding, avgCollectionRate }
-  }, [filteredFinancials])
-
-  const hasMounted = useHasMounted()
-  if (!hasMounted) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  })()
 
 
   const selectedCourse = (courseFinancials || []).find(cf => cf.id === selectedCourseId)

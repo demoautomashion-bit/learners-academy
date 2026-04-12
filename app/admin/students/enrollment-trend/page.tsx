@@ -60,13 +60,16 @@ import { TrimesterBanner } from '@/components/shared/trimester-banner'
 type TimePeriod = 'all' | 'today' | 'week' | 'month' | 'spring' | 'summer' | 'autumn' | 'winter'
 
 export default function EnrollmentTrendPage() {
+  const hasMounted = useHasMounted()
+  const { students, courses: mockCourses, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [periodFilter, setPeriodFilter] = useState<TimePeriod>('all')
   const [classFilter, setClassFilter] = useState('all')
 
-  const { students, courses: mockCourses, isInitialized } = useData()
+  if (!hasMounted) return null
+  if (!isInitialized) return <DashboardSkeleton />
 
-  const stats = useMemo(() => {
+  const stats = (() => {
     if (!students) return { today: 0, week: 0, month: 0, semester: 0, growthDelta: 0, termSeason: '', termProgress: 0 }
     
     const now = new Date()
@@ -100,9 +103,9 @@ export default function EnrollmentTrendPage() {
       termSeason,
       termProgress
     }
-  }, [students])
+  })()
 
-  const trendData = useMemo(() => {
+  const trendData = (() => {
     // Last 30 days registration trend for the AreaChart
     const end = new Date()
     const start = subDays(end, 29)
@@ -115,9 +118,9 @@ export default function EnrollmentTrendPage() {
         count
       }
     })
-  }, [students])
+  })()
 
-  const levelBreakdown = useMemo(() => {
+  const levelBreakdown = (() => {
     const tiers = [
       { name: 'Foundation', match: ['foundation', 'pre-foundation'] },
       { name: 'Core Tier', match: ['beginner', 'level 1', 'level 2', 'level 3', 'level 4', 'level 5', 'level 6'] },
@@ -132,12 +135,12 @@ export default function EnrollmentTrendPage() {
         return tier.match.some(m => studentCourse.toLowerCase().includes(m))
       }).length
     }))
-  }, [students, mockCourses])
+  })()
 
-  const currentYear = useMemo(() => new Date().getFullYear(), [])
-  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear])
+  const currentYear = new Date().getFullYear()
+  const trimesters = getTrimesters(currentYear)
 
-  const filteredStudents = useMemo(() => {
+  const filteredStudents = (() => {
     return students?.filter(student => {
       const enrollmentDate = new Date(student.enrolledAt).getTime()
       const now = new Date()
@@ -165,11 +168,7 @@ export default function EnrollmentTrendPage() {
 
       return matchesPeriod && matchesClass && matchesSearch
     })
-  }, [students, periodFilter, classFilter, searchQuery, currentYear])
-
-  const hasMounted = useHasMounted()
-  if (!hasMounted) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  })()
 
   const columns: Column<Student>[] = [
     {

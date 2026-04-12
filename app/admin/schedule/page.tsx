@@ -113,99 +113,94 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-serif text-3xl text-foreground font-medium">
-            Academic Schedule
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage class timings, room assignments, and teacher rotations.
-          </p>
-        </div>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button className="shadow-lg shadow-primary/20 font-normal ">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Schedule
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-xl p-0 overflow-hidden rounded-[2rem] border-white/10 glass-3">
-            <DialogHeader className="p-10 pb-0 text-center">
-              <div className="mx-auto w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-6 ring-1 ring-primary/20">
-                <Calendar className="w-7 h-7 text-primary opacity-80" />
-              </div>
-              <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Schedule Registry</DialogTitle>
-              <DialogDescription className="text-[10px] uppercase tracking-[0.3em] opacity-40 mt-2">
-                Operational Session Allocation Protocol
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleAddSchedule} className="p-10 pt-6 space-y-8">
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Class Level</FieldLabel>
-                    <Select name="className" required>
-                      <SelectTrigger className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm rounded-xl">
-                        <SelectValue placeholder="Select class" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(CLASS_LEVELS || []).map(level => (
-                          <SelectItem key={level} value={level}>{level}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Faculty Assignment</FieldLabel>
-                    <Select name="teacherName" required>
-                      <SelectTrigger className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm rounded-xl">
-                        <SelectValue placeholder="Select teacher" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(teachers || []).map(teacher => (
-                          <SelectItem key={teacher.id} value={teacher.name}>{teacher.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
+    <PageShell>
+      <PageHeader 
+        title="Academic Schedule"
+        description="Manage class timings, room assignments, and teacher rotations."
+        actions={
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-11 shadow-lg shadow-primary/20 font-normal ">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Schedule
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-xl p-0 overflow-hidden rounded-[2rem] border-white/10 glass-3">
+              <DialogHeader className="p-10 pb-0 text-center">
+                <div className="mx-auto w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-6 ring-1 ring-primary/20">
+                  <Calendar className="w-7 h-7 text-primary opacity-80" />
                 </div>
-                
-                <div className="grid grid-cols-2 gap-6">
-                  <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Timing Slot</FieldLabel>
-                    <Select name="slotId" required>
-                      <SelectTrigger className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm rounded-xl">
-                        <SelectValue placeholder="Choose timing" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(ACADEMY_SLOTS || []).map(slot => (
-                          <SelectItem key={slot.id} value={slot.id}>
-                            {slot.id} ({slot.time})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Room Allocation</FieldLabel>
-                    <Input name="roomNumber" placeholder="e.g. Lab A" required className="h-12 bg-background/30 border-white/10 focus:ring-1 focus:ring-primary/20 transition-all text-sm rounded-xl" />
-                  </Field>
+                <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Schedule Registry</DialogTitle>
+                <DialogDescription className="text-[10px] uppercase tracking-[0.3em] opacity-40 mt-2">
+                  Operational Session Allocation Protocol
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleAddSchedule} className="p-10 pt-6 space-y-8">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <Field>
+                      <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Class Level</FieldLabel>
+                      <Select name="className" required>
+                        <SelectTrigger className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm rounded-xl">
+                          <SelectValue placeholder="Select class" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(CLASS_LEVELS || []).map(level => (
+                            <SelectItem key={level} value={level}>{level}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field>
+                      <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Faculty Assignment</FieldLabel>
+                      <Select name="teacherName" required>
+                        <SelectTrigger className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm rounded-xl">
+                          <SelectValue placeholder="Select teacher" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(teachers || []).map(teacher => (
+                            <SelectItem key={teacher.id} value={teacher.name}>{teacher.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-6">
+                    <Field>
+                      <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Timing Slot</FieldLabel>
+                      <Select name="slotId" required>
+                        <SelectTrigger className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm rounded-xl">
+                          <SelectValue placeholder="Choose timing" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(ACADEMY_SLOTS || []).map(slot => (
+                            <SelectItem key={slot.id} value={slot.id}>
+                              {slot.id} ({slot.time})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field>
+                      <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Room Allocation</FieldLabel>
+                      <Input name="roomNumber" placeholder="e.g. Lab A" required className="h-12 bg-background/30 border-white/10 focus:ring-1 focus:ring-primary/20 transition-all text-sm rounded-xl" />
+                    </Field>
+                  </div>
                 </div>
-              </div>
-              <DialogFooter className="pt-4 gap-3">
-                <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl text-muted-foreground hover:text-foreground">
-                  Dismiss
-                </Button>
-                <Button type="submit" className="px-8 rounded-xl bg-primary text-primary-foreground font-serif text-lg tracking-wide hover-lift shadow-xl shadow-primary/20">
-                  Publish Schedule
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-
-        </Dialog>
-      </div>
+                <DialogFooter className="pt-4 gap-3">
+                  <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl text-muted-foreground hover:text-foreground">
+                    Dismiss
+                  </Button>
+                  <Button type="submit" className="px-8 rounded-xl bg-primary text-primary-foreground font-serif text-lg tracking-wide hover-lift shadow-xl shadow-primary/20">
+                    Publish Schedule
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <div className="flex items-center gap-4 mb-8">
         <div className="relative w-full md:w-96 group">
@@ -364,7 +359,6 @@ export default function SchedulePage() {
           )}
         </DialogContent>
       </Dialog>
-
-    </div>
+    </PageShell>
   )
 }

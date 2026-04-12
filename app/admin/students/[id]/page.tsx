@@ -57,10 +57,10 @@ export default function StudentDossierPage() {
   const [metricProgress, setMetricProgress] = useState(0)
   const [metricGrade, setMetricGrade] = useState('')
 
-  // Derived state (only runs after hydration/init)
-  const student = useMemo(() => 
-    students.find(s => s.id === params.id || s.studentId === params.id)
-  , [students, params.id])
+  if (!hasMounted) return null
+  if (!isInitialized) return <DashboardSkeleton />
+
+  const student = (students || []).find(s => s.id === params.id || s.studentId === params.id)
 
   useEffect(() => {
     if (student) {
@@ -68,11 +68,6 @@ export default function StudentDossierPage() {
       setMetricGrade(student.grade || '')
     }
   }, [student])
-
-  // UNIFIED STABILITY GUARD
-  if (!hasMounted || !isInitialized) {
-    return <DashboardSkeleton />
-  }
 
   const handleUpdateMetrics = async () => {
     if (!student) return

@@ -72,10 +72,8 @@ export default function StudentRegistrationPage() {
     }
   })
 
-  // UNIFIED STABILITY GUARD
-  if (!hasMounted || !isInitialized) {
-    return <DashboardSkeleton />
-  }
+  if (!hasMounted) return null
+  if (!isInitialized) return <DashboardSkeleton />
 
   const onSubmit = async (data: RegistrationFormValues) => {
     if (students.some(s => s.studentId?.toLowerCase() === data.studentId.toLowerCase())) {

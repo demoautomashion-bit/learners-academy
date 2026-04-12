@@ -68,6 +68,8 @@ const studentSchema = z.object({
 type StudentFormValues = z.infer<typeof studentSchema>
 
 export default function StudentsPage() {
+  const hasMounted = useHasMounted()
+  const { students, courses: mockCourses, removeStudent, updateStudentStatus, updateStudent, isInitialized } = useData()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -75,13 +77,10 @@ export default function StudentsPage() {
   const [timingFilter, setTimingFilter] = useState('all')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
-  const { students, courses: mockCourses, removeStudent, updateStudentStatus, updateStudent, isInitialized } = useData()
-
   const editForm = useForm<StudentFormValues>({
     resolver: zodResolver(studentSchema)
   })
 
-  const hasMounted = useHasMounted()
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
@@ -254,9 +253,6 @@ export default function StudentsPage() {
     }
   ]
 
-  if (!isInitialized) {
-    return <DashboardSkeleton />
-  }
 
   return (
     <PageShell>

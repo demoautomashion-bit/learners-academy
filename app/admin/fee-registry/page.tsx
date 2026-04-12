@@ -68,8 +68,8 @@ import { TrimesterBanner } from '@/components/shared/trimester-banner'
 type TimePeriod = 'all' | 'spring' | 'summer' | 'autumn' | 'winter'
 
 export default function FeeRegistryPage() {
-  const { students, courses, feePayments, recordPayment, addFeeAccount, isInitialized } = useData()
   const hasMounted = useHasMounted()
+  const { students, courses, feePayments, recordPayment, addFeeAccount, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'All' | 'Paid' | 'Partial' | 'Unpaid'>('All')
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false)
@@ -80,25 +80,18 @@ export default function FeeRegistryPage() {
   const [tempTotal, setTempTotal] = useState(0)
   const [tempDiscount, setTempDiscount] = useState(0)
 
-  const today = useMemo(() => {
-    if (!hasMounted) return new Date()
-    return new Date()
-  }, [hasMounted])
+  if (!hasMounted) return null
+  if (!isInitialized) return <DashboardSkeleton />
 
-  const currentYear = useMemo(() => {
-    if (!hasMounted) return new Date().getFullYear()
-    return new Date().getFullYear()
-  }, [hasMounted])
+  const today = new Date()
 
-  const trimesters = useMemo(() => getTrimesters(currentYear), [currentYear, hasMounted])
+  const currentYear = today.getFullYear()
+
+  const trimesters = getTrimesters(currentYear)
   
-  const activeTrimester = useMemo(() => {
-    if (!hasMounted) return null
-    return getActiveTrimester()
-  }, [hasMounted])
+  const activeTrimester = getActiveTrimester()
 
-  const stats = useMemo(() => {
-    if (!hasMounted) return { daily: 0, weekly: 0, monthly: 0, totalOutstanding: 0, totalDiscounts: 0, trimesterCollection: 0 }
+  const stats = (() => {
     const safePayments = Array.isArray(feePayments) ? feePayments : []
 
     const daily = safePayments
@@ -135,10 +128,9 @@ export default function FeeRegistryPage() {
       : 0
 
     return { daily, weekly, monthly, totalOutstanding, totalDiscounts, trimesterCollection }
-  }, [feePayments, today, hasMounted, periodFilter, currentYear, activeTrimester])
+  })()
 
-  const filteredPayments = useMemo(() => {
-    if (!hasMounted) return []
+  const filteredPayments = (() => {
     return (Array.isArray(feePayments) ? feePayments : []).filter(p => {
       if (!p.student || !p.course) return false
       const matchesSearch = (p.student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -146,7 +138,7 @@ export default function FeeRegistryPage() {
       const matchesStatus = filterStatus === 'All' || p.status === filterStatus
       return matchesSearch && matchesStatus
     })
-  }, [feePayments, searchQuery, filterStatus, hasMounted])
+  })()
 
 
 

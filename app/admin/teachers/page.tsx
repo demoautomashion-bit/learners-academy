@@ -59,16 +59,15 @@ import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 
 export default function TeachersPage() {
+  const hasMounted = useHasMounted()
   const { teachers, updateTeacherStatus, removeTeacher, updateTeacher, updateTeacherReviewFlag, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
 
-  const hasMounted = useHasMounted()
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
-  
 
 
   const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter(teacher => {
@@ -244,9 +243,6 @@ export default function TeachersPage() {
     }
   ]
 
-  if (!isInitialized) {
-    return <DashboardSkeleton />
-  }
 
   return (
     <PageShell>

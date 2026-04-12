@@ -31,20 +31,17 @@ import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 
 export default function SettingsPage() {
-  const { user, updateUser } = useAuth()
-  
-  if (!user?.id || !hasMounted) return null
+  const hasMounted = useHasMounted()
+  const { user, updateUser, isInitialized: authInitialized } = useAuth()
+  const { isInitialized: dataInitialized } = useData()
   const [isLoading, setIsLoading] = useState(false)
 
-  const hasMounted = useHasMounted()
   if (!hasMounted) return null
-  if (!isInitialized) return <DashboardSkeleton />
-
+  if (!authInitialized || !dataInitialized || !user?.id) return <DashboardSkeleton />
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // In a real app, you'd upload to a CDN. Here we simulate with a URL.
       const reader = new FileReader()
       reader.onloadend = () => {
         updateUser({ avatar: reader.result as string })
@@ -56,25 +53,17 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setIsLoading(true)
-    // Simulate save
     await new Promise(resolve => setTimeout(resolve, 800))
     setIsLoading(false)
     toast.success('Settings synchronized successfully')
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-serif text-3xl text-foreground font-medium">
-            Settings
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your academy settings and preferences
-          </p>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader 
+        title="Settings"
+        description="Manage your academy settings and preferences"
+      />
 
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList className="bg-muted/50 p-1">
@@ -96,7 +85,7 @@ export default function SettingsPage() {
           <div className="grid gap-6 md:grid-cols-3 items-stretch">
             <Card className="glass-1 md:col-span-2 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="font-serif text-xl font-serif font-medium">Institute Information</CardTitle>
+                <CardTitle className="font-serif text-xl font-medium">Institute Information</CardTitle>
                 <CardDescription>
                   Core academic identity and branding parameters.
                 </CardDescription>
@@ -125,20 +114,20 @@ export default function SettingsPage() {
 
             <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="font-serif text-xl font-serif font-medium">Academy Branding</CardTitle>
+                <CardTitle className="font-serif text-xl font-medium">Academy Branding</CardTitle>
                 <CardDescription>
                   Manage the official logo and institutional profile icon.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center py-6 flex-1">
                 <div className="relative group cursor-pointer mb-6">
-                  <div className="w-32 h-32  border-2 border-dashed  flex items-center justify-center bg-muted/30 overflow-hidden transition-all group-hover:">
+                  <div className="w-32 h-32 border-2 border-dashed flex items-center justify-center bg-muted/30 overflow-hidden transition-all">
                     {user?.avatar ? (
                       <img src={user.avatar} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
                       <ImageIcon className="w-8 h-8 text-primary/20" />
                     )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity ">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                       <Upload className="w-6 h-6 text-white" />
                     </div>
                   </div>
@@ -150,7 +139,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="text-center space-y-1">
-                  <p className="text-xs font-normal   text-primary opacity-60">Official Logo</p>
+                  <p className="text-xs font-normal text-primary opacity-60">Official Logo</p>
                   <p className="text-xs text-muted-foreground">Supported: JPG, PNG, SVG (Max 2MB)</p>
                 </div>
               </CardContent>
@@ -164,9 +153,6 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-
-
-        {/* Security Settings */}
         <TabsContent value="security" className="space-y-6">
           <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader>
@@ -216,27 +202,6 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader>
-              <CardTitle>Session Management</CardTitle>
-              <CardDescription>
-                Manage your active sessions across devices
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 flex-1">
-              <div className="flex items-center justify-between p-3  border">
-                <div>
-                  <p className="font-normal">Current Session</p>
-                  <p className="text-sm text-muted-foreground">Chrome on macOS - Active now</p>
-                </div>
-                <Button variant="outline" size="sm">This device</Button>
-              </div>
-              <Button variant="destructive" className="w-full">
-                Sign Out All Other Sessions
-              </Button>
-            </CardContent>
-          </Card>
-
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={isLoading}>
               <Save className="w-4 h-4 mr-2" />
@@ -248,7 +213,7 @@ export default function SettingsPage() {
         <TabsContent value="appearance" className="space-y-6">
           <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader>
-              <CardTitle className="font-serif text-xl font-serif font-medium">Interface Configuration</CardTitle>
+              <CardTitle className="font-serif text-xl font-medium">Interface Configuration</CardTitle>
               <CardDescription>
                 Tailor the visual intensity and density of your administration portal.
               </CardDescription>
@@ -257,7 +222,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <p className="font-normal">Dark Mode Appearance</p>
-                  <p className="text-sm text-editorial-meta">
+                  <p className="text-sm text-muted-foreground opacity-60">
                     Shift to a premium dark aesthetic for focused work
                   </p>
                 </div>
@@ -267,7 +232,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <p className="font-normal">High-Density Compact Mode</p>
-                  <p className="text-sm text-editorial-meta">
+                  <p className="text-sm text-muted-foreground opacity-60">
                     Maximize information visibility by reducing whitespace
                   </p>
                 </div>
@@ -283,6 +248,6 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageShell>
   )
 }

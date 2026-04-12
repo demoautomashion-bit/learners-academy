@@ -58,6 +58,7 @@ import { useHasMounted } from '@/hooks/use-has-mounted'
 import { SafeDate } from '@/components/shared/safe-date'
 
 export default function AttendancePage() {
+  const hasMounted = useHasMounted()
   const { teachers, isInitialized } = useData()
   
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -69,7 +70,11 @@ export default function AttendancePage() {
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false)
   const [auditTarget, setAuditTarget] = useState<{ teacherId: string, date: string, record: any } | null>(null)
 
-  const currentRange = useMemo(() => {
+  if (!hasMounted) return null
+  if (!isInitialized) return <DashboardSkeleton />
+
+
+  const currentRange = (() => {
     if (viewMode === 'month') {
       return { 
         start: startOfMonth(currentDate), 
@@ -84,7 +89,7 @@ export default function AttendancePage() {
       end,
       label: `Week of ${format(start, 'MMM d')}`
     }
-  }, [currentDate, viewMode])
+  })()
 
   useEffect(() => {
     async function fetchAttendance() {
@@ -102,14 +107,7 @@ export default function AttendancePage() {
     fetchAttendance()
   }, [currentRange])
 
-  const daysInRange = useMemo(() => {
-    return eachDayOfInterval({ start: currentRange.start, end: currentRange.end })
-  }, [currentRange])
-
-  const hasMounted = useHasMounted()
-  if (!hasMounted) return null
-  if (!isInitialized) return <DashboardSkeleton />
-
+  const daysInRange = eachDayOfInterval({ start: currentRange.start, end: currentRange.end })
 
   const selectedTeacher = (teachers || []).find(t => t.id === selectedTeacherId)
 

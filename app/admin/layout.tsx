@@ -61,6 +61,7 @@ import {
   UserPlus
 } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
+import { useHasMounted } from '@/hooks/use-has-mounted'
 
 const adminNavItems = [
   {
@@ -145,7 +146,9 @@ export default function AdminLayout({
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const { assessments } = useData()
+  const hasMounted = useHasMounted()
   
+  if (!hasMounted || !user?.id) return null
 
   const pendingReviewCount = Array.isArray(assessments) 
     ? assessments.filter(a => a && a.status === 'pending_review').length 
