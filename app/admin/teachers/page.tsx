@@ -63,7 +63,7 @@ export default function TeachersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   
-  if (!isInitialized) return <DashboardSkeleton />
+
 
   const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter(teacher => {
     if (!teacher) return false
@@ -237,6 +237,10 @@ export default function TeachersPage() {
       width: '70px'
     }
   ]
+
+  if (!isInitialized) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <PageShell>

@@ -80,7 +80,7 @@ export default function StudentsPage() {
     resolver: zodResolver(studentSchema)
   })
 
-  if (!isInitialized) return <DashboardSkeleton />
+
 
   const filteredStudents = (Array.isArray(students) ? students : []).filter(student => {
     if (!student) return false
@@ -248,6 +248,10 @@ export default function StudentsPage() {
       width: '70px'
     }
   ]
+
+  if (!isInitialized) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <PageShell>

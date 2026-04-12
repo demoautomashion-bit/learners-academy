@@ -47,7 +47,7 @@ export default function SchedulePage() {
   const { schedules, teachers, addSchedule, removeSchedule, updateSchedule, isInitialized } = useData()
   const hasMounted = useHasMounted()
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)

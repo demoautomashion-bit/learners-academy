@@ -38,7 +38,7 @@ export default function AdminLibraryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterMode, setFilterMode] = useState<'all' | 'pending' | 'approved'>('all')
 
-  if (!isInitialized) return <DashboardSkeleton />
+
 
   const filteredQuestions = questions?.filter((q: Question) => {
     const categoryMatch = activeTab === 'All' || q.category === activeTab
@@ -51,6 +51,10 @@ export default function AdminLibraryPage() {
   })
 
   const pendingCount = questions?.filter(q => !q.isApproved).length
+
+  if (!isInitialized) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <div className="space-y-6">

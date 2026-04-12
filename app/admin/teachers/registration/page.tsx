@@ -37,8 +37,7 @@ export default function TeacherRegistrationPage() {
   const { teachers, addTeacher, isInitialized } = useData()
   const hasMounted = useHasMounted()
 
-  if (!hasMounted) return <DashboardSkeleton />
-  if (!isInitialized) return <DashboardSkeleton />
+
 
   const form = useForm<TeacherRegistrationValues>({
     resolver: zodResolver(teacherRegistrationSchema),
@@ -92,6 +91,10 @@ export default function TeacherRegistrationPage() {
     } catch (err) {
       // Handled by context
     }
+  }
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
   }
 
   return (

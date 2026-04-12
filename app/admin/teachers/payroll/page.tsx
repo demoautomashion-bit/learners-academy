@@ -131,7 +131,11 @@ function PayrollContent() {
     )
   }, [financialData.roster, ledgerSearch, hasMounted])
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   const computedSalary = compensationModel === 'fixed' 
     ? financialData.paidCount * compensationRate 

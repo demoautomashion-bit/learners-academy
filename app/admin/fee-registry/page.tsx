@@ -148,7 +148,7 @@ export default function FeeRegistryPage() {
     })
   }, [feePayments, searchQuery, filterStatus, hasMounted])
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
 
   const handleAddAccount = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -312,6 +312,10 @@ export default function FeeRegistryPage() {
       )
     }
   ]
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <PageShell>

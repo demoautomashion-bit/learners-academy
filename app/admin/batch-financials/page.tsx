@@ -211,7 +211,11 @@ export default function BatchFinancialsPage() {
     )}
   ]
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <PageShell>

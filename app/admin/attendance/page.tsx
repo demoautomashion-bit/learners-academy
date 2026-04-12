@@ -61,7 +61,7 @@ export default function AttendancePage() {
   const { teachers, isInitialized } = useData()
   const hasMounted = useHasMounted()
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<'week' | 'month'>('month')
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null)
@@ -220,6 +220,10 @@ export default function AttendancePage() {
     } else {
       setCurrentDate(prev => direction === 'next' ? addWeeks(prev, 1) : subWeeks(prev, 1))
     }
+  }
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
   }
 
   return (

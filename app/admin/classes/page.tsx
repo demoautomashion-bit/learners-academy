@@ -64,7 +64,7 @@ export default function ClassesPage() {
   const { courses, teachers, addCourse, removeCourse, updateCourseStatus, updateCourse, isInitialized } = useData()
   const hasMounted = useHasMounted()
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -267,6 +267,10 @@ export default function ClassesPage() {
       width: '70px'
     }
   ]
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <PageShell>

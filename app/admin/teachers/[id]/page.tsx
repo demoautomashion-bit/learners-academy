@@ -44,7 +44,11 @@ export default function TeacherProfilePage() {
   const teacherCourses = allCourses?.filter(c => c.teacherId === teacher?.id)
   
   const hasMounted = useHasMounted()
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   if (!teacher) {
     return (

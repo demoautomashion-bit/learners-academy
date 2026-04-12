@@ -169,7 +169,7 @@ export default function EnrollmentTrendPage() {
 
   const hasMounted = useHasMounted()
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
 
   const columns: Column<Student>[] = [
     {
@@ -225,6 +225,10 @@ export default function EnrollmentTrendPage() {
     { label: 'Monthly', value: stats.month, sub: 'Last 30 days', icon: Calendar, color: 'text-indigo-400' },
     { label: 'Semester', value: stats.semester, sub: 'Last 3 months', icon: Waves, color: 'text-primary' },
   ]
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <PageShell>

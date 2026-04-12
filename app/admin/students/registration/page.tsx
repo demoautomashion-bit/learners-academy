@@ -74,7 +74,7 @@ export default function StudentRegistrationPage() {
     }
   })
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
 
   const onSubmit = async (data: RegistrationFormValues) => {
     // Check for duplicate Student ID
@@ -108,6 +108,10 @@ export default function StudentRegistrationPage() {
     } catch (err) {
       // Error handled by context
     }
+  }
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
   }
 
   return (

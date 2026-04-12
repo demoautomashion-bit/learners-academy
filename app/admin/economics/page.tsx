@@ -148,7 +148,7 @@ export default function EconomicsPage() {
     return { inflow, outflow, net, count }
   }, [filteredTransactions, hasMounted])
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
 
   const categoryIcons: Record<string, any> = {
     'Salaries': Users,
@@ -284,6 +284,10 @@ export default function EconomicsPage() {
     { label: 'Net Institutional Margin', value: periodStats.net, sub: 'Operating Result', icon: DollarSign, color: 'text-primary' },
     { label: 'Protocol Volume', value: periodStats.count, sub: 'Transactions Logged', icon: Activity, color: 'text-indigo-400', isCount: true }
   ]
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <PageShell>

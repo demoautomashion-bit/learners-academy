@@ -98,7 +98,7 @@ export default function AdminDashboard() {
   }, [courses, hasMounted])
 
   if (!user?.id) return null
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
 
   const statCards = [
     {
@@ -130,6 +130,10 @@ export default function AdminDashboard() {
       href: '/admin/economics',
     },
   ]
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <div className="space-y-6">

@@ -52,7 +52,7 @@ export default function StudentDossierPage() {
   const { students, courses, feePayments, updateStudentSuccessMetrics, isInitialized } = useData()
   const hasMounted = useHasMounted()
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
   
   // Find student by ID or studentId
   const student = students.find(s => s.id === params.id || s.studentId === params.id)
@@ -75,6 +75,10 @@ export default function StudentDossierPage() {
     } catch (err) {
       toast.error('Failed to sync metrics')
     }
+  }
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
   }
 
   if (!student) {

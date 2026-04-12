@@ -47,7 +47,7 @@ export default function TestReviewsPage() {
   const { assessments, teachers, approveAssessment, rejectAssessment, isInitialized } = useData()
   const hasMounted = useHasMounted()
 
-  if (!isInitialized || !hasMounted) return <DashboardSkeleton />
+
   const [expandedRejectId, setExpandedRejectId] = useState<string | null>(null)
   const [inspectPoolId, setInspectPoolId] = useState<string | null>(null)
   const [feedbackMap, setFeedbackMap] = useState<Record<string, string>>({})
@@ -113,6 +113,10 @@ export default function TestReviewsPage() {
   const { count: poolCount, questions: poolQuestions } = selectedAssessmentForPool 
     ? getPoolStrength(selectedAssessmentForPool)
     : { count: 0, questions: [] }
+
+  if (!isInitialized || !hasMounted) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <div className="space-y-6">
