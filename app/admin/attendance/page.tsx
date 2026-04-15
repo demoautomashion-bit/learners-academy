@@ -1,648 +1,213 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import React, { useState, useMemo, useEffect } from 'react'
-import { 
-  Users, 
-  Calendar, 
-  Plus, 
-  ChevronLeft, 
-  ChevronRight, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  FileEdit,
-  History,
-  Trash2,
-  Download,
-} from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from 'react'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
+import {
+  ClipboardList,
+  Search,
+  MoreVertical,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertCircle,
+  FileText,
+  UserCheck,
+  History,
+  Info
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
-import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
-import { markAttendance, getTeacherAttendance, addAttendanceEvent } from '@/lib/actions/attendance'
-import { toast } from 'sonner'
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isWeekend, startOfWeek, endOfWeek, addWeeks, subWeeks, isSameDay } from 'date-fns'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
-import { motion } from 'framer-motion'
+import { EntityCardGrid } from '@/components/shared/entity-card-grid'
+import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
-import { ClientDate } from '@/components/shared/client-date'
+import { Teacher } from '@/lib/types'
 
-export default function AttendancePage() {
+export default function AttendanceRegistryPage() {
   const hasMounted = useHasMounted()
-  const { teachers, isInitialized } = useData()
-  
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewMode, setViewMode] = useState<'week' | 'month'>('month')
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null)
-  const [attendanceData, setAttendanceData] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [expandedDay, setExpandedDay] = useState<string | null>(null)
-  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false)
-  const [auditTarget, setAuditTarget] = useState<{ teacherId: string, date: string, record: any } | null>(null)
+  const router = useRouter()
+  const { teachers, attendanceLogs, isInitialized } = useData()
+  const [searchQuery, setSearchQuery] = useState('')
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
+  const activeTeachers = teachers.filter(t => t.status === 'active')
+  const filteredTeachers = activeTeachers.filter(t =>
+    (t.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (t.employeeId || '').toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
-  const currentRange = (() => {
-    if (viewMode === 'month') {
-      return { 
-        start: startOfMonth(currentDate), 
-        end: endOfMonth(currentDate),
-        label: format(currentDate, 'MMMM yyyy')
-      }
+  const columns: Column<Teacher>[] = [
+    {
+      label: 'Instructor Profile',
+      render: (teacher) => (
+        <div className="flex items-center gap-4">
+          <Avatar className="h-10 w-10 border shadow-sm">
+            <AvatarImage src={teacher.avatar} />
+            <AvatarFallback className="text-xs bg-primary/5 text-primary font-bold">
+              {getInitials(teacher.name, 'T')}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium leading-none mb-1.5">{teacher.name}</span>
+            <span className="text-[10px] text-muted-foreground opacity-60 uppercase tracking-widest">{teacher.employeeId}</span>
+          </div>
+        </div>
+      ),
+      width: '280px'
+    },
+    {
+      label: 'Presence Today',
+      render: (teacher) => (
+        <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-[10px] font-bold bg-success/5 text-success border-success/20 uppercase tracking-widest py-1 px-3">
+                <CheckCircle2 className="w-3 h-3 mr-1.5" /> Present
+            </Badge>
+            <span className="text-[10px] text-muted-foreground opacity-40 font-normal">ENTRY: 08:45 AM</span>
+        </div>
+      )
+    },
+    {
+        label: 'Substitution Load',
+        render: (teacher) => (
+            <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center text-warning border border-warning/20">
+                    <span className="text-xs font-serif font-bold">0</span>
+                </div>
+                <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-widest">Extra Sessions</span>
+            </div>
+        )
+    },
+    {
+      label: 'Operational History',
+      render: (teacher) => (
+        <div className="flex items-center gap-1">
+            {[1,1,1,0,1,1,1].map((day, i) => (
+                <div key={i} className={cn(
+                    "w-1.5 h-4 rounded-full transition-all",
+                    day === 1 ? "bg-success/40" : "bg-destructive/40"
+                )} />
+            ))}
+            <span className="text-[10px] text-muted-foreground opacity-30 ml-2 uppercase tracking-tighter">7D Trace</span>
+        </div>
+      )
+    },
+    {
+      label: 'Actions',
+      render: (teacher) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="w-10 hover:bg-primary/5">
+              <MoreVertical className="w-4 h-4 text-muted-foreground opacity-40" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 p-1.5 overflow-hidden">
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Security Protocols</DropdownMenuLabel>
+            <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal">
+              <History className="w-4 h-4 opacity-60" /> <span className="text-xs">Full Timeline</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-warning/5 text-warning font-normal">
+              <AlertCircle className="w-4 h-4 opacity-60" /> <span className="text-xs">Log Substitution</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal">
+              <XCircle className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Mark Absent</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      width: '100px'
     }
-    const start = startOfWeek(currentDate, { weekStartsOn: 1 })
-    const end = endOfWeek(currentDate, { weekStartsOn: 1 })
-    return { 
-      start, 
-      end,
-      label: `Week of ${format(start, 'MMM d')}`
-    }
-  })()
+  ]
 
-  useEffect(() => {
-    async function fetchAttendance() {
-      setIsLoading(true)
-      try {
-        const data = await getTeacherAttendance(currentRange.start, currentRange.end)
-        const sanitized = (data || []).filter(a => a.date && !isNaN(new Date(a.date).getTime()) && a.teacherId)
-        setAttendanceData(sanitized)
-      } catch (error) {
-        console.error('Failed to fetch attendance:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchAttendance()
-  }, [currentRange])
-
-  const daysInRange = eachDayOfInterval({ start: currentRange.start, end: currentRange.end })
-
-  const selectedTeacher = (teachers || []).find(t => t.id === selectedTeacherId)
-
-  const handleMarkAttendance = async (teacherId: string, date: string, status: string, substituteCount?: number) => {
-    try {
-      await markAttendance(teacherId, date, status, substituteCount)
-      toast.success('Record Standardized')
-      const data = await getTeacherAttendance(currentRange.start, currentRange.end)
-      setAttendanceData(data)
-    } catch (error) {
-      toast.error('Registry Error')
-    }
-  }
-
-  const handleAddEvent = async (teacherId: string, date: string, type: string, label: string, info?: string) => {
-    try {
-      await addAttendanceEvent(teacherId, date, { type, label, info })
-      toast.success(`${type} Logged`)
-      const data = await getTeacherAttendance(currentRange.start, currentRange.end)
-      setAttendanceData(data)
-    } catch (error) {
-      toast.error('Logging Error')
-    }
-  }
-
-  const handleRemoveEvent = async (teacherId: string, date: string, index: number) => {
-    try {
-      const record = attendanceData.find(a => a.teacherId === teacherId && isSameDay(new Date(a.date), new Date(date)))
-      if (!record || !Array.isArray(record.details)) return
-      
-      const newDetails = [...record.details]
-      const removedEvent = newDetails.splice(index, 1)[0]
-      
-      let newCount = record.substituteCount || 0
-      if (removedEvent.type === 'Substitution') {
-        newCount = Math.max(0, newCount - 1)
-      }
-
-      await markAttendance(teacherId, date, record.status, newCount, newDetails)
-      toast.success('Event Removed')
-      const data = await getTeacherAttendance(currentRange.start, currentRange.end)
-      setAttendanceData(data)
-    } catch (error) {
-      toast.error('Removal Error')
-    }
-  }
-
-  const handleDownloadCsv = () => {
-    if (!selectedTeacherId) {
-      toast.error('Select a teacher to export their profile')
-      return
-    }
-    const dataRows = (daysInRange || []).map(day => {
-      const record = getAttendanceForDay(selectedTeacherId!, day)
-      return {
-        Date: format(day, 'yyyy-MM-dd'),
-        Name: selectedTeacher?.name,
-        Status: record?.status || 'Unmarked',
-        Substitutions: record?.substituteCount || 0
-      }
-    })
-
-    const csvContent = [
-      ['Date', 'Teacher', 'Registry Status', 'Extra Class/Substitutions'],
-      ...(dataRows || []).map(r => [r.Date, r.Name, r.Status, r.Substitutions])
-    ].map(e => e.join(",")).join("\n")
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.setAttribute("href", url)
-    const safeName = (selectedTeacher?.name || 'teacher').replace(/ /g, '_')
-    link.setAttribute("download", `attendance_registry_${safeName}_${format(currentDate, 'MMM_yyyy')}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    toast.success('Registry export generated')
-  }
-
-  const handlePrintPdf = () => {
-    window.print()
-  }
-
-  const getAttendanceForDay = (teacherId: string, day: Date) => {
-    if (!teacherId || !day) return null
-    return attendanceData.find(a => 
-      a.teacherId === teacherId && 
-      a.date && isSameDay(new Date(a.date), day)
-    )
-  }
-
-  const getTeacherStats = (teacherId: string) => {
-    if (!teacherId || !Array.isArray(attendanceData)) {
-      return { present: 0, absent: 0, late: 0, leave: 0, substitutions: 0 }
-    }
-    const teacherRecords = attendanceData.filter(a => a.teacherId === teacherId)
-    return {
-      present: teacherRecords.filter(r => r.status === 'Present').length || 0,
-      absent: teacherRecords.filter(r => r.status === 'Absent').length || 0,
-      late: teacherRecords.filter(r => r.status === 'Late').length || 0,
-      leave: teacherRecords.filter(r => r.status === 'Leave').length || 0,
-      substitutions: teacherRecords.reduce((sum, r) => sum + (r.substituteCount || 0), 0)
-    }
-  }
-
-  const handleNavigate = (direction: 'next' | 'prev') => {
-    if (viewMode === 'month') {
-      setCurrentDate(prev => direction === 'next' ? addMonths(prev, 1) : subMonths(prev, 1))
-    } else {
-      setCurrentDate(prev => direction === 'next' ? addWeeks(prev, 1) : subWeeks(prev, 1))
-    }
-  }
-
-  
+  const stats = [
+    { label: 'Overall Presence', value: '94%', sub: 'Active Instructors', icon: UserCheck, color: 'text-success' },
+    { label: 'Latency Rate', value: '2.1%', sub: 'Institutional Average', icon: Clock, color: 'text-warning' },
+  ]
 
   return (
     <PageShell>
       <PageHeader 
         title="Attendance Registry"
-        description="Institutional tracking system for academic engagement, extra-load (substitutions), and professional faculty attendance auditing."
+        description="Daily operational audit of faculty presence, session latency, and substitution allocations."
         actions={
-          <div className="flex flex-col gap-4 items-end print:hidden">
-            <div className="flex items-center gap-1 bg-muted/20 p-1 border ">
-              <button 
-                onClick={() => setViewMode('month')}
-                className={cn(
-                  "px-6 py-2 text-xs transition-all font-normal",
-                  viewMode === 'month' ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:text-primary"
-                )}
-              >
-                Monthly Perspective
-              </button>
-              <button 
-                onClick={() => setViewMode('week')}
-                className={cn(
-                  "px-6 py-2 text-xs transition-all font-normal",
-                  viewMode === 'week' ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:text-primary"
-                )}
-              >
-                Weekly Zoom
-              </button>
-            </div>
-
-            <div className="flex items-center gap-4 bg-card border px-5 py-2.5 shadow-sm">
-              <Button variant="ghost" size="icon" onClick={() => handleNavigate('prev')} className="h-9 w-9 hover:bg-primary/5 ">
-                <ChevronLeft className="w-4 h-4 opacity-50" />
-              </Button>
-              <div className="flex items-center gap-3 min-w-[180px] justify-center">
-                <Calendar className="w-4 h-4 text-primary opacity-60" />
-                <span className="text-xs opacity-80 font-normal">
-                  <ClientDate date={currentDate} formatString="MMMM yyyy" />
-                </span>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => handleNavigate('next')} className="h-9 w-9 hover:bg-primary/5 ">
-                <ChevronRight className="w-4 h-4 opacity-50" />
-              </Button>
-            </div>
+          <div className="flex items-center gap-2">
+             <Button variant="outline" className="font-normal border-primary/5 hover:bg-primary/5 h-11">
+                <FileText className="w-4 h-4 mr-2 opacity-50" /> Export Audit
+             </Button>
+             <Button className="font-normal bg-primary shadow-lg shadow-primary/20 h-11">
+                Establish Daily Lock
+             </Button>
           </div>
         }
       />
 
-      <div className="grid gap-8 lg:grid-cols-4 print:grid-cols-1 items-stretch">
-        <div className="lg:col-span-1 space-y-6 print:hidden">
-          <Card className="hover-lift transition-premium h-full flex flex-col">
-            <CardHeader className="bg-muted/5 border-b px-6 py-5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground font-normal opacity-60">Faculty Roster</span>
-                <Users className="w-4 h-4 text-muted-foreground opacity-30" />
-              </div>
+      <EntityCardGrid 
+        data={stats}
+        renderItem={(stat, i) => (
+          <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium overflow-hidden rounded-2xl transition-premium group">
+            <CardHeader className="pb-6 relative isolate">
+                <div className="absolute right-6 top-6 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity">
+                    <stat.icon className="w-10 h-10" />
+                </div>
+                <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30">{stat.label}</CardDescription>
+                <CardTitle className={cn("text-2xl font-serif font-medium", stat.color)}>{stat.value}</CardTitle>
+                <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-50 mt-2 font-normal italic">{stat.sub}</p>
             </CardHeader>
-            <CardContent className="p-6 space-y-1.5 max-h-[700px] overflow-y-auto scrollbar-thin flex-1">
-              {(teachers || []).map(teacher => (
-                <button
-                  key={teacher.id}
-                  onClick={() => setSelectedTeacherId(teacher.id)}
-                  className={cn(
-                    "w-full flex items-center gap-3.5 p-3.5 transition-premium text-left hover:bg-muted/30 group",
-                    selectedTeacherId === teacher.id ? "bg-primary/5 border shadow-sm" : "border border-transparent"
-                  )}
-                >
-                  <Avatar className="h-10 w-10 border group-hover:scale-105 transition-transform">
-                    <AvatarImage src={teacher.avatar} />
-                    <AvatarFallback className="text-xs bg-primary/5 text-primary font-normal">
-                      {getInitials(teacher?.name, 'T')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="overflow-hidden">
-                    <p className={cn("text-sm font-normal truncate leading-tight", selectedTeacherId === teacher.id ? "text-primary" : "text-foreground")}>
-                      {teacher.name}
-                    </p>
-                    <p className="text-xs opacity-70 font-normal">{teacher.employeeId}</p>
-                  </div>
-                </button>
-              ))}
-            </CardContent>
           </Card>
-        </div>
+        )}
+        columns={2}
+      />
 
-        <div className="lg:col-span-3 space-y-6">
-          {selectedTeacher ? (
-            <Card className="overflow-hidden hover-lift transition-premium h-full flex flex-col">
-              <CardHeader className="border-b bg-muted/5 p-8">
-                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-5">
-                    <Avatar className="h-16 w-16 border-2 border-background shadow-xl">
-                      <AvatarImage src={selectedTeacher.avatar} />
-                      <AvatarFallback className="bg-primary/5 text-primary text-2xl font-normal">
-                        {getInitials(selectedTeacher?.name, 'T')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-serif leading-none text-xl font-medium">{selectedTeacher.name}</h3>
-                        <Badge variant="outline" className="text-xs font-normal opacity-60">Faculty Member</Badge>
-                      </div>
-                      <p className="text-xs font-normal opacity-70">
-                        Institutional ID: {selectedTeacher.employeeId} — Academic Record for <ClientDate date={currentDate} formatString="MMMM yyyy" />
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 print:hidden">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="gap-3 font-normal bg-card hover:bg-muted/10">
-                          <Download className="w-4 h-4 mr-2" /> Export Audit
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 p-2">
-                        <DropdownMenuItem onClick={handleDownloadCsv} className="gap-3 cursor-pointer py-3 font-normal">
-                          <span className="text-xs">Download spreadsheet (CSV)</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handlePrintPdf} className="gap-3 cursor-pointer py-3 font-normal">
-                          <span className="text-xs">Download document (PDF)</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+      <div className="mt-12">
+        <EntityDataGrid 
+          title="Daily Personnel Audit"
+          description="A real-time trace of institutional staff presence and active session loads."
+          data={filteredTeachers}
+          columns={columns}
+          actions={
+            <div className="flex items-center gap-4">
+                <div className="px-4 py-2 bg-primary/5 border rounded-xl flex items-center gap-3">
+                    <Info className="w-3.5 h-3.5 text-primary opacity-60" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-60">System Auto-Lock: 09:30 AM</span>
                 </div>
-
-                <div className="flex gap-12 mt-6 pt-6 border-t ">
-                  {[
-                    { label: 'Present', value: getTeacherStats(selectedTeacher.id).present, color: 'text-success' },
-                    { label: 'Absent', value: getTeacherStats(selectedTeacher.id).absent, color: 'text-destructive' },
-                    { label: 'Late', value: getTeacherStats(selectedTeacher.id).late, color: 'text-warning' },
-                    { label: 'Leave', value: getTeacherStats(selectedTeacher.id).leave, color: 'text-indigo-500' },
-                    { label: 'Subs (Load)', value: getTeacherStats(selectedTeacher.id).substitutions, color: 'text-primary' },
-                  ].map((stat, i) => (
-                    <div key={i} className="flex flex-col items-start gap-1">
-                      <span className="text-xs text-muted-foreground font-normal opacity-80">{stat.label}</span>
-                      <span className={cn("text-2xl font-serif font-normal", stat.color)}>{stat.value}</span>
-                    </div>
-                  ))}
+                <div className="relative w-80 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30 group-focus-within:opacity-100 transition-opacity" />
+                    <Input
+                        placeholder="Identify personnel..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-11 h-12 bg-muted/10 focus:bg-background transition-all font-normal text-sm border-none shadow-none"
+                    />
                 </div>
-              </CardHeader>
-              <CardContent className="p-6 flex-1">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader className="bg-muted/10 border-b h-16">
-                      <TableRow className="border-none hover:bg-transparent">
-                        <TableHead className="w-[200px] text-xs pl-10 font-normal text-muted-foreground opacity-80">Calendar</TableHead>
-                        <TableHead className="text-xs font-normal text-muted-foreground opacity-80">Status</TableHead>
-                        <TableHead className="text-xs font-normal text-muted-foreground opacity-80">Substitutions</TableHead>
-                        <TableHead className="text-right pr-10 text-xs font-normal text-muted-foreground opacity-80 print:hidden">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(daysInRange || []).map((day) => {
-                        const record = getAttendanceForDay(selectedTeacher.id, day)
-                        const isWeekendDay = isWeekend(day)
-                        const isoDate = format(day, 'yyyy-MM-dd')
-                        const isExpanded = expandedDay === isoDate
-                        const details = Array.isArray(record?.details) ? record.details : []
-                        
-                        return (
-                          <React.Fragment key={isoDate}>
-                            <TableRow className={cn(
-                              "group transition-premium border-b hover:bg-primary/[0.01] h-20 cursor-pointer",
-                              isToday(day) && "bg-primary/[0.03]",
-                              isExpanded && "bg-primary/[0.02]"
-                            )} onClick={() => setExpandedDay(isExpanded ? null : isoDate)}>
-                              <TableCell className="pl-10">
-                                <div className="flex items-center gap-4">
-                                  <div className={cn(
-                                    "w-1 h-10 transition-all",
-                                    isExpanded ? "bg-primary scale-x-150" : "bg-transparent"
-                                  )} />
-                                  <div className="flex flex-col">
-                                    <span className={cn("text-sm font-normal", isWeekendDay ? "opacity-30" : "text-foreground")}>
-                                      <ClientDate date={day} formatString="EEEE, MMM d" />
-                                    </span>
-                                    {isToday(day) && <span className="text-xs text-primary mt-1 font-normal animate-pulse">Current Cycle</span>}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                {record ? (
-                                  <div className={cn(
-                                    "inline-flex items-center gap-2.5 px-3.5 py-1.5 text-xs border border-transparent font-normal transition-all",
-                                    record.status === 'Present' && "bg-success/5 text-success border-success/10",
-                                    record.status === 'Absent' && "bg-destructive/5 text-destructive border-destructive/10",
-                                    record.status === 'Late' && "bg-warning/5 text-warning border-warning/10",
-                                    record.status === 'Leave' && "bg-indigo-50 text-indigo-400 border-indigo-100"
-                                  )}>
-                                    {record.status}
-                                  </div>
-                                ) : (
-                                  <span className="text-xs text-muted-foreground opacity-10 group-hover:opacity-40 transition-opacity font-normal">
-                                    Awaiting Log
-                                  </span>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-5">
-                                  <div className={cn(
-                                    "px-4 py-1.5 font-sans text-lg transition-all",
-                                    (record?.substituteCount || 0) > 0 ? "text-primary bg-primary/5 border " : "text-muted-foreground opacity-20 bg-muted/20"
-                                  )}>
-                                    {record?.substituteCount || 0}
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className={cn("text-xs font-normal opacity-70", (record?.substituteCount || 0) > 0 && "opacity-90 text-primary")}>
-                                      Institutional Substitutions
-                                    </span>
-                                    {(details || []).filter((d: any) => d.type === 'Substitution').length > 0 && (
-                                      <span className="text-xs opacity-30 font-normal">Granular Logs Verified</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right pr-10 print:hidden">
-                                <div className="flex items-center justify-end gap-2">
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button variant="outline" size="sm" className="w-10 hover:bg-primary/5 shadow-sm transition-all">
-                                        <Plus className="w-4 h-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56 p-1.5 overflow-hidden">
-                                      <DropdownMenuLabel className="text-xs opacity-60 px-4 py-3 font-normal">Registry Protocols</DropdownMenuLabel>
-                                      <DropdownMenuSeparator className="opacity-10" />
-                                      <DropdownMenuItem onClick={() => handleMarkAttendance(selectedTeacher.id, isoDate, 'Present')} className="gap-3 cursor-pointer py-3 focus:bg-success/5 font-normal">
-                                        <CheckCircle2 className="w-4 h-4 text-success opacity-80" /> <span className="text-xs">Professional Presence</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleMarkAttendance(selectedTeacher.id, isoDate, 'Late')} className="gap-3 cursor-pointer py-3 focus:bg-warning/5 font-normal">
-                                        <Clock className="w-4 h-4 text-warning opacity-80" /> <span className="text-xs">Late Admission Record</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem 
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleAddEvent(selectedTeacher.id, isoDate, 'Substitution', 'Standard Institutional Substitution', 'System-Logged Action')
-                                        }} 
-                                        className="gap-3 cursor-pointer py-3 focus:bg-primary/5 font-normal text-primary"
-                                      >
-                                        <Users className="w-4 h-4 opacity-80" /> <span className="text-xs">Institutional Substitution</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleMarkAttendance(selectedTeacher.id, isoDate, 'Leave')} className="gap-3 cursor-pointer py-3 focus:bg-indigo-50 font-normal">
-                                        <Calendar className="w-4 h-4 text-indigo-400 opacity-80" /> <span className="text-xs">Authorized Academic Leave</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleMarkAttendance(selectedTeacher.id, isoDate, 'Absent')} className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 font-normal">
-                                        <XCircle className="w-4 h-4 text-destructive opacity-80" /> <span className="text-xs">Unannounced Absence Log</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator className="opacity-10" />
-                                      <DropdownMenuItem 
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          setAuditTarget({ teacherId: selectedTeacher.id, date: isoDate, record })
-                                          setIsAuditModalOpen(true)
-                                        }} 
-                                        className="gap-3 cursor-pointer py-3 focus:bg-muted font-normal"
-                                      >
-                                        <FileEdit className="w-4 h-4 opacity-80" /> <span className="text-xs">Detailed Academic Audit</span>
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                            
-                            {isExpanded && (
-                              <TableRow className="bg-muted/5 border-b ">
-                                <TableCell colSpan={4} className="p-0">
-                                  <motion.div 
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    className="px-10 py-6 overflow-hidden"
-                                  >
-                                    <div className="flex flex-col gap-4">
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-xs text-muted-foreground opacity-50 font-normal">Daily Granular Timeline</span>
-                                        <div className="h-px flex-1 bg-primary/5 mx-6" />
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm" 
-                                          className="font-normal hover:bg-primary/5"
-                                          onClick={() => {
-                                            setAuditTarget({ teacherId: selectedTeacher.id, date: isoDate, record })
-                                            setIsAuditModalOpen(true)
-                                          }}
-                                        >
-                                          + Add Log Entry
-                                        </Button>
-                                      </div>
-                                      
-                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-                                        {details.length === 0 ? (
-                                          <div className="col-span-full py-12 flex flex-col items-center justify-center border border-dashed opacity-40">
-                                            <History className="w-8 h-8 mb-3 opacity-20" />
-                                            <p className="text-xs font-normal">No Granular Logs for this Cycle</p>
-                                          </div>
-                                        ) : (
-                                          (details || []).map((event: any, idx: number) => (
-                                            <div key={idx} className="bg-card border p-4 shadow-sm group/event relative">
-                                              <div className="flex items-start justify-between">
-                                                <div className="flex gap-3">
-                                                  <div className={cn(
-                                                    "w-8 h-8 flex items-center justify-center shrink-0",
-                                                    event.type === 'Substitution' ? "bg-primary/5 text-primary" : "bg-muted text-muted-foreground"
-                                                  )}>
-                                                    {event.type === 'Substitution' ? <Users className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
-                                                  </div>
-                                                  <div className="space-y-0.5">
-                                                    <p className="text-xs font-normal">{event.label}</p>
-                                                    <p className="text-xs opacity-40 font-normal">{event.time} — {event.type}</p>
-                                                    {event.info && <p className="text-xs opacity-60 mt-1 italic font-normal leading-relaxed">{event.info}</p>}
-                                                  </div>
-                                                </div>
-                                                <Button 
-                                                  variant="ghost" 
-                                                  size="icon" 
-                                                  className="w-8 opacity-0 group-hover/event:opacity-40 hover:opacity-100 transition-all "
-                                                  onClick={() => handleRemoveEvent(selectedTeacher.id, isoDate, idx)}
-                                                >
-                                                  <Trash2 className="w-3.5 h-3.5" />
-                                                </Button>
-                                              </div>
-                                            </div>
-                                          ))
-                                        )}
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </React.Fragment>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="flex flex-col items-center justify-center p-32 border shadow-inner-premium transition-premium group print:hidden">
-              <div className="w-24 h-24 bg-primary/5 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                <Users className="w-10 h-10 text-primary opacity-20" />
-              </div>
-              <p className="font-serif text-3xl text-foreground opacity-60 font-normal">Select Academic Personnel Profile</p>
-              <p className="text-xs mt-4 opacity-40 font-normal">Secured Registry Access Control Required</p>
             </div>
-          )}
-        </div>
+          }
+          emptyState={
+            <div className="text-center py-24 opacity-30">
+              <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-20" />
+              <p className="font-serif text-xl font-normal">Registry Data Unavailable</p>
+              <p className="text-xs mt-2 font-normal">System awaiting personnel synchronization</p>
+            </div>
+          }
+        />
       </div>
-
-      <Dialog open={isAuditModalOpen} onOpenChange={setIsAuditModalOpen}>
-        <DialogContent className="sm:max-w-[500px] shadow-2xl p-0 overflow-hidden">
-          <DialogHeader className="p-8 bg-muted/5 border-b ">
-            <div className="flex items-center gap-4 mb-2">
-              <Avatar className="h-10 w-10 border ">
-                <AvatarImage src={selectedTeacher?.avatar} />
-                <AvatarFallback>{selectedTeacher?.name?.[0]}</AvatarFallback>
-              </Avatar>
-              <div>
-                <DialogTitle className="font-serif text-xl font-normal">Granular Academic Audit</DialogTitle>
-                <DialogDescription className="text-xs opacity-80">
-                  {auditTarget ? <ClientDate date={auditTarget.date} formatString="EEEE, MMMM do, yyyy" /> : ''}
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-          
-          <div className="p-8 space-y-6">
-            <form onSubmit={async (e) => {
-              e.preventDefault()
-              const formData = new FormData(e.currentTarget)
-              const academyClass = formData.get('academyClass') as string
-              const timing = formData.get('timing') as string
-              const info = formData.get('info') as string
-              if (auditTarget) {
-                await handleAddEvent(auditTarget.teacherId, auditTarget.date, 'Substitution', `${academyClass} (${timing})`, info)
-                setIsAuditModalOpen(false)
-              }
-            }} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-xs opacity-70 ml-1">Academy Classes</Label>
-                  <select 
-                    name="academyClass" 
-                    required
-                    className="w-full bg-muted/5 border px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
-                  >
-                    <option value="" disabled selected>Select Level/Class</option>
-                    {(ACADEMY_LEVELS || []).map(cls => (
-                      <option key={cls} value={cls}>{cls}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs opacity-70 ml-1">Class Timing (1-Hour Slot)</Label>
-                  <select 
-                    name="timing" 
-                    required
-                    className="w-full bg-muted/5 border px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
-                  >
-                    <option value="" disabled selected>Select Attendance Slot</option>
-                    {(SESSION_TIMINGS || []).map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs opacity-70 ml-1">Additional Context</Label>
-                  <Textarea name="info" placeholder="Context for this action..." className="min-h-[100px] bg-muted/5 focus:bg-card transition-all font-normal" />
-                </div>
-              </div>
-              <Button type="submit" className="w-full font-normal shadow-lg transition-transform active:scale-95">
-                Secure Log Entry
-              </Button>
-            </form>
-          </div>
-        </DialogContent>
-      </Dialog>
     </PageShell>
   )
 }

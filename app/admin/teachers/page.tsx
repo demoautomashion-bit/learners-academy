@@ -2,11 +2,10 @@
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { SecureInput } from '@/components/ui/secure-input'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,355 +14,229 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import {
   Plus,
   Search,
-  MoreHorizontal,
+  MoreVertical,
+  Mail,
+  Phone,
   Edit,
   Trash2,
-  Eye,
-  UserCheck,
-  UserX,
-  User,
-  Wallet,
+  ExternalLink,
   ShieldCheck,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react'
-import { Switch } from '@/components/ui/switch'
-import { useData } from '@/contexts/data-context'
+import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
-import type { Teacher } from '@/lib/types'
-import Link from 'next/link'
-import { ACADEMY_LEVELS } from '@/lib/registry'
+import { useData } from '@/contexts/data-context'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
+import { Teacher } from '@/lib/types'
 
 export default function TeachersPage() {
   const hasMounted = useHasMounted()
-  const { teachers, updateTeacherStatus, removeTeacher, updateTeacher, updateTeacherReviewFlag, isInitialized } = useData()
+  const router = useRouter()
+  const { teachers, removeTeacher, updateTeacher, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
+  const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter(teacher =>
+    (teacher.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (teacher.employeeId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (teacher.subject || '').toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
-
-  const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter(teacher => {
-    if (!teacher) return false
-    return (
-      (teacher.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (teacher.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (teacher.employeeId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (teacher.assignedClass && teacher.assignedClass.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
-  })
-
-  const handleToggleStatus = (teacher: Teacher) => {
-    updateTeacherStatus(teacher.id, teacher.status === 'active' ? 'inactive' : 'active')
-    toast.success(`Teacher ${teacher.status === 'active' ? 'deactivated' : 'activated'}`)
-  }
-
-  const handleEditTeacher = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!selectedTeacher) return
-    const formData = new FormData(e.currentTarget)
-    const updatedData: Partial<Teacher> = {
-      name: formData.get('name') as string,
-      email: (formData.get('email') as string).toLowerCase().trim(),
-      phone: formData.get('phone') as string,
-      employeeId: formData.get('employeeId') as string,
-      assignedClass: formData.get('assignedClass') as string,
-    }
-    
-    const password = formData.get('password') as string
-    if (password) {
-      updatedData.employeePassword = password
-    }
-
+  const handleStatusToggle = async (teacher: Teacher) => {
+    const newStatus = teacher.status === 'active' ? 'inactive' : 'active'
     try {
-      await updateTeacher(selectedTeacher.id, updatedData)
-      setIsEditDialogOpen(false)
-      setSelectedTeacher(null)
-      toast.success('Teacher record updated')
+      await updateTeacher(teacher.id, { status: newStatus as any })
+      toast.success(`Faculty status updated to ${newStatus}`)
     } catch (error) {
-      // Handled by context
+      toast.error("Failed to update status")
     }
   }
 
-  const handleDelete = async (teacher: Teacher) => {
-    await removeTeacher(teacher.id)
-    toast.success('Teacher removed from registry')
+  const handleDelete = async (id: string) => {
+    if (confirm("Permanently remove this faculty member from the institutional registry?")) {
+      try {
+        await removeTeacher(id)
+        toast.success("Personnel record purged")
+      } catch (error) {
+        toast.error("Error during record deletion")
+      }
+    }
   }
 
   const columns: Column<Teacher>[] = [
     {
-      label: 'Teacher',
+      label: 'Instructor Profile',
       render: (teacher) => (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarFallback className="bg-primary/10 text-primary font-normal">
-              {getInitials(teacher?.name, 'T')}
+        <div className="flex items-center gap-4">
+          <Avatar className="h-10 w-10 border shadow-sm group-hover:scale-105 transition-transform duration-500">
+            <AvatarImage src={teacher.avatar} />
+            <AvatarFallback className="text-xs bg-primary/5 text-primary font-bold">
+              {getInitials(teacher.name, 'T')}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <p className="font-normal">{teacher.name}</p>
-              {teacher.requiresReview && (
-                <ShieldCheck className="w-3.5 h-3.5 text-warning" />
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground font-normal opacity-60">{teacher.email}</p>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium leading-none mb-1.5">{teacher.name}</span>
+            <span className="text-[10px] text-muted-foreground opacity-60 uppercase tracking-widest">{teacher.employeeId}</span>
           </div>
         </div>
       ),
-      width: '300px'
+      width: '280px'
     },
     {
-      label: 'ID & Class',
+      label: 'Specialization',
       render: (teacher) => (
         <div className="flex flex-col">
-          <span className="font-normal">{teacher.employeeId}</span>
-          <span className="text-xs text-muted-foreground font-normal">{teacher.assignedClass || 'Not assigned'}</span>
+          <span className="text-xs font-normal text-foreground">{teacher.subject}</span>
+          <span className="text-[10px] text-primary/70 font-medium opacity-60 mt-1 uppercase tracking-tighter">Academic Faculty</span>
         </div>
       )
     },
-    { label: 'Classes', render: (teacher) => <span className="font-normal">{teacher.coursesCount}</span> },
-    { label: 'Students', render: (teacher) => <span className="font-normal">{teacher.studentsCount}</span> },
     {
       label: 'Status',
       render: (teacher) => (
-        <Badge 
-          variant={teacher.status === 'active' ? 'default' : 'secondary'}
-          className={cn("font-normal", teacher.status === 'active' ? 'bg-success hover:bg-success/90' : '')}
-        >
-          {teacher.status}
-        </Badge>
+        <div className={cn(
+          "inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all",
+          teacher.status === 'active' 
+            ? "bg-success/5 text-success border border-success/10" 
+            : "bg-muted text-muted-foreground border border-transparent"
+        )}>
+          {teacher.status === 'active' ? (
+            <>
+              <div className="w-1 h-1 bg-success rounded-full animate-pulse" />
+              Operational
+            </>
+          ) : (
+            'Hibernated'
+          )}
+        </div>
       )
     },
     {
-      label: '',
+      label: 'Contact Context',
+      render: (teacher) => (
+        <div className="flex items-center gap-4 text-muted-foreground opacity-40">
+           <Mail className="w-4 h-4" />
+           <Phone className="w-4 h-4" />
+        </div>
+      )
+    },
+    {
+      label: 'Actions',
       render: (teacher) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="hover:bg-primary/5">
-              <MoreHorizontal className="w-4 h-4 opacity-40" />
+            <Button variant="ghost" size="sm" className="w-10 hover:bg-primary/5">
+              <MoreVertical className="w-4 h-4 text-muted-foreground opacity-40" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 p-1.5">
-            <DropdownMenuLabel className="text-xs font-normal opacity-40 px-4 py-2">Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator className="opacity-5" />
-            <DropdownMenuItem asChild className="cursor-pointer py-2.5">
-               <Link href={`/admin/teachers/payroll?id=${teacher.id}`} className="flex items-center w-full">
-                 <Wallet className="w-4 h-4 mr-2 opacity-60" />
-                 Payroll & Roster
-               </Link>
-             </DropdownMenuItem>
-             <DropdownMenuItem asChild className="cursor-pointer py-2.5">
-               <Link href={`/admin/teachers/${teacher.id}`} className="flex items-center w-full">
-                 <Eye className="w-4 h-4 mr-2 opacity-60" />
-                 View Details
-               </Link>
-             </DropdownMenuItem>
-             <DropdownMenuItem onSelect={(e) => {
-               e.preventDefault()
-               setSelectedTeacher(teacher)
-               setIsEditDialogOpen(true)
-             }} className="cursor-pointer py-2.5">
-               <Edit className="w-4 h-4 mr-2 opacity-60" />
-               Edit
-             </DropdownMenuItem>
-             <DropdownMenuItem onSelect={() => handleToggleStatus(teacher)} className="cursor-pointer py-2.5">
-               {teacher.status === 'active' ? (
-                 <>
-                   <UserX className="w-4 h-4 mr-2 opacity-60" />
-                   Deactivate
-                 </>
-               ) : (
-                 <>
-                   <UserCheck className="w-4 h-4 mr-2 opacity-60" />
-                   Activate
-                 </>
-               )}
-             </DropdownMenuItem>
-             <DropdownMenuSeparator className="opacity-5" />
-             <DropdownMenuItem
-               className="flex items-center justify-between cursor-default focus:bg-warning/5 py-2.5"
-               onSelect={(e) => {
-                 e.preventDefault()
-                 updateTeacherReviewFlag(teacher.id, !teacher.requiresReview)
-                 toast.success(!teacher.requiresReview
-                 ? `${teacher?.name?.split(' ')[0] || 'Teacher'}'s papers will require review`
-                 : `${teacher?.name?.split(' ')[0] || 'Teacher'} can now publish directly`
-                 )
-               }}
-             >
-               <div className="flex items-center gap-2">
-                 <ShieldCheck className="w-4 h-4 text-warning opacity-60" />
-                 <span className="text-warning text-xs">Paper Review Mode</span>
-               </div>
-               <Switch
-                 checked={!!teacher.requiresReview}
-                 className="scale-75 data-[state=checked]:bg-warning pointer-events-none"
-               />
-             </DropdownMenuItem>
+          <DropdownMenuContent align="end" className="w-56 p-1.5 overflow-hidden">
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Personnel Actions</DropdownMenuLabel>
             <DropdownMenuSeparator className="opacity-5" />
             <DropdownMenuItem 
-              className="text-destructive focus:text-destructive cursor-pointer py-2.5"
-              onSelect={() => handleDelete(teacher)}
+                onClick={() => router.push(`/admin/teachers/${teacher.id}`)}
+                className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal"
             >
-              <Trash2 className="w-4 h-4 mr-2 opacity-60" />
-              Remove
+              <ExternalLink className="w-4 h-4 opacity-60" /> <span className="text-xs">Inspect Dossier</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+                onClick={() => handleStatusToggle(teacher)}
+                className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal"
+            >
+              {teacher.status === 'active' ? (
+                <><XCircle className="w-4 h-4 text-destructive opacity-80" /> <span className="text-xs">Revoke Authority</span></>
+              ) : (
+                <><CheckCircle2 className="w-4 h-4 text-success opacity-80" /> <span className="text-xs">Restore Authority</span></>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem 
+               onClick={() => handleDelete(teacher.id)}
+               className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal"
+            >
+              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Purge Record</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
-      width: '70px'
+      width: '100px'
     }
   ]
 
+  const stats = [
+    { label: 'Active Faculty', value: teachers.filter(t => t.status === 'active').length, sub: 'Currently Operational', icon: ShieldCheck, color: 'text-success' },
+    { label: 'Total Personnel', value: teachers.length, sub: 'Institutional Registry', icon: Users, color: 'text-primary' },
+  ]
 
   return (
     <PageShell>
       <PageHeader 
-        title="Academic Faculty"
-        description="Manage your teaching staff and assignments."
+        title="Faculty Roster"
+        description="Comprehensive audit of institutional staff, specialized instructors, and administrative personnel."
         actions={
-          <Button asChild className="shadow-lg shadow-primary/20 font-normal">
-            <Link href="/admin/teachers/registration">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Teacher
-            </Link>
+          <Button 
+            className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            onClick={() => router.push('/admin/teachers/registration')}
+          >
+            <Plus className="w-4 h-4 mr-2" /> Register Faculty
           </Button>
         }
       />
 
       <EntityCardGrid 
-        data={[
-          { label: 'Total Teachers', value: teachers.length, sub: 'Faculty Roster' },
-          { label: 'Active Teachers', value: (teachers || []).filter(t => t.status === 'active').length, sub: 'Currently Engaged', color: 'text-success' },
-          { label: 'Inactive Teachers', value: (teachers || []).filter(t => t.status === 'inactive').length, sub: 'Off-Registry', color: 'text-muted-foreground' },
-        ]}
+        data={stats}
         renderItem={(stat, i) => (
-          <Card key={i} className="hover-lift transition-premium">
-            <CardHeader className="pb-2">
-              <CardDescription className="text-xs font-normal opacity-60">{stat.label}</CardDescription>
-              <CardTitle className={cn("text-2xl font-serif font-medium", stat.color)}>
-                {stat.value}
-              </CardTitle>
-              <p className="text-[10px] text-muted-foreground font-normal opacity-40 mt-1">{stat.sub}</p>
+          <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium overflow-hidden rounded-2xl transition-premium group">
+            <CardHeader className="pb-6 relative isolate">
+                <div className="absolute right-6 top-6 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity">
+                    <stat.icon className="w-10 h-10" />
+                </div>
+                <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30">{stat.label}</CardDescription>
+                <CardTitle className={cn("text-2xl font-serif font-medium", stat.color)}>{stat.value}</CardTitle>
+                <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-50 mt-2 font-normal italic">{stat.sub}</p>
             </CardHeader>
           </Card>
         )}
-        columns={3}
+        columns={2}
       />
 
-      <EntityDataGrid 
-        title="All Teachers"
-        data={filteredTeachers}
-        columns={columns}
-        actions={
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30" />
-            <Input
-              placeholder="Search teachers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-muted/10 focus:bg-background transition-all h-10 text-sm font-normal"
-            />
-          </div>
-        }
-      />
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-2xl font-medium">Modify Teacher Record</DialogTitle>
-            <DialogDescription className="text-xs font-normal opacity-60">
-              Update institutional credentials and assignments for the academic faculty.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleEditTeacher}>
-            <div className="max-h-[60vh] overflow-y-auto px-1">
-              <div className="flex gap-6 items-start py-4">
-                <div className="pt-2">
-                  <Avatar className="h-16 w-16 ring-2 ring-primary/10 transition-premium shadow-lg">
-                    <AvatarFallback className="bg-primary/5 text-primary font-serif font-normal">
-                    {getInitials(selectedTeacher?.name, 'T')}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                <FieldGroup className="flex-1 space-y-3">
-                  <Field>
-                    <FieldLabel className="text-xs text-muted-foreground mb-1.5 h-auto font-normal">Legal Identity</FieldLabel>
-                    <Input name="name" defaultValue={selectedTeacher?.name} required className="bg-background h-10 font-normal" placeholder="Full name as per registry" />
-                  </Field>
-                  <div className="grid grid-cols-2 gap-4 items-stretch">
-                    <Field>
-                      <FieldLabel className="text-xs text-muted-foreground mb-1 h-auto font-normal">Employee ID</FieldLabel>
-                      <Input name="employeeId" defaultValue={selectedTeacher?.employeeId} required className="bg-background h-10 font-mono font-normal" />
-                    </Field>
-                    <Field>
-                      <FieldLabel className="text-xs text-muted-foreground mb-1 h-auto font-normal">Portal Access</FieldLabel>
-                      <SecureInput name="password" placeholder="••••••••" className="bg-background h-10 font-normal" />
-                    </Field>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 items-stretch">
-                    <Field>
-                      <FieldLabel className="text-xs text-muted-foreground mb-1 h-auto font-normal">Registry Contact</FieldLabel>
-                      <Input name="phone" defaultValue={selectedTeacher?.phone} required className="bg-background h-10 font-normal" />
-                    </Field>
-                    <Field>
-                      <FieldLabel className="text-xs text-muted-foreground mb-1 h-auto font-normal">Institutional Mail</FieldLabel>
-                      <Input name="email" type="email" defaultValue={selectedTeacher?.email} required className="bg-background h-10 text-xs font-normal" />
-                    </Field>
-                  </div>
-                  <Field>
-                    <FieldLabel className="text-xs text-muted-foreground mb-1 h-auto font-normal">Current Batch Level</FieldLabel>
-                    <Select name="assignedClass" defaultValue={selectedTeacher?.assignedClass || ''}>
-                      <SelectTrigger className="h-10 bg-background font-normal">
-                        <SelectValue placeholder="No level assigned" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(ACADEMY_LEVELS || []).map(level => (
-                          <SelectItem key={level} value={level}>{level}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FieldGroup>
-              </div>
+      <div className="mt-12">
+        <EntityDataGrid 
+          title="Institutional Staff Registry"
+          description="Displaying operational status and specialized focus for all active personnel."
+          data={filteredTeachers}
+          columns={columns}
+          actions={
+            <div className="relative w-80 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30 group-focus-within:opacity-100 transition-opacity" />
+              <Input
+                placeholder="Search staff registry..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-11 h-12 bg-muted/10 focus:bg-background transition-all font-normal text-sm border-none shadow-none"
+              />
             </div>
-            <DialogFooter className="pt-2 mt-4 border-t border-border/50 pt-4">
-              <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-muted-foreground hover:text-foreground h-11 px-8 text-xs font-normal">
-                Cancel
-              </Button>
-              <Button type="submit" className="font-normal shadow-xl shadow-primary/20">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          }
+          emptyState={
+            <div className="text-center py-24 opacity-30">
+              <Users className="w-12 h-12 mx-auto mb-4 opacity-20" />
+              <p className="font-serif text-xl font-normal">No personnel records found</p>
+              <p className="text-xs mt-2 font-normal">System awaiting faculty registration data</p>
+            </div>
+          }
+        />
+      </div>
     </PageShell>
   )
 }

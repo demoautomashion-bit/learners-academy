@@ -1,292 +1,230 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { useForm } from 'react-hook-form'
 import { useState } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { useData } from '@/contexts/data-context'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
-import { Field, FieldLabel } from '@/components/ui/field'
 import { toast } from 'sonner'
-import { 
-  ArrowLeft, 
-  UserPlus, 
-  ShieldCheck, 
-  GraduationCap, 
-  Phone, 
-  IdCard,
-  Sparkles
+import {
+  GraduationCap,
+  ShieldCheck,
+  Building2,
+  Mail,
+  Phone,
+  FileText,
+  BadgeCheck,
+  ChevronRight,
+  ChevronLeft,
+  UserCheck,
+  MapPin
 } from 'lucide-react'
-import type { Student } from '@/lib/types'
+import { useRouter } from 'next/navigation'
+import { useData } from '@/contexts/data-context'
+import { PageShell } from '@/components/shared/page-shell'
+import { PageHeader } from '@/components/shared/page-header'
 import { useHasMounted } from '@/hooks/use-has-mounted'
-import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription
-} from '@/components/ui/dialog'
-
-const registrationSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  guardianName: z.string().min(2, 'Guardian name must be at least 2 characters'),
-  studentId: z.string().min(3, 'Student ID must be at least 3 characters'),
-  phone: z.string().regex(/^\+92\s?3\d{2}\s?\d{7}$/, 'Valid Pakistan contact number (+92 3XX XXXXXXX) is required'),
-  course: z.string().min(1, 'Please select an academic batch'),
-  timing: z.string().min(1, 'Please select a session timing'),
-})
-
-type RegistrationFormValues = z.infer<typeof registrationSchema>
+import { cn } from '@/lib/utils'
 
 export default function StudentRegistrationPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { students, courses, enrollStudent, isInitialized } = useData()
-
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [registeredStudent, setRegisteredStudent] = useState<any>(null)
-  const [selectedCourseObj, setSelectedCourseObj] = useState<any>(null)
-
-  const form = useForm<RegistrationFormValues>({
-    resolver: zodResolver(registrationSchema),
-    defaultValues: {
-      name: '',
-      guardianName: '',
-      studentId: '',
-      phone: '+92 ',
-      course: '',
-      timing: '',
-    }
+  const { addStudent, isInitialized } = useData()
+  const [step, setStep] = useState(1)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    level: '',
+    guardianName: '',
+    guardianPhone: '',
+    address: '',
+    previousSchool: '',
+    notes: ''
   })
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
-  const onSubmit = async (data: RegistrationFormValues) => {
-    if (students.some(s => s.studentId?.toLowerCase() === data.studentId.toLowerCase())) {
-        form.setError('studentId', { message: 'ID already exists in institutional database' })
-        return
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
-    const newStudent: Student = {
-      id: Math.random().toString(36).substr(2, 9),
-      studentId: data.studentId,
-      name: data.name,
-      email: `${data.studentId.toLowerCase()}@learnersacademy.com`,
-      phone: data.phone,
-      guardianName: data.guardianName,
-      password: data.studentId, 
-      enrolledCourses: [data.course],
-      classTiming: data.timing,
-      status: 'active',
-      enrolledAt: new Date().toISOString(),
-      progress: 0,
-    }
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     try {
-      await enrollStudent(newStudent)
-      setRegisteredStudent(newStudent)
-      setSelectedCourseObj(courses?.find(c => c.id === data.course) || { title: data.course })
-      setShowSuccess(true)
-      toast.success('Registration Protocol Finalized')
-    } catch (err) {
-      // Error handled by context
+      await addStudent({
+        ...formData,
+        admissionDate: new Date().toISOString(),
+        studentId: `STU-${Math.floor(10000 + Math.random() * 90000)}`
+      })
+      toast.success("Candidate admission processed successfully")
+      router.push('/admin/students')
+    } catch (error) {
+      toast.error("Critical Registry Error: Admission protocol failed")
     }
   }
 
+  const nextStep = () => setStep(prev => prev + 1)
+  const prevStep = () => setStep(prev => prev - 1)
+
   return (
-    <div className="max-w-xl mx-auto space-y-8 py-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      <div className="text-center space-y-3">
-        <div className="mx-auto w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mb-4 ring-1 ring-primary/20 rotate-3 hover:rotate-0 transition-transform duration-500">
-            <GraduationCap className="w-7 h-7 text-primary opacity-80" />
+    <PageShell>
+      <PageHeader 
+        title="Candidate Admission Registry"
+        description="Formalize the enrollment of a new learner into the institutional academic branch."
+      />
+
+      <div className="max-w-4xl mx-auto mt-8">
+        <div className="flex items-center justify-between mb-12 relative">
+             <div className="absolute top-1/2 left-0 w-full h-px bg-primary/5 -translate-y-1/2 -z-10" />
+             {[1, 2, 3].map((s) => (
+                <div key={s} className="flex flex-col items-center gap-3 bg-background px-4">
+                    <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all border",
+                        step === s ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20" : 
+                        step > s ? "bg-success/10 text-success border-success/30" : "bg-muted/50 text-muted-foreground border-transparent"
+                    )}>
+                        {step > s ? <BadgeCheck className="w-5 h-5" /> : s}
+                    </div>
+                    <span className={cn(
+                        "text-[10px] uppercase tracking-widest font-bold",
+                        step === s ? "text-primary" : "text-muted-foreground opacity-40"
+                    )}>
+                        {s === 1 ? 'Candidate' : s === 2 ? 'Guardian' : 'Academic'}
+                    </span>
+                </div>
+             ))}
         </div>
-        <h1 className="font-serif text-4xl font-medium tracking-tight bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
-          Enrollment Registry
-        </h1>
-        <p className="text-muted-foreground text-[10px] tracking-[0.4em] uppercase opacity-40 font-bold">
-          Institutional Candidate Induction
-        </p>
-      </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card className="glass-1 border-white/10 shadow-premium overflow-hidden rounded-[2.5rem] hover:translate-y-[-2px] transition-all duration-500">
-          <CardHeader className="text-center pt-10 pb-2 border-b border-white/5 bg-white/5">
-             <CardTitle className="font-serif text-2xl font-light tracking-wide">Candidate Dossier</CardTitle>
-             <CardDescription className="text-[9px] uppercase tracking-[0.2em] opacity-30 mt-1">Official Academic Record Entry</CardDescription>
-          </CardHeader>
-          <CardContent className="p-10 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Candidate Full Name</FieldLabel>
-                <Input 
-                  {...form.register('name')} 
-                  placeholder="Master/Miss Candidate" 
-                  className="h-14 bg-background/20 border-white/5 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-base placeholder:opacity-10"
-                />
-                {form.formState.errors.name && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.name.message}</p>}
-              </Field>
+        <Card className="glass-1 border-primary/5 shadow-2xl rounded-[2rem] overflow-hidden">
+             <form onSubmit={handleSubmit}>
+                <CardContent className="p-12">
+                    {step === 1 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                             <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Full Candidate Name</Label>
+                                    <div className="relative">
+                                        <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="name" value={formData.name} onChange={handleInputChange} required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Digital Protocol (Email)</Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="email" type="email" value={formData.email} onChange={handleInputChange} required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Candidate Contact</Label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="phone" value={formData.phone} onChange={handleInputChange} required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Primary Geometry (Address)</Label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="address" value={formData.address} onChange={handleInputChange} className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Institutional ID</FieldLabel>
-                <div className="relative">
-                    <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20" />
-                    <Input 
-                    {...form.register('studentId')} 
-                    placeholder="STU-000" 
-                    className="h-14 pl-12 bg-background/20 border-white/5 focus:border-primary/30 transition-all font-mono text-sm uppercase tracking-widest placeholder:opacity-10"
-                    />
-                </div>
-                {form.formState.errors.studentId && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.studentId.message}</p>}
-              </Field>
-            </div>
+                    {step === 2 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                             <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Guardian/Sponsor Name</Label>
+                                    <div className="relative">
+                                        <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="guardianName" value={formData.guardianName} onChange={handleInputChange} required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Guardian Contact</Label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="guardianPhone" value={formData.guardianPhone} onChange={handleInputChange} required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Guardian Identity</FieldLabel>
-                <Input 
-                  {...form.register('guardianName')} 
-                  placeholder="Guardian Name" 
-                  className="h-14 bg-background/20 border-white/5 focus:border-primary/30 transition-all text-sm placeholder:opacity-10"
-                />
-                {form.formState.errors.guardianName && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.guardianName.message}</p>}
-              </Field>
+                    {step === 3 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                             <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Tier Placement</Label>
+                                    <Select onValueChange={(v) => handleSelectChange('level', v)} required>
+                                        <SelectTrigger className="h-12 bg-muted/5 border-none">
+                                            <SelectValue placeholder="Primary Level Allocation" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Foundation">Foundation Tier</SelectItem>
+                                            <SelectItem value="Core">Core Tier</SelectItem>
+                                            <SelectItem value="Advanced">Advanced Tier</SelectItem>
+                                            <SelectItem value="Specialized">Specialized Track</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Previous Institution</Label>
+                                    <div className="relative">
+                                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="previousSchool" value={formData.previousSchool} onChange={handleInputChange} className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Clinical or Academic Notes</Label>
+                                <Textarea name="notes" value={formData.notes} onChange={handleInputChange} rows={4} placeholder="Summarize candidate profile..." className="bg-muted/5 border-none" />
+                            </div>
+                        </div>
+                    )}
 
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Primary Contact (+92)</FieldLabel>
-                <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20" />
-                    <Input 
-                    {...form.register('phone')} 
-                    placeholder="+92 3XX XXXXXXX" 
-                    className="h-14 pl-12 bg-background/20 border-white/5 focus:border-primary/30 transition-all text-sm placeholder:opacity-10"
-                    />
-                </div>
-                {form.formState.errors.phone && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.phone.message}</p>}
-              </Field>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Academic Batch</FieldLabel>
-                <Select onValueChange={(val) => form.setValue('course', val)}>
-                  <SelectTrigger className="h-14 bg-background/20 border-white/5 focus:border-primary/30 transition-all text-sm">
-                    <SelectValue placeholder="Select Level" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {ACADEMY_LEVELS.map((level) => (
-                      <SelectItem key={level} value={level}>{level}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.course && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.course.message}</p>}
-              </Field>
-
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-2 ml-1">Institutional Slot</FieldLabel>
-                <Select onValueChange={(val) => form.setValue('timing', val)}>
-                  <SelectTrigger className="h-14 bg-background/20 border-white/5 focus:border-primary/30 transition-all text-sm">
-                    <SelectValue placeholder="Select Timing" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {SESSION_TIMINGS.map((slot) => (
-                      <SelectItem key={slot} value={slot}>{slot}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.timing && <p className="text-[9px] text-destructive mt-2 font-bold uppercase tracking-wider ml-1">{form.formState.errors.timing.message}</p>}
-              </Field>
-            </div>
-
-            <div className="pt-8">
-              <Button 
-                type="submit" 
-                disabled={form.formState.isSubmitting}
-                className="w-full h-16 rounded-[1.25rem] bg-primary text-primary-foreground font-serif text-xl tracking-wide hover-lift shadow-2xl shadow-primary/30 group relative overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  {form.formState.isSubmitting ? 'Securing Registry...' : 'Finalize Institutional Enrollment'}
-                  <Sparkles className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-              </Button>
-            </div>
-          </CardContent>
+                    <div className="flex items-center justify-between mt-12 pt-8 border-t border-primary/5">
+                        <Button 
+                            type="button" 
+                            variant="ghost" 
+                            onClick={step === 1 ? () => router.back() : prevStep}
+                            className="font-normal opacity-60 hover:opacity-100"
+                        >
+                            <ChevronLeft className="w-4 h-4 mr-2" /> {step === 1 ? 'Retract' : 'Back'}
+                        </Button>
+                        <Button 
+                            type={step === 3 ? 'submit' : 'button'}
+                            onClick={step === 3 ? undefined : nextStep}
+                            className="font-normal px-8 h-12 shadow-xl shadow-primary/20"
+                        >
+                            {step === 3 ? 'Admit Candidate' : 'Next Cycle'} <ChevronRight className="w-4 h-4 ml-2" />
+                        </Button>
+                    </div>
+                </CardContent>
+             </form>
         </Card>
-
-        <div className="flex justify-center">
-            <Button variant="link" asChild className="text-muted-foreground/30 hover:text-primary transition-colors text-[10px] uppercase tracking-widest font-bold group">
-                <Link href="/admin/students" className="flex items-center gap-3">
-                    <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
-                    Student Body Dashboard
-                </Link>
-            </Button>
-        </div>
-      </form>
-
-      {registeredStudent && (
-        <Dialog 
-          open={showSuccess} 
-          onOpenChange={(open) => {
-            setShowSuccess(open)
-            if (!open) router.push('/admin/students')
-          }}
-        >
-          <DialogContent className="sm:max-w-md text-center p-8">
-            <div className="mx-auto w-16 h-16 bg-success/5 rounded-full flex items-center justify-center mb-6 ring-1 ring-success/20 animate-in zoom-in duration-500">
-               <ShieldCheck className="w-8 h-8 text-success" />
-            </div>
-            <DialogHeader>
-              <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Enrollment Finalized</DialogTitle>
-              <DialogDescription className="text-xs font-normal opacity-60 mt-2">
-                Candidate record secured. You can now generate the official institutional receipt.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid grid-cols-1 gap-3 mt-8">
-              <Button 
-                onClick={() => {
-                  const courseObj = selectedCourseObj
-                  const params = new URLSearchParams({
-                    studentId:    registeredStudent.id,
-                    courseId:     courseObj?.id || '',
-                    tuitionFee:   String(0),
-                    admissionFee: String(0),
-                    discount:     String(0),
-                    totalFee:     String(0),
-                    paid:         String(0),
-                    dues:         String(0),
-                    term:         'Spring-2026',
-                    teacherName:  courseObj?.teacherName || '',
-                  })
-                  window.open(`/admin/print/receipt?${params.toString()}`, '_blank')
-                }}
-                className="h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-normal"
-              >
-                Launch Receipt Tab
-              </Button>
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push('/admin/students')}
-                className="text-xs font-normal opacity-60"
-              >
-                Close & Go to Dashboard
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+      </div>
+    </PageShell>
   )
 }

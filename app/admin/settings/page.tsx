@@ -23,12 +23,16 @@ import {
   Save,
   Upload,
   Image as ImageIcon,
+  Key,
+  ShieldCheck,
+  Layout
 } from 'lucide-react'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useData } from '@/contexts/data-context'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
+import { cn } from '@/lib/utils'
 
 export default function SettingsPage() {
   const hasMounted = useHasMounted()
@@ -45,7 +49,7 @@ export default function SettingsPage() {
       const reader = new FileReader()
       reader.onloadend = () => {
         updateUser({ avatar: reader.result as string })
-        toast.success('Academy logo updated successfully')
+        toast.success('Institutional branding updated successfully')
       }
       reader.readAsDataURL(file)
     }
@@ -55,197 +59,194 @@ export default function SettingsPage() {
     setIsLoading(true)
     await new Promise(resolve => setTimeout(resolve, 800))
     setIsLoading(false)
-    toast.success('Settings synchronized successfully')
+    toast.success('System configuration synchronized')
   }
 
   return (
     <PageShell>
       <PageHeader 
-        title="Settings"
-        description="Manage your academy settings and preferences"
+        title="Institutional Settings"
+        description="Master configuration for academy identity, security protocols, and interface preferences."
       />
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="bg-muted/50 p-1">
-          <TabsTrigger value="general" className="gap-2 px-6">
+      <Tabs defaultValue="general" className="space-y-12 mt-8">
+        <TabsList className="bg-primary/5 p-1.5 border border-primary/10 rounded-2xl h-14">
+          <TabsTrigger value="general" className="gap-2 px-8 py-2 rounded-xl text-[10px] uppercase tracking-widest font-bold data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-primary">
             <Building2 className="w-4 h-4" />
-            General
+            General Identity
           </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2 px-6">
+          <TabsTrigger value="security" className="gap-2 px-8 py-2 rounded-xl text-[10px] uppercase tracking-widest font-bold data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-primary">
             <Shield className="w-4 h-4" />
-            Security
+            Security & Auth
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="gap-2 px-6">
+          <TabsTrigger value="appearance" className="gap-2 px-8 py-2 rounded-xl text-[10px] uppercase tracking-widest font-bold data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-primary">
             <Palette className="w-4 h-4" />
-            Appearance
+            Portal Aesthetic
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-3 items-stretch">
-            <Card className="glass-1 md:col-span-2 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-              <CardHeader>
-                <CardTitle className="font-serif text-xl font-medium">Institute Information</CardTitle>
-                <CardDescription>
-                  Core academic identity and branding parameters.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Institute Name</FieldLabel>
-                    <Input defaultValue="The Learners Academy" className="bg-background/50" />
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Academic Tagline</FieldLabel>
-                    <Input defaultValue="Premium English Language Education" className="bg-background/50" />
-                  </Field>
-                  <Field>
-                    <FieldLabel className="text-editorial-label">Registry Description</FieldLabel>
-                    <Textarea 
-                      defaultValue="Empowering learners with world-class language education since 2010."
-                      rows={4}
-                      className="bg-background/50"
-                    />
-                  </Field>
-                </FieldGroup>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-              <CardHeader>
-                <CardTitle className="font-serif text-xl font-medium">Academy Branding</CardTitle>
-                <CardDescription>
-                  Manage the official logo and institutional profile icon.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-6 flex-1">
-                <div className="relative group cursor-pointer mb-6">
-                  <div className="w-32 h-32 border-2 border-dashed flex items-center justify-center bg-muted/30 overflow-hidden transition-all">
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt="Logo" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-8 h-8 text-primary/20" />
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <Upload className="w-6 h-6 text-white" />
+        <TabsContent value="general" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid gap-8 md:grid-cols-3 items-start">
+            <Card className="glass-1 md:col-span-2 rounded-[2rem] border-primary/5 shadow-2xl p-10">
+              <div className="mb-10">
+                <h3 className="font-serif text-2xl font-medium tracking-tight">Institutional Profile</h3>
+                <p className="text-xs text-muted-foreground opacity-40 mt-1">Foundational data for the academy's official registry.</p>
+              </div>
+              <div className="space-y-8">
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Legal Academy Name</label>
+                        <Input defaultValue="The Learners Academy" className="h-12 bg-primary/[0.02] border-none" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Official Tagline</label>
+                        <Input defaultValue="Premium English Language Education" className="h-12 bg-primary/[0.02] border-none" />
                     </div>
                   </div>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="absolute inset-0 opacity-0 cursor-pointer" 
-                    onChange={handleLogoUpload}
-                  />
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Mission Synthesis</label>
+                    <Textarea 
+                        defaultValue="Empowering learners with world-class language education since 2010 through specialized faculty and audited curricula."
+                        rows={5}
+                        className="bg-primary/[0.02] border-none resize-none leading-relaxed"
+                    />
+                  </div>
+              </div>
+            </Card>
+
+            <Card className="glass-1 rounded-[2rem] border-primary/5 shadow-2xl p-10 flex flex-col items-center">
+              <div className="text-center mb-10 w-full">
+                <h3 className="font-serif text-xl font-medium tracking-tight">Branding</h3>
+                <p className="text-xs text-muted-foreground opacity-40 mt-1">Institutional Logo Assets</p>
+              </div>
+              <div className="relative group cursor-pointer mb-8">
+                <div className="w-40 h-40 border-2 border-dashed border-primary/10 rounded-3xl flex items-center justify-center bg-primary/[0.02] overflow-hidden transition-all group-hover:border-primary/40">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-10 h-10 text-primary opacity-20" />
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+                    <Upload className="w-8 h-8 text-white" />
+                  </div>
                 </div>
-                <div className="text-center space-y-1">
-                  <p className="text-xs font-normal text-primary opacity-60">Official Logo</p>
-                  <p className="text-xs text-muted-foreground">Supported: JPG, PNG, SVG (Max 2MB)</p>
-                </div>
-              </CardContent>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="absolute inset-0 opacity-0 cursor-pointer" 
+                  onChange={handleLogoUpload}
+                />
+              </div>
+              <p className="text-[9px] uppercase tracking-widest font-bold opacity-30 text-center leading-relaxed">
+                Accepted Formats: PNG, SVG, JPG<br/>Recommended Resolution: 512x512px
+              </p>
             </Card>
           </div>
 
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSave} disabled={isLoading} className="font-normal">
-              {isLoading ? 'Syncing...' : 'Save General changes'}
+          <div className="flex justify-end mt-12">
+            <Button onClick={handleSave} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20">
+              {isLoading ? 'Synchronizing...' : 'Saves General Changes'}
             </Button>
           </div>
         </TabsContent>
 
-        <TabsContent value="security" className="space-y-6">
-          <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader>
-              <CardTitle>Password</CardTitle>
-              <CardDescription>
-                Update your password regularly to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel>Current Password</FieldLabel>
-                  <SecureInput placeholder="••••••••" />
-                </Field>
-                <Field>
-                  <FieldLabel>New Password</FieldLabel>
-                  <SecureInput placeholder="••••••••" />
-                  <FieldDescription>
-                    Must be at least 8 characters with a mix of letters, numbers, and symbols
-                  </FieldDescription>
-                </Field>
-                <Field>
-                  <FieldLabel>Confirm New Password</FieldLabel>
-                  <SecureInput placeholder="••••••••" />
-                </Field>
-              </FieldGroup>
-            </CardContent>
-          </Card>
+        <TabsContent value="security" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <div className="grid gap-12 max-w-4xl">
+                <Card className="glass-1 rounded-[2rem] border-primary/5 shadow-2xl p-10">
+                    <div className="flex items-center gap-4 mb-10">
+                        <div className="w-10 h-10 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-center justify-center text-destructive">
+                            <Key className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="font-serif text-xl font-medium tracking-tight">Credential Rotation</h3>
+                            <p className="text-[10px] uppercase tracking-widest opacity-40 font-bold mt-1">Admin Password Management</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Current Password</label>
+                                <SecureInput placeholder="••••••••" className="h-12 bg-muted/20 border-none" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">New Authority Token</label>
+                                <SecureInput placeholder="••••••••" className="h-12 bg-muted/20 border-none" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Confirm Token</label>
+                                <SecureInput placeholder="••••••••" className="h-12 bg-muted/20 border-none" />
+                            </div>
+                        </div>
+                        <div className="p-8 bg-muted/10 rounded-3xl border border-dashed flex flex-col justify-center items-center text-center">
+                            <ShieldCheck className="w-8 h-8 text-primary opacity-20 mb-4" />
+                            <p className="text-xs leading-relaxed font-normal opacity-60 px-6">
+                                Ensure your password exceeds 12 characters and includes non-alphanumeric symbols for institutional-grade security.
+                            </p>
+                        </div>
+                    </div>
+                </Card>
 
-          <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader>
-              <CardTitle>Two-Factor Authentication</CardTitle>
-              <CardDescription>
-                Add an extra layer of security to your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-normal">Enable 2FA</p>
-                  <p className="text-sm text-muted-foreground">
-                    Require a verification code when signing in
-                  </p>
-                </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
+                <Card className="glass-1 rounded-[2rem] border-primary/5 shadow-2xl p-10 flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                         <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
+                            <Bell className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-serif text-lg font-medium">Two-Factor Authentication</h3>
+                            <p className="text-xs font-normal opacity-40 mt-1">Requiring a secondary verification layer for admin access.</p>
+                        </div>
+                    </div>
+                    <Switch className="scale-125" />
+                </Card>
+           </div>
 
-          <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={isLoading}>
-              <Save className="w-4 h-4 mr-2" />
-              {isLoading ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
+           <div className="flex justify-end mt-12 max-w-4xl">
+             <Button onClick={handleSave} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20 bg-destructive hover:bg-destructive/90">
+                Update Security Protocols
+             </Button>
+           </div>
         </TabsContent>
 
-        <TabsContent value="appearance" className="space-y-6">
-          <Card className="glass-1 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader>
-              <CardTitle className="font-serif text-xl font-medium">Interface Configuration</CardTitle>
-              <CardDescription>
-                Tailor the visual intensity and density of your administration portal.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 flex-1">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-normal">Dark Mode Appearance</p>
-                  <p className="text-sm text-muted-foreground opacity-60">
-                    Shift to a premium dark aesthetic for focused work
-                  </p>
+        <TabsContent value="appearance" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <Card className="glass-1 rounded-[2rem] border-primary/5 shadow-2xl p-10 max-w-4xl">
+                <div className="flex items-center gap-4 mb-12">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
+                        <Palette className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h3 className="font-serif text-2xl font-medium tracking-tight">Interface Configuration</h3>
+                        <p className="text-xs text-muted-foreground opacity-40 mt-1">Tailor the visual density and theme of the portal.</p>
+                    </div>
                 </div>
-                <Switch />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="font-normal">High-Density Compact Mode</p>
-                  <p className="text-sm text-muted-foreground opacity-60">
-                    Maximize information visibility by reducing whitespace
-                  </p>
+                
+                <div className="space-y-12">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="font-medium text-sm">Dark Aesthetic Override</p>
+                            <p className="text-xs text-muted-foreground opacity-60">
+                                Shift to a premium dark-mode for lower ocular strain during nightly audits.
+                            </p>
+                        </div>
+                        <Switch />
+                    </div>
+                    <Separator className="opacity-5" />
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="font-medium text-sm">High-Density Compact Mode</p>
+                            <p className="text-xs text-muted-foreground opacity-60">
+                                Reduce universal padding to maximize informational throughput on large screens.
+                            </p>
+                        </div>
+                        <Switch />
+                    </div>
                 </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
+           </Card>
 
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSave} disabled={isLoading} className="font-normal">
-              {isLoading ? 'applying...' : 'Apply Appearance'}
-            </Button>
-          </div>
+           <div className="flex justify-end mt-12 max-w-4xl">
+             <Button onClick={handleSave} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20">
+                Apply Appearance Specs
+             </Button>
+           </div>
         </TabsContent>
       </Tabs>
     </PageShell>

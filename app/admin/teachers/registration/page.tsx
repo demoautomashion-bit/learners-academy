@@ -1,212 +1,228 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { useData } from '@/contexts/data-context'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from 'react'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { SecureInput } from '@/components/ui/secure-input'
-import { Field, FieldLabel } from '@/components/ui/field'
-
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
-import { 
-  ArrowLeft, 
-  UserPlus, 
-  ShieldCheck 
+import {
+  UserPlus,
+  ShieldCheck,
+  Building2,
+  Mail,
+  Phone,
+  FileText,
+  BadgeCheck,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useData } from '@/contexts/data-context'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 import { useHasMounted } from '@/hooks/use-has-mounted'
-import type { Teacher } from '@/lib/types'
 
-const teacherRegistrationSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Enter a valid academic email'),
-  phone: z.string().min(5, 'Valid contact number is required'),
-  employeeId: z.string().min(3, 'Employee ID must be at least 3 characters'),
-  password: z.string().min(8, 'Portal password must be at least 8 characters'),
-})
-
-type TeacherRegistrationValues = z.infer<typeof teacherRegistrationSchema>
-
-export default function TeacherRegistrationPage() {
+export default function FacultyRegistrationPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { teachers, addTeacher, isInitialized } = useData()
-
-  const form = useForm<TeacherRegistrationValues>({
-    resolver: zodResolver(teacherRegistrationSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      employeeId: '',
-      password: '',
-    }
+  const { addTeacher, isInitialized } = useData()
+  const [step, setStep] = useState(1)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    salary: '',
+    education: '',
+    experience: '',
+    address: '',
+    bio: ''
   })
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
-  const onSubmit = async (data: TeacherRegistrationValues) => {
-    // Defensive check for initialization
-    if (!isInitialized) return
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
-    // Check for duplicates
-    const existingTeachers = Array.isArray(teachers) ? teachers : []
-    
-    if (existingTeachers.some(t => t.employeeId?.toLowerCase() === data.employeeId.toLowerCase())) {
-        form.setError('employeeId', { message: 'ID already exists in faculty registry' })
-        return
-    }
-    if (existingTeachers.some(t => t.email?.toLowerCase() === data.email.toLowerCase())) {
-        form.setError('email', { message: 'Email is already registered' })
-        return
-    }
-
-    const newTeacher: Teacher = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: data.name,
-      email: data.email.toLowerCase().trim(),
-      phone: data.phone,
-      employeeId: data.employeeId,
-      employeePassword: data.password,
-      subjects: [], // Initialized as empty for now
-      qualifications: [], // Initialized as empty for now
-      status: 'active',
-      joinedAt: new Date().toISOString(),
-      coursesCount: 0,
-      studentsCount: 0,
-      requiresReview: true,
-    }
-
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     try {
-      await addTeacher(newTeacher)
-      toast.success('Professional Onboarding Finalized')
+      await addTeacher({
+        ...formData,
+        salary: Number(formData.salary),
+        status: 'active',
+        joinDate: new Date().toISOString(),
+        employeeId: `EMP-${Math.floor(1000 + Math.random() * 9000)}`
+      })
+      toast.success("Faculty personnel record established successfully")
       router.push('/admin/teachers')
-    } catch (err) {
-      // Handled by context
+    } catch (error) {
+      toast.error("Critical Registry Error: Initialization failed")
     }
   }
 
+  const nextStep = () => setStep(prev => prev + 1)
+  const prevStep = () => setStep(prev => prev - 1)
 
   return (
     <PageShell>
-      <div className="max-w-xl mx-auto space-y-8 py-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      {/* Premium Header */}
-      <div className="text-center space-y-3">
-        <h1 className="font-serif text-4xl font-medium tracking-tight bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
-          Faculty Induction
-        </h1>
-        <p className="text-muted-foreground text-sm tracking-widest uppercase opacity-50 font-medium">
-          Official Academic Registry
-        </p>
-      </div>
+      <PageHeader 
+        title="Administer New Faculty"
+        description="Initialize a new institutional identity within the secure personnel registry."
+      />
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card className="glass-1 border-white/10 shadow-premium overflow-hidden rounded-3xl hover:translate-y-[-2px] transition-all duration-500">
-          <CardHeader className="text-center pt-10 pb-2">
-             <div className="mx-auto w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center mb-4 ring-1 ring-primary/20">
-                <UserPlus className="w-5 h-5 text-primary opacity-80" />
-             </div>
-             <CardTitle className="font-serif text-2xl font-normal">Onboarding Protocol</CardTitle>
-             <CardDescription className="text-xs uppercase tracking-tighter opacity-40">Verified Institutional Data Entry</CardDescription>
-          </CardHeader>
-          <CardContent className="p-8 space-y-6">
-            {/* Field: Name */}
-            <Field>
-              <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 mb-1.5 ml-1">Full Name</FieldLabel>
-              <Input 
-                {...form.register('name')} 
-                placeholder="e.g. Dr. Alexander Sterling" 
-                className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-base placeholder:opacity-20"
-              />
-              {form.formState.errors.name && <p className="text-[10px] text-destructive mt-1 font-medium uppercase tracking-wider">{form.formState.errors.name.message}</p>}
-            </Field>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Field: Email */}
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 mb-1.5 ml-1">Academic Email</FieldLabel>
-                <Input 
-                  {...form.register('email')} 
-                  placeholder="name@academy.com" 
-                  className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm placeholder:opacity-20"
-                />
-                {form.formState.errors.email && <p className="text-[10px] text-destructive mt-1 font-medium uppercase tracking-wider">{form.formState.errors.email.message}</p>}
-              </Field>
-
-              {/* Field: Phone */}
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 mb-1.5 ml-1">Contact Number</FieldLabel>
-                <Input 
-                  {...form.register('phone')} 
-                  placeholder="+92 300 0000000" 
-                  className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm placeholder:opacity-20"
-                />
-                {form.formState.errors.phone && <p className="text-[10px] text-destructive mt-1 font-medium uppercase tracking-wider">{form.formState.errors.phone.message}</p>}
-              </Field>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
-              {/* Field: Employee ID */}
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 mb-1.5 ml-1">Employee ID</FieldLabel>
-                <Input 
-                  {...form.register('employeeId')} 
-                  placeholder="ID-001" 
-                  className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm placeholder:opacity-20 font-mono"
-                />
-                {form.formState.errors.employeeId && <p className="text-[10px] text-destructive mt-1 font-medium uppercase tracking-wider">{form.formState.errors.employeeId.message}</p>}
-              </Field>
-
-              {/* Field: Password */}
-              <Field>
-                <FieldLabel className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 mb-1.5 ml-1">Portal Password</FieldLabel>
-                <SecureInput 
-                  {...form.register('password')} 
-                  placeholder="••••••••" 
-                  className="h-12 bg-background/30 border-white/5 focus:ring-1 focus:ring-primary/20 transition-all text-sm placeholder:opacity-20"
-                />
-                {form.formState.errors.password && <p className="text-[10px] text-destructive mt-1 font-medium uppercase tracking-wider">{form.formState.errors.password.message}</p>}
-              </Field>
-            </div>
-
-            <div className="pt-6">
-              <Button 
-                type="submit" 
-                disabled={form.formState.isSubmitting}
-                className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-serif text-lg tracking-wide hover-lift shadow-xl shadow-primary/20 group relative overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  {form.formState.isSubmitting ? 'Processing Inductions...' : 'Finalize Faculty Record'}
-                </span>
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Button>
-              <div className="flex items-center justify-center gap-2 mt-6 opacity-30">
-                 <ShieldCheck className="w-3 h-3" />
-                 <span className="text-[9px] uppercase tracking-[0.3em] font-bold">End-to-End Encryption Enabled</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-center">
-            <Button variant="link" asChild className="text-muted-foreground/40 hover:text-primary transition-colors text-xs font-normal">
-                <Link href="/admin/teachers" className="flex items-center gap-2">
-                    <ArrowLeft className="w-3 h-3" />
-                    Back to Faculty Registry
-                </Link>
-            </Button>
+      <div className="max-w-4xl mx-auto mt-8">
+        <div className="flex items-center justify-between mb-12 relative">
+             <div className="absolute top-1/2 left-0 w-full h-px bg-primary/5 -translate-y-1/2 -z-10" />
+             {[1, 2, 3].map((s) => (
+                <div key={s} className="flex flex-col items-center gap-3 bg-background px-4">
+                    <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all border",
+                        step === s ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20" : 
+                        step > s ? "bg-success/10 text-success border-success/30" : "bg-muted/50 text-muted-foreground border-transparent"
+                    )}>
+                        {step > s ? <BadgeCheck className="w-5 h-5" /> : s}
+                    </div>
+                    <span className={cn(
+                        "text-[10px] uppercase tracking-widest font-bold",
+                        step === s ? "text-primary" : "text-muted-foreground opacity-40"
+                    )}>
+                        {s === 1 ? 'Identity' : s === 2 ? 'Credentials' : 'Authorization'}
+                    </span>
+                </div>
+             ))}
         </div>
-      </form>
+
+        <Card className="glass-1 border-primary/5 shadow-2xl rounded-[2rem] overflow-hidden">
+             <form onSubmit={handleSubmit}>
+                <CardContent className="p-12">
+                    {step === 1 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Full Legal Name</Label>
+                                    <div className="relative">
+                                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="name" value={formData.name} onChange={handleInputChange} required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Email Protocol</Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="email" type="email" value={formData.email} onChange={handleInputChange} required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Secure Contact</Label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="phone" value={formData.phone} onChange={handleInputChange} required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Residential Geometry</Label>
+                                    <Input name="address" value={formData.address} onChange={handleInputChange} className="h-12 bg-muted/5 border-none" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                             <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Academic Focus</Label>
+                                    <Select onValueChange={(v) => handleSelectChange('subject', v)} required>
+                                        <SelectTrigger className="h-12 bg-muted/5 border-none">
+                                            <SelectValue placeholder="Select Specialization" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="English Grammar">English Grammar</SelectItem>
+                                            <SelectItem value="Linguistics">Linguistics</SelectItem>
+                                            <SelectItem value="Advanced Phonetics">Advanced Phonetics</SelectItem>
+                                            <SelectItem value="Creative Writing">Creative Writing</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Highest Credential</Label>
+                                    <div className="relative">
+                                        <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-30" />
+                                        <Input name="education" value={formData.education} onChange={handleInputChange} placeholder="e.g. Masters in TESOL" required className="h-12 pl-12 bg-muted/5 border-none" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Professional Trajectory</Label>
+                                <Textarea name="bio" value={formData.bio} onChange={handleInputChange} rows={4} placeholder="Summarize institutional experience..." className="bg-muted/5 border-none" />
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                             <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Agreed Stipend (PKR/Month)</Label>
+                                    <Input name="salary" type="number" value={formData.salary} onChange={handleInputChange} required className="h-12 bg-muted/5 border-none" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Experience (Years)</Label>
+                                    <Input name="experience" type="number" value={formData.experience} onChange={handleInputChange} required className="h-12 bg-muted/5 border-none" />
+                                </div>
+                            </div>
+                            <div className="p-8 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-4">
+                                <ShieldCheck className="w-6 h-6 text-primary mt-1 shrink-0" />
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium">Institutional Authorization</p>
+                                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                        By processing this registration, you authorize the creation of a secure personnel record and the allocation of an institutional Employee ID. This action is tracked in the system audit logs.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-between mt-12 pt-8 border-t border-primary/5">
+                        <Button 
+                            type="button" 
+                            variant="ghost" 
+                            onClick={step === 1 ? () => router.back() : prevStep}
+                            className="font-normal opacity-60 hover:opacity-100"
+                        >
+                            <ChevronLeft className="w-4 h-4 mr-2" /> {step === 1 ? 'Abstain' : 'Back'}
+                        </Button>
+                        <Button 
+                            type={step === 3 ? 'submit' : 'button'}
+                            onClick={step === 3 ? undefined : nextStep}
+                            className="font-normal px-8 h-12 shadow-xl shadow-primary/20"
+                        >
+                            {step === 3 ? 'Process Faculty Entry' : 'Proceed'} <ChevronRight className="w-4 h-4 ml-2" />
+                        </Button>
+                    </div>
+                </CardContent>
+             </form>
+        </Card>
       </div>
     </PageShell>
   )
