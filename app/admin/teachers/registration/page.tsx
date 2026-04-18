@@ -93,7 +93,7 @@ export default function FacultyRegistrationPage() {
         <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/5 blur-[120px] animate-pulse delay-700" />
       </div>
 
-      <div className="max-w-3xl mx-auto pt-16 pb-32">
+      <div className="max-w-xl mx-auto pt-16 pb-32">
         <motion.div 
           initial="hidden"
           animate="visible"
@@ -120,7 +120,7 @@ export default function FacultyRegistrationPage() {
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/[0.03] rounded-full blur-[100px] -z-10" />
               
               <form onSubmit={handleSubmit}>
-                <CardContent className="p-10 md:p-16 space-y-12">
+                <CardContent className="p-8 md:p-12 space-y-10">
                   
                   {/* Identity Block */}
                   <div className="space-y-8">
@@ -129,68 +129,68 @@ export default function FacultyRegistrationPage() {
                         <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30">Identity</span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-2 group">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Full Name</Label>
-                        <div className="relative">
-                          <UserCircle className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
-                          <Input 
-                            name="name" 
-                            placeholder="e.g. Alistair Vance"
-                            value={formData.name} 
-                            onChange={handleInputChange} 
-                            required 
-                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
-                          />
+                      <div className="grid grid-cols-1 gap-6">
+                        <div className="space-y-2 group">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Full Name</Label>
+                          <div className="relative">
+                            <UserCircle className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                            <Input 
+                              name="name" 
+                              placeholder="e.g. Alistair Vance"
+                              value={formData.name} 
+                              onChange={handleInputChange} 
+                              required 
+                              className="h-12 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal text-sm" 
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 group">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Email Address</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                            <Input 
+                              name="email" 
+                              type="email"
+                              placeholder="vance@academy.edu"
+                              value={formData.email} 
+                              onChange={handleInputChange} 
+                              required 
+                              className="h-12 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal text-sm" 
+                            />
+                          </div>
                         </div>
                       </div>
 
-                      <div className="space-y-2 group">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Email Address</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
-                          <Input 
-                            name="email" 
-                            type="email"
-                            placeholder="vance@academy.edu"
-                            value={formData.email} 
-                            onChange={handleInputChange} 
-                            required 
-                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
-                          />
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2 group">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Staff ID</Label>
+                          <div className="relative">
+                            <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                            <Input 
+                              name="employeeId" 
+                              value={formData.employeeId} 
+                              onChange={handleInputChange} 
+                              required 
+                              className="h-12 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-mono text-xs" 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2 group">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Contact</Label>
+                          <div className="relative">
+                            <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                            <Input 
+                              name="phone" 
+                              placeholder="+92 300 0000000"
+                              value={formData.phone} 
+                              onChange={handleInputChange} 
+                              required 
+                              className="h-12 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal text-xs" 
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-2 group">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Staff ID</Label>
-                        <div className="relative">
-                          <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
-                          <Input 
-                            name="employeeId" 
-                            value={formData.employeeId} 
-                            onChange={handleInputChange} 
-                            required 
-                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-mono text-sm" 
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2 group">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Phone Number</Label>
-                        <div className="relative">
-                          <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
-                          <Input 
-                            name="phone" 
-                            placeholder="+92 300 0000000"
-                            value={formData.phone} 
-                            onChange={handleInputChange} 
-                            required 
-                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
-                          />
-                        </div>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Security Block */}
@@ -200,7 +200,7 @@ export default function FacultyRegistrationPage() {
                         <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30">Access Control</span>
                     </div>
 
-                    <div className="space-y-2 group max-w-sm">
+                    <div className="space-y-2 group max-w-xs">
                       <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Portal Password</Label>
                       <div className="relative">
                         <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
@@ -211,17 +211,17 @@ export default function FacultyRegistrationPage() {
                           value={formData.password} 
                           onChange={handleInputChange} 
                           required 
-                          className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
+                          className="h-12 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal text-sm" 
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Submission Actions */}
-                  <div className="flex flex-col gap-6 pt-10">
+                  <div className="flex flex-col gap-4 pt-10">
                     <Button 
                       type="submit"
-                      className="w-full h-18 bg-primary hover:bg-primary/90 text-white rounded-[1.5rem] shadow-2xl shadow-primary/20 transition-all group relative overflow-hidden text-base font-medium"
+                      className="w-full h-16 bg-primary hover:bg-primary/90 text-white rounded-[1.25rem] shadow-2xl shadow-primary/20 transition-all group relative overflow-hidden text-base font-medium"
                     >
                       <span className="relative z-10 flex items-center justify-center gap-3">
                         Add Staff Member <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
@@ -232,7 +232,7 @@ export default function FacultyRegistrationPage() {
                       type="button" 
                       variant="ghost" 
                       onClick={() => router.back()}
-                      className="h-12 font-bold opacity-30 hover:opacity-100 text-[10px] tracking-[0.3em] uppercase rounded-2xl"
+                      className="h-10 font-bold opacity-30 hover:opacity-100 text-[10px] tracking-[0.3em] uppercase rounded-xl"
                     >
                       <ChevronLeft className="w-3.5 h-3.5 mr-2" /> Cancel
                     </Button>

@@ -1,7 +1,7 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,16 +23,11 @@ import {
 } from "@/components/ui/select"
 import { toast } from 'sonner'
 import {
-  ClipboardList,
   Search,
   CheckCircle2,
   XCircle,
   Clock,
-  AlertCircle,
   FileText,
-  UserCheck,
-  History,
-  Info,
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
@@ -40,7 +35,11 @@ import {
   ArrowUpRight,
   Undo2,
   Hash,
-  HelpCircle
+  HelpCircle,
+  Plus,
+  Minus,
+  Filter,
+  History
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
@@ -48,32 +47,25 @@ import { useData } from '@/contexts/data-context'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 import { useHasMounted } from '@/hooks/use-has-mounted'
-import { Teacher, TeacherAttendance } from '@/lib/types'
+import { Teacher } from '@/lib/types'
 import { 
     format, 
     addDays, 
     startOfWeek, 
     isSameDay, 
-    isWeekend, 
-    subDays, 
-    startOfMonth, 
-    endOfMonth, 
-    eachDayOfInterval, 
-    setMonth, 
-    setYear,
-    getYear,
-    getMonth
+    subDays,
+    eachDayOfInterval,
+    endOfWeek
 } from 'date-fns'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 
-type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'Leave' | 'Substitution'
+type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'Leave'
 
-const STATUS_CONFIG: Record<AttendanceStatus, { icon: any; color: string; bg: string; label: string; description: string }> = {
-    Present: { icon: CheckCircle2, color: 'text-success', bg: 'bg-success/5', label: 'Present', description: 'Institutional Presence Confirmed' },
-    Absent: { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/5', label: 'Absent', description: 'Personnel Absence Logged' },
-    Late: { icon: Clock, color: 'text-warning', bg: 'bg-warning/5', label: 'Late', description: 'Session Latency Detected' },
-    Leave: { icon: Undo2, color: 'text-indigo-400', bg: 'bg-indigo-400/5', label: 'Leave', description: 'Authorized Institutional Absence' },
-    Substitution: { icon: Sparkles, color: 'text-indigo-500', bg: 'bg-indigo-500/10', label: 'Substitution', description: 'External Load Allocation' }
+const STATUS_CONFIG: Record<AttendanceStatus, { icon: any; color: string; bg: string; label: string }> = {
+    Present: { icon: CheckCircle2, color: 'text-success', bg: 'bg-success/5', label: 'Present' },
+    Absent: { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/5', label: 'Absent' },
+    Late: { icon: Clock, color: 'text-warning', bg: 'bg-warning/5', label: 'Late' },
+    Leave: { icon: Undo2, color: 'text-indigo-400', bg: 'bg-indigo-400/5', label: 'Leave' }
 }
 
 export default function AttendanceRegistryPage() {
@@ -83,26 +75,14 @@ export default function AttendanceRegistryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
-  const [attendanceData, setAttendanceData] = useState<Record<string, AttendanceStatus>>({})
+  
+  // State for attendance and substitutions
+  const [attendanceRecords, setAttendanceRecords] = useState<Record<string, { status: AttendanceStatus; substitutions: number }>>({})
 
-  // Years for the dropdown
-  const years = Array.from({ length: 5 }, (_, i) => getYear(new Date()) - 2 + i)
-  const months = [
-    "January", "February", "March", "April", "May", "June", 
-    "July", "August", "September", "October", "November", "December"
-  ]
-
-  // Mock historical data
-  const teacherStats = useMemo(() => {
-    return teachers.reduce((acc, t) => {
-      acc[t.id] = {
-        streak: [1, 1, 1, 0, 1, 1, 1],
-        monthlyRate: 94,
-        totalSubstitutions: Math.floor(Math.random() * 5)
-      }
-      return acc
-    }, {} as any)
-  }, [teachers])
+  // Weekly Horizon logic
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
+  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 })
+  const horizonDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -113,382 +93,316 @@ export default function AttendanceRegistryPage() {
     (t.employeeId || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleStatusChange = (teacherId: string, status: AttendanceStatus) => {
-    setAttendanceData(prev => ({ ...prev, [teacherId]: status }))
-    toast(`Record Entry: ${status.toUpperCase()}`, {
-        description: `Operational log finalized for ${format(selectedDate, 'MMM d')}`,
-        icon: <HelpCircle className="w-4 h-4 text-primary" />,
-    })
+  const updateRecord = (teacherId: string, updates: Partial<{ status: AttendanceStatus; substitutions: number }>) => {
+    setAttendanceRecords(prev => ({
+      ...prev,
+      [teacherId]: {
+        ...(prev[teacherId] || { status: 'Present', substitutions: 0 }),
+        ...updates
+      }
+    }))
   }
 
-  // Calendar Grid Logic (Week per Row)
-  const monthStart = startOfMonth(selectedDate)
-  const monthEnd = endOfMonth(selectedDate)
-  const calendarDays = eachDayOfInterval({ start: startOfWeek(monthStart, { weekStartsOn: 1 }), end: endOfMonth(monthEnd) })
-  
-  // Group days into weeks
-  const weeks = []
-  for (let i = 0; i < calendarDays.length; i += 7) {
-    weeks.push(calendarDays.slice(i, i + 7))
-  }
-
-  const handleMonthChange = (monthIdx: string) => {
-    setSelectedDate(setMonth(selectedDate, parseInt(monthIdx)))
-  }
-
-  const handleYearChange = (year: string) => {
-    setSelectedDate(setYear(selectedDate, parseInt(year)))
+  const handleSubstitutionChange = (teacherId: string, delta: number) => {
+    const current = attendanceRecords[teacherId]?.substitutions || 0
+    const next = Math.max(0, current + delta)
+    updateRecord(teacherId, { substitutions: next })
+    
+    if (delta > 0) {
+        toast.active("Extra Session Logged", {
+            description: `Session count updated to ${next} for ${format(selectedDate, 'MMM d')}`,
+            icon: <Sparkles className="w-4 h-4 text-indigo-400" />
+        })
+    }
   }
 
   return (
-    <PageShell className="relative pb-32">
+    <PageShell className="relative pb-32 overflow-hidden">
+      {/* Premium Background Elements */}
+      <div className="absolute inset-0 -z-10 bg-background/50 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-full h-[50%] bg-primary/[0.02] blur-[150px] animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-full h-[50%] bg-indigo-500/[0.01] blur-[150px] animate-pulse delay-1000" />
+      </div>
+
       <PageHeader 
-        title="Attendance"
-        description="Mark and track staff attendance and work hours."
+        title="Attendance Hub"
+        description="Monitor staff presence and session load with high-precision registry tools."
         actions={
           <div className="flex items-center gap-3">
-             <Button variant="outline" className="font-normal border-primary/10 hover:bg-primary/5 h-12 px-6 rounded-2xl glass-1">
-                <FileText className="w-4 h-4 mr-2 opacity-50" /> Personnel Audit
+             <Button variant="outline" className="font-bold text-[10px] tracking-widest uppercase border-primary/10 hover:bg-primary/5 h-12 px-6 rounded-2xl glass-1 opacity-60 hover:opacity-100 transition-all">
+                <FileText className="w-4 h-4 mr-2" /> Export Report
              </Button>
-             <Button className="font-normal bg-primary shadow-xl shadow-primary/20 h-12 px-8 rounded-2xl">
-                Save Changes
+             <Button className="font-bold text-[10px] tracking-widest uppercase bg-primary shadow-xl shadow-primary/20 h-12 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                Finalize Logs
              </Button>
           </div>
         }
       />
 
-      {/* Advanced Week-Row Calendar Section */}
-      <div className="mt-12 group/calendar">
-        <div className="bg-muted/5 border border-primary/5 rounded-[2.5rem] p-8 lg:p-12 glass-1 relative isolate overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-primary/[0.03] blur-[120px] -z-10" />
-            
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
-                <div className="space-y-1">
-                    <h3 className="font-serif text-2xl font-medium tracking-tight">Attendance Log</h3>
-                    <p className="text-xs text-muted-foreground opacity-40 italic">Daily staff logs and attendance history.</p>
+      {/* Weekly Horizon Calendar - High Density */}
+      <div className="mt-12 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
+            <div className="flex items-center gap-4 bg-muted/5 border border-primary/5 p-2 rounded-2xl glass-1">
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setSelectedDate(subDays(selectedDate, 7))}
+                    className="h-10 w-10 rounded-xl hover:bg-primary/5"
+                >
+                    <ChevronLeft className="w-4 h-4 opacity-40" />
+                </Button>
+                <div className="px-4 py-1 flex items-center gap-3 border-x border-primary/5">
+                    <CalendarIcon className="w-4 h-4 text-primary opacity-40" />
+                    <span className="text-sm font-medium tracking-tight">
+                        {format(weekStart, 'MMM d')} — {format(weekEnd, 'MMM d, yyyy')}
+                    </span>
                 </div>
-
-                <div className="flex items-center gap-4">
-                    <Select value={getMonth(selectedDate).toString()} onValueChange={handleMonthChange}>
-                        <SelectTrigger className="w-[160px] h-12 bg-background/50 border-primary/10 rounded-xl glass-2 focus:ring-primary/20">
-                            <SelectValue placeholder="Month" />
-                        </SelectTrigger>
-                        <SelectContent className="glass-2 border-white/5">
-                            {months.map((m, i) => (
-                                <SelectItem key={i} value={i.toString()} className="text-xs">{m}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Select value={getYear(selectedDate).toString()} onValueChange={handleYearChange}>
-                        <SelectTrigger className="w-[120px] h-12 bg-background/50 border-primary/10 rounded-xl glass-2 focus:ring-primary/20">
-                            <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent className="glass-2 border-white/5">
-                            {years.map((y) => (
-                                <SelectItem key={y} value={y.toString()} className="text-xs">{y}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setSelectedDate(addDays(selectedDate, 7))}
+                    className="h-10 w-10 rounded-xl hover:bg-primary/5"
+                >
+                    <ChevronRight className="w-4 h-4 opacity-40" />
+                </Button>
             </div>
 
-            <div className="space-y-4">
-                {/* Day Labels */}
-                <div className="grid grid-cols-7 gap-4 px-2">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-                        <div key={d} className="text-center text-[10px] uppercase tracking-widest font-bold opacity-30">{d}</div>
-                    ))}
-                </div>
-
-                {/* Week Rows */}
-                <div className="space-y-4">
-                    {weeks.map((week, wIdx) => (
-                        <motion.div 
-                            key={wIdx} 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: wIdx * 0.05 }}
-                            className="grid grid-cols-7 gap-4"
-                        >
-                            {week.map((day, dIdx) => {
-                                const isCurrentMonth = getMonth(day) === getMonth(selectedDate)
-                                const isSelected = isSameDay(day, selectedDate)
-                                const isToday = isSameDay(day, new Date())
-                                const weekend = isWeekend(day)
-                                
-                                return (
-                                    <button 
-                                        key={dIdx}
-                                        onClick={() => setSelectedDate(day)}
-                                        className={cn(
-                                            "relative h-20 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center isolate group",
-                                            isSelected 
-                                                ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 z-10 scale-[1.02]" 
-                                                : "bg-background/40 text-muted-foreground border-primary/5 hover:border-primary/20",
-                                            !isCurrentMonth && "opacity-[0.15] scale-95 pointer-events-none",
-                                            weekend && !isSelected && "bg-amber-500/[0.02] border-amber-500/10"
-                                        )}
-                                    >
-                                        {weekend && !isSelected && isCurrentMonth && (
-                                            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.02] to-transparent -z-10" />
-                                        )}
-                                        <span className="text-lg font-serif">{format(day, 'd')}</span>
-                                        {isToday && !isSelected && (
-                                            <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-primary rounded-full" />
-                                        )}
-                                        {isSelected && (
-                                            <motion.div layoutId="cal-glow" className="absolute inset-0 bg-white/10 blur-xl rounded-full -z-10" />
-                                        )}
-                                    </button>
-                                )
-                            })}
-                        </motion.div>
-                    ))}
-                </div>
+            <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] font-black opacity-30">
+                <HelpCircle className="w-3.5 h-3.5" />
+                Mark Daily Participation
             </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-3">
+            {horizonDays.map((day, i) => {
+                const isSelected = isSameDay(day, selectedDate)
+                const isToday = isSameDay(day, new Date())
+                return (
+                    <motion.button
+                        key={i}
+                        whileHover={{ y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setSelectedDate(day)}
+                        className={cn(
+                            "relative h-16 md:h-20 rounded-[1.5rem] border transition-all flex flex-col items-center justify-center isolate group overflow-hidden",
+                            isSelected 
+                                ? "bg-primary text-white border-primary shadow-2xl shadow-primary/30 z-10" 
+                                : "bg-muted/5 text-muted-foreground border-primary/5 hover:border-primary/20",
+                            isToday && !isSelected && "ring-2 ring-primary/20"
+                        )}
+                    >
+                        {isSelected && (
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+                        )}
+                        <span className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">{format(day, 'EEE')}</span>
+                        <span className="text-xl font-serif font-medium leading-none">{format(day, 'd')}</span>
+                        
+                        {isToday && !isSelected && (
+                            <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full" />
+                        )}
+                    </motion.button>
+                )
+            })}
         </div>
       </div>
 
-      <div className="mt-12 flex flex-col lg:flex-row gap-8 items-start">
-        <div className="flex-1 w-full space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="relative w-full md:w-96 group">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30 group-focus-within:opacity-100 transition-opacity" />
-                    <Input
-                        placeholder="Search Personnel Identity..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-12 h-14 bg-muted/5 focus:bg-background transition-all font-normal text-sm border-none shadow-premium rounded-[1.25rem] placeholder:opacity-30"
-                    />
-                </div>
-                
-                <div className="flex items-center gap-4">
-                    <div className="h-10 w-px bg-primary/5 hidden md:block" />
-                    <div className="flex items-center gap-3 px-6 py-3 bg-primary/5 border border-primary/10 rounded-2xl">
-                        <CalendarIcon className="w-4 h-4 text-primary opacity-60" />
-                        <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/80">Audit Frame: {format(selectedDate, 'MMM d, yyyy')}</span>
-                    </div>
+      <div className="mt-16 space-y-8">
+        {/* Search & Bulk Control */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="relative w-full md:w-[450px] group">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-opacity" />
+                <Input
+                    placeholder="Identify Staff member by Name or ID..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-14 h-14 bg-muted/5 focus:bg-background border-none shadow-2xl rounded-[1.5rem] transition-all placeholder:opacity-30"
+                />
+            </div>
+            
+            <div className="flex items-center gap-4">
+                <Button variant="ghost" className="h-12 px-6 rounded-2xl font-bold text-[10px] tracking-widest uppercase opacity-40 hover:opacity-100">
+                    <Filter className="w-4 h-4 mr-2" /> Filters
+                </Button>
+                <div className="h-6 w-px bg-primary/10" />
+                <div className="px-5 py-2.5 bg-success/5 border border-success/10 rounded-2xl flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                    <span className="text-[10px] uppercase tracking-widest font-black text-success/80">Active Session</span>
                 </div>
             </div>
+        </div>
 
-            <Card className="glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-primary/5 bg-primary/[0.01]">
-                                <th className="px-10 py-6 text-[10px] uppercase tracking-widest font-bold opacity-30">Teacher Identity</th>
-                                <th className="px-10 py-6 text-[10px] uppercase tracking-widest font-bold opacity-30">Status Protocols</th>
-                                <th className="px-10 py-6 text-[10px] uppercase tracking-widest font-bold opacity-30">Recent Velocity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredTeachers.map((teacher) => (
-                                <tr key={teacher.id} className="group hover:bg-primary/[0.02] transition-colors border-b border-primary/5 last:border-0 cursor-pointer" onClick={() => setSelectedTeacher(teacher)}>
-                                    <td className="px-10 py-8">
+        {/* High Density Table */}
+        <Card className="glass-2 border-white/5 rounded-[3rem] overflow-hidden shadow-2xl relative isolate">
+            <div className="absolute top-0 right-0 w-[30%] h-[30%] bg-primary/[0.01] blur-3xl -z-10" />
+            
+            <div className="overflow-x-auto overflow-y-visible">
+                <table className="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                        <tr className="border-b border-primary/5 bg-primary/[0.01]">
+                            <th className="px-10 py-7 text-[10px] uppercase tracking-widest font-black opacity-30">Personnel Identity</th>
+                            <th className="px-10 py-7 text-[10px] uppercase tracking-widest font-black opacity-30 text-center">Base Attendance Protocol</th>
+                            <th className="px-10 py-7 text-[10px] uppercase tracking-widest font-black opacity-30 text-right">Extra Load (Substitutions)</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-primary/5">
+                        {filteredTeachers.map((teacher) => {
+                            const record = attendanceRecords[teacher.id] || { status: 'Present', substitutions: 0 }
+                            
+                            return (
+                                <tr key={teacher.id} className="group hover:bg-primary/[0.02] transition-colors overflow-visible">
+                                    <td className="px-10 py-6">
                                         <div className="flex items-center gap-5">
-                                            <Avatar className="h-12 w-12 border shadow-sm group-hover:scale-110 transition-transform duration-500">
-                                                <AvatarImage src={teacher.avatar} />
-                                                <AvatarFallback className="text-sm bg-primary/5 text-primary font-bold">{getInitials(teacher.name)}</AvatarFallback>
-                                            </Avatar>
+                                            <div className="relative">
+                                                <Avatar className="h-12 w-12 border border-primary/10 shadow-lg group-hover:scale-110 transition-transform duration-500">
+                                                    <AvatarImage src={teacher.avatar} />
+                                                    <AvatarFallback className="text-sm bg-primary/5 text-primary font-bold">{getInitials(teacher.name)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-background border-2 border-background rounded-full flex items-center justify-center">
+                                                    <div className="w-2 h-2 bg-success rounded-full" />
+                                                </div>
+                                            </div>
                                             <div className="flex flex-col">
-                                                <span className="text-base font-medium leading-none mb-2">{teacher.name}</span>
-                                                <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-[0.2em] font-bold">{teacher.employeeId}</span>
+                                                <span className="text-base font-medium leading-none mb-1.5 group-hover:text-primary transition-colors cursor-pointer" onClick={() => setSelectedTeacher(teacher)}>{teacher.name}</span>
+                                                <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-[0.2em] font-bold font-mono">{teacher.employeeId}</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8" onClick={(e) => e.stopPropagation()}>
-                                        <div className="flex items-center gap-2 p-1.5 bg-muted/20 border border-primary/5 rounded-2xl w-fit">
-                                            {(['Present', 'Absent', 'Late', 'Leave', 'Substitution'] as AttendanceStatus[]).map((status) => {
-                                                const current = attendanceData[teacher.id] || 'Present'
-                                                const active = current === status
+                                    
+                                    <td className="px-10 py-6">
+                                        <div className="flex items-center justify-center gap-2 p-1.5 bg-muted/20 border border-primary/5 rounded-[1.5rem] w-fit mx-auto relative overflow-visible">
+                                            {(['Present', 'Absent', 'Late', 'Leave'] as AttendanceStatus[]).map((status) => {
+                                                const active = record.status === status
                                                 const config = STATUS_CONFIG[status]
                                                 const Icon = config.icon
                                                 return (
                                                     <button
                                                         key={status}
-                                                        onClick={() => handleStatusChange(teacher.id, status)}
+                                                        onClick={() => updateRecord(teacher.id, { status })}
                                                         className={cn(
-                                                            "w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center transition-all relative group/btn",
+                                                            "w-11 h-11 rounded-xl flex items-center justify-center transition-all relative group/btn",
                                                             active 
                                                                 ? "bg-background shadow-xl border border-primary/10 " + config.color 
-                                                                : "hover:bg-background/40 opacity-30 hover:opacity-100",
-                                                            status === 'Substitution' && active && "animate-shimmer bg-gradient-to-r from-background via-indigo-50/10 to-background border-indigo-500/20"
+                                                                : "hover:bg-background/40 opacity-30 hover:opacity-100"
                                                         )}
-                                                        title={config.label}
                                                     >
-                                                        <Icon className={cn("w-4 h-4 md:w-5 md:h-5", active ? "" : "text-muted-foreground")} />
-                                                        
-                                                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-foreground text-background rounded-lg text-[9px] uppercase font-bold tracking-widest opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                                            Mark {status}
+                                                        <Icon className="w-5 h-5" />
+                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-foreground text-background rounded-lg text-[8px] uppercase font-bold tracking-widest opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                                                            {status}
                                                         </div>
-
-                                                        {active && (
-                                                            <motion.div layoutId={`active-marker-${teacher.id}`} className="absolute inset-0 rounded-xl bg-primary/5 -z-10" />
-                                                        )}
                                                     </button>
                                                 )
                                             })}
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8">
-                                        <div className="flex items-center gap-2">
-                                            {teacherStats[teacher.id].streak.map((day: number, i: number) => (
-                                                <div key={i} className={cn(
-                                                    "w-1.5 h-6 rounded-full",
-                                                    day === 1 ? "bg-success/30" : "bg-destructive/30"
-                                                )} />
-                                            ))}
-                                            <div className="ml-6 flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center text-indigo-500 shadow-inner">
-                                                    <span className="text-xs font-bold font-mono">{teacherStats[teacher.id].totalSubstitutions}</span>
+
+                                    <td className="px-10 py-6">
+                                        <div className="flex items-center justify-end gap-4">
+                                            <div className="flex items-center gap-3 bg-indigo-500/5 border border-indigo-500/10 p-1.5 rounded-2xl">
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    onClick={() => handleSubstitutionChange(teacher.id, -1)}
+                                                    className="w-9 h-9 rounded-xl hover:bg-white/10 text-indigo-400"
+                                                >
+                                                    <Minus className="w-3 h-3" />
+                                                </Button>
+                                                <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center shadow-inner">
+                                                    <span className={cn(
+                                                        "text-sm font-bold font-mono",
+                                                        record.substitutions > 0 ? "text-indigo-500" : "text-muted-foreground opacity-30"
+                                                    )}>
+                                                        {record.substitutions}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[10px] text-muted-foreground opacity-30 uppercase font-bold tracking-widest">Extra Load</span>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    onClick={() => handleSubstitutionChange(teacher.id, 1)}
+                                                    className="w-9 h-9 rounded-xl hover:bg-white/10 text-indigo-400"
+                                                >
+                                                    <Plus className="w-3 h-3" />
+                                                </Button>
+                                            </div>
+                                            <div className="hidden lg:flex flex-col text-right">
+                                                <span className="text-[10px] uppercase font-bold tracking-widest opacity-30">Extra Sessions</span>
+                                                <span className="text-[9px] text-indigo-400/60 font-medium">Logged Load</span>
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            )
+                        })}
+                    </tbody>
+                </table>
+            </div>
 
-                {/* Status Codex - Bottom Legend */}
-                <div className="p-8 border-t border-primary/5 bg-primary/[0.01] flex flex-wrap items-center justify-center gap-10">
-                    {(Object.keys(STATUS_CONFIG) as AttendanceStatus[]).map((status) => {
-                        const config = STATUS_CONFIG[status]
-                        const Icon = config.icon
-                        return (
-                            <div key={status} className="flex items-center gap-3 group/codex">
-                                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center border border-primary/5 shadow-sm group-hover/codex:scale-110 transition-transform", config.bg)}>
-                                    <Icon className={cn("w-4 h-4", config.color)} />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className={cn("text-[10px] uppercase tracking-widest font-bold", config.color)}>{config.label}</span>
-                                    <span className="text-[8px] text-muted-foreground opacity-40 uppercase tracking-tighter">Protocol {status.substring(0,2)}</span>
-                                </div>
-                            </div>
-                        )
-                    })}
+            {/* Legend / Info Footer */}
+            <div className="px-10 py-8 border-t border-primary/5 bg-primary/[0.01] flex items-center justify-center gap-10">
+                {(Object.keys(STATUS_CONFIG) as AttendanceStatus[]).map((status) => {
+                    const config = STATUS_CONFIG[status]
+                    return (
+                        <div key={status} className="flex items-center gap-2.5">
+                            <div className={cn("w-3 h-3 rounded-full shadow-sm", config.bg, "border border-primary/5")} />
+                            <span className="text-[10px] uppercase tracking-widest font-bold opacity-30">{config.label} Protocol</span>
+                        </div>
+                    )
+                })}
+                <div className="flex items-center gap-2.5">
+                    <div className="w-3 h-3 rounded-full bg-indigo-500/20 border border-indigo-500/20 shadow-sm" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-indigo-400/60">Substitution Weight</span>
                 </div>
-            </Card>
-        </div>
-
-        {/* Global Registry Rules & Guidance */}
-        <div className="w-full lg:w-80 space-y-8 h-fit lg:sticky lg:top-8">
-            <Card className="glass-1 border-primary/5 rounded-[2rem] p-8 shadow-xl overflow-hidden relative">
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 blur-3xl rounded-full" />
-                <div className="flex items-center gap-3 mb-8">
-                    <Info className="w-5 h-5 text-primary opacity-60" />
-                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30">Operational Guide</span>
-                </div>
-                <div className="space-y-6">
-                    <div className="space-y-2">
-                        <p className="text-xs font-bold text-foreground opacity-80">Weekend Policy</p>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed font-normal opacity-60 italic">
-                            Marks recorded on Sat/Sun are isolated from base operational hours and tracked as laboratory sessions.
-                        </p>
-                    </div>
-                    <div className="space-y-2">
-                        <p className="text-xs font-bold text-foreground opacity-80">Substitution Weight</p>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed font-normal opacity-60">
-                            Extra sessions increment the "Institutional Overtime" count for the selected personnel.
-                        </p>
-                    </div>
-                </div>
-                <Button variant="ghost" className="w-full mt-10 rounded-xl border border-primary/10 text-[9px] uppercase font-bold tracking-[0.2em] opacity-40 hover:opacity-100 hover:bg-primary/5 transition-all">
-                    View Registry Policies
-                </Button>
-            </Card>
-        </div>
+            </div>
+        </Card>
       </div>
 
-      {/* Staff Dossier Sheet */}
+      {/* Detail Inspector Sheet */}
       <Sheet open={!!selectedTeacher} onOpenChange={(open) => !open && setSelectedTeacher(null)}>
-        <SheetContent className="w-[400px] md:w-[650px] sm:max-w-2xl glass-2 border-l border-white/5 p-0 overflow-hidden">
-            <div className="absolute top-0 right-0 w-full h-64 bg-gradient-to-b from-primary/[0.03] to-transparent pointer-events-none" />
-            
-            <SheetHeader className="p-10 md:p-14 relative block">
-                <div className="flex items-center justify-between mb-10">
-                    <div className="px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-[10px] uppercase tracking-[0.2em] font-bold text-primary">
-                        Registry Dossier Inspection
+        <SheetContent className="w-[400px] md:w-[600px] glass-2 border-l border-white/5 p-0 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-b from-primary/[0.03] to-transparent pointer-events-none" />
+            <div className="p-10 space-y-12">
+                <div className="flex items-center justify-between">
+                    <div className="px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-[10px] uppercase tracking-widest font-black text-primary">
+                        Personnel Record Audit
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedTeacher(null)} className="rounded-full opacity-40 hover:bg-destructive/5 hover:text-destructive hover:opacity-100 transition-all">
-                        <XCircle className="w-5 h-5" />
-                    </Button>
                 </div>
 
-                <div className="flex items-center gap-10 mb-14">
-                    <div className="relative group">
-                        <Avatar className="h-32 w-32 border border-primary/10 shadow-2xl relative z-10">
-                            <AvatarImage src={selectedTeacher?.avatar} />
-                            <AvatarFallback className="text-4xl bg-primary/5 text-primary font-serif">{getInitials(selectedTeacher?.name || '')}</AvatarFallback>
-                        </Avatar>
-                        <div className="absolute -inset-2 bg-primary/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <div className="flex flex-col">
-                        <SheetTitle className="text-4xl font-serif font-medium tracking-tight mb-3">{selectedTeacher?.name}</SheetTitle>
-                        <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground opacity-50">
-                           <div className="flex items-center gap-2 px-3 py-1 bg-muted/20 border border-primary/5 rounded-lg">
-                                <Hash className="w-3.5 h-3.5" /> {selectedTeacher?.employeeId}
-                           </div>
-                           <div className="flex items-center gap-2 px-3 py-1 bg-success/5 border border-success/10 rounded-lg text-success/80">
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Operational
-                           </div>
+                <div className="flex items-center gap-8">
+                    <Avatar className="h-24 w-24 border-2 border-primary/10 shadow-2xl">
+                        <AvatarImage src={selectedTeacher?.avatar} />
+                        <AvatarFallback className="text-3xl bg-primary/5 text-primary font-serif">{getInitials(selectedTeacher?.name || '')}</AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-1">
+                        <SheetTitle className="text-4xl font-serif font-medium tracking-tight mb-2">{selectedTeacher?.name}</SheetTitle>
+                        <div className="flex items-center gap-3">
+                            <Badge variant="outline" className="rounded-lg font-mono text-xs opacity-40">{selectedTeacher?.employeeId}</Badge>
+                            <div className="w-1.5 h-1.5 rounded-full bg-success" />
+                            <span className="text-[10px] uppercase tracking-widest font-bold opacity-30">Active Faculty</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-6">
-                    <div className="p-6 rounded-[1.5rem] bg-muted/20 border border-primary/5 shadow-inner">
-                        <p className="text-[10px] uppercase tracking-widest font-bold opacity-30 mb-3">Institutional Rate</p>
-                        <p className="text-3xl font-serif text-success">{teacherStats[selectedTeacher?.id || '']?.monthlyRate}%</p>
-                    </div>
-                    <div className="p-6 rounded-[1.5rem] bg-indigo-500/5 border border-indigo-500/10 shadow-inner">
-                        <p className="text-[10px] uppercase tracking-widest font-bold text-indigo-400 opacity-40 mb-3">Substitution Load</p>
-                        <p className="text-3xl font-serif text-indigo-400">{teacherStats[selectedTeacher?.id || '']?.totalSubstitutions}</p>
-                    </div>
-                    <div className="p-6 rounded-[1.5rem] bg-muted/20 border border-primary/5 shadow-inner">
-                        <p className="text-[10px] uppercase tracking-widest font-bold opacity-30 mb-3">Identity Streak</p>
-                        <div className="flex items-center gap-1.5 mt-3">
-                             {[1,1,1,1,1,1].map((_, i) => <div key={i} className="w-1.5 h-6 bg-success/60 rounded-full" />)}
-                        </div>
-                    </div>
-                </div>
-            </SheetHeader>
-
-            <div className="px-10 md:px-14 pb-14 space-y-12 overflow-y-auto max-h-[calc(100vh-480px)] custom-scrollbar">
-                <div className="space-y-8">
-                    <div className="flex items-center justify-between">
-                        <h4 className="font-serif text-xl font-medium tracking-tight">Timeline Authentication Trace</h4>
-                        <Button variant="ghost" className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40 hover:opacity-100 h-10 px-4 rounded-xl border border-primary/5">Personnel Archive <ArrowUpRight className="w-3 h-3 ml-2" /></Button>
-                    </div>
-                    <div className="space-y-4">
-                        {[format(subDays(new Date(), 1), 'MMMM d, yyyy'), format(subDays(new Date(), 2), 'MMMM d, yyyy'), format(subDays(new Date(), 3), 'MMMM d, yyyy')].map((date, i) => (
-                            <div key={i} className="flex items-center justify-between p-6 rounded-[2rem] bg-muted/5 border border-primary/5 group hover:bg-muted/10 transition-all border-dashed">
-                                <div className="space-y-1">
-                                    <p className="text-base font-medium">{date}</p>
-                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-normal opacity-40 italic">Operational Registry Entry #TRX-9{i}2</p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="h-8 w-px bg-primary/5" />
-                                    <Badge className="bg-success/5 text-success border-success/10 py-1.5 px-4 font-bold tracking-widest text-[10px] rounded-lg">PRESENT</Badge>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                <div className="grid grid-cols-2 gap-6">
+                    <Card className="bg-muted/5 border-primary/5 p-6 rounded-[2rem] shadow-inner">
+                        <p className="text-[10px] uppercase tracking-widest font-black opacity-20 mb-3">Institutional Rate</p>
+                        <p className="text-3xl font-serif text-success">98.4%</p>
+                    </Card>
+                    <Card className="bg-indigo-500/[0.03] border-indigo-500/5 p-6 rounded-[2rem] shadow-inner">
+                        <p className="text-[10px] uppercase tracking-widest font-black text-indigo-400/30 mb-3">Historical Load</p>
+                        <p className="text-3xl font-serif text-indigo-400">14 Sessions</p>
+                    </Card>
                 </div>
 
-                <div className="p-10 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-6 relative isolate overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -z-10" />
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center shrink-0 border border-indigo-500/20">
-                        <Sparkles className="w-6 h-6 text-indigo-400" />
-                    </div>
-                    <div className="space-y-2">
-                        <p className="text-sm font-bold text-indigo-400 uppercase tracking-widest">Institutional Merit Insight</p>
-                        <p className="text-xs text-muted-foreground leading-relaxed font-normal opacity-70">
-                            Personnel shows exceptional availability for substitution sessions. Currently trending in the 98th percentile for institutional flexibility.
-                        </p>
+                <div className="space-y-6">
+                    <h4 className="text-[10px] uppercase tracking-widest font-black opacity-30">Action Protocols</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Button variant="outline" className="h-14 rounded-2xl border-primary/5 hover:bg-primary/5 justify-start px-6 gap-3 group">
+                            <FileText className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+                            <span className="text-sm font-medium">Verify Identity</span>
+                        </Button>
+                        <Button variant="outline" className="h-14 rounded-2xl border-primary/5 hover:bg-primary/5 justify-start px-6 gap-3 group">
+                            <History className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+                            <span className="text-sm font-medium">Trace Logs</span>
+                        </Button>
                     </div>
                 </div>
             </div>

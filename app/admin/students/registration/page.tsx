@@ -107,7 +107,7 @@ export default function StudentRegistrationPage() {
         <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-amber-500/5 blur-[120px] animate-pulse delay-700" />
       </div>
 
-      <div className="max-w-3xl mx-auto pt-16 pb-32">
+      <div className="max-w-xl mx-auto pt-16 pb-32">
         <motion.div 
           initial="hidden"
           animate="visible"
@@ -134,7 +134,7 @@ export default function StudentRegistrationPage() {
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/[0.03] rounded-full blur-[100px] -z-10" />
               
               <form onSubmit={handleSubmit}>
-                <CardContent className="p-10 md:p-16 space-y-12">
+                <CardContent className="p-8 md:p-12 space-y-10">
                   
                   {/* Identity & Legal Block */}
                   <div className="space-y-8">
@@ -143,9 +143,9 @@ export default function StudentRegistrationPage() {
                         <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30">Identity Matrix</span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-2 group">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Legal Full Name</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Candidate Full Name</Label>
                         <div className="relative">
                           <GraduationCap className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
                           <Input 
@@ -154,7 +154,7 @@ export default function StudentRegistrationPage() {
                             value={formData.name} 
                             onChange={handleInputChange} 
                             required 
-                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
+                            className="h-12 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal text-sm" 
                           />
                         </div>
                       </div>
@@ -165,19 +165,19 @@ export default function StudentRegistrationPage() {
                           <UserCheck className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
                           <Input 
                             name="guardianName" 
-                            placeholder="Full Name of Sponsor"
+                            placeholder="Sponsor Full Name"
                             value={formData.guardianName} 
                             onChange={handleInputChange} 
                             required 
-                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
+                            className="h-12 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal text-sm" 
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2 group">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Institutional ID</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Identity ID</Label>
                         <div className="relative">
                           <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
                           <Input 
@@ -185,21 +185,15 @@ export default function StudentRegistrationPage() {
                             value={formData.studentId} 
                             onChange={handleInputChange} 
                             required 
-                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-mono text-sm" 
+                            className="h-12 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-mono text-xs" 
                           />
                         </div>
                       </div>
                       <div className="space-y-2 group">
                         <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Contact Protocol</Label>
-                        <div className="grid grid-cols-2 gap-3">
-                           <div className="relative">
-                              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary opacity-20" />
-                              <Input name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className="h-14 pl-10 bg-muted/5 border-primary/10 rounded-2xl text-xs" />
-                           </div>
-                           <div className="relative">
-                              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary opacity-20" />
-                              <Input name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone" className="h-14 pl-10 bg-muted/5 border-primary/10 rounded-2xl text-xs" />
-                           </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className="h-12 px-4 bg-muted/5 border-primary/10 rounded-xl text-[10px]" />
+                            <Input name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone" className="h-12 px-4 bg-muted/5 border-primary/10 rounded-xl text-[10px]" />
                         </div>
                       </div>
                     </div>
@@ -212,14 +206,14 @@ export default function StudentRegistrationPage() {
                         <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30">Placement Allocation</span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2 group">
                         <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Academic Class</Label>
                         <Select onValueChange={(v) => handleSelectChange('grade', v)} required>
-                          <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl focus:ring-primary/20 px-6">
+                          <SelectTrigger className="h-12 bg-muted/5 border-primary/5 rounded-2xl focus:ring-primary/20 px-6 text-sm">
                             <div className="flex items-center gap-3">
                                 <LayoutGrid className="w-4 h-4 text-primary opacity-40" />
-                                <SelectValue placeholder="Select Tier Placement" />
+                                <SelectValue placeholder="Tier" />
                             </div>
                           </SelectTrigger>
                           <SelectContent className="glass-2 border-white/5">
@@ -231,12 +225,12 @@ export default function StudentRegistrationPage() {
                       </div>
 
                       <div className="space-y-2 group">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Session Timing</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Session Slot</Label>
                         <Select onValueChange={(v) => handleSelectChange('classTiming', v)} required>
-                          <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl focus:ring-primary/20 px-6">
+                          <SelectTrigger className="h-12 bg-muted/5 border-primary/5 rounded-2xl focus:ring-primary/20 px-6 text-sm">
                             <div className="flex items-center gap-3">
                                 <Clock className="w-4 h-4 text-primary opacity-40" />
-                                <SelectValue placeholder="Select Daily Slot" />
+                                <SelectValue placeholder="Time" />
                             </div>
                           </SelectTrigger>
                           <SelectContent className="glass-2 border-white/5">
