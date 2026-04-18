@@ -135,49 +135,42 @@ export default function ClassesPage() {
 
   const columns: Column<Course>[] = [
     {
-      label: 'Batch Identity',
+      label: 'Room Number',
       render: (course) => (
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
-            <LayoutGrid className="w-5 h-5" />
+        <div className="flex items-center gap-2">
+          <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-lg whitespace-nowrap overflow-hidden text-ellipsis">
+            <span className="text-xs font-mono font-bold text-primary">ROOM {course.roomNumber || 'TBD'}</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium leading-none mb-1.5">{course.title || course.name}</span>
-            <span className="text-[10px] text-muted-foreground opacity-60 uppercase tracking-widest">{course.level} Tier</span>
-          </div>
+        </div>
+      )
+    },
+    {
+      label: 'Class',
+      render: (course) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-medium leading-none mb-1.5">{course.title || course.name}</span>
+          <span className="text-[10px] text-muted-foreground opacity-60 uppercase tracking-widest">{course.level}</span>
         </div>
       ),
       width: '280px'
     },
     {
+      label: 'Timing',
+      render: (course) => (
+        <div className="flex items-center gap-2 text-[10px] font-medium opacity-80 uppercase tracking-widest text-muted-foreground">
+             <Clock className="w-3.5 h-3.5 text-primary opacity-60" />
+             <span>{course.schedule || 'Hours TBD'}</span>
+        </div>
+      )
+    },
+    {
       label: 'Teacher',
       render: (course) => (
         <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 opacity-40" />
-            <span className="text-xs font-normal">{course.teacherName || course.instructorName || 'Unassigned'}</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 opacity-60" />
+            <span className="text-xs font-medium">{course.teacherName || course.instructorName || 'Unassigned'}</span>
         </div>
       )
-    },
-    {
-      label: 'Schedule Context',
-      render: (course) => (
-        <div className="flex flex-col gap-1.5">
-           <div className="flex items-center gap-2 text-[10px] text-muted-foreground opacity-60">
-                <Clock className="w-3 h-3" />
-                <span>{course.schedule || 'Operational Hours TBD'}</span>
-           </div>
-           <div className="flex items-center gap-2 text-[10px] text-muted-foreground opacity-60">
-                <MapPin className="w-3 h-3" />
-                <span>Room {course.roomNumber || 'TBD'}</span>
-           </div>
-        </div>
-      )
-    },
-    {
-        label: 'Financial Parameter',
-        render: (course) => (
-          <span className="text-xs font-serif">PKR {(course as any).feeAmount?.toLocaleString() || (course as any).fee?.toLocaleString()} <span className="text-[9px] opacity-40 uppercase">/ Month</span></span>
-        )
     },
     {
       label: 'Actions',
@@ -214,9 +207,14 @@ export default function ClassesPage() {
     }
   ]
 
+  const uniqueRooms = new Set((courses || []).map(c => c.roomNumber).filter(Boolean)).size
+  const totalCapacity = (courses || []).reduce((acc, c) => acc + (c.capacity || 0), 0)
+
   const stats = [
     { label: 'Total Classes', value: (courses || []).length, sub: 'Active batches', icon: LayoutGrid, color: 'text-primary' },
-    { label: 'Active Teachers', value: activeTeachers.length, sub: 'Faculty working', icon: Users, color: 'text-success' },
+    { label: 'Active Teachers', value: activeTeachers.length, sub: 'Faculty working', icon: ShieldCheck, color: 'text-success' },
+    { label: 'Rooms Utilized', value: uniqueRooms, sub: 'Active spatial load', icon: MapPin, color: 'text-amber-500' },
+    { label: 'Capacity Load', value: totalCapacity, sub: 'Current total seats', icon: Users, color: 'text-indigo-400' },
   ]
 
   return (
