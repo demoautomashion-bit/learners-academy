@@ -32,7 +32,8 @@ import {
   Hash,
   Clock,
   ArrowUpRight,
-  LayoutGrid
+  LayoutGrid,
+  TrendingUp
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
