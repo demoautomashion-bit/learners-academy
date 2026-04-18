@@ -185,7 +185,7 @@ export interface TeacherAttendance {
   id: string
   teacherId: string
   date: Date | string
-  status: 'Present' | 'Absent' | 'Late' | 'Leave'
+  status: 'Present' | 'Absent' | 'Late' | 'Leave' | 'Substitution'
   substituteCount: number
   note?: string
   createdAt: Date | string
