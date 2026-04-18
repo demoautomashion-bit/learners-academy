@@ -234,88 +234,66 @@ export default function ClassesPage() {
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[420px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
-                <div className="p-8 space-y-8">
-                    <DialogHeader className="space-y-2">
+                <div className="p-6 space-y-6">
+                    <DialogHeader>
                         <DialogTitle className="font-serif text-2xl font-medium tracking-tight">Add Class</DialogTitle>
-                        <DialogDescription className="text-xs opacity-40 font-normal leading-relaxed">
-                            Create a new class for a teacher and a room.
-                        </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-8">
-                        {/* Faculty & Academic Identification */}
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-4 bg-primary rounded-full" />
-                                <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Educational Setup</span>
-                            </div>
-                            <div className="grid grid-cols-1 gap-6">
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Assigned Teacher</Label>
-                                    <Select onValueChange={(v) => setFormData(prev => ({ ...prev, teacherId: v }))}>
-                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
-                                            <SelectValue placeholder="Select Faculty Lead" />
-                                        </SelectTrigger>
-                                        <SelectContent className="glass-2 border-white/5">
-                                            {activeTeachers.map((t) => (
-                                                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Academic Level</Label>
-                                    <Select onValueChange={(v) => setFormData(prev => ({ ...prev, level: v }))}>
-                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
-                                            <SelectValue placeholder="Institutional Tier" />
-                                        </SelectTrigger>
-                                        <SelectContent className="glass-2 border-white/5">
-                                            {ACADEMY_LEVELS.map((level) => (
-                                                <SelectItem key={level} value={level}>{level}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
+                    <div className="flex flex-col gap-4">
+                        <div className="space-y-2">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Teacher</Label>
+                            <Select onValueChange={(v) => setFormData(prev => ({ ...prev, teacherId: v }))}>
+                                <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                                    <SelectValue placeholder="Select teacher..." />
+                                </SelectTrigger>
+                                <SelectContent className="glass-2 border-white/5">
+                                    {activeTeachers.map((t) => (
+                                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-
-                        {/* Logistics & Scheduling */}
-                        <div className="space-y-6 pt-6 border-t border-white/5">
-                            <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-4 bg-indigo-500 rounded-full" />
-                                <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Logistical Setup</span>
-                            </div>
-                            <div className="flex flex-col gap-5">
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Daily Timing</Label>
-                                    <Select onValueChange={(v) => setFormData(prev => ({ ...prev, timing: v }))}>
-                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
-                                            <SelectValue placeholder="Session Slot" />
-                                        </SelectTrigger>
-                                        <SelectContent className="glass-2 border-white/5">
-                                            {SESSION_TIMINGS.map((time) => (
-                                                <SelectItem key={time} value={time}>{time}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Room Number</Label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20" />
-                                        <Input 
-                                            placeholder="e.g. 301" 
-                                            value={formData.roomNumber}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
-                                            className="h-11 pl-12 bg-muted/5 border-primary/5 rounded-xl text-sm focus:ring-primary/20" 
-                                        />
-                                    </div>
-                                </div>
+                        <div className="space-y-2">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Level</Label>
+                            <Select onValueChange={(v) => setFormData(prev => ({ ...prev, level: v }))}>
+                                <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                                    <SelectValue placeholder="Select level..." />
+                                </SelectTrigger>
+                                <SelectContent className="glass-2 border-white/5">
+                                    {ACADEMY_LEVELS.map((level) => (
+                                        <SelectItem key={level} value={level}>{level}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Timing</Label>
+                            <Select onValueChange={(v) => setFormData(prev => ({ ...prev, timing: v }))}>
+                                <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                                    <SelectValue placeholder="Select timing..." />
+                                </SelectTrigger>
+                                <SelectContent className="glass-2 border-white/5">
+                                    {SESSION_TIMINGS.map((time) => (
+                                        <SelectItem key={time} value={time}>{time}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Room</Label>
+                            <div className="relative">
+                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20" />
+                                <Input 
+                                    placeholder="Room #" 
+                                    value={formData.roomNumber}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
+                                    className="h-11 pl-12 bg-muted/5 border-primary/5 rounded-xl text-sm focus:ring-primary/20" 
+                                />
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-4 pt-4">
+                    <div className="flex flex-col gap-4 pt-3">
                         <Button 
                             onClick={handleInitialize}
                             className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl shadow-xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-3"
