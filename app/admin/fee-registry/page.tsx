@@ -267,17 +267,34 @@ export default function FeeRegistryPage() {
     {
       label: 'Actions',
       render: (item: any) => (
-         <Button 
-            size="sm" 
-            onClick={() => {
-                setSelectedStudentId(item.id)
-                setFeeData({ courseId: item.courseId, tuitionFee: 0, admissionFee: 0, discount: 0, paidAmount: 0 })
-                setIsCollectOpen(true)
-            }}
-            className="h-8 bg-success/10 text-success hover:bg-success hover:text-white transition-colors"
-         >
-             Record Payment
-         </Button>
+         <div className="flex items-center gap-2">
+           <Button 
+              size="sm" 
+              onClick={() => {
+                  setSelectedStudentId(item.id)
+                  setFeeData({ courseId: item.courseId, tuitionFee: 0, admissionFee: 0, discount: 0, paidAmount: 0 })
+                  setIsCollectOpen(true)
+              }}
+              className="h-8 bg-success/10 text-success hover:bg-success hover:text-white transition-colors"
+           >
+               Record Payment
+           </Button>
+           <Button 
+              size="sm" 
+              variant="ghost"
+              onClick={() => {
+                  setSelectedStudentId(item.id)
+                  // Use existing logic just to view receipt
+                  // We simulate loading the receipt data
+                  setFeeData({ courseId: item.courseId, tuitionFee: item.totalAmount || 0, admissionFee: 0, discount: item.discountGiven || 0, paidAmount: item.amountPaid || 0 })
+                  setIsReceiptOpen(true)
+              }}
+              className="h-8 w-8 p-0 text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+              title="Print Last Receipt"
+           >
+               <Receipt className="w-4 h-4" />
+           </Button>
+         </div>
       )
     }
   ]
