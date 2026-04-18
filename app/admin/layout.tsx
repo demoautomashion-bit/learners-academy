@@ -57,6 +57,7 @@ import {
   FileCheck,
   LayoutGrid,
 } from 'lucide-react'
+import { StabilityBoundary } from '@/components/stability/stability-boundary'
 
 // HYDRATION GUARD COMPONENT
 function ClientOnly({ children }: { children: React.ReactNode }) {
