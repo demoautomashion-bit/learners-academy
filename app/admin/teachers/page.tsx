@@ -78,58 +78,44 @@ export default function TeachersPage() {
 
   const columns: Column<Teacher>[] = [
     {
-      label: 'Instructor Profile',
+      label: 'ID',
+      render: (teacher) => (
+        <span className="text-[10px] text-muted-foreground font-mono opacity-60 uppercase tracking-widest bg-muted/30 px-2 py-0.5 rounded">
+          {teacher.employeeId}
+        </span>
+      ),
+      width: '120px'
+    },
+    {
+      label: 'Name',
       render: (teacher) => (
         <div className="flex items-center gap-4">
-          <Avatar className="h-10 w-10 border shadow-sm group-hover:scale-105 transition-transform duration-500">
+          <Avatar className="h-9 w-9 border shadow-sm transition-transform duration-500">
             <AvatarImage src={teacher.avatar} />
             <AvatarFallback className="text-xs bg-primary/5 text-primary font-bold">
               {getInitials(teacher.name, 'T')}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium leading-none mb-1.5">{teacher.name}</span>
-            <span className="text-[10px] text-muted-foreground opacity-60 uppercase tracking-widest">{teacher.employeeId}</span>
-          </div>
+          <span className="text-sm font-medium leading-none">{teacher.name}</span>
         </div>
       ),
-      width: '280px'
+      width: '240px'
     },
     {
-      label: 'Specialization',
+      label: 'Email',
       render: (teacher) => (
-        <div className="flex flex-col">
-          <span className="text-xs font-normal text-foreground">{teacher.subject}</span>
-          <span className="text-[10px] text-primary/70 font-medium opacity-60 mt-1 uppercase tracking-tighter">Academic Faculty</span>
+        <div className="flex items-center gap-2 text-muted-foreground/80">
+          <Mail className="w-3.5 h-3.5 opacity-40" />
+          <span className="text-xs font-normal underline decoration-primary/10 underline-offset-4">{teacher.email}</span>
         </div>
       )
     },
     {
-      label: 'Status',
+      label: 'Phone Number',
       render: (teacher) => (
-        <div className={cn(
-          "inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all",
-          teacher.status === 'active' 
-            ? "bg-success/5 text-success border border-success/10" 
-            : "bg-muted text-muted-foreground border border-transparent"
-        )}>
-          {teacher.status === 'active' ? (
-            <>
-              <div className="w-1 h-1 bg-success rounded-full animate-pulse" />
-              Operational
-            </>
-          ) : (
-            'Hibernated'
-          )}
-        </div>
-      )
-    },
-    {
-      label: 'Contact Context',
-      render: (teacher) => (
-        <div className="flex items-center gap-4 text-muted-foreground opacity-40">
-           <Mail className="w-4 h-4" />
-           <Phone className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-muted-foreground/80">
+          <Phone className="w-3.5 h-3.5 opacity-40" />
+          <span className="text-xs font-normal tracking-tight">{teacher.phone}</span>
         </div>
       )
     },

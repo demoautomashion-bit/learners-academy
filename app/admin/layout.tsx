@@ -80,6 +80,7 @@ const adminNavItems = [
     items: [
       { title: 'Faculty Roster', href: '/admin/teachers', icon: Users },
       { title: 'New Registration', href: '/admin/teachers/registration', icon: UserPlus },
+      { title: 'Attendance Registry', href: '/admin/attendance', icon: ClipboardList },
       { title: 'Payroll Audit', href: '/admin/teachers/payroll', icon: Coins },
     ]
   },
@@ -99,7 +100,6 @@ const adminNavItems = [
     icon: BookOpen,
     items: [
       { title: 'Academic Batches', href: '/admin/classes', icon: LayoutGrid },
-      { title: 'Attendance Registry', href: '/admin/attendance', icon: ClipboardList },
       { title: 'Content Library', href: '/admin/library', icon: Library },
       { title: 'Room Schedules', href: '/admin/schedule', icon: Calendar },
     ]
