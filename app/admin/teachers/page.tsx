@@ -27,7 +27,8 @@ import {
   ExternalLink,
   ShieldCheck,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Users
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
