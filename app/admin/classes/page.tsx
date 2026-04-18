@@ -156,12 +156,16 @@ export default function ClassesPage() {
     },
     {
       label: 'Timing',
-      render: (course) => (
-        <div className="flex items-center gap-2 text-[10px] font-medium opacity-80 uppercase tracking-widest text-muted-foreground">
-             <Clock className="w-3.5 h-3.5 text-primary opacity-60" />
-             <span>{course.schedule || 'Hours TBD'}</span>
-        </div>
-      )
+      render: (course) => {
+         const parts = String(course.title || course.name || '').split(' - ')
+         const timingString = parts.length > 1 ? parts[1] : 'Hours TBD'
+         return (
+            <div className="flex items-center gap-2 text-[10px] font-medium opacity-80 uppercase tracking-widest text-muted-foreground">
+                 <Clock className="w-3.5 h-3.5 text-primary opacity-60" />
+                 <span>{timingString}</span>
+            </div>
+         )
+      }
     },
     {
       label: 'Teacher',
@@ -229,10 +233,10 @@ export default function ClassesPage() {
                     <Plus className="w-4 h-4 mr-2" /> Add Class
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[480px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
-                <div className="p-8 md:p-12 space-y-10">
+            <DialogContent className="sm:max-w-[420px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
+                <div className="p-8 space-y-8">
                     <DialogHeader className="space-y-2">
-                        <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Add Class</DialogTitle>
+                        <DialogTitle className="font-serif text-2xl font-medium tracking-tight">Add Class</DialogTitle>
                         <DialogDescription className="text-xs opacity-40 font-normal leading-relaxed">
                             Create a new class for a teacher and a room.
                         </DialogDescription>
@@ -246,10 +250,10 @@ export default function ClassesPage() {
                                 <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Educational Setup</span>
                             </div>
                             <div className="grid grid-cols-1 gap-6">
-                                <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-30 ml-1">Assigned Teacher</Label>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Assigned Teacher</Label>
                                     <Select onValueChange={(v) => setFormData(prev => ({ ...prev, teacherId: v }))}>
-                                        <SelectTrigger className="h-12 bg-muted/5 border-primary/5 rounded-xl px-5 text-sm">
+                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
                                             <SelectValue placeholder="Select Faculty Lead" />
                                         </SelectTrigger>
                                         <SelectContent className="glass-2 border-white/5">
@@ -259,10 +263,10 @@ export default function ClassesPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-30 ml-1">Academic Level</Label>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Academic Level</Label>
                                     <Select onValueChange={(v) => setFormData(prev => ({ ...prev, level: v }))}>
-                                        <SelectTrigger className="h-12 bg-muted/5 border-primary/5 rounded-xl px-5 text-sm">
+                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
                                             <SelectValue placeholder="Institutional Tier" />
                                         </SelectTrigger>
                                         <SelectContent className="glass-2 border-white/5">
@@ -281,11 +285,11 @@ export default function ClassesPage() {
                                 <div className="w-1.5 h-4 bg-indigo-500 rounded-full" />
                                 <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Logistical Setup</span>
                             </div>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-30 ml-1">Daily Timing</Label>
+                            <div className="flex flex-col gap-5">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Daily Timing</Label>
                                     <Select onValueChange={(v) => setFormData(prev => ({ ...prev, timing: v }))}>
-                                        <SelectTrigger className="h-12 bg-muted/5 border-primary/5 rounded-xl px-5 text-sm">
+                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
                                             <SelectValue placeholder="Session Slot" />
                                         </SelectTrigger>
                                         <SelectContent className="glass-2 border-white/5">
@@ -295,15 +299,15 @@ export default function ClassesPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-30 ml-1">Room Number</Label>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Room Number</Label>
                                     <div className="relative">
                                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20" />
                                         <Input 
                                             placeholder="e.g. 301" 
                                             value={formData.roomNumber}
                                             onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
-                                            className="h-12 pl-12 bg-muted/5 border-primary/5 rounded-xl text-sm" 
+                                            className="h-11 pl-12 bg-muted/5 border-primary/5 rounded-xl text-sm focus:ring-primary/20" 
                                         />
                                     </div>
                                 </div>
@@ -331,21 +335,21 @@ export default function ClassesPage() {
       <EntityCardGrid 
         data={stats}
         renderItem={(stat, i) => (
-          <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium overflow-hidden rounded-[2rem] transition-premium group relative isolate">
-            <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5 blur-3xl -z-10 group-hover:scale-110 transition-transform" />
-            <CardHeader className="p-8 pb-10">
-                <div className="flex items-center justify-between mb-8">
+          <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium overflow-hidden rounded-[1.5rem] transition-premium group relative isolate">
+            <div className="absolute right-[-10%] top-[-10%] w-20 h-20 bg-primary/5 blur-3xl -z-10 group-hover:scale-110 transition-transform" />
+            <CardHeader className="p-6">
+                <div className="flex items-center justify-between mb-4">
                      <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">{stat.label}</CardDescription>
                      <div className={cn("w-10 h-10 rounded-xl bg-background border border-primary/5 shadow-sm flex items-center justify-center group-hover:rotate-12 transition-transform", stat.color)}>
                         <stat.icon className="w-5 h-5" />
                     </div>
                 </div>
                 <CardTitle className={cn("text-3xl font-serif font-medium tracking-tight", stat.color)}>{stat.value}</CardTitle>
-                <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-30 mt-3 font-normal italic">{stat.sub}</p>
+                <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-30 mt-2 font-normal italic">{stat.sub}</p>
             </CardHeader>
           </Card>
         )}
-        columns={2}
+        columns={4}
       />
 
       <div className="mt-16">
