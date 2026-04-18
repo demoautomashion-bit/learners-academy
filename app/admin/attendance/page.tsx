@@ -31,7 +31,8 @@ import {
   ChevronRight,
   Sparkles,
   ArrowUpRight,
-  Undo2
+  Undo2,
+  Hash
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
