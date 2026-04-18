@@ -311,7 +311,7 @@ export default function AdminLayout({
           </header>
 
           <main className="flex-1 p-8 text-foreground">
-            <StabilityBoundary name="Admin Content Area">
+            <StabilityBoundary name="Admin Content Area" key={pathname || ''}>
               {children}
             </StabilityBoundary>
           </main>
