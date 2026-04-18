@@ -34,7 +34,8 @@ import {
   ArrowUpRight,
   LayoutGrid,
   TrendingUp,
-  ShieldCheck
+  ShieldCheck,
+  DollarSign
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
@@ -193,6 +194,19 @@ export default function StudentsPage() {
                className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal rounded-lg"
             >
               <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Archive Student</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem 
+                onClick={() => router.push(`/admin/fee-registry`)}
+                className="gap-4 cursor-pointer p-4 mt-2 focus:bg-success/5 text-success rounded-xl group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-success/5 flex items-center justify-center border border-success/10 group-hover:bg-success group-hover:text-white transition-all">
+                <DollarSign className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold uppercase tracking-tight">Log Fee Payment</span>
+                <span className="text-[9px] opacity-40 font-normal">Process Transaction</span>
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
