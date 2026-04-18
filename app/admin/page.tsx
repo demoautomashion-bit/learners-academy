@@ -43,30 +43,30 @@ export default function AdminDashboard() {
 
   const kpis = [
     { 
-      label: 'Active Students', 
+      label: 'Students', 
       value: students.length, 
       sub: 'Total Enrollment', 
       icon: GraduationCap, 
       color: 'text-primary' 
     },
     { 
-      label: 'Faculty Roster', 
+      label: 'Staff', 
       value: teachers.length, 
-      sub: 'Institutional Staff', 
+      sub: 'Total Teachers', 
       icon: Users, 
       color: 'text-indigo-500' 
     },
     { 
-      label: 'Revenue Target', 
+      label: 'Revenue', 
       value: '92%', 
-      sub: 'Current Trimester', 
+      sub: 'This Quarter', 
       icon: Target, 
       color: 'text-success' 
     },
     { 
-      label: 'Library Strength', 
+      label: 'Library', 
       value: '1.2k', 
-      sub: 'Verified Questions', 
+      sub: 'Total Questions', 
       icon: BookOpen, 
       color: 'text-warning' 
     },
@@ -81,8 +81,8 @@ export default function AdminDashboard() {
   return (
     <PageShell>
       <div className="flex flex-col gap-1 mb-8">
-        <h1 className="font-serif text-3xl font-medium tracking-tight">Institutional Oversight</h1>
-        <p className="text-muted-foreground font-normal opacity-60">System-wide monitoring, fiscal auditing, and academic management.</p>
+        <h1 className="font-serif text-3xl font-medium tracking-tight">Overview</h1>
+        <p className="text-muted-foreground font-normal opacity-60">Monitor students, staff, and finances.</p>
       </div>
 
       <StabilityBoundary name="Key Performance Indicators">
@@ -113,8 +113,8 @@ export default function AdminDashboard() {
         <Card className="lg:col-span-2 glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden h-full flex flex-col">
           <CardHeader className="bg-muted/5 border-b p-8 flex flex-row items-center justify-between">
             <div>
-                <CardTitle className="font-serif text-xl font-medium">Revenue Velocity</CardTitle>
-                <CardDescription className="text-xs font-normal opacity-60">Tuition collection performance vs institutional target.</CardDescription>
+                <CardTitle className="font-serif text-xl font-medium">Revenue Trend</CardTitle>
+                <CardDescription className="text-xs font-normal opacity-60">Fees collected vs targets.</CardDescription>
             </div>
             <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest opacity-40">
                 <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-primary" /> Actual</div>
@@ -176,8 +176,8 @@ export default function AdminDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <h3 className="font-serif text-xl font-medium tracking-tight">Level Distribution</h3>
-            <p className="text-xs text-muted-foreground mt-2 font-normal opacity-50 px-8">Categorical intake volume across academic tiers.</p>
+            <h3 className="font-serif text-xl font-medium tracking-tight">Student Levels</h3>
+            <p className="text-xs text-muted-foreground mt-2 font-normal opacity-50 px-8">Students per level across academic tiers.</p>
             <div className="mt-8 flex flex-col gap-3 w-full">
                 {pieData.map((item, i) => (
                     <div key={i} className="flex items-center justify-between px-4 py-2 bg-primary/5 rounded-xl border border-primary/10">
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
         <Card className="glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden">
              <CardHeader className="bg-muted/5 border-b p-6 flex flex-row items-center justify-between">
                 <div>
-                   <CardTitle className="font-serif text-base font-medium">Recent Staff Activity</CardTitle>
+                   <CardTitle className="font-serif text-base font-medium">Recent Activity</CardTitle>
                 </div>
                 <Activity className="w-4 h-4 text-primary opacity-40" />
              </CardHeader>
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
           <Card className="glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden">
                <CardHeader className="bg-muted/5 border-b p-6 flex flex-row items-center justify-between">
                   <div>
-                     <CardTitle className="font-serif text-base font-medium">Live Admissions Feed</CardTitle>
+                     <CardTitle className="font-serif text-base font-medium">New Admissions</CardTitle>
                   </div>
                   <History className="w-4 h-4 text-primary opacity-40" />
                </CardHeader>

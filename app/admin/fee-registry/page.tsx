@@ -219,8 +219,21 @@ export default function FeeRegistryPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64 p-2 glass-2 border-white/5 shadow-2xl">
-            <DropdownMenuLabel className="text-[9px] uppercase tracking-[0.3em] opacity-40 px-4 py-4 font-black">Fiscal Command</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Actions</DropdownMenuLabel>
             <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem 
+               onClick={() => router.push(`/admin/students/${student.id}`)}
+               className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg"
+            >
+              <ExternalLink className="w-4 h-4 opacity-60" /> <span className="text-xs">View Performance</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg">
+              <Users className="w-4 h-4 opacity-60" /> <span className="text-xs">Manage Courses</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal rounded-lg">
+              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Archive Student</span>
+            </DropdownMenuItem>
             <DropdownMenuItem 
                 onClick={() => {
                     setSelectedStudent(student)
@@ -259,16 +272,16 @@ export default function FeeRegistryPage() {
   ]
 
   const stats = [
-    { label: 'Weekly Revenue', value: 'PKR 1.2M', sub: 'Current Temporal Momentum', icon: TrendingDown, color: 'text-success' },
-    { label: 'Cycle Collection', value: 'PKR 4.8M', sub: `${currentTrimester.season} Trimester`, icon: DollarSign, color: 'text-primary' },
-    { label: 'Identified Arrears', value: 'PKR 420k', sub: 'Critical Recovery Required', icon: Clock, color: 'text-warning' },
+    { label: 'Weekly Income', value: 'PKR 1.2M', sub: 'Calculated this week', icon: TrendingDown, color: 'text-success' },
+    { label: 'Total Collected', value: 'PKR 4.8M', sub: `${currentTrimester.season} Quarter`, icon: DollarSign, color: 'text-primary' },
+    { label: 'Pending Dues', value: 'PKR 420k', sub: 'Needs follow up', icon: Clock, color: 'text-warning' },
   ]
 
   return (
     <PageShell>
       <PageHeader 
-        title="Institutional Fiscal Registry"
-        description="Master ledger for student tuition collection, thermal slip generation, and seasonal revenue auditing."
+        title="Fee Management"
+        description="Manage student fee collections and print receipts."
         actions={
           <div className="flex items-center gap-4">
              <Button 
@@ -276,10 +289,10 @@ export default function FeeRegistryPage() {
                 className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5"
                 onClick={() => router.push('/admin/economics')}
             >
-                <History className="w-4 h-4 mr-2 opacity-50" /> Economics Audit
+                <History className="w-4 h-4 mr-2" /> Income & Expenses
              </Button>
              <Button className="h-11 px-8 font-normal bg-primary shadow-xl shadow-primary/20 rounded-xl">
-                <Scan className="w-4 h-4 mr-2" /> Sync Collection Cycle
+                <Scan className="w-4 h-4 mr-2" /> Sync Collection
              </Button>
           </div>
         }
@@ -344,8 +357,8 @@ export default function FeeRegistryPage() {
                     <DollarSign className="w-10 h-10 text-primary opacity-20" />
                 </div>
                 <div className="space-y-1">
-                    <p className="font-serif text-2xl font-medium tracking-tight">Ledger Empty</p>
-                    <p className="text-xs text-muted-foreground opacity-40 italic">System awaiting student registration synchronization.</p>
+                    <h3 className="font-serif text-2xl font-medium tracking-tight">Attendance Log</h3>
+                    <p className="text-xs text-muted-foreground opacity-40 italic">Daily staff logs and attendance history.</p>
                 </div>
             </div>
           }

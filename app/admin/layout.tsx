@@ -74,48 +74,48 @@ const adminNavItems = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Faculty Perspective',
+    title: 'Staff',
     href: '/admin/teachers',
     icon: Users,
     items: [
-      { title: 'Faculty Roster', href: '/admin/teachers', icon: Users },
-      { title: 'New Registration', href: '/admin/teachers/registration', icon: UserPlus },
-      { title: 'Attendance Registry', href: '/admin/attendance', icon: ClipboardList },
-      { title: 'Payroll Audit', href: '/admin/teachers/payroll', icon: Coins },
+      { title: 'Staff List', href: '/admin/teachers', icon: Users },
+      { title: 'Add Staff', href: '/admin/teachers/registration', icon: UserPlus },
+      { title: 'Attendance', href: '/admin/attendance', icon: ClipboardList },
+      { title: 'Payroll', href: '/admin/teachers/payroll', icon: Coins },
     ]
   },
   {
-    title: 'Student Dossier',
+    title: 'Students',
     href: '/admin/students',
     icon: GraduationCap,
     items: [
-      { title: 'Active Roster', href: '/admin/students', icon: GraduationCap },
-      { title: 'Admissions flow', href: '/admin/students/registration', icon: UserPlus },
-      { title: 'Enrollment Trends', href: '/admin/students/enrollment-trend', icon: TrendingUp },
+      { title: 'Student List', href: '/admin/students', icon: GraduationCap },
+      { title: 'Add Student', href: '/admin/students/registration', icon: UserPlus },
+      { title: 'Trends', href: '/admin/students/enrollment-trend', icon: TrendingUp },
     ]
   },
   {
-    title: 'Academic Environment',
+    title: 'Academics',
     href: '/admin/classes',
     icon: BookOpen,
     items: [
-      { title: 'Academic Batches', href: '/admin/classes', icon: LayoutGrid },
-      { title: 'Room Schedules', href: '/admin/schedule', icon: Calendar },
+      { title: 'Classes', href: '/admin/classes', icon: LayoutGrid },
+      { title: 'Schedules', href: '/admin/schedule', icon: Calendar },
     ]
   },
   {
-    title: 'Oversight & Quality',
+    title: 'Review',
     href: '/admin/test-reviews',
     icon: FileCheck,
   },
   {
-    title: 'Fiscal Ledger',
+    title: 'Finance',
     href: '/admin/fee-registry',
     icon: DollarSign,
     items: [
-      { title: 'Fee Registry', href: '/admin/fee-registry', icon: DollarSign },
-      { title: 'Batch Financials', href: '/admin/batch-financials', icon: Coins },
-      { title: 'Economics Audit', href: '/admin/economics', icon: History },
+      { title: 'Fees', href: '/admin/fee-registry', icon: DollarSign },
+      { title: 'Batch Fees', href: '/admin/batch-financials', icon: Coins },
+      { title: 'Income & Expenses', href: '/admin/economics', icon: History },
     ]
   },
   {
@@ -303,7 +303,7 @@ export default function AdminLayout({
                   onSelect={() => logout()}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  <span>Terminate Session</span>
+                  <span>Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

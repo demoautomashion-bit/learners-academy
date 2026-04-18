@@ -175,41 +175,23 @@ export default function StudentsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64 p-2 glass-2 border-white/5 shadow-2xl overflow-hidden">
-            <DropdownMenuLabel className="text-[9px] uppercase tracking-[0.3em] opacity-40 px-4 py-4 font-black">Archive Identity Protocols</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Actions</DropdownMenuLabel>
             <DropdownMenuSeparator className="opacity-5" />
             <DropdownMenuItem 
-                onClick={() => router.push(`/admin/students/${student.id}`)}
-                className="gap-4 cursor-pointer p-4 focus:bg-primary/5 transition-all rounded-xl"
+               onClick={() => router.push(`/admin/students/${student.id}`)}
+               className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg"
             >
-              <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
-                <ExternalLink className="w-4 h-4 text-primary opacity-60" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-medium">Inspect Dossier</span>
-                <span className="text-[9px] opacity-40 uppercase tracking-widest font-bold">Deep Performance Audit</span>
-              </div>
+              <ExternalLink className="w-4 h-4 opacity-60" /> <span className="text-xs">View Performance</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-4 cursor-pointer p-4 focus:bg-primary/5 transition-all rounded-xl">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/5 flex items-center justify-center">
-                <History className="w-4 h-4 text-indigo-400 opacity-60" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-medium">Academic History</span>
-                <span className="text-[9px] opacity-40 uppercase tracking-widest font-bold">Full Temporal Trace</span>
-              </div>
+            <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg">
+              <Users className="w-4 h-4 opacity-60" /> <span className="text-xs">Manage Courses</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="opacity-5" />
             <DropdownMenuItem 
                onClick={() => handleDelete(student.id)}
-               className="gap-4 cursor-pointer p-4 focus:bg-destructive/5 text-destructive rounded-xl"
+               className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal rounded-lg"
             >
-              <div className="w-8 h-8 rounded-lg bg-destructive/5 flex items-center justify-center">
-                <Trash2 className="w-4 h-4 opacity-60" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-medium">Archive Dossier</span>
-                <span className="text-[9px] opacity-40 uppercase tracking-widest font-bold">Retract Institutional Identity</span>
-              </div>
+              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Archive Student</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -219,32 +201,22 @@ export default function StudentsPage() {
   ]
 
   const stats = [
-    { label: 'Active Learners', value: (students || []).length, sub: 'Total Ingress Velocity', icon: GraduationCap, color: 'text-primary' },
-    { label: 'Daily Admissions', value: dailyAdmissions, sub: 'Current Pulse', icon: TrendingUp, color: 'text-success' },
-    { label: 'Capacity Utilization', value: '88%', sub: 'Institutional Load', icon: Users, color: 'text-indigo-400' },
+    { label: 'Students Active', value: (students || []).filter(s => s.status === 'active').length, sub: 'Currently Enrolled', icon: ShieldCheck, color: 'text-success' },
+    { label: 'Total Students', value: (students || []).length, sub: 'Portal Registry', icon: Users, color: 'text-primary' },
   ]
 
   return (
     <PageShell>
       <PageHeader 
-        title="Student Master Registry"
-        description="Unified identity vault for institutional learners, academic placements, and sponsor tracking."
+        title="Student List"
+        description="View and manage all students and their enrollment details."
         actions={
-          <div className="flex items-center gap-4">
-             <Button 
-              variant="outline"
-              className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5"
-              onClick={() => router.push('/admin/students/enrollment-trend')}
-            >
-              <History className="w-4 h-4 mr-2 opacity-60" /> Intelligence
-            </Button>
-            <Button 
-              className="h-11 px-8 font-normal bg-primary shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all rounded-xl"
-              onClick={() => router.push('/admin/students/registration')}
-            >
-              <Plus className="w-4 h-4 mr-2" /> Admit Candidate
-            </Button>
-          </div>
+          <Button 
+            className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-11 px-8 rounded-xl"
+            onClick={() => router.push('/admin/students/registration')}
+          >
+            <Plus className="w-4 h-4 mr-2" /> Add Student
+          </Button>
         }
       />
 
@@ -271,37 +243,19 @@ export default function StudentsPage() {
 
       <div className="mt-16">
         <EntityDataGrid 
-          title="Personnel Identities"
-          description="A centralized trace of all active learner dossiers and their corresponding academic slots."
+          title="Student Registry"
+          description="View and manage student details and enrollment status."
           data={filteredStudents}
           columns={columns}
           actions={
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
-              <div className="flex items-center gap-1.5 p-1.5 bg-muted/10 border border-primary/5 rounded-2xl glass-2">
-                {TIER_FILTERS.map((level) => (
-                    <button
-                        key={level}
-                        onClick={() => setLevelFilter(level)}
-                        className={cn(
-                            "px-5 py-2 text-[10px] uppercase tracking-widest transition-all font-bold rounded-xl",
-                            levelFilter === level 
-                                ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                                : "text-muted-foreground opacity-40 hover:opacity-100 hover:bg-primary/5"
-                        )}
-                    >
-                        {level}
-                    </button>
-                ))}
-              </div>
-              <div className="relative w-full lg:w-96 group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20 group-focus-within:opacity-100 transition-opacity" />
-                <Input
-                    placeholder="Search Dossier Identity or Sponsor..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-14 h-14 bg-muted/5 focus:bg-background transition-all font-normal text-sm border-none shadow-none rounded-2xl placeholder:opacity-20"
-                />
-              </div>
+            <div className="relative w-80 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30 group-focus-within:opacity-100 transition-opacity" />
+              <Input
+                placeholder="Search students..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-11 h-12 bg-muted/10 focus:bg-background transition-all font-normal text-sm border-none shadow-none"
+              />
             </div>
           }
           emptyState={

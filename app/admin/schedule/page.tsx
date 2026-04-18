@@ -126,8 +126,8 @@ export default function GlobalScheduleHubPage() {
   return (
     <PageShell>
       <PageHeader 
-        title="Institutional Schedule Hub"
-        description="Master oversight of room allocation, physical logistics, and institutional timing synchronization."
+        title="Schedules"
+        description="Manage room assignments and class timings."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -150,12 +150,12 @@ export default function GlobalScheduleHubPage() {
       <div className="mt-16">
         <div className="flex items-center justify-between mb-10">
             <div className="space-y-1">
-                <h3 className="font-serif text-2xl font-medium tracking-tight">Temporal Matrix Architecture</h3>
-                <p className="text-xs text-muted-foreground opacity-40 italic">Active Room Utilization across 6 high-density instructional slots.</p>
+                <h3 className="font-serif text-2xl font-medium tracking-tight">Schedule Matrix</h3>
+                <p className="text-xs text-muted-foreground opacity-40 italic">Active Room Utilization across class timings.</p>
             </div>
             <div className="flex items-center gap-3 px-6 py-3 bg-primary/5 border border-primary/10 rounded-2xl">
                 <Command className="w-4 h-4 text-primary opacity-60" />
-                <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-40">System-Aware Conflict Detection Enabled</span>
+                <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-40">Conflict Detection Enabled</span>
             </div>
         </div>
 
@@ -230,7 +230,7 @@ export default function GlobalScheduleHubPage() {
                                                 <div className="w-10 h-10 rounded-xl bg-muted/20 flex items-center justify-center group-hover/empty:scale-110 transition-transform">
                                                     <Plus className="w-4 h-4 text-primary" />
                                                 </div>
-                                                <span className="text-[10px] uppercase tracking-widest font-black opacity-30 group-hover/empty:opacity-80">Orchestrate Slot</span>
+                                                <span className="text-[10px] uppercase tracking-widest font-black opacity-30 group-hover/empty:opacity-80">Assign Class</span>
                                             </button>
                                         )}
                                     </td>
@@ -249,11 +249,11 @@ export default function GlobalScheduleHubPage() {
             <div className="p-10 md:p-14 space-y-12">
                 <DialogHeader>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-[10px] uppercase font-black text-primary mb-4 w-fit">
-                        <Sparkles className="w-3.5 h-3.5" /> Temporal Gateway
+                        <Sparkles className="w-3.5 h-3.5" /> Assignment
                     </div>
-                    <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Temporal Oracle</DialogTitle>
+                    <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Assign Class</DialogTitle>
                     <DialogDescription className="text-xs opacity-40 font-normal leading-relaxed">
-                        Establishing a permanent instructional link for Room {selectedSlot?.roomId} during the {SCHEDULE_SLOTS.find(s => s.id === selectedSlot?.slotId)?.time} session.
+                        Assign a class and teacher to Room {selectedSlot?.roomId} at {SCHEDULE_SLOTS.find(s => s.id === selectedSlot?.slotId)?.time}.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -276,7 +276,7 @@ export default function GlobalScheduleHubPage() {
                         <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1 group-focus-within:text-primary transition-colors text-left">Faculty Lead</Label>
                         <Select onValueChange={(v) => setAssignmentData(prev => ({ ...prev, teacherId: v }))}>
                             <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-6 text-sm font-medium focus:ring-primary/20">
-                                <SelectValue placeholder="Authorize Professional Lead" />
+                                <SelectValue placeholder="Select Teacher" />
                             </SelectTrigger>
                             <SelectContent className="glass-2 border-white/5 p-2">
                                 {teachers.filter(t => t.status === 'active').map((teacher) => (
@@ -292,7 +292,7 @@ export default function GlobalScheduleHubPage() {
                         onClick={handleAssign}
                         className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-[1.75rem] shadow-2xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-3 relative overflow-hidden group/submit"
                     >
-                        <span className="relative z-10 flex items-center gap-2">Finalize Assignment <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-2 transition-transform" /></span>
+                        <span className="relative z-10 flex items-center gap-2">Confirm Assignment <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-2 transition-transform" /></span>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/submit:animate-shimmer" />
                     </Button>
                     <Button 
@@ -300,7 +300,7 @@ export default function GlobalScheduleHubPage() {
                         onClick={() => setIsDialogOpen(false)} 
                         className="text-[10px] uppercase tracking-[0.3em] font-black opacity-30 hover:opacity-100 h-10"
                     >
-                        Retract Protocol
+                        Cancel
                     </Button>
                 </div>
             </div>

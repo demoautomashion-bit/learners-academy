@@ -59,19 +59,19 @@ export default function TeachersPage() {
     const newStatus = teacher.status === 'active' ? 'inactive' : 'active'
     try {
       await updateTeacher(teacher.id, { status: newStatus as any })
-      toast.success(`Faculty status updated to ${newStatus}`)
+      toast.success(`Staff status updated to ${newStatus}`)
     } catch (error) {
       toast.error("Failed to update status")
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm("Permanently remove this faculty member from the institutional registry?")) {
+    if (confirm("Are you sure you want to delete this staff member?")) {
       try {
         await removeTeacher(id)
-        toast.success("Personnel record purged")
+        toast.success("Staff member deleted")
       } catch (error) {
-        toast.error("Error during record deletion")
+        toast.error("Error deleting record")
       }
     }
   }
@@ -129,22 +129,22 @@ export default function TeachersPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 p-1.5 overflow-hidden">
-            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Personnel Actions</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Actions</DropdownMenuLabel>
             <DropdownMenuSeparator className="opacity-5" />
             <DropdownMenuItem 
                 onClick={() => router.push(`/admin/teachers/${teacher.id}`)}
                 className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal"
             >
-              <ExternalLink className="w-4 h-4 opacity-60" /> <span className="text-xs">Inspect Dossier</span>
+              <ExternalLink className="w-4 h-4 opacity-60" /> <span className="text-xs">View Profile</span>
             </DropdownMenuItem>
             <DropdownMenuItem 
                 onClick={() => handleStatusToggle(teacher)}
                 className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal"
             >
               {teacher.status === 'active' ? (
-                <><XCircle className="w-4 h-4 text-destructive opacity-80" /> <span className="text-xs">Revoke Authority</span></>
+                <><XCircle className="w-4 h-4 text-destructive opacity-80" /> <span className="text-xs">Deactivate</span></>
               ) : (
-                <><CheckCircle2 className="w-4 h-4 text-success opacity-80" /> <span className="text-xs">Restore Authority</span></>
+                <><CheckCircle2 className="w-4 h-4 text-success opacity-80" /> <span className="text-xs">Activate</span></>
               )}
             </DropdownMenuItem>
             <DropdownMenuSeparator className="opacity-5" />
@@ -152,7 +152,7 @@ export default function TeachersPage() {
                onClick={() => handleDelete(teacher.id)}
                className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal"
             >
-              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Purge Record</span>
+              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Delete Record</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -162,21 +162,21 @@ export default function TeachersPage() {
   ]
 
   const stats = [
-    { label: 'Active Faculty', value: teachers.filter(t => t.status === 'active').length, sub: 'Currently Operational', icon: ShieldCheck, color: 'text-success' },
-    { label: 'Total Personnel', value: teachers.length, sub: 'Institutional Registry', icon: Users, color: 'text-primary' },
+    { label: 'Staff Active', value: teachers.filter(t => t.status === 'active').length, sub: 'Currently Working', icon: ShieldCheck, color: 'text-success' },
+    { label: 'Total Staff', value: teachers.length, sub: 'Portal Registry', icon: Users, color: 'text-primary' },
   ]
 
   return (
     <PageShell>
       <PageHeader 
-        title="Faculty Roster"
-        description="Comprehensive audit of institutional staff, specialized instructors, and administrative personnel."
+        title="Staff List"
+        description="View and manage all teachers and administrative staff members."
         actions={
           <Button 
             className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             onClick={() => router.push('/admin/teachers/registration')}
           >
-            <Plus className="w-4 h-4 mr-2" /> Register Faculty
+            <Plus className="w-4 h-4 mr-2" /> Add Staff
           </Button>
         }
       />
@@ -200,15 +200,15 @@ export default function TeachersPage() {
 
       <div className="mt-12">
         <EntityDataGrid 
-          title="Institutional Staff Registry"
-          description="Displaying operational status and specialized focus for all active personnel."
+          title="Staff Registry"
+          description="Manage staff status and details for all active members."
           data={filteredTeachers}
           columns={columns}
           actions={
             <div className="relative w-80 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30 group-focus-within:opacity-100 transition-opacity" />
               <Input
-                placeholder="Search staff registry..."
+                placeholder="Search staff..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-11 h-12 bg-muted/10 focus:bg-background transition-all font-normal text-sm border-none shadow-none"
@@ -218,8 +218,8 @@ export default function TeachersPage() {
           emptyState={
             <div className="text-center py-24 opacity-30">
               <Users className="w-12 h-12 mx-auto mb-4 opacity-20" />
-              <p className="font-serif text-xl font-normal">No personnel records found</p>
-              <p className="text-xs mt-2 font-normal">System awaiting faculty registration data</p>
+              <p className="font-serif text-xl font-normal">No staff members found</p>
+              <p className="text-xs mt-2 font-normal">Add a staff member to see them here.</p>
             </div>
           }
         />

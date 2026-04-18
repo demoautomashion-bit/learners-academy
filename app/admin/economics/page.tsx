@@ -141,30 +141,30 @@ export default function EconomicsAuditorPage() {
 
   const stats = [
     { 
-        label: 'Gross Institutional Inflow', 
+        label: 'Income', 
         value: `PKR ${financialMetrics.totalEarnings.toLocaleString()}`, 
-        sub: 'Fee Collections & Grants', 
+        sub: 'Fee Collections', 
         icon: ArrowUpRight, 
         color: 'text-success' 
     },
     { 
-        label: 'Institutional Outflow', 
+        label: 'Expenses', 
         value: `PKR ${financialMetrics.totalExpenses.toLocaleString()}`, 
-        sub: 'Expenditures & Salaries', 
+        sub: 'Salaries & Costs', 
         icon: ArrowDownRight, 
         color: 'text-destructive' 
     },
     { 
-        label: 'Net Momentum', 
+        label: 'Net Profit', 
         value: `PKR ${financialMetrics.margin.toLocaleString()}`, 
-        sub: 'Audit-Ready Margin', 
+        sub: 'Current Margin', 
         icon: Wallet, 
         color: 'text-primary' 
     },
     { 
-        label: 'Fiscal Capacity', 
+        label: 'Total Cashflow', 
         value: `PKR ${financialMetrics.volume.toLocaleString()}`, 
-        sub: 'Total Transactional Density', 
+        sub: 'Total money moved', 
         icon: Coins, 
         color: 'text-indigo-400' 
     },
@@ -172,7 +172,7 @@ export default function EconomicsAuditorPage() {
 
   const columns: Column<any>[] = [
     {
-        label: 'Fiscal Transaction',
+        label: 'Transaction',
         render: (log) => (
             <div className="flex items-center gap-4 group/tx">
                 <div className={cn(
@@ -190,7 +190,7 @@ export default function EconomicsAuditorPage() {
         width: '350px'
     },
     {
-        label: 'Institutional Metadata',
+        label: 'Category',
         render: (log) => (
             <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-[9px] px-3 py-1 font-black opacity-30 uppercase tracking-widest border-primary/10">
@@ -200,16 +200,16 @@ export default function EconomicsAuditorPage() {
         )
     },
     {
-        label: 'Chronology',
+        label: 'Date',
         render: (log) => (
             <div className="flex flex-col">
                 <span className="text-[11px] font-bold opacity-70">{new Date(log.date || log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                <span className="text-[9px] text-muted-foreground opacity-20 uppercase tracking-tighter">Financial Audit Trace</span>
+                <span className="text-[9px] text-muted-foreground opacity-20 uppercase tracking-tighter">Internal record</span>
             </div>
         )
     },
     {
-        label: 'Magnitude',
+        label: 'Amount',
         render: (log) => (
             <span className={cn(
                 "text-base font-serif font-medium",
@@ -224,29 +224,28 @@ export default function EconomicsAuditorPage() {
   return (
     <PageShell>
       <PageHeader 
-        title="Institutional Economics Ledger"
-        description="Master double-entry audit of all institutional credits, debits, capital deployment, and seasonal growth tracking."
+        title="Economics"
+        description="Track income, expenses, and financial growth."
         actions={
-            <div className="flex items-center gap-4">
-                 <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5">
-                    <Download className="w-4 h-4 mr-2" /> Ledger Export
-                 </Button>
-                 
-                 <Dialog open={isLogOpen} onOpenChange={setIsLogOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="h-11 px-8 font-normal bg-primary shadow-xl shadow-primary/20 rounded-xl">
-                            <Plus className="w-4 h-4 mr-2" /> Log Manual Inflow/Outflow
-                        </Button>
-                    </DialogTrigger>
+          <div className="flex items-center gap-4">
+             <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5">
+                <FileText className="w-4 h-4 mr-2" /> Export
+             </Button>
+             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button className="h-11 px-8 font-normal bg-primary shadow-xl shadow-primary/20 rounded-xl text-white">
+                        <Plus className="w-4 h-4 mr-2" /> Add Entry
+                    </Button>
+                </DialogTrigger>
                     <DialogContent className="sm:max-w-[480px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
                         <div className="p-10 md:p-14 space-y-12">
                             <DialogHeader className="space-y-3">
                                 <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-2">
                                     <Activity className="w-6 h-6" />
                                 </div>
-                                <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Financial Protocol</DialogTitle>
+                                <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Add Entry</DialogTitle>
                                 <DialogDescription className="text-xs opacity-40 font-normal leading-relaxed">
-                                    Formalize a manual entry in the institutional ledger. This will affect net institutional margins instantly.
+                                    Add an income or expense record to the ledger.
                                 </DialogDescription>
                             </DialogHeader>
 
@@ -349,8 +348,8 @@ export default function EconomicsAuditorPage() {
                 <Badge className="bg-destructive/10 text-destructive border-transparent font-black uppercase tracking-widest text-[9px] h-9 px-6 rounded-xl">Outflow Analysis</Badge>
             </div>
             <CardHeader className="p-10 pb-4 border-b border-primary/5">
-                <CardTitle className="font-serif text-2xl font-medium tracking-tight">Institutional Outflow Trace</CardTitle>
-                <CardDescription className="text-xs font-normal opacity-40 mt-1 max-w-sm">Chronological velocity of expenditures categorized by institutional departments.</CardDescription>
+                <CardTitle className="font-serif text-2xl font-medium tracking-tight">Expense Trend</CardTitle>
+                <CardDescription className="text-xs font-normal opacity-40 mt-1 max-w-sm">Tracking expenses over time by category.</CardDescription>
             </CardHeader>
             <CardContent className="p-10 flex-1 min-h-[440px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -391,9 +390,9 @@ export default function EconomicsAuditorPage() {
                 <div className="w-16 h-16 rounded-2xl bg-success/5 border border-success/10 flex items-center justify-center text-success mb-10 group-hover:rotate-12 transition-transform">
                     <TrendingUp className="w-8 h-8" />
                 </div>
-                <h3 className="font-serif text-3xl font-medium tracking-tight">Financial Pulse</h3>
+                <h3 className="font-serif text-3xl font-medium tracking-tight">Earnings vs Expenses</h3>
                 <p className="text-sm text-muted-foreground mt-8 leading-relaxed font-normal italic opacity-60">
-                    Your institution is currently operating at a <span className="text-success font-black not-italic px-1">78%</span> resource optimization rate.
+                    Your net margin is currently <span className="text-success font-black not-italic px-1">78%</span>.
                 </p>
                 
                 <div className="mt-auto space-y-8">
@@ -437,15 +436,15 @@ export default function EconomicsAuditorPage() {
 
       <div className="mt-16">
         <EntityDataGrid 
-          title="Consolidated Transaction Audit"
-          description="Chronological record of every institutional financial log verified by system reconciliation protocols."
+          title="Transaction History"
+          description="History of all financial records."
           data={economics?.logs || []}
           columns={columns}
           actions={
             <div className="relative w-full lg:w-96 group">
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20 group-focus-within:opacity-100 transition-opacity" />
                 <Input
-                    placeholder="Search Audit Trail Identification..."
+                    placeholder="Search transactions..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-14 h-14 bg-muted/5 focus:bg-background transition-all font-normal text-sm border-none shadow-none rounded-2xl placeholder:opacity-20"

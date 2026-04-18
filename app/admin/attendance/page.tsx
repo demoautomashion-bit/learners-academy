@@ -143,15 +143,15 @@ export default function AttendanceRegistryPage() {
   return (
     <PageShell className="relative pb-32">
       <PageHeader 
-        title="Faculty Attendance Hub"
-        description="High-density institutional monitoring and personnel synchronization gateway."
+        title="Attendance"
+        description="Mark and track staff attendance and work hours."
         actions={
           <div className="flex items-center gap-3">
              <Button variant="outline" className="font-normal border-primary/10 hover:bg-primary/5 h-12 px-6 rounded-2xl glass-1">
                 <FileText className="w-4 h-4 mr-2 opacity-50" /> Personnel Audit
              </Button>
              <Button className="font-normal bg-primary shadow-xl shadow-primary/20 h-12 px-8 rounded-2xl">
-                Global Identity Lock
+                Save Changes
              </Button>
           </div>
         }
@@ -164,8 +164,8 @@ export default function AttendanceRegistryPage() {
             
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
                 <div className="space-y-1">
-                    <h3 className="font-serif text-3xl font-medium tracking-tight">Temporal Grid</h3>
-                    <p className="text-[10px] uppercase tracking-[0.3em] font-bold opacity-30">Active Selection: {format(selectedDate, 'MMMM yyyy')}</p>
+                    <h3 className="font-serif text-2xl font-medium tracking-tight">Attendance Log</h3>
+                    <p className="text-xs text-muted-foreground opacity-40 italic">Daily staff logs and attendance history.</p>
                 </div>
 
                 <div className="flex items-center gap-4">

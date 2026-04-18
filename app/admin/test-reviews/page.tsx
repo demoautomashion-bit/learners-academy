@@ -57,7 +57,7 @@ export default function TestReviewsPage() {
   const handleApprove = async (id: string, title: string) => {
     try {
       await approveAssessment(id)
-      toast.success(`"${title}" authorized for academic use`)
+      toast.success(`"${title}" approved for use`)
       setExpandedRejectId(null)
     } catch (err) {
       toast.error("Critical Audit Failure: Authorization sync failed")
@@ -67,7 +67,7 @@ export default function TestReviewsPage() {
   const handleReject = async (id: string, title: string) => {
     const feedback = feedbackMap[id]?.trim()
     if (!feedback) {
-      toast.error('Audit feedback required for revision request')
+      toast.error('Please provide feedback for the teacher')
       return
     }
     try {
@@ -97,15 +97,15 @@ export default function TestReviewsPage() {
   return (
     <PageShell>
       <PageHeader 
-        title="Quality Assurance Queue"
-        description="Audit and authorize academic assessment papers submitted by instructional staff."
+        title="Assessment Audit"
+        description="Approve or request changes to tests created by teachers."
       />
 
       <div className="grid gap-6 md:grid-cols-3 items-stretch mt-8">
         {[
-            { label: 'Pending Audit', value: pendingAssessments.length, sub: 'Awaiting Decision', icon: Clock, color: 'text-warning' },
-            { label: 'Authorized', value: approvedCount, sub: 'Active this Term', icon: CheckCircle2, color: 'text-success' },
-            { label: 'Revision Requests', value: rejectedCount, sub: 'Awaiting Faculty Fix', icon: AlertCircle, color: 'text-destructive' },
+            { label: 'Pending Review', value: pendingAssessments.length, sub: 'Needs decision', icon: Clock, color: 'text-warning' },
+            { label: 'Approved Tests', value: approvedCount, sub: 'Active', icon: CheckCircle2, color: 'text-success' },
+            { label: 'Revisions', value: rejectedCount, sub: 'Waiting for teacher', icon: AlertCircle, color: 'text-destructive' },
         ].map((stat, i) => (
             <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium rounded-2xl overflow-hidden group">
                 <CardHeader className="pb-6 relative isolate">
@@ -125,8 +125,8 @@ export default function TestReviewsPage() {
           {pendingAssessments.length === 0 ? (
               <div className="py-32 text-center opacity-20">
                   <ShieldCheck className="w-16 h-16 mx-auto mb-6" />
-                  <p className="font-serif text-2xl">Queue is Synchronized</p>
-                  <p className="text-sm mt-2">All submitted materials have been audited.</p>
+                  <p className="font-serif text-2xl">All reviews complete</p>
+                  <p className="text-sm mt-2">There are no pending assessments to review.</p>
               </div>
           ) : (
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -177,8 +177,8 @@ export default function TestReviewsPage() {
                                       <div className="mt-8 p-6 bg-primary/[0.02] border border-primary/5 rounded-2xl">
                                           <div className="flex items-center justify-between mb-4">
                                               <div>
-                                                  <span className="text-[9px] uppercase tracking-widest opacity-30 font-bold block mb-1">Library Strength</span>
-                                                  <span className="text-xs font-serif font-medium">{getPoolStrength(assessment).count} Verified Questions</span>
+                                                  <span className="text-[9px] uppercase tracking-widest opacity-30 font-bold block mb-1">Question Pool</span>
+                                                  <span className="text-xs font-serif font-medium">{getPoolStrength(assessment).count} Questions Available</span>
                                               </div>
                                               <Button 
                                                   variant="ghost" 
@@ -200,7 +200,7 @@ export default function TestReviewsPage() {
                                               className="w-full h-11 font-normal bg-success hover:bg-success/90 shadow-lg shadow-success/10"
                                               onClick={() => handleApprove(assessment.id, assessment.title)}
                                           >
-                                              Authorize Assessment
+                                              Approve Test
                                           </Button>
                                           
                                           {expandedRejectId !== assessment.id ? (
@@ -226,14 +226,14 @@ export default function TestReviewsPage() {
                                                           className="flex-1 text-[10px] font-normal"
                                                           onClick={() => setExpandedRejectId(null)}
                                                       >
-                                                          Abstain
+                                                          Cancel
                                                       </Button>
                                                       <Button 
                                                           size="sm" 
                                                           className="flex-1 text-[10px] font-normal bg-destructive"
                                                           onClick={() => handleReject(assessment.id, assessment.title)}
                                                       >
-                                                          Send Audit Log
+                                                          Send Feedback
                                                       </Button>
                                                   </div>
                                               </div>
@@ -311,7 +311,7 @@ export default function TestReviewsPage() {
               <div className="p-12 pt-6 border-t border-primary/5 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-primary">
                   <ShieldCheck className="w-4 h-4 opacity-40" />
-                  <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">System Audit Trail Active</span>
+                  <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">Verified by Admin</span>
                 </div>
                 <Button variant="outline" className="font-normal h-11 px-8 rounded-xl border-primary/10" onClick={() => setInspectPoolId(null)}>
                   Close Audit

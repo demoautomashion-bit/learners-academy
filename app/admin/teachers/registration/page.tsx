@@ -2,18 +2,24 @@
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { 
+import {
+  UserCircle,
+  Mail,
+  Phone,
+  ShieldCheck,
+  ChevronLeft,
+  Sparkles,
   ArrowRight,
-  X,
-  ShieldCheck
+  Hash,
+  Lock
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
-import { cn } from '@/lib/utils'
 import { PageShell } from '@/components/shared/page-shell'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { motion } from 'framer-motion'
@@ -30,6 +36,25 @@ export default function FacultyRegistrationPage() {
     employeeId: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
     password: ''
   })
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.8, 
+        ease: [0.16, 1, 0.3, 1],
+        staggerChildren: 0.1 
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
+  }
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -53,138 +78,171 @@ export default function FacultyRegistrationPage() {
         studentsCount: 0,
         id: crypto.randomUUID()
       } as any)
-      toast.success("Faculty member registered")
+      toast.success("Staff member successfully added to the registry.")
       router.push('/admin/teachers')
     } catch (error) {
-      toast.error("Registration failed")
+      toast.error("Failed to add staff member.")
     }
   }
 
   return (
-    <PageShell className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 overflow-hidden">
-      {/* Subtle Background Elements */}
-      <div className="absolute inset-0 -z-10 bg-background/50 backdrop-blur-3xl" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px] animate-pulse delay-1000" />
+    <PageShell className="relative overflow-hidden min-h-screen">
+      {/* Premium Background Mesh */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/5 blur-[120px] animate-pulse delay-700" />
+      </div>
 
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[480px]"
-      >
-        <div className="glass-3 border-white/10 dark:border-white/5 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] rounded-[2.5rem] overflow-hidden">
-          
-          {/* Header */}
-          <div className="px-8 pt-10 pb-6 text-center relative">
-            <button 
-              onClick={() => router.back()}
-              className="absolute top-8 right-8 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors opacity-40 hover:opacity-100"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <h1 className="text-3xl font-serif font-medium tracking-tight mb-2">Register Faculty</h1>
-            <p className="text-[13px] text-muted-foreground font-normal leading-relaxed opacity-60">
-              Initialize a new faculty account within the institution.
-            </p>
+      <div className="max-w-3xl mx-auto pt-16 pb-32">
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="space-y-12"
+        >
+          {/* Header Section */}
+          <div className="text-center space-y-4">
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-[10px] items-center uppercase tracking-[0.3em] font-bold text-primary mb-4">
+              <Sparkles className="w-3.5 h-3.5" />
+              Staff Registry
+            </motion.div>
+            <motion.h1 variants={itemVariants} className="font-serif text-5xl md:text-6xl text-foreground font-medium tracking-tight">
+              Add Staff Member
+            </motion.h1>
+            <motion.p variants={itemVariants} className="text-muted-foreground text-sm max-w-sm mx-auto opacity-60 leading-relaxed font-normal">
+              Register a new teacher or administrative staff member with secure access and identity records.
+            </motion.p>
           </div>
 
-          <form onSubmit={handleSubmit} className="px-8 pb-10 space-y-8">
-            
-            {/* Identity Group */}
-            <div className="space-y-3">
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30 ml-1">Identity Details</span>
-              <div className="bg-black/5 dark:bg-white/5 rounded-3xl overflow-hidden border border-black/[0.03] dark:border-white/[0.03]">
-                <div className="px-6 py-4 flex items-center gap-4 group">
-                  <Label className="w-24 text-[13px] font-normal opacity-50 group-focus-within:opacity-100 transition-opacity">Full Name</Label>
-                  <Input 
-                    name="name"
-                    placeholder="e.g. Alistair Vance"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="border-none bg-transparent h-auto p-0 focus-visible:ring-0 text-[14px] font-normal placeholder:opacity-20"
-                  />
-                </div>
-                <div className="h-px bg-black/[0.05] dark:bg-white/[0.05] mx-6" />
-                <div className="px-6 py-4 flex items-center gap-4 group">
-                  <Label className="w-24 text-[13px] font-normal opacity-50 group-focus-within:opacity-100 transition-opacity">Email</Label>
-                  <Input 
-                    name="email"
-                    type="email"
-                    placeholder="vance@academy.edu"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="border-none bg-transparent h-auto p-0 focus-visible:ring-0 text-[14px] font-normal placeholder:opacity-20"
-                  />
-                </div>
-                <div className="h-px bg-black/[0.05] dark:bg-white/[0.05] mx-6" />
-                <div className="px-6 py-4 flex items-center gap-4 group">
-                  <Label className="w-24 text-[13px] font-normal opacity-50 group-focus-within:opacity-100 transition-opacity">Contact</Label>
-                  <Input 
-                    name="phone"
-                    placeholder="+92 300 0000000"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    required
-                    className="border-none bg-transparent h-auto p-0 focus-visible:ring-0 text-[14px] font-normal placeholder:opacity-20"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Security Group */}
-            <div className="space-y-3">
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30 ml-1">Security & Access</span>
-              <div className="bg-black/5 dark:bg-white/5 rounded-3xl overflow-hidden border border-black/[0.03] dark:border-white/[0.03]">
-                <div className="px-6 py-4 flex items-center gap-4 group">
-                  <Label className="w-24 text-[13px] font-normal opacity-50 group-focus-within:opacity-100 transition-opacity">Staff ID</Label>
-                  <Input 
-                    name="employeeId"
-                    value={formData.employeeId}
-                    onChange={handleInputChange}
-                    required
-                    className="border-none bg-transparent h-auto p-0 focus-visible:ring-0 text-[14px] font-mono placeholder:opacity-20"
-                  />
-                </div>
-                <div className="h-px bg-black/[0.05] dark:bg-white/[0.05] mx-6" />
-                <div className="px-6 py-4 flex items-center gap-4 group">
-                  <Label className="w-24 text-[13px] font-normal opacity-50 group-focus-within:opacity-100 transition-opacity">Password</Label>
-                  <Input 
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    className="border-none bg-transparent h-auto p-0 focus-visible:ring-0 text-[14px] font-normal placeholder:opacity-20"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Footer / Actions */}
-            <div className="pt-2">
-              <Button 
-                type="submit"
-                className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] font-medium text-[15px] group overflow-hidden relative"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  Complete Registration <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
-              </Button>
+          {/* Registration Card */}
+          <motion.div variants={itemVariants}>
+            <Card className="glass-2 border-white/5 shadow-2xl rounded-[3rem] overflow-hidden relative isolate">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/[0.03] rounded-full blur-[100px] -z-10" />
               
-              <div className="mt-6 flex items-center justify-center gap-2 opacity-30">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span className="text-[10px] uppercase tracking-widest font-bold">Encrypted Institutional Protocol</span>
-              </div>
-            </div>
+              <form onSubmit={handleSubmit}>
+                <CardContent className="p-10 md:p-16 space-y-12">
+                  
+                  {/* Identity Block */}
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.3)]" />
+                        <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30">Identity</span>
+                    </div>
 
-          </form>
-        </div>
-      </motion.div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2 group">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Full Name</Label>
+                        <div className="relative">
+                          <UserCircle className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                          <Input 
+                            name="name" 
+                            placeholder="e.g. Alistair Vance"
+                            value={formData.name} 
+                            onChange={handleInputChange} 
+                            required 
+                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 group">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Email Address</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                          <Input 
+                            name="email" 
+                            type="email"
+                            placeholder="vance@academy.edu"
+                            value={formData.email} 
+                            onChange={handleInputChange} 
+                            required 
+                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2 group">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Staff ID</Label>
+                        <div className="relative">
+                          <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                          <Input 
+                            name="employeeId" 
+                            value={formData.employeeId} 
+                            onChange={handleInputChange} 
+                            required 
+                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-mono text-sm" 
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2 group">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Phone Number</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                          <Input 
+                            name="phone" 
+                            placeholder="+92 300 0000000"
+                            value={formData.phone} 
+                            onChange={handleInputChange} 
+                            required 
+                            className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Security Block */}
+                  <div className="space-y-8 pt-10 border-t border-white/5">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.3)]" />
+                        <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30">Access Control</span>
+                    </div>
+
+                    <div className="space-y-2 group max-w-sm">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Portal Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
+                        <Input 
+                          name="password" 
+                          type="password"
+                          placeholder="••••••••"
+                          value={formData.password} 
+                          onChange={handleInputChange} 
+                          required 
+                          className="h-14 pl-14 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-2xl transition-all font-normal" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Submission Actions */}
+                  <div className="flex flex-col gap-6 pt-10">
+                    <Button 
+                      type="submit"
+                      className="w-full h-18 bg-primary hover:bg-primary/90 text-white rounded-[1.5rem] shadow-2xl shadow-primary/20 transition-all group relative overflow-hidden text-base font-medium"
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-3">
+                        Add Staff Member <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                      </span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={() => router.back()}
+                      className="h-12 font-bold opacity-30 hover:opacity-100 text-[10px] tracking-[0.3em] uppercase rounded-2xl"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5 mr-2" /> Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </form>
+            </Card>
+          </motion.div>
+        </motion.div>
+      </div>
     </PageShell>
   )
 }

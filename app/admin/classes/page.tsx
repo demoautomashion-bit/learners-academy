@@ -123,12 +123,12 @@ export default function ClassesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm("Permanently dissolve this academic batch? This will affect attendance records.")) {
+    if (confirm("Are you sure you want to delete this class?")) {
       try {
         await removeCourse(id)
-        toast.success("Academic batch dissolved")
+        toast.success("Class deleted")
       } catch (error) {
-        toast.error("Error during batch dissolution")
+        toast.error("Error deleting class")
       }
     }
   }
@@ -150,7 +150,7 @@ export default function ClassesPage() {
       width: '280px'
     },
     {
-      label: 'Assigned Faculty',
+      label: 'Teacher',
       render: (course) => (
         <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 opacity-40" />
@@ -189,23 +189,23 @@ export default function ClassesPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 p-2 glass-2 border-white/5 shadow-2xl overflow-hidden">
-            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Batch Protocols</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Actions</DropdownMenuLabel>
             <DropdownMenuSeparator className="opacity-5" />
             <DropdownMenuItem 
                onClick={() => router.push(`/admin/classes/schedule?id=${course.id}`)}
                className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg"
             >
-              <Calendar className="w-4 h-4 opacity-60" /> <span className="text-xs">Audit Schedule</span>
+              <Calendar className="w-4 h-4 opacity-60" /> <span className="text-xs">Schedule</span>
             </DropdownMenuItem>
             <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg">
-              <Users className="w-4 h-4 opacity-60" /> <span className="text-xs">Manage Enrollment</span>
+              <Users className="w-4 h-4 opacity-60" /> <span className="text-xs">Students</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="opacity-5" />
             <DropdownMenuItem 
                onClick={() => handleDelete(course.id)}
                className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal rounded-lg"
             >
-              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Dissolve Batch</span>
+              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Delete Class</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -215,28 +215,28 @@ export default function ClassesPage() {
   ]
 
   const stats = [
-    { label: 'Active Batches', value: (courses || []).length, sub: 'Academic Capacity', icon: LayoutGrid, color: 'text-primary' },
-    { label: 'Instructional Load', value: activeTeachers.length, sub: 'Faculty Utilization', icon: Users, color: 'text-success' },
+    { label: 'Total Classes', value: (courses || []).length, sub: 'Active batches', icon: LayoutGrid, color: 'text-primary' },
+    { label: 'Active Teachers', value: activeTeachers.length, sub: 'Faculty working', icon: Users, color: 'text-success' },
   ]
 
   return (
     <PageShell>
       <PageHeader 
-        title="Academic Batches"
-        description="Configuration of instructional cycles, room allocation, and faculty assignments."
+        title="Classes"
+        description="Manage classes, rooms, and teacher assignments."
         actions={
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
                 <Button className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-11 px-8 rounded-xl">
-                    <Plus className="w-4 h-4 mr-2" /> Initialize Batch
+                    <Plus className="w-4 h-4 mr-2" /> Add Class
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[480px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
                 <div className="p-8 md:p-12 space-y-10">
                     <DialogHeader className="space-y-2">
-                        <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Batch Architect</DialogTitle>
+                        <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Add Class</DialogTitle>
                         <DialogDescription className="text-xs opacity-40 font-normal leading-relaxed">
-                            Formalize a new instructional unit by establishing personnel and logistical parameters.
+                            Create a new class for a teacher and a room.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -318,10 +318,10 @@ export default function ClassesPage() {
                             onClick={handleInitialize}
                             className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl shadow-xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-3"
                         >
-                            Confirm Initialization <ArrowRight className="w-4 h-4" />
+                            Add Class <ArrowRight className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-[10px] uppercase tracking-widest font-bold opacity-30 hover:opacity-100">
-                             Retract Protocol
+                             Cancel
                         </Button>
                     </div>
                 </div>
@@ -352,15 +352,15 @@ export default function ClassesPage() {
 
       <div className="mt-16">
         <EntityDataGrid 
-          title="Active Instructional Registry"
-          description="A comprehensive view of all active academic sessions and their logistical parameters."
+          title="Class List"
+          description="A view of all active classes and their room/time slots."
           data={filteredCourses}
           columns={columns}
           actions={
             <div className="relative w-96 group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20 group-focus-within:opacity-100 transition-opacity" />
               <Input
-                placeholder="Search batches, faculty leads, or tiers..."
+                placeholder="Search classes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-14 h-14 bg-muted/5 focus:bg-background transition-all font-normal text-sm border-none shadow-none rounded-2xl placeholder:opacity-20"
@@ -373,8 +373,8 @@ export default function ClassesPage() {
                     <LayoutGrid className="w-10 h-10 text-primary opacity-20" />
                 </div>
                 <div className="space-y-1">
-                    <p className="font-serif text-2xl font-medium tracking-tight">No Active Batches Identified</p>
-                    <p className="text-xs text-muted-foreground opacity-40 italic">System awaiting instructional cycle configuration.</p>
+                    <p className="font-serif text-2xl font-medium tracking-tight">No classes found</p>
+                    <p className="text-xs text-muted-foreground opacity-40 italic">Add a class to see it here.</p>
                 </div>
             </div>
           }
