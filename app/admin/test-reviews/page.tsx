@@ -36,6 +36,7 @@ import { useData } from '@/contexts/data-context'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
+import { StabilityBoundary } from '@/components/stability/stability-boundary'
 import { cn } from '@/lib/utils'
 
 export default function TestReviewsPage() {
@@ -119,132 +120,134 @@ export default function TestReviewsPage() {
         ))}
       </div>
 
-      <div className="mt-12">
-        {pendingAssessments.length === 0 ? (
-            <div className="py-32 text-center opacity-20">
-                <ShieldCheck className="w-16 h-16 mx-auto mb-6" />
-                <p className="font-serif text-2xl">Queue is Synchronized</p>
-                <p className="text-sm mt-2">All submitted materials have been audited.</p>
-            </div>
-        ) : (
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                <AnimatePresence>
-                    {pendingAssessments.map((assessment) => (
-                        <motion.div
-                            key={assessment.id}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            layout
-                        >
-                            <Card className="glass-1 border-primary/5 rounded-[2rem] overflow-hidden shadow-2xl h-full flex flex-col group hover:translate-y-[-2px] transition-all">
-                                <div className="h-1 bg-warning/20 group-hover:bg-warning transition-colors" />
-                                <CardHeader className="p-8 pb-4">
-                                     <div className="flex items-center justify-between mb-2">
-                                        <Badge variant="outline" className="text-[9px] uppercase tracking-[0.2em] font-bold border-primary/10 opacity-60 px-3">{assessment.phase}</Badge>
-                                        <div className="flex items-center gap-1.5 text-warning">
-                                            <Clock className="w-3 h-3" />
-                                            <span className="text-[9px] font-bold uppercase tracking-widest">Pending</span>
-                                        </div>
-                                     </div>
-                                     <CardTitle className="font-serif text-xl font-medium tracking-tight mb-1">{assessment.title}</CardTitle>
-                                     <CardDescription className="text-[10px] uppercase font-normal opacity-40 italic">
-                                        ID: {assessment.submittedByTeacherId || 'System'}
-                                     </CardDescription>
-                                </CardHeader>
-                                <CardContent className="p-8 pt-0 flex-1 flex flex-col">
-                                    <div className="grid grid-cols-2 gap-y-4 gap-x-2 mt-6 py-6 border-y border-primary/5">
-                                        <div className="flex items-center gap-3 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
-                                            <Users className="w-3.5 h-3.5 opacity-30" />
-                                            <span className="truncate">{assessment.classLevels[0]}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
-                                            <FileText className="w-3.5 h-3.5 opacity-30" />
-                                            <span>{assessment.nature}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
-                                            <Timer className="w-3.5 h-3.5 opacity-30" />
-                                            <span>{assessment.durationMinutes}m</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
-                                            <Hash className="w-3.5 h-3.5 opacity-30" />
-                                            <span>{assessment.questionCount} Slots</span>
-                                        </div>
-                                    </div>
+      <StabilityBoundary name="Assessment Audit Grid">
+        <div className="mt-12">
+          {pendingAssessments.length === 0 ? (
+              <div className="py-32 text-center opacity-20">
+                  <ShieldCheck className="w-16 h-16 mx-auto mb-6" />
+                  <p className="font-serif text-2xl">Queue is Synchronized</p>
+                  <p className="text-sm mt-2">All submitted materials have been audited.</p>
+              </div>
+          ) : (
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  <AnimatePresence>
+                      {pendingAssessments.map((assessment) => (
+                          <motion.div
+                              key={assessment.id}
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              layout
+                          >
+                              <Card className="glass-1 border-primary/5 rounded-[2rem] overflow-hidden shadow-2xl h-full flex flex-col group hover:translate-y-[-2px] transition-all">
+                                  <div className="h-1 bg-warning/20 group-hover:bg-warning transition-colors" />
+                                  <CardHeader className="p-8 pb-4">
+                                       <div className="flex items-center justify-between mb-2">
+                                          <Badge variant="outline" className="text-[9px] uppercase tracking-[0.2em] font-bold border-primary/10 opacity-60 px-3">{assessment.phase}</Badge>
+                                          <div className="flex items-center gap-1.5 text-warning">
+                                              <Clock className="w-3 h-3" />
+                                              <span className="text-[9px] font-bold uppercase tracking-widest">Pending</span>
+                                          </div>
+                                       </div>
+                                       <CardTitle className="font-serif text-xl font-medium tracking-tight mb-1">{assessment.title}</CardTitle>
+                                       <CardDescription className="text-[10px] uppercase font-normal opacity-40 italic">
+                                          ID: {assessment.submittedByTeacherId || 'System'}
+                                       </CardDescription>
+                                  </CardHeader>
+                                  <CardContent className="p-8 pt-0 flex-1 flex flex-col">
+                                      <div className="grid grid-cols-2 gap-y-4 gap-x-2 mt-6 py-6 border-y border-primary/5">
+                                          <div className="flex items-center gap-3 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+                                              <Users className="w-3.5 h-3.5 opacity-30" />
+                                              <span className="truncate">{assessment.classLevels?.[0] || 'Any Level'}</span>
+                                          </div>
+                                          <div className="flex items-center gap-3 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+                                              <FileText className="w-3.5 h-3.5 opacity-30" />
+                                              <span>{assessment.nature}</span>
+                                          </div>
+                                          <div className="flex items-center gap-3 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+                                              <Timer className="w-3.5 h-3.5 opacity-30" />
+                                              <span>{assessment.durationMinutes}m</span>
+                                          </div>
+                                          <div className="flex items-center gap-3 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+                                              <Hash className="w-3.5 h-3.5 opacity-30" />
+                                              <span>{assessment.questionCount} Slots</span>
+                                          </div>
+                                      </div>
 
-                                    <div className="mt-8 p-6 bg-primary/[0.02] border border-primary/5 rounded-2xl">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div>
-                                                <span className="text-[9px] uppercase tracking-widest opacity-30 font-bold block mb-1">Library Strength</span>
-                                                <span className="text-xs font-serif font-medium">{getPoolStrength(assessment).count} Verified Questions</span>
-                                            </div>
-                                            <Button 
-                                                variant="ghost" 
-                                                size="sm" 
-                                                className="h-8 text-[9px] uppercase tracking-widest font-bold hover:bg-primary/5"
-                                                onClick={() => setInspectPoolId(assessment.id)}
-                                            >
-                                                Inspect <Eye className="w-3.5 h-3.5 ml-2" />
-                                            </Button>
-                                        </div>
-                                        <div className="flex items-center justify-between pt-4 border-t border-primary/5">
-                                            <span className="text-[9px] uppercase tracking-widest opacity-30 font-bold">Access Token</span>
-                                            <span className="text-xs font-serif text-primary opacity-60 tracking-wider font-bold">{assessment.accessCode}</span>
-                                        </div>
-                                    </div>
+                                      <div className="mt-8 p-6 bg-primary/[0.02] border border-primary/5 rounded-2xl">
+                                          <div className="flex items-center justify-between mb-4">
+                                              <div>
+                                                  <span className="text-[9px] uppercase tracking-widest opacity-30 font-bold block mb-1">Library Strength</span>
+                                                  <span className="text-xs font-serif font-medium">{getPoolStrength(assessment).count} Verified Questions</span>
+                                              </div>
+                                              <Button 
+                                                  variant="ghost" 
+                                                  size="sm" 
+                                                  className="h-8 text-[9px] uppercase tracking-widest font-bold hover:bg-primary/5"
+                                                  onClick={() => setInspectPoolId(assessment.id)}
+                                              >
+                                                  Inspect <Eye className="w-3.5 h-3.5 ml-2" />
+                                              </Button>
+                                          </div>
+                                          <div className="flex items-center justify-between pt-4 border-t border-primary/5">
+                                              <span className="text-[9px] uppercase tracking-widest opacity-30 font-bold">Access Token</span>
+                                              <span className="text-xs font-serif text-primary opacity-60 tracking-wider font-bold">{assessment.accessCode}</span>
+                                          </div>
+                                      </div>
 
-                                    <div className="mt-auto pt-8 space-y-3">
-                                        <Button 
-                                            className="w-full h-11 font-normal bg-success hover:bg-success/90 shadow-lg shadow-success/10"
-                                            onClick={() => handleApprove(assessment.id, assessment.title)}
-                                        >
-                                            Authorize Assessment
-                                        </Button>
-                                        
-                                        {expandedRejectId !== assessment.id ? (
-                                            <Button 
-                                                variant="outline" 
-                                                className="w-full h-11 font-normal border-destructive/10 text-destructive/60 hover:bg-destructive/5 hover:text-destructive"
-                                                onClick={() => setExpandedRejectId(assessment.id)}
-                                            >
-                                                Request Revision
-                                            </Button>
-                                        ) : (
-                                            <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                <Textarea 
-                                                    placeholder="Specify issues clearly..." 
-                                                    className="min-h-[100px] text-xs font-normal bg-destructive/5 border-none resize-none"
-                                                    value={feedbackMap[assessment.id] || ''}
-                                                    onChange={(e) => setFeedbackMap(prev => ({ ...prev, [assessment.id]: e.target.value }))}
-                                                />
-                                                <div className="flex gap-2">
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="sm" 
-                                                        className="flex-1 text-[10px] font-normal"
-                                                        onClick={() => setExpandedRejectId(null)}
-                                                    >
-                                                        Abstain
-                                                    </Button>
-                                                    <Button 
-                                                        size="sm" 
-                                                        className="flex-1 text-[10px] font-normal bg-destructive"
-                                                        onClick={() => handleReject(assessment.id, assessment.title)}
-                                                    >
-                                                        Send Audit Log
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            </div>
-        )}
-      </div>
+                                      <div className="mt-auto pt-8 space-y-3">
+                                          <Button 
+                                              className="w-full h-11 font-normal bg-success hover:bg-success/90 shadow-lg shadow-success/10"
+                                              onClick={() => handleApprove(assessment.id, assessment.title)}
+                                          >
+                                              Authorize Assessment
+                                          </Button>
+                                          
+                                          {expandedRejectId !== assessment.id ? (
+                                              <Button 
+                                                  variant="outline" 
+                                                  className="w-full h-11 font-normal border-destructive/10 text-destructive/60 hover:bg-destructive/5 hover:text-destructive"
+                                                  onClick={() => setExpandedRejectId(assessment.id)}
+                                              >
+                                                  Request Revision
+                                              </Button>
+                                          ) : (
+                                              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                  <Textarea 
+                                                      placeholder="Specify issues clearly..." 
+                                                      className="min-h-[100px] text-xs font-normal bg-destructive/5 border-none resize-none"
+                                                      value={feedbackMap[assessment.id] || ''}
+                                                      onChange={(e) => setFeedbackMap(prev => ({ ...prev, [assessment.id]: e.target.value }))}
+                                                  />
+                                                  <div className="flex gap-2">
+                                                      <Button 
+                                                          variant="ghost" 
+                                                          size="sm" 
+                                                          className="flex-1 text-[10px] font-normal"
+                                                          onClick={() => setExpandedRejectId(null)}
+                                                      >
+                                                          Abstain
+                                                      </Button>
+                                                      <Button 
+                                                          size="sm" 
+                                                          className="flex-1 text-[10px] font-normal bg-destructive"
+                                                          onClick={() => handleReject(assessment.id, assessment.title)}
+                                                      >
+                                                          Send Audit Log
+                                                      </Button>
+                                                  </div>
+                                              </div>
+                                          )}
+                                      </div>
+                                  </CardContent>
+                              </Card>
+                          </motion.div>
+                      ))}
+                  </AnimatePresence>
+              </div>
+          )}
+        </div>
+      </StabilityBoundary>
 
       {/* Pool Inspection Dialog */}
       <Dialog open={!!inspectPoolId} onOpenChange={(open) => !open && setInspectPoolId(null)}>

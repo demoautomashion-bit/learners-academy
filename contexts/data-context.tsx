@@ -315,19 +315,58 @@ export function DataProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/**
+ * Universal Sanitization Layer
+ * Ensures all entity properties are safe for UI rendering even if null in DB
+ */
+function sanitize<T>(data: any, type: 'teacher' | 'student' | 'course' | 'question' | 'assessment' | 'submission'): T[] {
+  if (!Array.isArray(data)) return []
+  
+  return data.map(item => {
+    if (!item) return item
+
+    const base = { ...item }
+
+    switch (type) {
+      case 'student':
+      case 'teacher':
+        base.name = base.name || (type === 'student' ? 'Unknown Candidate' : 'Professional Faculty')
+        base.avatar = base.avatar || ''
+        break
+      case 'course':
+        base.name = base.name || 'Untitled Batch'
+        base.level = base.level || 'Foundation'
+        base.instructorName = base.instructorName || 'Unassigned'
+        break
+      case 'assessment':
+        base.title = base.title || 'Untitled Assessment'
+        base.classLevels = Array.isArray(base.classLevels) ? base.classLevels : ['Foundation']
+        base.nature = base.nature || 'Mixed'
+        break
+      case 'question':
+        base.content = base.content || 'Content Pending Audit'
+        base.options = Array.isArray(base.options) ? base.options : []
+        break
+    }
+    return base as T
+  })
+}
+
 export function useData() {
   const context = useContext(DataContext)
   if (context === undefined) throw new Error('useData must be used within a DataProvider')
+  
+  // Safe Consumption Layer
   return {
     ...context,
-    teachers: Array.isArray(context.teachers) ? context.teachers : [],
-    courses: Array.isArray(context.courses) ? context.courses : [],
-    students: Array.isArray(context.students) ? context.students : [],
-    assignments: Array.isArray(context.assignments) ? context.assignments : [],
+    teachers: sanitize<Teacher>(context.teachers, 'teacher'),
+    students: sanitize<Student>(context.students, 'student'),
+    courses: sanitize<Course>(context.courses, 'course'),
+    questions: sanitize<Question>(context.questions, 'question'),
+    assessments: sanitize<AssessmentTemplate>(context.assessments, 'assessment'),
     submissions: Array.isArray(context.submissions) ? context.submissions : [],
     schedules: Array.isArray(context.schedules) ? context.schedules : [],
-    questions: Array.isArray(context.questions) ? context.questions : [],
-    assessments: Array.isArray(context.assessments) ? context.assessments : [],
+    assignments: Array.isArray(context.assignments) ? context.assignments : [],
     enrollments: Array.isArray(context.enrollments) ? context.enrollments : [],
     feePayments: Array.isArray(context.feePayments) ? context.feePayments : [],
     isInitialized: !!context.isInitialized,

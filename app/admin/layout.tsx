@@ -160,116 +160,118 @@ export default function AdminLayout({
         <Sidebar className="border-r border-white/5 bg-sidebar transition-all duration-300">
           <AdminSidebarHeader />
           <SidebarContent className="px-3 py-4">
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu className="gap-2">
-                  {adminNavItems.map((item) => {
-                    const safePathname = pathname || ''
-                    const isActive = safePathname === item.href || 
-                      (item.href !== '/admin' && safePathname.startsWith(item.href))
-                    
-                    const hasSubItems = item.items && item.items.length > 0
-                    const isInitiallyOpen = hasSubItems && (safePathname === item.href || safePathname.startsWith(item.href))
+            <StabilityBoundary name="Admin Navigation">
+              <SidebarGroup>
+                <SidebarGroupContent>
+                  <SidebarMenu className="gap-2">
+                    {adminNavItems.map((item) => {
+                      const safePathname = pathname || ''
+                      const isActive = safePathname === item.href || 
+                        (item.href !== '/admin' && safePathname.startsWith(item.href))
+                      
+                      const hasSubItems = item.items && item.items.length > 0
+                      const isInitiallyOpen = hasSubItems && (safePathname === item.href || safePathname.startsWith(item.href))
 
-                    if (!hasSubItems) {
-                      return (
-                        <SidebarMenuItem key={item.href}>
-                          <SidebarMenuButton 
-                            asChild 
-                            isActive={isActive}
-                            className={cn(
-                              "transition-all duration-300 h-10 px-4 font-normal",
-                              isActive 
-                                ? "bg-primary/10 text-primary shadow-sm" 
-                                : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
-                            )}
-                            tooltip={item.title}
-                          >
-                            <Link href={item.href} className="flex items-center gap-3">
-                              <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
-                              <span className="text-xs">{item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      )
-                    }
-
-                    return (
-                      <Collapsible
-                        key={item.href}
-                        asChild
-                        defaultOpen={isInitiallyOpen}
-                        className="group/collapsible"
-                      >
-                        <SidebarMenuItem>
-                          <CollapsibleTrigger asChild>
+                      if (!hasSubItems) {
+                        return (
+                          <SidebarMenuItem key={item.href}>
                             <SidebarMenuButton 
-                               isActive={isActive} 
-                               asChild
-                               tooltip={item.title}
-                               className={cn(
-                                 "transition-all duration-300 h-10 px-4 ",
-                                 isActive && !(pathname || '').includes(item.href) ? "bg-primary/5 text-primary" : ""
-                               )}
+                              asChild 
+                              isActive={isActive}
+                              className={cn(
+                                "transition-all duration-300 h-10 px-4 font-normal",
+                                isActive 
+                                  ? "bg-primary/10 text-primary shadow-sm" 
+                                  : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
+                              )}
+                              tooltip={item.title}
                             >
-                              <Link href={item.href} className="flex items-center gap-3 w-full">
+                              <Link href={item.href} className="flex items-center gap-3">
                                 <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
-                                <span className="text-xs text-sidebar-foreground/80">{item.title}</span>
-                                <ChevronDown className="ml-auto w-4 h-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180 opacity-40 shrink-0" />
+                                <span className="text-xs">{item.title}</span>
                               </Link>
                             </SidebarMenuButton>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent asChild>
-                            <motion.div
-                              initial={false}
-                              animate="visible"
-                              variants={{
-                                visible: { 
-                                  opacity: 1, 
-                                  y: 0,
-                                  transition: { duration: 0.2, ease: "easeOut" } 
-                                },
-                                hidden: { 
-                                  opacity: 0, 
-                                  y: -10,
-                                  transition: { duration: 0.2, ease: "easeOut" }
-                                }
-                              }}
-                              className="overflow-hidden"
-                            >
-                              <SidebarMenuSub className="ml-4 mt-1 border-l border-white/5 space-y-1">
-                                {item.items?.map((subItem) => {
-                                   const isSubActive = pathname === subItem.href
-                                   return (
-                                     <SidebarMenuSubItem key={subItem.href}>
-                                       <SidebarMenuSubButton 
-                                          asChild 
-                                          isActive={isSubActive}
-                                          className={cn(
-                                            "h-8 px-4 transition-all text-xs",
-                                            isSubActive 
-                                              ? "text-primary bg-primary/5" 
-                                              : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 font-normal"
-                                          )}
-                                        >
-                                         <Link href={subItem.href} className="flex items-center gap-3">
-                                           {subItem.icon && <subItem.icon className="w-3.5 h-3.5" />}
-                                           <span>{subItem.title}</span>
-                                         </Link>
-                                       </SidebarMenuSubButton>
-                                     </SidebarMenuSubItem>
-                                   )
-                                })}
-                              </SidebarMenuSub>
-                            </motion.div>
-                          </CollapsibleContent>
-                        </SidebarMenuItem>
-                      </Collapsible>
-                    )
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+                          </SidebarMenuItem>
+                        )
+                      }
+
+                      return (
+                        <Collapsible
+                          key={item.href}
+                          asChild
+                          defaultOpen={isInitiallyOpen}
+                          className="group/collapsible"
+                        >
+                          <SidebarMenuItem>
+                            <CollapsibleTrigger asChild>
+                              <SidebarMenuButton 
+                                 isActive={isActive} 
+                                 asChild
+                                 tooltip={item.title}
+                                 className={cn(
+                                   "transition-all duration-300 h-10 px-4 ",
+                                   isActive && !(pathname || '').includes(item.href) ? "bg-primary/5 text-primary" : ""
+                                 )}
+                              >
+                                <Link href={item.href} className="flex items-center gap-3 w-full">
+                                  <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
+                                  <span className="text-xs text-sidebar-foreground/80">{item.title}</span>
+                                  <ChevronDown className="ml-auto w-4 h-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180 opacity-40 shrink-0" />
+                                </Link>
+                              </SidebarMenuButton>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent asChild>
+                              <motion.div
+                                initial={false}
+                                animate="visible"
+                                variants={{
+                                  visible: { 
+                                    opacity: 1, 
+                                    y: 0,
+                                    transition: { duration: 0.2, ease: "easeOut" } 
+                                  },
+                                  hidden: { 
+                                    opacity: 0, 
+                                    y: -10,
+                                    transition: { duration: 0.2, ease: "easeOut" }
+                                  }
+                                }}
+                                className="overflow-hidden"
+                              >
+                                <SidebarMenuSub className="ml-4 mt-1 border-l border-white/5 space-y-1">
+                                  {item.items?.map((subItem) => {
+                                     const isSubActive = pathname === subItem.href
+                                     return (
+                                       <SidebarMenuSubItem key={subItem.href}>
+                                         <SidebarMenuSubButton 
+                                            asChild 
+                                            isActive={isSubActive}
+                                            className={cn(
+                                              "h-8 px-4 transition-all text-xs",
+                                              isSubActive 
+                                                ? "text-primary bg-primary/5" 
+                                                : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 font-normal"
+                                            )}
+                                          >
+                                           <Link href={subItem.href} className="flex items-center gap-3">
+                                             {subItem.icon && <subItem.icon className="w-3.5 h-3.5" />}
+                                             <span>{subItem.title}</span>
+                                           </Link>
+                                         </SidebarMenuSubButton>
+                                       </SidebarMenuSubItem>
+                                     )
+                                  })}
+                                </SidebarMenuSub>
+                              </motion.div>
+                            </CollapsibleContent>
+                          </SidebarMenuItem>
+                        </Collapsible>
+                      )
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </StabilityBoundary>
           </SidebarContent>
         </Sidebar>
 
@@ -308,7 +310,9 @@ export default function AdminLayout({
           </header>
 
           <main className="flex-1 p-8 text-foreground">
-            {children}
+            <StabilityBoundary name="Admin Content Area">
+              {children}
+            </StabilityBoundary>
           </main>
         </SidebarInset>
       </SidebarProvider>

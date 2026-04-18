@@ -31,6 +31,8 @@ import { cn } from '@/lib/utils'
 import { PageShell } from '@/components/shared/page-shell'
 import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
+import { StabilityBoundary } from '@/components/stability/stability-boundary'
+import { getInitials } from '@/lib/utils'
 
 export default function AdminDashboard() {
   const hasMounted = useHasMounted()
@@ -83,27 +85,29 @@ export default function AdminDashboard() {
         <p className="text-muted-foreground font-normal opacity-60">System-wide monitoring, fiscal auditing, and academic management.</p>
       </div>
 
-      <EntityCardGrid 
-        data={kpis}
-        renderItem={(item, i) => (
-          <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium overflow-hidden rounded-2xl transition-premium group">
-            <CardHeader className="pb-2 relative isolate">
-                <div className="absolute right-6 top-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                    <item.icon className="w-12 h-12" />
-                </div>
-                <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30">{item.label}</CardDescription>
-                <CardTitle className={cn("text-3xl font-serif font-medium", item.color)}>{item.value}</CardTitle>
-            </CardHeader>
-            <CardContent className="pb-6">
-                <div className="flex items-center gap-2">
-                    <div className={cn("w-1 h-1 rounded-full ", item.color.replace('text-', 'bg-'))} />
-                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground opacity-50">{item.sub}</span>
-                </div>
-            </CardContent>
-          </Card>
-        )}
-        columns={4}
-      />
+      <StabilityBoundary name="Key Performance Indicators">
+        <EntityCardGrid 
+          data={kpis}
+          renderItem={(item, i) => (
+            <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium overflow-hidden rounded-2xl transition-premium group">
+              <CardHeader className="pb-2 relative isolate">
+                  <div className="absolute right-6 top-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                      <item.icon className="w-12 h-12" />
+                  </div>
+                  <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30">{item.label}</CardDescription>
+                  <CardTitle className={cn("text-3xl font-serif font-medium", item.color)}>{item.value}</CardTitle>
+              </CardHeader>
+              <CardContent className="pb-6">
+                  <div className="flex items-center gap-2">
+                      <div className={cn("w-1 h-1 rounded-full ", item.color.replace('text-', 'bg-'))} />
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground opacity-50">{item.sub}</span>
+                  </div>
+              </CardContent>
+            </Card>
+          )}
+          columns={4}
+        />
+      </StabilityBoundary>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12 items-stretch">
         <Card className="lg:col-span-2 glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden h-full flex flex-col">
@@ -215,32 +219,34 @@ export default function AdminDashboard() {
              </CardContent>
         </Card>
 
-        <Card className="glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden">
-             <CardHeader className="bg-muted/5 border-b p-6 flex flex-row items-center justify-between">
-                <div>
-                   <CardTitle className="font-serif text-base font-medium">Live Admissions Feed</CardTitle>
-                </div>
-                <History className="w-4 h-4 text-primary opacity-40" />
-             </CardHeader>
-             <CardContent className="p-0">
-                <div className="divide-y divide-primary/5">
-                    {students.slice(0, 3).map((student, i) => (
-                        <div key={i} className="flex items-center justify-between p-4 px-6 hover:bg-primary/[0.02] transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-bold">
-                                    {student.name[0]}
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-xs font-medium">{student.name}</span>
-                                    <span className="text-[10px] text-muted-foreground opacity-60">ID: {student.studentId}</span>
-                                </div>
-                            </div>
-                            <Badge variant="outline" className="text-[9px] font-normal border-primary/10">{student.level}</Badge>
-                        </div>
-                    ))}
-                </div>
-             </CardContent>
-        </Card>
+        <StabilityBoundary name="Live Admissions Feed">
+          <Card className="glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden">
+               <CardHeader className="bg-muted/5 border-b p-6 flex flex-row items-center justify-between">
+                  <div>
+                     <CardTitle className="font-serif text-base font-medium">Live Admissions Feed</CardTitle>
+                  </div>
+                  <History className="w-4 h-4 text-primary opacity-40" />
+               </CardHeader>
+               <CardContent className="p-0">
+                  <div className="divide-y divide-primary/5">
+                      {students.slice(0, 3).map((student, i) => (
+                          <div key={i} className="flex items-center justify-between p-4 px-6 hover:bg-primary/[0.02] transition-colors">
+                              <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-bold">
+                                      {getInitials(student.name)}
+                                  </div>
+                                  <div className="flex flex-col">
+                                      <span className="text-xs font-medium">{student.name}</span>
+                                      <span className="text-[10px] text-muted-foreground opacity-60">ID: {student.studentId}</span>
+                                  </div>
+                              </div>
+                              <Badge variant="outline" className="text-[9px] font-normal border-primary/10">{student.level}</Badge>
+                          </div>
+                      ))}
+                  </div>
+               </CardContent>
+          </Card>
+        </StabilityBoundary>
       </div>
     </PageShell>
   )
