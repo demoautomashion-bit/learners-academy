@@ -36,8 +36,7 @@ import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
 export default function StudentRegistrationPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { addStudent, isInitialized } = useData()
-  
+  const { enrollStudent, isInitialized } = useData()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -82,7 +81,7 @@ export default function StudentRegistrationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await addStudent({
+      await enrollStudent({
         ...formData,
         enrolledAt: new Date().toISOString(),
         status: 'active',
