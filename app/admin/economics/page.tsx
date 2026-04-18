@@ -67,36 +67,33 @@ import { format, isSameDay, isSameWeek, isSameMonth, parseISO } from 'date-fns'
 type TemporalFilter = 'daily' | 'weekly' | 'monthly' | 'seasonal'
 
 export default function EconomicsAuditorPage() {
+  // --- RULE OF HOOKS: ALL HOOKS MUST BE AT THE TOP ---
   const hasMounted = useHasMounted()
   const { economics, feePayments, addExpenditure, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('monthly')
   const [isLogOpen, setIsLogOpen] = useState(false)
-  
-  // Log Form State
-  const [logData, setLogData] = useState({
-    amount: '',
-    category: '',
-    description: ''
-  })
+  const [logData, setLogData] = useState({ amount: '', category: '', description: '' })
 
-  // Mock data/calculations for the view
   const currentTrimester = useMemo(() => getActiveTrimester(), [])
 
-  if (!hasMounted) return null
-  if (!isInitialized) return <DashboardSkeleton />
-
-  // Derived financial data based on filter
+  // Derived financial data MUST be above any early returns to avoid Error #310
   const financialMetrics = useMemo(() => {
-    const expenses = (economics?.logs || []).filter((log: any) => {
-        const d = parseISO(log.date)
+    // Return early if data isn't ready, but keep the hook execution consistent
+    if (!isInitialized) return { totalEarnings: 0, totalExpenses: 0, margin: 0, volume: 0 }
+
+    const expensesList = (economics?.logs || [])
+    const earningsList = (feePayments || [])
+
+    const expenses = expensesList.filter((log: any) => {
+        const d = parseISO(log.date || log.createdAt)
         if (temporalFilter === 'daily') return isSameDay(d, new Date())
         if (temporalFilter === 'weekly') return isSameWeek(d, new Date())
         if (temporalFilter === 'monthly') return isSameMonth(d, new Date())
         return d >= currentTrimester.start && d <= currentTrimester.end
     })
 
-    const earnings = (feePayments || []).filter((pay: any) => {
+    const earnings = earningsList.filter((pay: any) => {
         const d = parseISO(pay.paymentDate || pay.createdAt)
         if (temporalFilter === 'daily') return isSameDay(d, new Date())
         if (temporalFilter === 'weekly') return isSameWeek(d, new Date())
@@ -104,8 +101,8 @@ export default function EconomicsAuditorPage() {
         return d >= currentTrimester.start && d <= currentTrimester.end
     })
 
-    const totalExpenses = expenses.reduce((acc: number, curr: any) => acc + curr.amount, 0)
-    const totalEarnings = earnings.reduce((acc: number, curr: any) => acc + curr.amountPaid, 0)
+    const totalExpenses = expenses.reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0)
+    const totalEarnings = earnings.reduce((acc: number, curr: any) => acc + (Number(curr.amountPaid) || 0), 0)
     
     return {
         totalEarnings,
@@ -113,7 +110,12 @@ export default function EconomicsAuditorPage() {
         margin: totalEarnings - totalExpenses,
         volume: totalEarnings + totalExpenses
     }
-  }, [economics, feePayments, temporalFilter, currentTrimester])
+  }, [economics, feePayments, temporalFilter, currentTrimester, isInitialized])
+
+  // --- END OF HOOKS BLOCK ---
+
+  if (!hasMounted) return null
+  if (!isInitialized) return <DashboardSkeleton />
 
   const handleLogExpenditure = async () => {
     if (!logData.amount || !logData.category || !logData.description) {
@@ -181,7 +183,7 @@ export default function EconomicsAuditorPage() {
                 </div>
                 <div className="flex flex-col">
                     <span className="text-sm font-medium">{log.description}</span>
-                    <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-widest font-bold">Ref: {log.id.slice(-8).toUpperCase()}</span>
+                    <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-widest font-bold">Ref: {log.id?.slice(-8).toUpperCase() || 'MANUAL'}</span>
                 </div>
             </div>
         ),
@@ -227,7 +229,7 @@ export default function EconomicsAuditorPage() {
         actions={
             <div className="flex items-center gap-4">
                  <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5">
-                    <Download className="w-4 h-4 mr-2 opacity-50" /> Ledger Export
+                    <Download className="w-4 h-4 mr-2" /> Ledger Export
                  </Button>
                  
                  <Dialog open={isLogOpen} onOpenChange={setIsLogOpen}>
@@ -406,7 +408,7 @@ export default function EconomicsAuditorPage() {
                         <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted/10 border border-white/5 shadow-inner">
                             <motion.div 
                                 initial={{ width: 0 }}
-                                animate={{ width: `${(financialMetrics.totalEarnings / financialMetrics.volume) * 100}%` }}
+                                animate={{ width: financialMetrics.volume > 0 ? `${(financialMetrics.totalEarnings / financialMetrics.volume) * 100}%` : '0%' }}
                                 className="bg-success h-full shadow-lg shadow-success/20" 
                             />
                         </div>
@@ -423,7 +425,7 @@ export default function EconomicsAuditorPage() {
                         <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted/10 border border-white/5 shadow-inner">
                              <motion.div 
                                 initial={{ width: 0 }}
-                                animate={{ width: `${(financialMetrics.totalExpenses / financialMetrics.volume) * 100}%` }}
+                                animate={{ width: financialMetrics.volume > 0 ? `${(financialMetrics.totalExpenses / financialMetrics.volume) * 100}%` : '0%' }}
                                 className="bg-destructive h-full shadow-lg shadow-destructive/20" 
                             />
                         </div>

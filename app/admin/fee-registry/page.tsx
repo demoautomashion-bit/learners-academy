@@ -62,7 +62,7 @@ import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { Student, Course } from '@/lib/types'
 import { getActiveTrimester } from '@/lib/trimesters'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useReactToPrint } from 'react-to-print'
 
 export default function FeeRegistryPage() {
@@ -89,10 +89,36 @@ export default function FeeRegistryPage() {
   // Print Ref
   const receiptRef = useRef<HTMLDivElement>(null)
   const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
+    contentRef: receiptRef,
   })
 
   const currentTrimester = useMemo(() => getActiveTrimester(), [])
+
+  // Discovery logic for receipt content
+  const receiptContent = useMemo(() => {
+    if (!selectedStudent) return null
+
+    // 1. Try to find an existing payment
+    const payment = feePayments.find(p => p.studentId === selectedStudent.id)
+    
+    // 2. Discover the course
+    // If payment exists, use payment's courseId. 
+    // Otherwise, try to match using student's grade and timing metadata.
+    let course = courses.find(c => c.id === payment?.courseId)
+    if (!course) {
+        course = courses.find(c => 
+            (c.title || c.name || '').includes(selectedStudent.grade) && 
+            (c.schedule || (c as any).classTiming || '').includes(selectedStudent.classTiming)
+        )
+    }
+
+    return { 
+        payment, 
+        course,
+        student: selectedStudent,
+        trimester: currentTrimester
+    }
+  }, [selectedStudent, feePayments, courses, currentTrimester])
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -237,15 +263,6 @@ export default function FeeRegistryPage() {
     { label: 'Cycle Collection', value: 'PKR 4.8M', sub: `${currentTrimester.season} Trimester`, icon: DollarSign, color: 'text-primary' },
     { label: 'Identified Arrears', value: 'PKR 420k', sub: 'Critical Recovery Required', icon: Clock, color: 'text-warning' },
   ]
-
-  // Receipt Content Helper
-  const getReceiptData = () => {
-      const payment = feePayments.find(p => p.studentId === selectedStudent?.id)
-      const course = courses.find(c => c.id === payment?.courseId)
-      return { payment, course }
-  }
-
-  const { payment, course } = getReceiptData()
 
   return (
     <PageShell>
@@ -425,70 +442,72 @@ export default function FeeRegistryPage() {
       {/* RECEIPT PREVIEW DIALOG */}
       <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white rounded-[2rem] border-none shadow-2xl">
-            <div className="p-12 text-center space-y-8">
-                <div className="flex flex-col items-center gap-2 pb-6 border-b border-dashed border-gray-100">
-                    <Receipt className="w-10 h-10 text-primary opacity-20 mb-2" />
-                    <h3 className="font-serif text-2xl font-medium tracking-tight">Receipt Generated</h3>
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Thermal Slip Preview</p>
+            <div className="p-10 text-center space-y-6">
+                <div className="flex flex-col items-center gap-2 pb-4 border-b border-dashed border-gray-100">
+                    <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center text-primary mb-2">
+                        <Receipt className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-serif text-2xl font-medium tracking-tight">Receipt Intelligence</h3>
+                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-black">Institutional Thermal Preview</p>
                 </div>
                 
                 {/* Thermal Preview Card */}
-                <div className="p-1 rounded-3xl bg-gray-50/50 border border-gray-100">
-                     {/* THE ACTUAL THERMAL CONTENT (HIDDEN IN UI BUT FOR PRINT) */}
-                    <div ref={receiptRef} className="bg-white p-8 w-[80mm] mx-auto text-black font-mono leading-tight text-left text-[11px] print:m-0 print:w-full">
+                <div className="p-2 rounded-[2rem] bg-gray-50/50 border border-gray-100 overflow-hidden">
+                     {/* THE ACTUAL THERMAL CONTENT */}
+                    <div ref={receiptRef} className="bg-white p-8 w-full max-w-[80mm] mx-auto text-black font-mono leading-tight text-left text-[11px] shadow-sm">
                         <div className="text-center space-y-1 mb-6 border-b-2 border-black pb-4">
-                            <h1 className="text-[14px] font-black uppercase">The Learners Academy</h1>
+                            <h1 className="text-[14px] font-black uppercase tracking-tighter">The Learners Academy</h1>
                             <p className="text-[10px] font-bold">ENGLISH LANGUAGE PROGRAM</p>
-                            <p className="text-[8px] leading-tight">Suzuki Stop, Sar-e-Khartar, Mominabad,<br/>Alamdar Road.</p>
-                            <p className="text-[8px]">Ph: +92-3093883386 / +92-3115455633</p>
+                            <p className="text-[8px] leading-tight opacity-70">Suzuki Stop, Sar-e-Khartar, Mominabad,<br/>Alamdar Road.</p>
+                            <p className="text-[8px] font-bold mt-1">Ph: +92-3093883386 / +92-3115455633</p>
                         </div>
 
                         <div className="space-y-1.5 mb-6 text-[10px]">
                             <div className="flex justify-between">
                                 <span>Student ID:</span>
-                                <span className="font-bold">{selectedStudent?.studentId}</span>
+                                <span className="font-bold">{receiptContent?.student?.studentId}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Date:</span>
-                                <span>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                                <span>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Name:</span>
-                                <span className="font-bold uppercase">{selectedStudent?.name}</span>
+                                <span className="font-bold uppercase tracking-tighter">{receiptContent?.student?.name}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Guardian:</span>
-                                <span>{selectedStudent?.guardianName || 'N/A'}</span>
+                                <span className="opacity-70">{receiptContent?.student?.guardianName || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between border-t border-black pt-1 mt-2">
                                 <span>Term:</span>
-                                <span className="font-bold">{currentTrimester.season}-{currentTrimester.year}</span>
+                                <span className="font-bold">{receiptContent?.trimester?.season}-{receiptContent?.trimester?.year}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Class:</span>
-                                <span className="font-bold">{course?.title?.split(' - ')?.[0] || 'Unassigned'}</span>
+                                <span className="font-bold truncate max-w-[140px]">{receiptContent?.course?.title || receiptContent?.student?.grade || 'Unassigned'}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Timing:</span>
-                                <span>{course?.schedule || (course as any)?.classTiming || 'TBD'}</span>
+                                <span>{receiptContent?.course?.schedule || receiptContent?.student?.classTiming || 'TBD'}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Teacher:</span>
-                                <span className="font-bold uppercase">{course?.teacherName || 'Professional'}</span>
+                                <span className="font-bold uppercase">{receiptContent?.course?.teacherName || 'Professional Faculty'}</span>
                             </div>
                         </div>
 
-                        <table className="w-full mb-6 border-t-2 border-b-2 border-black py-2">
+                        <table className="w-full mb-6 border-t font-bold border-black border-dashed py-2">
                             <thead>
                                 <tr className="border-b border-black">
-                                    <th className="py-1 text-left">Fee Type</th>
-                                    <th className="py-1 text-right">Amount</th>
+                                    <th className="py-2 text-left text-[9px] uppercase">Fee Type</th>
+                                    <th className="py-2 text-right text-[9px] uppercase">Amount</th>
                                 </tr>
                             </thead>
-                            <tbody className="font-bold">
+                            <tbody className="text-[11px]">
                                 <tr>
                                     <td className="py-1">Tuition Fee:</td>
-                                    <td className="py-1 text-right">{payment?.totalAmount || 0}</td>
+                                    <td className="py-1 text-right">{receiptContent?.payment?.totalAmount || '2200'}</td>
                                 </tr>
                                 <tr>
                                     <td className="py-1">Admission Fee:</td>
@@ -496,38 +515,40 @@ export default function FeeRegistryPage() {
                                 </tr>
                                 <tr>
                                     <td className="py-1">Discount:</td>
-                                    <td className="py-1 text-right">{payment?.discount || 0}</td>
+                                    <td className="py-1 text-right">{receiptContent?.payment?.discount || '0'}</td>
                                 </tr>
-                                <tr className="border-t border-black pt-1">
+                                <tr className="border-t border-black pt-1 mt-1">
                                     <td className="py-1 uppercase">Total Fee:</td>
-                                    <td className="py-1 text-right">{ (payment?.totalAmount || 0) - (payment?.discount || 0) }</td>
+                                    <td className="py-1 text-right">{ (Number(receiptContent?.payment?.totalAmount) || 2200) - (Number(receiptContent?.payment?.discount) || 0) }</td>
                                 </tr>
                                 <tr>
                                     <td className="py-1 uppercase">Paid:</td>
-                                    <td className="py-1 text-right">{payment?.amountPaid || 0}</td>
+                                    <td className="py-1 text-right">{receiptContent?.payment?.amountPaid || '0'}</td>
                                 </tr>
-                                <tr className="border-t-2 border-black font-black">
-                                    <td className="py-1 uppercase">Dues:</td>
-                                    <td className="py-1 text-right">{Math.max(0, (payment?.totalAmount || 0) - (payment?.discount || 0) - (payment?.amountPaid || 0))}</td>
+                                <tr className="border-t-2 border-black font-black bg-gray-50">
+                                    <td className="py-1 uppercase px-1">Dues:</td>
+                                    <td className="py-1 text-right px-1">{Math.max(0, (Number(receiptContent?.payment?.totalAmount) || 2200) - (Number(receiptContent?.payment?.discount) || 0) - (Number(receiptContent?.payment?.amountPaid) || 0))}</td>
                                 </tr>
                             </tbody>
                         </table>
 
-                        <div className="text-center py-4 relative border-2 border-black mb-6">
-                            <span className="text-[14px] font-black uppercase tracking-tighter opacity-10 absolute inset-0 flex items-center justify-center -rotate-12">THE LEARNERS ACADEMY</span>
-                            <div className="relative border-4 border-primary/30 rounded-full w-24 h-24 mx-auto flex items-center justify-center text-primary font-black -rotate-12">
+                        <div className="text-center py-6 relative border-2 border-black rounded-lg mb-6 overflow-hidden">
+                            <div className="absolute inset-0 opacity-5 flex items-center justify-center -rotate-12 pointer-events-none">
+                                <span className="text-[14px] font-black uppercase text-center">THE LEARNERS ACADEMY OFFICIAL PROTOCOL</span>
+                            </div>
+                            <div className="relative border-4 border-primary/20 rounded-full w-20 h-20 mx-auto flex items-center justify-center text-primary font-black -rotate-12">
                                 <div className="text-center">
-                                    <p className="text-[12px] leading-tight">PAID</p>
-                                    <div className="w-full h-0.5 bg-primary/30 my-0.5" />
-                                    <p className="text-[6px]">VERIFIED</p>
+                                    <p className="text-[14px] leading-none mb-0.5">PAID</p>
+                                    <div className="w-full h-0.5 bg-primary/20 my-0.5" />
+                                    <p className="text-[6px] tracking-widest uppercase">Verified</p>
                                 </div>
                             </div>
-                            <p className="text-[8px] font-bold mt-2 uppercase tracking-widest">Received By</p>
+                            <p className="text-[9px] font-black mt-2 uppercase tracking-widest opacity-40">Received By Registrar</p>
                         </div>
 
-                        <div className="text-[7px] leading-snug space-y-2 text-center uppercase tracking-tighter">
-                            <p className="font-bold italic">"Registration process is completed. all fees paid are non-refundable under any circumstances."</p>
-                            <div className="flex justify-between opacity-50 px-4">
+                        <div className="text-[7.5px] leading-relaxed space-y-2 text-center uppercase tracking-tighter">
+                            <p className="font-bold border-b border-black pb-1 mb-1 italic">"Registration process is completed. all fees paid are non-refundable under any circumstances."</p>
+                            <div className="flex justify-between opacity-50 font-bold px-2">
                                 <span>Software By: NextLumira Solutions</span>
                                 <span>Office Copy</span>
                             </div>
@@ -535,15 +556,19 @@ export default function FeeRegistryPage() {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-4 pt-6">
+                <div className="flex flex-col gap-4 pt-4 pb-4">
                     <Button 
                         onClick={handlePrint}
-                        className="h-16 bg-primary hover:bg-primary/95 rounded-[1.75rem] shadow-xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-3"
+                        className="h-16 bg-primary hover:bg-primary/95 rounded-2xl shadow-xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-4 group/print"
                     >
-                        Send to Thermal Printer <Printer className="w-4 h-4 ml-2" />
+                        Send to Thermal Printer <Printer className="w-5 h-5 group-hover/print:rotate-12 transition-transform" />
                     </Button>
-                    <Button variant="ghost" onClick={() => setIsReceiptOpen(false)} className="text-[10px] uppercase tracking-widest font-bold opacity-30 hover:opacity-100 h-10">
-                        Close Preview
+                    <Button 
+                        variant="ghost" 
+                        onClick={() => setIsReceiptOpen(false)} 
+                        className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30 hover:opacity-100 h-10 transition-all"
+                    >
+                        Retract Protocol
                     </Button>
                 </div>
             </div>
