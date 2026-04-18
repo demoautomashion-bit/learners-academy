@@ -2,7 +2,7 @@
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState, useMemo } from 'react'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -21,22 +21,18 @@ import {
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import {
-  Calendar,
-  MapPin,
   Clock,
-  Search,
-  ChevronRight,
-  AlertTriangle,
+  MapPin,
+  Users,
   LayoutGrid,
-  History,
   Plus,
   ArrowRight,
   X,
-  Users,
   Sparkles,
-  Command,
   CheckCircle2,
-  BarChart
+  BarChart,
+  Command,
+  Trash2
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
@@ -46,19 +42,19 @@ import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { cn } from '@/lib/utils'
 import { SCHEDULE_SLOTS } from '@/lib/registry'
-import { motion, AnimatePresence } from 'framer-motion'
 
 export default function GlobalScheduleHubPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
   const { courses, teachers, schedules, addSchedule, removeSchedule, isInitialized } = useData()
   
-  const [selectedSlot, setSelectedSlot] = useState<{ roomId: string, slotId: string } | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   
   const [assignmentData, setAssignmentData] = useState({
+    slotId: '',
     courseId: '',
-    teacherId: ''
+    teacherId: '',
+    roomId: ''
   })
 
   // Static Room Registry
@@ -79,20 +75,21 @@ export default function GlobalScheduleHubPage() {
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
-  const handleSlotClick = (roomId: string, slotId: string) => {
-    setSelectedSlot({ roomId, slotId })
+  const handleCreateAssignment = () => {
+    setAssignmentData({ slotId: '', courseId: '', teacherId: '', roomId: '' })
     setIsDialogOpen(true)
   }
 
   const handleAssign = async () => {
-    if (!assignmentData.courseId || !assignmentData.teacherId || !selectedSlot) {
-        toast.error("Incomplete Protocol", { description: "Please select both a batch and a teacher." })
+    if (!assignmentData.courseId || !assignmentData.teacherId || !assignmentData.slotId || !assignmentData.roomId) {
+        toast.error("Incomplete Protocol", { description: "Please completely populate all slot assignment fields." })
         return
     }
 
     const course = courses.find(c => c.id === assignmentData.courseId)
     const teacher = teachers.find(t => t.id === assignmentData.teacherId)
-    const slot = SCHEDULE_SLOTS.find(s => s.id === selectedSlot.slotId)
+    const slot = SCHEDULE_SLOTS.find(s => s.id === assignmentData.slotId)
+    const room = rooms.find(r => r.id === assignmentData.roomId)
 
     try {
         await addSchedule({
@@ -100,15 +97,14 @@ export default function GlobalScheduleHubPage() {
             classTitle: course?.title || course?.name || 'Untitled Batch',
             teacherName: teacher?.name || 'Unassigned',
             timing: slot?.time || 'Timing TBD',
-            roomNumber: selectedSlot.roomId,
+            roomNumber: room?.id || 'TBD',
             days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-            slotId: selectedSlot.slotId
+            slotId: assignmentData.slotId
         })
         
         setIsDialogOpen(false)
-        setAssignmentData({ courseId: '', teacherId: '' })
         toast.active("Temporal Slot Allocated", {
-            description: `Batch ${course?.title || course?.name} assigned to Room ${selectedSlot.roomId}`,
+            description: `Batch ${course?.title || course?.name} assigned to Slot ${slot?.id}`,
             icon: <Sparkles className="w-4 h-4 text-primary" />
         })
     } catch (error) {
@@ -117,7 +113,7 @@ export default function GlobalScheduleHubPage() {
   }
 
   const handleRetract = async (scheduleId: string) => {
-     if (confirm("Retract this instructional assignment?")) {
+     if (confirm("Retract this instructional assignment from the slot?")) {
         try {
             await removeSchedule(scheduleId)
             toast.success("Assignment Retracted")
@@ -155,122 +151,119 @@ export default function GlobalScheduleHubPage() {
       />
 
       <div className="mt-16">
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between mb-8">
             <div className="space-y-1">
-                <h3 className="font-serif text-2xl font-medium tracking-tight">Schedule Matrix</h3>
-                <p className="text-xs text-muted-foreground opacity-40 italic">Active Room Utilization across class timings.</p>
+                <h3 className="font-serif text-2xl font-medium tracking-tight">Active Temporal Slots</h3>
+                <p className="text-xs text-muted-foreground opacity-40 italic">Modular temporal buckets packed with daily active operations.</p>
+            </div>
+            
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-6 py-2.5 bg-primary/5 border border-primary/10 rounded-xl hidden md:flex">
+                    <Command className="w-4 h-4 text-primary opacity-60" />
+                    <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-40">Modular Layout Active</span>
+                </div>
+                
+                <Button onClick={handleCreateAssignment} className="font-medium bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-11 px-8 rounded-xl font-normal">
+                    <Plus className="w-4 h-4 mr-2" /> Assign Class to Slot
+                </Button>
             </div>
         </div>
 
-        {/* The Matrix */}
-        <div className="relative overflow-x-auto rounded-[2.5rem] border border-primary/5 glass-1 shadow-2xl">
-            <table className="w-full border-collapse">
-                <thead>
-                    <tr className="bg-primary/[0.02] border-b border-primary/5">
-                        <th className="sticky left-0 z-20 bg-background/95 backdrop-blur-md p-10 text-left min-w-[240px] border-r border-primary/5">
-                            <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30">Architecture</span>
-                        </th>
-                        {SCHEDULE_SLOTS.map((slot) => (
-                            <th key={slot.id} className="p-10 text-center min-w-[280px] border-r border-primary/5 last:border-0">
-                                <div className="flex flex-col items-center gap-2">
-                                    <Clock className="w-4 h-4 text-primary opacity-40 mb-1" />
-                                    <span className="text-xs font-bold font-mono tracking-tight">{slot.time}</span>
-                                    <Badge variant="outline" className="text-[8px] font-black opacity-40 uppercase tracking-widest border-primary/10">Slot {slot.id}</Badge>
-                                </div>
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {rooms.map((room) => (
-                        <tr key={room.id} className="border-b border-primary/5 last:border-0 hover:bg-primary/[0.01] transition-colors">
-                            <td className="sticky left-0 z-10 bg-background/95 backdrop-blur-md p-10 border-r border-primary/5 group">
-                                <div className="flex items-center gap-6">
-                                    <div className="w-12 h-12 rounded-[1.25rem] bg-muted/20 flex items-center justify-center text-primary border border-primary/10 group-hover:scale-110 transition-transform">
-                                        <MapPin className="w-6 h-6" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-base font-medium">{room.name}</span>
-                                        <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-widest">{room.type}</span>
+        {/* Dynamic Slot Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {SCHEDULE_SLOTS.map((slot) => {
+                const assignedClasses = schedules.filter(s => s.slotId === slot.id)
+                
+                return (
+                    <Card key={slot.id} className="glass-1 hover-lift border-primary/10 shadow-premium overflow-hidden rounded-[2rem] flex flex-col relative h-full">
+                        {/* Slot Header */}
+                        <div className="p-6 pb-4 border-b border-primary/5 bg-primary/[0.01]">
+                            <div className="flex items-start justify-between mb-2">
+                                <div className="space-y-1">
+                                    <h4 className="font-serif font-bold text-xl text-primary">Slot {slot.id}</h4>
+                                    <div className="flex items-center gap-1.5 opacity-60">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        <span className="text-[10px] font-mono tracking-widest uppercase font-bold">{slot.time}</span>
                                     </div>
                                 </div>
-                            </td>
-                            {SCHEDULE_SLOTS.map((slot) => {
-                                const assignment = schedules.find(s => s.roomNumber === room.id && s.slotId === slot.id)
-                                return (
-                                    <td key={slot.id} className="p-3 border-r border-primary/5 last:border-0 group/cell align-top">
-                                        {assignment ? (
-                                            <motion.div 
-                                                initial={{ opacity: 0, scale: 0.95 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                className="relative h-full min-h-[100px] p-4 rounded-[1.25rem] bg-background border border-primary/10 hover:border-primary/30 transition-colors shadow-sm flex flex-col justify-between group/assigned overflow-hidden"
-                                            >
-                                                <div className="absolute top-0 left-0 w-1.5 h-full bg-primary/40 rounded-l-[1.25rem]" />
-                                                
-                                                <div className="pl-3 w-full">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <span className="text-sm font-serif font-medium leading-tight truncate pr-4">{assignment.classTitle}</span>
-                                                        <button 
-                                                            onClick={() => handleRetract(assignment.id)}
-                                                            className="opacity-0 group-hover/assigned:opacity-100 transition-opacity p-1 text-destructive hover:bg-destructive/10 rounded-md absolute top-3 right-3"
-                                                        >
-                                                            <X className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-                                                    
-                                                    <div className="flex flex-col gap-1.5 w-full">
-                                                        <div className="flex items-center gap-2 text-[10px]">
-                                                            <Clock className="w-3 h-3 text-indigo-400 opacity-80" />
-                                                            <span className="opacity-80 truncate">{assignment.timing || slot.time}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-[10px]">
-                                                            <MapPin className="w-3 h-3 text-amber-500 opacity-80" />
-                                                            <span className="opacity-80 truncate">Room {assignment.roomNumber || room.id}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-[10px]">
-                                                            <Users className="w-3 h-3 text-primary opacity-80" />
-                                                            <span className="opacity-80 truncate">{assignment.teacherName}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        ) : (
+                                <Badge variant="outline" className="text-[9px] uppercase font-black opacity-50 px-2 py-0.5">
+                                    {assignedClasses.length} Active
+                                </Badge>
+                            </div>
+                        </div>
+                        
+                        {/* Slot Body: Packed Classes */}
+                        <div className="p-6 flex-1 bg-background/30 flex flex-col gap-3">
+                            {assignedClasses.length > 0 ? (
+                                assignedClasses.map(assignment => (
+                                    <div key={assignment.id} className="relative group p-4 rounded-2xl border border-primary/5 bg-background shadow-sm hover:border-primary/20 transition-all">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className="font-serif font-medium leading-tight text-sm pr-6">{assignment.classTitle}</span>
                                             <button 
-                                                onClick={() => handleSlotClick(room.id, slot.id)}
-                                                className="w-full h-full min-h-[100px] rounded-[1.25rem] border border-dashed border-primary/10 hover:border-primary/40 hover:bg-primary/[0.02] flex flex-col items-center justify-center gap-2 transition-all group/empty opacity-20 hover:opacity-100 bg-transparent"
+                                                onClick={() => handleRetract(assignment.id)}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3 p-1.5 text-destructive/60 hover:text-destructive hover:bg-destructive/10 rounded-lg"
                                             >
-                                                <div className="w-8 h-8 rounded-lg bg-muted/20 flex items-center justify-center group-hover/empty:scale-110 transition-transform">
-                                                    <Plus className="w-4 h-4 text-primary" />
-                                                </div>
-                                                <span className="text-[9px] uppercase tracking-widest font-bold">Assign</span>
+                                                <Trash2 className="w-3.5 h-3.5" />
                                             </button>
-                                        )}
-                                    </td>
-                                )
-                            })}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between mt-auto">
+                                            <div className="flex items-center gap-1.5">
+                                                <Users className="w-3 h-3 text-indigo-400 opacity-80" />
+                                                <span className="text-[10px] opacity-70 uppercase tracking-widest font-black truncate max-w-[100px]">{assignment.teacherName}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <MapPin className="w-3 h-3 text-amber-500 opacity-80" />
+                                                <span className="text-[10px] opacity-70 uppercase tracking-widest font-black text-amber-600 dark:text-amber-500">Room {assignment.roomNumber}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center p-6 text-center opacity-30 h-full min-h-[120px] rounded-2xl border border-dashed border-primary/10">
+                                    <LayoutGrid className="w-6 h-6 mb-2 text-primary" />
+                                    <p className="text-[10px] uppercase font-black tracking-widest">Temporal Void</p>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                )
+            })}
         </div>
       </div>
 
-      {/* Assignment Dialog */}
+      {/* Modern Assignment Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[420px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
             <div className="p-6 space-y-6">
                 <DialogHeader>
-                    <DialogTitle className="font-serif text-2xl font-medium tracking-tight">Assign Class</DialogTitle>
+                    <DialogTitle className="font-serif text-2xl font-medium tracking-tight">Assign to Slot</DialogTitle>
                 </DialogHeader>
 
                 <div className="flex flex-col gap-4">
-                    <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Class</Label>
+                    {/* Select Temporal Slot */}
+                    <div className="space-y-2 group">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Target Slot</Label>
+                        <Select onValueChange={(v) => setAssignmentData(prev => ({ ...prev, slotId: v }))}>
+                            <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm font-medium focus:ring-primary/20">
+                                <SelectValue placeholder="Select Temporal Slot..." />
+                            </SelectTrigger>
+                            <SelectContent className="glass-2 border-white/5">
+                                {SCHEDULE_SLOTS.map((slot) => (
+                                    <SelectItem key={slot.id} value={slot.id}>Slot {slot.id} / {slot.time}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Select Class */}
+                    <div className="space-y-2 group">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Class</Label>
                         <Select onValueChange={(v) => setAssignmentData(prev => ({ ...prev, courseId: v }))}>
-                            <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                            <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm font-medium focus:ring-primary/20">
                                 <SelectValue placeholder="Select class..." />
                             </SelectTrigger>
-                            <SelectContent className="glass-2 border-white/5 p-2">
+                            <SelectContent className="glass-2 border-white/5">
                                 {courses.map((course) => (
                                     <SelectItem key={course.id} value={course.id}>{course.title || course.name}</SelectItem>
                                 ))}
@@ -278,27 +271,43 @@ export default function GlobalScheduleHubPage() {
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Teacher</Label>
+                    {/* Select Teacher */}
+                    <div className="space-y-2 group">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Teacher</Label>
                         <Select onValueChange={(v) => setAssignmentData(prev => ({ ...prev, teacherId: v }))}>
-                            <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                            <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm font-medium focus:ring-primary/20">
                                 <SelectValue placeholder="Select teacher..." />
                             </SelectTrigger>
-                            <SelectContent className="glass-2 border-white/5 p-2">
+                            <SelectContent className="glass-2 border-white/5">
                                 {teachers.filter(t => t.status === 'active').map((teacher) => (
                                     <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
+                    
+                    {/* Select Room */}
+                    <div className="space-y-2 group">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1 group-focus-within:text-primary transition-colors">Room Assignment</Label>
+                        <Select onValueChange={(v) => setAssignmentData(prev => ({ ...prev, roomId: v }))}>
+                            <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm font-medium focus:ring-primary/20">
+                                <SelectValue placeholder="Select room..." />
+                            </SelectTrigger>
+                            <SelectContent className="glass-2 border-white/5">
+                                {rooms.map((room) => (
+                                    <SelectItem key={room.id} value={room.id}>{room.name} ({room.type})</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
-                <div className="flex flex-col gap-4 pt-3">
+                <div className="flex flex-col gap-4 pt-4">
                     <Button 
                         onClick={handleAssign}
-                        className="w-full h-12 bg-primary hover:bg-primary/95 text-white rounded-xl shadow-xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-3 relative overflow-hidden group/submit"
+                        className="w-full h-12 bg-primary hover:bg-primary/95 text-white rounded-xl shadow-xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-2 relative overflow-hidden group/submit"
                     >
-                        <span className="relative z-10 flex items-center gap-2">Confirm <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-2 transition-transform" /></span>
+                        <span className="relative z-10 flex items-center gap-2">Initialize Slot Assignment <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-1 transition-transform" /></span>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/submit:animate-shimmer" />
                     </Button>
                     <Button 
