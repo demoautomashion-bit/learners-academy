@@ -37,8 +37,7 @@ import {
   Download,
   BarChart3,
   TrendingUp,
-  CheckPlus,
-  PlaySquare
+  ListChecks
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
@@ -307,7 +306,7 @@ export default function AttendanceRegistryPage() {
                         onClick={handleMarkAllPresent}
                         className="bg-success text-white shadow-lg shadow-success/20 h-14 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3 font-medium cursor-pointer"
                     >
-                        <CheckPlus className="w-5 h-5" />
+                        <ListChecks className="w-5 h-5" />
                         Mark All Present
                     </Button>
                 </div>
