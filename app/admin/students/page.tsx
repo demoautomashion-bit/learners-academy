@@ -33,7 +33,8 @@ import {
   Clock,
   ArrowUpRight,
   LayoutGrid,
-  TrendingUp
+  TrendingUp,
+  ShieldCheck
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
