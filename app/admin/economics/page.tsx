@@ -2,6 +2,7 @@
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -50,7 +51,8 @@ import {
   TrendingDown,
   Calendar,
   Wallet,
-  Coins
+  Coins,
+  FileText
 } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
 import { cn } from '@/lib/utils'
@@ -72,7 +74,7 @@ export default function EconomicsAuditorPage() {
   const { economics, feePayments, addExpenditure, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('monthly')
-  const [isLogOpen, setIsLogOpen] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [logData, setLogData] = useState({ amount: '', category: '', description: '' })
 
   const currentTrimester = useMemo(() => getActiveTrimester(), [])
@@ -131,7 +133,7 @@ export default function EconomicsAuditorPage() {
             date: new Date().toISOString()
         })
         
-        setIsLogOpen(false)
+        setIsDialogOpen(false)
         setLogData({ amount: '', category: '', description: '' })
         toast.success("Outflow Logged")
     } catch (error) {
@@ -291,7 +293,7 @@ export default function EconomicsAuditorPage() {
                                 >
                                     Commit Log Entry <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-2 transition-transform" />
                                 </Button>
-                                <Button variant="ghost" onClick={() => setIsLogOpen(false)} className="text-[10px] uppercase tracking-widest font-black opacity-30 hover:opacity-100">
+                                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-[10px] uppercase tracking-widest font-black opacity-30 hover:opacity-100">
                                     Retract Entry
                                 </Button>
                             </div>
