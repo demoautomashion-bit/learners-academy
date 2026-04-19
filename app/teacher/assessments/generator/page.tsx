@@ -142,7 +142,7 @@ export default function AssessmentGeneratorPage() {
 
   const onSubmit = async (data: AssessmentFormValues) => {
     if (availableBlocks.length === 0) {
-      toast.error(`Fatal: No institutional blocks found for phase ${data.phase}. Creation aborted.`)
+      toast.error(`Fatal: No questions found for phase ${data.phase}. Creation aborted.`)
       return
     }
 
@@ -170,8 +170,8 @@ export default function AssessmentGeneratorPage() {
     try {
       await publishAssessment(newAssessment)
       toast.success(requiresReview 
-        ? "Test submitted for administrative review."
-        : "Test successfully created and published locally."
+        ? "Test submitted for review."
+        : "Test successfully created."
       )
       router.push('/teacher/assessments')
     } catch (err) {
@@ -193,7 +193,7 @@ export default function AssessmentGeneratorPage() {
             className="hover:bg-primary/5 text-primary p-0 h-auto font-normal opacity-60 group transition-all"
         >
             <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
-            <span className="text-xs font-normal">Exit Creator</span>
+            <span className="text-xs font-normal">Exit</span>
         </Button>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div className="space-y-1">
@@ -222,7 +222,7 @@ export default function AssessmentGeneratorPage() {
                   <div className="flex items-center justify-between">
                      <div className="space-y-1">
                         <CardTitle className="text-2xl font-serif text-foreground/80 font-medium">Setup & Configuration</CardTitle>
-                        <CardDescription className="text-xs font-normal opacity-40 italic">Set the basic parameters for your assessment.</CardDescription>
+                        <CardDescription className="text-xs font-normal opacity-40 italic">Set the basic settings for your test.</CardDescription>
                      </div>
                      <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary/30">
                         <Settings className="w-5 h-5" />
@@ -233,7 +233,7 @@ export default function AssessmentGeneratorPage() {
                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                        <div className="space-y-8">
                           <div className="space-y-3">
-                             <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Assessment Title</label>
+                             <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Test Title</label>
                              <Input 
                                 {...register('title')}
                                 placeholder="e.g. Mid-Term Mock Test"
@@ -265,7 +265,7 @@ export default function AssessmentGeneratorPage() {
                                 <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Assigned Group</label>
                                 <Select onValueChange={(val) => setValue('courseId', val)}>
                                    <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
-                                      <SelectValue placeholder="Select Class/Batch" />
+                                      <SelectValue placeholder="Select Class" />
                                    </SelectTrigger>
                                    <SelectContent className="glass-2 border-primary/5 rounded-2xl">
                                       {myClasses?.map(c => (
@@ -281,7 +281,7 @@ export default function AssessmentGeneratorPage() {
                                 <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Question Format</label>
                                 <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
                                    <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
-                                      <SelectValue placeholder="Identify Format" />
+                                      <SelectValue placeholder="Select Format" />
                                    </SelectTrigger>
                                    <SelectContent className="glass-2 border-primary/5 rounded-2xl max-h-[300px]">
                                       <SelectItem value="Mixed" className="rounded-xl py-3">Comprehensive (Mixed)</SelectItem>
@@ -297,7 +297,7 @@ export default function AssessmentGeneratorPage() {
                                 </Select>
                              </div>
                              <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Question Volume</label>
+                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Number of Questions</label>
                                 <div className="relative">
                                    <Input 
                                       type="number"
@@ -306,7 +306,7 @@ export default function AssessmentGeneratorPage() {
                                    />
                                    <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none opacity-20">
                                       <Zap className="w-3.5 h-3.5 text-primary" />
-                                      <span className="text-[10px] font-bold uppercase tracking-widest">Slots</span>
+                                      <span className="text-[10px] font-bold uppercase tracking-widest">Questions</span>
                                    </div>
                                 </div>
                              </div>
@@ -354,7 +354,7 @@ export default function AssessmentGeneratorPage() {
 
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-10 border-t border-primary/5">
                         <div className="space-y-3">
-                           <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Access Token</label>
+                           <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Test Access Code</label>
                            <div className="flex gap-2">
                               <Input 
                                  {...register('accessCode')}
@@ -430,13 +430,13 @@ export default function AssessmentGeneratorPage() {
                 <CardHeader className="p-8 bg-primary/5 border-b border-primary/5 space-y-3">
                     <div className="flex items-center gap-3 text-primary/60">
                         <Terminal className="w-5 h-5" />
-                        <CardTitle className="font-serif text-xl font-medium tracking-tight">Question Stats</CardTitle>
+                        <CardTitle className="font-serif text-xl font-medium tracking-tight">Question Bank Stats</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="p-8 space-y-8">
                    <div className="space-y-4">
                       <div className="flex items-baseline justify-between mb-2">
-                         <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Database Pool</span>
+                         <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Questions Available</span>
                          <span className="text-4xl font-sans font-light">{availableBlocks.length}</span>
                       </div>
                       <Progress value={Math.min((availableBlocks.length / 50) * 100, 100)} className="h-1.5 bg-primary/5" />

@@ -171,8 +171,8 @@ export default function AssessmentWorkspacePage() {
                     <table className="w-full text-sm">
                         <thead className="bg-muted/10 border-b  h-16">
                             <tr>
-                                <th className="px-8 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Candidate Registry</th>
-                                <th className="px-8 py-4 text-left text-xs font-normal   text-muted-foreground opacity-60">Session status</th>
+                                <th className="px-8 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Student List</th>
+                                <th className="px-8 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Score</th>
                                 <th className="px-8 py-4 text-right text-xs font-normal   text-muted-foreground opacity-60">Action</th>
                             </tr>
                         </thead>
@@ -199,7 +199,7 @@ export default function AssessmentWorkspacePage() {
                                                     <CheckCircle2 className="w-4 h-4 text-success" />
                                                     <span className="font-sans font-normal text-base">{s.grade} <span className="opacity-20">/ {assessment.totalMarks}</span></span>
                                                 </div>
-                                                <span className="text-xs text-success/70   mt-1">Audit Verified</span>
+                                                <span className="text-xs text-success/70   mt-1">Graded</span>
                                             </div>
                                         ) : s.status === 'pending' ? (
                                             <Badge variant="secondary" className="bg-warning/5 text-warning border-warning/10 h-7 px-4  text-xs  font-normal ">
@@ -208,7 +208,7 @@ export default function AssessmentWorkspacePage() {
                                         ) : (
                                             <div className="flex items-center gap-2 text-muted-foreground italic">
                                                 <Clock className="w-3.5 h-3.5 opacity-40" />
-                                                <span className="text-xs">Candidate has not initiated.</span>
+                                                <span className="text-xs">Student has not started the test.</span>
                                             </div>
                                         )}
                                     </td>
@@ -225,7 +225,7 @@ export default function AssessmentWorkspacePage() {
                                                 className="h-11  px-6 group/btn transition-all"
                                             >
                                                 <span className="text-xs   font-normal">
-                                                    {s.status === 'pending' ? 'Execute Audit' : 'Edit Analysis'}
+                                                    {s.status === 'pending' ? 'Mark Paper' : 'Edit Marks'}
                                                 </span>
                                                 <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                                             </Button>
@@ -246,8 +246,8 @@ export default function AssessmentWorkspacePage() {
         <div className="lg:col-span-4 space-y-6">
             <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
                 <CardHeader className="bg-primary/5 border-b  py-6">
-                    <CardTitle className="font-serif text-xl font-medium">Assessment Schema</CardTitle>
-                    <CardDescription className="text-xs text-muted-foreground font-normal">Core parameters for this examination block.</CardDescription>
+                    <CardTitle className="font-serif text-xl font-medium">Student Answer Sheet</CardTitle>
+                    <CardDescription className="text-xs font-normal opacity-40">Marking student submission manually.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6 flex-1">
                     <div className="space-y-4">
@@ -299,8 +299,8 @@ export default function AssessmentWorkspacePage() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0  ">
           <div className="bg-primary/5 p-8 border-b  flex items-center justify-between">
             <div className="space-y-1">
-              <DialogTitle className="font-serif text-3xl font-normal">Evaluation Audit: {selectedSubmission?.studentName}</DialogTitle>
-              <DialogDescription className="text-editorial-meta text-xs">Technical review of examination block {selectedSubmission?.id}</DialogDescription>
+              <DialogTitle className="font-serif text-3xl font-normal">Mark Results</DialogTitle>
+              <DialogDescription className="text-editorial-meta text-xs">Review student answers and provide feedback.</DialogDescription>
             </div>
             <Badge className="bg-background  text-primary  text-xs font-normal  h-7 px-4">
               ID: {selectedSubmission?.studentId}
@@ -361,7 +361,7 @@ export default function AssessmentWorkspacePage() {
                   </div>
 
                   <div className="space-y-4">
-                     <label className="text-xs font-normal text-muted-foreground">Qualitative Feedback</label>
+                     <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Comments</label>
                      <Textarea 
                         placeholder="Write formal feedback for the student and student's guardian..." 
                         value={feedbackInput}

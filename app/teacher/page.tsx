@@ -61,7 +61,7 @@ export default function TeacherDashboard() {
       color: 'text-primary',
     },
     {
-      title: 'Library Blocks',
+      title: 'Question Bank',
       value: questions.length,
       icon: Library,
       href: '/teacher/library',
@@ -87,18 +87,18 @@ export default function TeacherDashboard() {
     <PageShell>
       <PageHeader 
         title={`Welcome, ${(String(user?.name || 'Teacher')).split(' ').filter(Boolean)[0] || 'Teacher'}`}
-        description="Orchestrating academic excellence through precision insights."
+        description="Manage your classes and track student progress with ease."
         actions={
           <div className="flex gap-2">
             <Button variant="outline" asChild className="hover-lift font-normal">
               <Link href="/teacher/library" className="flex items-center text-xs">
                 <Plus className="w-4 h-4 mr-2" />
-                Build Block
+                Add Question
               </Link>
             </Button>
             <Button asChild className="hover-lift font-normal shadow-lg shadow-primary/20">
               <Link href="/teacher/assessments" className="text-xs">
-                Initiate Test
+                Create New Test
               </Link>
             </Button>
           </div>
@@ -122,7 +122,7 @@ export default function TeacherDashboard() {
                 <div className="text-3xl font-sans font-normal">{stat.value}</div>
                 <div className="flex items-center gap-1.5 mt-2 opacity-40">
                   <div className="h-1 w-1 bg-primary/40" />
-                  <span className="text-[10px] text-muted-foreground font-normal">Institutional Data</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">Live Data</span>
                 </div>
               </CardContent>
             </Card>
@@ -141,7 +141,7 @@ export default function TeacherDashboard() {
               </div>
               <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10 transition-premium group">
                 <Link href="/teacher/assessments" className="flex items-center text-xs font-normal">
-                  View Registry
+                  View All Tests
                   <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
@@ -149,7 +149,7 @@ export default function TeacherDashboard() {
             <CardContent className="p-6 space-y-4 flex-1">
               {activeTests.length === 0 ? (
                 <div className="py-8 text-center bg-muted/5 border border-dashed rounded-xl">
-                  <p className="text-xs font-normal text-muted-foreground opacity-60">No Live Encounters</p>
+                  <p className="text-xs font-normal text-muted-foreground opacity-60">No Active Tests</p>
                 </div>
               ) : (
                 activeTests.slice(0, 3).map((assessment) => {
@@ -171,12 +171,12 @@ export default function TeacherDashboard() {
                           </p>
                         </div>
                         <Badge variant="outline" className="text-[10px] font-normal text-primary bg-primary/5">
-                          Registry Active
+                          Test Live
                         </Badge>
                       </div>
                       <div className="space-y-2 mt-4">
                         <div className="flex items-center justify-between text-[10px] text-muted-foreground font-normal opacity-60">
-                          <span>Capture Census</span>
+                          <span>Students Submitted</span>
                           <span>{subCount}/{enrolledCount}</span>
                         </div>
                         <Progress value={Math.min(100, (subCount / safeTotal) * 100)} className="h-1 bg-primary/10" />

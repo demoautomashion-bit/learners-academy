@@ -21,7 +21,7 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
     const matchingCourses = await db.course.findMany({
       where: {
         level: student.grade,
-        timing: student.classTiming,
+        schedule: student.classTiming,
         status: 'active'
       }
     })

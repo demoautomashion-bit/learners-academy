@@ -77,16 +77,16 @@ export default function TeacherStudentsPage() {
   }).length
 
   const stats = [
-    { label: 'Enrolled Candidates', value: studentsInTeacherCourses.length, icon: Users },
-    { label: 'Institutional Pass Rate', value: `${passRate}%`, icon: TrendingUp, color: 'text-success' },
-    { label: 'Dossier Distinctions', value: distinctions, icon: Award, color: 'text-warning' },
+    { label: 'Total Students', value: studentsInTeacherCourses.length, icon: Users },
+    { label: 'Class Pass Rate', value: `${passRate}%`, icon: TrendingUp, color: 'text-success' },
+    { label: 'Top Performers', value: distinctions, icon: Award, color: 'text-warning' },
   ]
 
   return (
     <PageShell>
       <PageHeader 
-        title="Student Registry"
-        description="Institutional management for academic dossiers and pupil intelligence reports."
+        title="Students"
+        description="Manage student profiles and track performance reports."
       />
 
       <EntityCardGrid 
@@ -110,7 +110,7 @@ export default function TeacherStudentsPage() {
           <div className="relative max-w-sm flex-1">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-30" />
             <Input
-              placeholder="Search student ID or identity..."
+              placeholder="Search by student name or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-11 h-12 text-sm bg-muted/5 font-normal"
@@ -138,8 +138,8 @@ export default function TeacherStudentsPage() {
         <Card className="overflow-hidden hover-lift transition-premium">
           <CardHeader className="p-10 border-b flex flex-row items-center justify-between">
              <div className="space-y-1">
-                <CardTitle className="font-serif text-xl font-medium">Candidate Profiles</CardTitle>
-                <CardDescription className="text-xs font-normal opacity-60">Review academic dossiers and evaluate pupil performance.</CardDescription>
+                <CardTitle className="font-serif text-xl font-medium">Student Profiles</CardTitle>
+                <CardDescription className="text-xs font-normal opacity-60">View student details and track their learning progress.</CardDescription>
              </div>
              <div className="p-2 rounded-lg bg-primary/5 opacity-40">
                   <Users className="w-4 h-4 text-primary" />
@@ -151,7 +151,7 @@ export default function TeacherStudentsPage() {
                 <div className="bg-primary/5 p-8 w-fit mx-auto mb-6 border rounded-2xl">
                   <Users className="w-12 h-12 text-primary/30" />
                 </div>
-                <p className="font-serif text-2xl opacity-40 font-normal">No academic candidates found in selected registry.</p>
+                <p className="font-serif text-2xl opacity-40 font-normal">No students found matching your search.</p>
               </div>
             ) : (
               <EntityCardGrid 
@@ -188,14 +188,14 @@ export default function TeacherStudentsPage() {
                           
                           <div className="pt-6 border-t space-y-4">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-normal opacity-40 uppercase">Institutional Mastery</span>
-                              <span className="text-base font-serif font-normal text-primary">{progress}%</span>
+                               <span className="text-[10px] font-normal opacity-40 uppercase">Course Progress</span>
+                               <span className="text-base font-serif font-normal text-primary">{progress}%</span>
                             </div>
                             <Progress value={progress} className="h-1 bg-primary/10" />
                           </div>
                           
                           <Button variant="ghost" className="w-full justify-between h-10 bg-primary/5 hover:bg-primary text-primary hover:text-white transition-all font-normal text-[10px]">
-                            Deep Audit Intelligence
+                            View Full Profile
                             <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                           </Button>
                         </div>

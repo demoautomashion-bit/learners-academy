@@ -89,12 +89,11 @@ export default function StudentRegistrationPage() {
         enrolledCourses: [],
         id: crypto.randomUUID()
       } as any)
-      toast.active("Candidate identity established", {
-          description: "New learner has been formalized in the institutional registry."
-      })
+      // Note: the enrollStudent action already triggers a success toast
       router.push('/admin/students')
-    } catch (error) {
-      toast.error("Admission Registry Interrupted")
+    } catch (error: any) {
+      // If executeAction already showed a toast, we don't need a second one here unless custom
+      console.error('Registration failed:', error)
     }
   }
 

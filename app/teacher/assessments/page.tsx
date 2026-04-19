@@ -55,19 +55,19 @@ export default function AssessmentsPage() {
   return (
     <PageShell>
       <PageHeader 
-        title="Personal Test Registry"
-        description="Private portal to coordinate and manage your generated assessments."
+        title="My Assessments"
+        description="Manage the tests you've created for your classes."
         actions={
           <div className="flex gap-2">
             <Button variant="outline" asChild className="hover-lift font-normal">
               <Link href="/teacher/library" className="flex items-center text-xs">
                 <Plus className="w-4 h-4 mr-2" />
-                Build Block
+                Add Question
               </Link>
             </Button>
             <Button asChild className="hover-lift font-normal shadow-lg shadow-primary/20">
               <Link href="/teacher/assessments/generator" className="text-xs">
-                Initiate Registry
+                New Test
               </Link>
             </Button>
           </div>
@@ -78,7 +78,7 @@ export default function AssessmentsPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40 transition-premium" />
           <Input 
-            placeholder="Search registry by title..." 
+            placeholder="Search tests by title..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-12 text-sm transition-premium focus:ring-1 focus:ring-primary/20 bg-muted/5 font-normal"
@@ -133,7 +133,7 @@ export default function AssessmentsPage() {
                 <div className="flex items-center justify-between p-4 bg-muted/5 border group/token relative overflow-hidden transition-premium">
                   <div className="absolute inset-0 bg-primary/[0.02] opacity-0 group-hover/token:opacity-100 transition-opacity" />
                   <div className="relative z-10 flex flex-col">
-                    <span className="text-[10px] font-normal text-muted-foreground opacity-40">Access Token</span>
+                    <span className="text-[10px] font-normal text-muted-foreground opacity-40">Student Test Code</span>
                     <span className="font-mono text-sm font-normal text-primary mt-1">{assessment.accessCode}</span>
                   </div>
                   <div className="relative z-10 flex items-center gap-4">
@@ -146,9 +146,9 @@ export default function AssessmentsPage() {
                                 const newStatus = checked ? 'active' : 'archived'
                                 try {
                                   await updateAssessmentStatus(assessment.id, newStatus as any)
-                                  toast.success(`Registry entry ${checked ? 'Activated' : 'Suspended'}`)
+                                  toast.success(`Test ${checked ? 'Activated' : 'Hidden'}`)
                                 } catch (err: any) {
-                                  toast.error('Failed to shift registry status')
+                                  toast.error('Failed to change test status')
                                 }
                               }}
                               className="scale-75 data-[state=checked]:bg-primary"
@@ -176,7 +176,7 @@ export default function AssessmentsPage() {
 
                 {assessment.status === 'draft' && assessment.adminFeedback && (
                   <div className="border-l-4 border-warning/60 bg-warning/5 p-6">
-                    <p className="text-[10px] font-normal text-warning mb-2">Revision Directive</p>
+                    <p className="text-[10px] font-normal text-warning mb-2">Required Revision</p>
                     <p className="text-sm italic text-muted-foreground leading-relaxed font-normal">"{assessment.adminFeedback}"</p>
                   </div>
                 )}
@@ -186,7 +186,7 @@ export default function AssessmentsPage() {
                     onClick={() => router.push(`/teacher/results/${assessment.id}`)}
                     className="w-full group h-10 bg-primary/5 hover:bg-primary text-primary hover:text-white border transition-all shadow-sm font-normal text-[10px]"
                   >
-                    Inspect Result
+                    View Results
                     <ArrowRight className="w-4 h-4 ml-3 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </div>
@@ -198,7 +198,7 @@ export default function AssessmentsPage() {
                <div className="bg-primary/5 p-8 w-fit mx-auto border mb-6 rounded-2xl">
                   <ClipboardList className="w-12 h-12 text-primary opacity-20" />
                </div>
-               <p className="text-2xl font-serif text-muted-foreground opacity-30 font-normal">No active assessments in current registry.</p>
+               <p className="text-2xl font-serif text-muted-foreground opacity-30 font-normal">No tests found in your library.</p>
             </div>
           }
           columns={3}
