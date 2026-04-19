@@ -14,7 +14,7 @@ interface ReceiptContentProps {
     title: string
     teacherName?: string
   }
-  type: 'OFFICE COPY' | 'STUDENT COPY'
+  type: string
   receiptId: string
   address: string
   tuitionFee?: number
@@ -24,6 +24,7 @@ interface ReceiptContentProps {
   paid?: number
   dues?: number
   term?: string
+  paperSize?: '80mm' | '58mm'
 }
 
 export function ReceiptContent({
@@ -39,15 +40,17 @@ export function ReceiptContent({
   paid = 0,
   dues,
   term,
+  paperSize = '80mm'
 }: ReceiptContentProps) {
   const now = new Date()
-  const dateStr = format(now, 'dd MMMM yyyy')
+  const dateStr = format(now, 'dd MMM yyyy')
+  const timeStr = format(now, 'hh:mm a')
 
   const computedTotal = totalFee ?? (tuitionFee + admissionFee - discount)
   const computedDues = dues ?? (computedTotal - paid)
 
   const feeRows = [
-    { label: 'Tution Fee:', value: tuitionFee },
+    { label: 'Tuition Fee:', value: tuitionFee },
     { label: 'Admission Fee:', value: admissionFee },
     { label: 'Discount:', value: discount },
     { label: 'Total Fee:', value: computedTotal, bold: true },
@@ -56,103 +59,120 @@ export function ReceiptContent({
   ]
 
   return (
-    <div className="w-[72mm] bg-white text-black font-mono text-[10.5px] leading-tight selection:bg-transparent print:p-0">
+    <div 
+      className="bg-white text-black font-mono leading-tight selection:bg-transparent print:p-0 mx-auto overflow-hidden break-words text-[10.5px]"
+      style={{ width: paperSize, minWidth: 0 }}
+    >
+      {/* HEADER SECTION */}
+      <div className="flex items-start pb-2 border-b border-black border-dashed mt-1">
+        <div className="w-[14mm] shrink-0 pt-1">
+          {/* Logo container matching specific exact dimensions */}
+          <img src="/placeholder-logo.svg" alt="Logo" className="w-[12mm] h-[12mm] object-contain grayscale" />
+        </div>
+        <div className="flex-1 text-center pr-[14mm] flex flex-col items-center justify-center">
+          <h1 className="font-bold uppercase text-[12px] leading-tight text-black">THE LEARNERS ACADEMY</h1>
+          <h2 className="font-bold uppercase text-[10px] leading-tight mt-0.5 text-black">English Language Program</h2>
+          <p className="text-[9px] mt-1 leading-snug font-medium text-black">{address}</p>
+          <p className="text-[9px] leading-snug font-medium text-black">+92-3083663386 / +92-3110456933</p>
+        </div>
+      </div>
 
-      {/* ── HEADER ─────────────────────────────────────────── */}
-      <div className="text-center pb-2 border-b border-black border-dashed">
-        {/* Emblem */}
-        <div className="flex justify-center mb-1.5 pt-2">
-          <div className="w-[38px] h-[38px] rounded-full border-2 border-black flex items-center justify-center relative">
-            <div className="w-[30px] h-[30px] rounded-full border border-black flex items-center justify-center">
-              <span className="text-[7px] font-black uppercase leading-[9px] text-center tracking-tighter">TLA</span>
-            </div>
+      {/* STUDENT INFO SECTION */}
+      <div className="pt-2 pb-1.5 flex flex-col gap-[1px] text-black w-full">
+        <div className="flex justify-between items-start w-full">
+          <div className="flex-1 flex justify-between pr-2">
+             <span className="font-bold shrink-0">Student&apos;s ID:</span>
+             <span className="text-right flex-1 break-words ml-2">{student.studentId || 'N/A'}</span>
+          </div>
+          <div className="shrink-0 w-[26mm] flex justify-between pl-1">
+             <span className="font-bold">Date:</span>
+             <span className="text-right whitespace-nowrap">{dateStr}</span>
           </div>
         </div>
-        <h1 className="font-black uppercase text-[12px] tracking-tight leading-tight">The Learners Academy</h1>
-        <p className="text-[9px] font-bold uppercase tracking-wide leading-tight">{course.title || 'English Language Program'}</p>
-        <p className="text-[8px] leading-snug mt-0.5 opacity-80">Address: {address}</p>
-        <p className="text-[8px] opacity-80">Phone: +92-3083663386 / +92-3110456933</p>
-      </div>
 
-      {/* ── STUDENT INFO ───────────────────────────────────── */}
-      <div className="pt-2 pb-1.5 space-y-[3px]">
-        {/* Student ID + Date on same line */}
-        <div className="flex justify-between">
-          <span><span className="font-bold">Student&apos;s ID:</span> {student.studentId || 'N/A'}</span>
-          <span><span className="font-bold">Date:</span> {dateStr}</span>
-        </div>
-        <div className="flex gap-1">
+        <div className="flex justify-between w-full">
           <span className="font-bold shrink-0">Name:</span>
-          <span>{student.name}</span>
+          <span className="text-right flex-1 break-words ml-2">{student.name}</span>
         </div>
-        <div className="flex gap-1">
+        
+        <div className="flex justify-between w-full">
           <span className="font-bold shrink-0">Father&apos;s Name:</span>
-          <span>{student.guardianName || 'N/A'}</span>
+          <span className="text-right flex-1 break-words ml-2">{student.guardianName || 'N/A'}</span>
         </div>
-        <div className="flex gap-1">
+
+        <div className="flex justify-between w-full">
           <span className="font-bold shrink-0">Term:</span>
-          <span>{term || 'Spring-2026'}</span>
+          <span className="text-right flex-1 break-words ml-2">{term || 'Spring-2026'}</span>
         </div>
-        <div className="flex gap-1">
+
+        <div className="flex justify-between w-full">
           <span className="font-bold shrink-0">Class:</span>
-          <span>{course.title}</span>
+          <span className="text-right flex-1 break-words ml-2">{course.title}</span>
         </div>
-        <div className="flex gap-1">
+
+        <div className="flex justify-between w-full">
           <span className="font-bold shrink-0">Timing:</span>
-          <span>{student.classTiming || 'TBC'}</span>
+          <span className="text-right flex-1 break-words ml-2">{student.classTiming || '-'}</span>
         </div>
-        <div className="flex gap-1">
-          <span className="font-bold shrink-0">Teacher:</span>
-          <span>{course.teacherName || 'TBC'}</span>
+
+        <div className="flex justify-between items-start w-full">
+          <div className="flex-1 flex justify-between pr-2">
+             <span className="font-bold shrink-0">Teacher:</span>
+             <span className="text-right flex-1 break-words ml-2">{course.teacherName || 'TBC'}</span>
+          </div>
+          <div className="shrink-0 w-[26mm] flex justify-between pl-1">
+             <span className="font-bold">Time:</span>
+             <span className="text-right whitespace-nowrap uppercase">{timeStr}</span>
+          </div>
         </div>
       </div>
 
-      {/* ── FEE TABLE ──────────────────────────────────────── */}
-      <table className="w-full border-collapse border border-black text-[10.5px] mt-1">
+      {/* FEE TABLE */}
+      <table className="w-full border-collapse border border-black mt-1 text-[10px] text-black">
         <thead>
-          <tr className="border-b border-black">
-            <th className="text-left px-1.5 py-1 font-bold border-r border-black">Fee Type</th>
-            <th className="text-right px-1.5 py-1 font-bold">Amount</th>
+          <tr className="border-b border-black text-black">
+            <th className="text-left px-1.5 py-1 font-bold border-r border-black w-2/3">Fee Type</th>
+            <th className="text-right px-1.5 py-1 font-bold w-1/3">Amount</th>
           </tr>
         </thead>
         <tbody>
           {feeRows.map((row) => (
-            <tr key={row.label} className="border-b border-black">
-              <td className={`px-1.5 py-[3px] border-r border-black ${row.bold ? 'font-bold' : ''}`}>{row.label}</td>
-              <td className={`px-1.5 py-[3px] text-right ${row.bold ? 'font-bold' : ''}`}>{row.value.toLocaleString()}</td>
+            <tr key={row.label} className="border-b border-black last:border-b-0 text-black">
+              <td className={`px-1.5 py-[3px] border-r border-black ${row.bold ? 'font-bold' : ''}`}>
+                {row.label}
+              </td>
+              <td className={`px-1.5 py-[3px] text-right ${row.bold ? 'font-bold' : ''}`}>
+                {row.value.toLocaleString()}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* ── RECEIVED BY / PAID STAMP ───────────────────────── */}
-      <div className="mt-2 mb-1.5 flex flex-col items-center gap-1">
-        <span className="text-[9px] font-bold uppercase tracking-widest">Received By</span>
-        {/* Circular PAID Stamp */}
-        <div className="relative w-[62px] h-[62px] flex items-center justify-center">
-          {/* Outer ring */}
-          <div className="absolute inset-0 rounded-full border-[3px] border-black" />
-          {/* Inner content */}
-          <div className="absolute inset-[5px] rounded-full border border-black flex flex-col items-center justify-center">
-            <span className="text-[7px] font-black uppercase tracking-[3px] leading-none">PAID</span>
-            <div className="w-full border-t border-black my-[2px]" />
-            <span className="text-[5px] font-bold uppercase tracking-tight text-center leading-none px-1">The Learners Academy</span>
-          </div>
+      {/* STAMP SECTION (CRITICAL REQUIREMENT) */}
+      <div className="mt-2 w-full border border-black p-1 flex flex-col items-center justify-start h-[20mm] relative overflow-visible box-border">
+        <span className="text-[8px] font-bold uppercase tracking-widest absolute -top-[5px] left-2 bg-white px-1 z-10 text-black print:bg-white print:z-10">Received By</span>
+        
+        {/* Placeholder for circular stamp */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[16mm] h-[16mm] flex items-center justify-center rounded-full border-2 border-black opacity-90 text-black print:border-black print:opacity-100">
+           <div className="w-[14mm] h-[14mm] rounded-full border border-black flex items-center justify-center">
+              <span className="text-[5px] font-black uppercase tracking-[2px] transform -rotate-[15deg]">PAID</span>
+           </div>
         </div>
       </div>
 
-      {/* ── NOTE ───────────────────────────────────────────── */}
-      <div className="border-t border-black border-dashed pt-2 mt-1">
+      {/* NOTE */}
+      <div className="border-t border-black border-dashed pt-1.5 mt-2 text-black text-center">
         <p className="font-bold text-[9px] mb-0.5">Note:</p>
-        <p className="text-[8.5px] italic leading-snug opacity-90">
+        <p className="text-[8.5px] italic leading-snug px-1">
           &quot;Students are advised to confirm their availability prior to enrolment. Once the registration process is completed, all fees paid are non-refundable under any circumstances.&quot;
         </p>
       </div>
 
-      {/* ── FOOTER ─────────────────────────────────────────── */}
-      <div className="mt-2 pt-1.5 border-t border-black border-dashed text-center space-y-0.5 pb-2">
+      {/* FOOTER SECTION */}
+      <div className="mt-2 pt-1.5 border-t border-black border-dashed text-center space-y-0.5 pb-2 text-black">
         <p className="font-bold text-[9.5px] tracking-widest uppercase">{type}</p>
-        <p className="text-[7.5px] opacity-50">Software By: NextLamine Solutions</p>
+        <p className="text-[7.5px] opacity-70 print:opacity-100">Software By: NextLamine Solutions</p>
       </div>
 
     </div>
