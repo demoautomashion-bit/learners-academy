@@ -185,7 +185,7 @@ export default function EconomicsAuditorPage() {
                 </div>
                 <div className="flex flex-col">
                     <span className="text-sm font-medium">{log.description}</span>
-                    <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-widest font-bold">Ref: {log.id?.slice(-8).toUpperCase() || 'MANUAL'}</span>
+                    <span className="text-xs text-muted-foreground font-medium mt-0.5">Ref: {log.id?.slice(-8).toUpperCase() || 'MANUAL'}</span>
                 </div>
             </div>
         ),
@@ -195,7 +195,7 @@ export default function EconomicsAuditorPage() {
         label: 'Category',
         render: (log) => (
             <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[9px] px-3 py-1 font-black opacity-30 uppercase tracking-widest border-primary/10">
+                <Badge variant="outline" className="text-xs px-3 py-1 font-medium border-primary/20 text-muted-foreground">
                     {log.category || 'Institutional'}
                 </Badge>
             </div>
@@ -205,8 +205,8 @@ export default function EconomicsAuditorPage() {
         label: 'Date',
         render: (log) => (
             <div className="flex flex-col">
-                <span className="text-[11px] font-bold opacity-70">{new Date(log.date || log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                <span className="text-[9px] text-muted-foreground opacity-20 uppercase tracking-tighter">Internal record</span>
+                <span className="text-sm font-medium">{new Date(log.date || log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span className="text-xs text-muted-foreground mt-0.5">Internal record</span>
             </div>
         )
     },
@@ -239,7 +239,7 @@ export default function EconomicsAuditorPage() {
                         <Plus className="w-4 h-4 mr-2" /> Add Entry
                     </Button>
                 </DialogTrigger>
-                    <DialogContent className="sm:max-w-[480px] w-[95vw] max-h-[85vh] overflow-y-auto overflow-x-hidden glass-2 border-white/5 p-0 rounded-[2.5rem] shadow-2xl">
+                    <DialogContent className="sm:max-w-[480px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
                         <div className="p-6 sm:p-8 space-y-8">
                             <DialogHeader className="space-y-3">
                                 <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-2">
@@ -253,7 +253,7 @@ export default function EconomicsAuditorPage() {
 
                             <div className="space-y-6">
                                 <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Amount (PKR)</Label>
+                                    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">Amount (PKR)</Label>
                                     <Input 
                                         type="number" 
                                         placeholder="0" 
@@ -263,7 +263,7 @@ export default function EconomicsAuditorPage() {
                                     />
                                 </div>
                                 <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Category</Label>
+                                    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">Category</Label>
                                     <Select onValueChange={(v) => setLogData(prev => ({ ...prev, category: v }))}>
                                         <SelectTrigger className="h-12 bg-muted/5 border-primary/5 rounded-2xl px-6">
                                             <SelectValue placeholder="Select a Category" />
@@ -276,7 +276,7 @@ export default function EconomicsAuditorPage() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Description</Label>
+                                    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">Description</Label>
                                     <Input 
                                         placeholder="e.g. June Electricity Bill" 
                                         value={logData.description}
@@ -293,7 +293,7 @@ export default function EconomicsAuditorPage() {
                                 >
                                     Save Entry <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-2 transition-transform" />
                                 </Button>
-                                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-[10px] uppercase tracking-widest font-black opacity-30 hover:opacity-100">
+                                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
                                     Cancel
                                 </Button>
                             </div>
@@ -311,10 +311,10 @@ export default function EconomicsAuditorPage() {
                   key={t} 
                   onClick={() => setTemporalFilter(t)}
                   className={cn(
-                      "px-8 py-2.5 text-[10px] uppercase tracking-[0.2em] transition-all font-black rounded-xl flex items-center gap-3",
+                      "px-6 py-2.5 text-sm font-medium transition-all rounded-xl flex items-center gap-2",
                       temporalFilter === t 
-                          ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" 
-                          : "text-muted-foreground opacity-40 hover:opacity-100 hover:bg-primary/5"
+                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
                   )}
               >
                   {t === 'seasonal' ? `${currentTrimester.season} Cycle` : t}
@@ -330,13 +330,13 @@ export default function EconomicsAuditorPage() {
                  <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5 blur-3xl -z-10 group-hover:scale-110 transition-transform" />
                 <CardHeader className="p-8 pb-10">
                     <div className="flex items-center justify-between mb-8">
-                        <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">{stat.label}</CardDescription>
+                        <CardDescription className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.label}</CardDescription>
                         <div className={cn("w-10 h-10 rounded-xl bg-background border border-primary/5 shadow-sm flex items-center justify-center group-hover:rotate-12 transition-transform", stat.color)}>
                             <stat.icon className="w-5 h-5" />
                         </div>
                     </div>
                     <CardTitle className={cn("text-3xl font-serif font-medium tracking-tight", stat.color)}>{stat.value}</CardTitle>
-                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-30 mt-4 font-bold italic">{stat.sub}</p>
+                    <p className="text-xs text-muted-foreground mt-4 font-medium">{stat.sub}</p>
                 </CardHeader>
             </Card>
             )}
@@ -345,9 +345,9 @@ export default function EconomicsAuditorPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-16 items-stretch">
-         <Card className="lg:col-span-2 glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-2xl h-full flex flex-col relative isolate">
+         <Card className="lg:col-span-2 glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-md h-full flex flex-col relative isolate">
             <div className="absolute top-0 right-0 p-10 z-10">
-                <Badge className="bg-destructive/10 text-destructive border-transparent font-black uppercase tracking-widest text-[9px] h-9 px-6 rounded-xl">Outflow Analysis</Badge>
+                <Badge className="bg-destructive/10 text-destructive border-transparent font-semibold text-xs h-auto px-4 py-1.5 rounded-lg">Outflow Analysis</Badge>
             </div>
             <CardHeader className="p-10 pb-4 border-b border-primary/5">
                 <CardTitle className="font-serif text-2xl font-medium tracking-tight">Expense Trend</CardTitle>
@@ -363,8 +363,8 @@ export default function EconomicsAuditorPage() {
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="hsl(var(--primary))" opacity={0.03} />
-                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold', opacity: 0.3 }} dy={10} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold', opacity: 0.3 }} />
+                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "currentColor", opacity: 0.6 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "currentColor", opacity: 0.6 }} />
                         <Tooltip 
                             contentStyle={{ 
                                 backgroundColor: 'hsl(var(--card) / 0.98)', 
@@ -387,7 +387,7 @@ export default function EconomicsAuditorPage() {
             </CardContent>
          </Card>
 
-         <Card className="glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-2xl h-full flex flex-col relative isolate">
+         <Card className="glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-md h-full flex flex-col relative isolate">
             <div className="p-12 h-full flex flex-col">
                 <div className="w-16 h-16 rounded-2xl bg-success/5 border border-success/10 flex items-center justify-center text-success mb-10 group-hover:rotate-12 transition-transform">
                     <TrendingUp className="w-8 h-8" />
@@ -402,7 +402,7 @@ export default function EconomicsAuditorPage() {
                         <div className="flex justify-between items-center px-1">
                             <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-success" />
-                                <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Net Inflow</span>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Net Inflow</span>
                             </div>
                             <span className="text-xs font-serif font-bold text-success">PKR {financialMetrics.totalEarnings.toLocaleString()}</span>
                         </div>
@@ -419,7 +419,7 @@ export default function EconomicsAuditorPage() {
                         <div className="flex justify-between items-center px-1 text-left">
                             <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
-                                <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Total Outflow</span>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Outflow</span>
                             </div>
                             <span className="text-xs font-serif font-bold text-destructive">PKR {financialMetrics.totalExpenses.toLocaleString()}</span>
                         </div>
