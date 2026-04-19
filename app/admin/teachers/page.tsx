@@ -28,8 +28,11 @@ import {
   ShieldCheck,
   CheckCircle2,
   XCircle,
-  Users
+  Users,
+  Eye,
+  EyeOff
 } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
@@ -43,7 +46,7 @@ import { Teacher } from '@/lib/types'
 export default function TeachersPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { teachers, removeTeacher, updateTeacher, isInitialized } = useData()
+  const { teachers, removeTeacher, updateTeacherStatus, updateTeacherReviewFlag, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
 
   if (!hasMounted) return null
@@ -52,13 +55,13 @@ export default function TeachersPage() {
   const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter(teacher =>
     (teacher.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (teacher.employeeId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (teacher.subject || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (teacher.subjects?.join(' ') || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleStatusToggle = async (teacher: Teacher) => {
     const newStatus = teacher.status === 'active' ? 'inactive' : 'active'
     try {
-      await updateTeacher(teacher.id, { status: newStatus as any })
+      await updateTeacherStatus(teacher.id, newStatus as any)
       toast.success(`Staff status updated to ${newStatus}`)
     } catch (error) {
       toast.error("Failed to update status")
@@ -118,6 +121,33 @@ export default function TeachersPage() {
           <span className="text-xs font-normal tracking-tight">{teacher.phone}</span>
         </div>
       )
+    },
+    {
+      label: 'Review Protocol',
+      render: (teacher) => (
+        <div className="flex items-center gap-3">
+          <Switch 
+            checked={!!teacher.requiresReview}
+            onCheckedChange={async (checked) => {
+              try {
+                await updateTeacherReviewFlag(teacher.id, checked)
+                toast.success(checked ? "Institutional Oversight Active" : "Direct Publishing Enabled", {
+                    description: checked ? "Tests now require admin audit." : "Tests will go live automatically."
+                })
+              } catch (err) {
+                toast.error("Protocol Sync Failed")
+              }
+            }}
+            className="scale-90 data-[state=checked]:bg-primary"
+          />
+          <div className="flex flex-col">
+            <span className={cn("text-[9px] font-bold uppercase tracking-widest", teacher.requiresReview ? "text-primary" : "text-muted-foreground opacity-40")}>
+                {teacher.requiresReview ? "Mandatory Review" : "Pass-through"}
+            </span>
+          </div>
+        </div>
+      ),
+      width: '180px'
     },
     {
       label: 'Actions',
