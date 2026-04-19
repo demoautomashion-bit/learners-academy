@@ -239,8 +239,8 @@ export default function EconomicsAuditorPage() {
                         <Plus className="w-4 h-4 mr-2" /> Add Entry
                     </Button>
                 </DialogTrigger>
-                    <DialogContent className="sm:max-w-[480px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
-                        <div className="p-10 md:p-14 space-y-12">
+                    <DialogContent className="sm:max-w-[480px] w-[95vw] max-h-[85vh] overflow-y-auto overflow-x-hidden glass-2 border-white/5 p-0 rounded-[2.5rem] shadow-2xl">
+                        <div className="p-6 sm:p-8 space-y-8">
                             <DialogHeader className="space-y-3">
                                 <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-2">
                                     <Activity className="w-6 h-6" />
@@ -251,22 +251,22 @@ export default function EconomicsAuditorPage() {
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="space-y-8">
+                            <div className="space-y-6">
                                 <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Magnitude (PKR)</Label>
+                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Amount (PKR)</Label>
                                     <Input 
                                         type="number" 
                                         placeholder="0" 
                                         value={logData.amount}
                                         onChange={(e) => setLogData(prev => ({ ...prev, amount: e.target.value }))}
-                                        className="h-14 px-6 bg-muted/5 border-primary/5 rounded-2xl font-serif text-lg"
+                                        className="h-12 px-6 bg-muted/5 border-primary/5 rounded-2xl font-serif text-lg"
                                     />
                                 </div>
                                 <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Classification Pool</Label>
+                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Category</Label>
                                     <Select onValueChange={(v) => setLogData(prev => ({ ...prev, category: v }))}>
-                                        <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-6">
-                                            <SelectValue placeholder="Identify Category" />
+                                        <SelectTrigger className="h-12 bg-muted/5 border-primary/5 rounded-2xl px-6">
+                                            <SelectValue placeholder="Select a Category" />
                                         </SelectTrigger>
                                         <SelectContent className="glass-2 border-white/5 p-2">
                                             {EXPENDITURE_CATEGORIES.map(c => (
@@ -276,25 +276,25 @@ export default function EconomicsAuditorPage() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Identity/Description</Label>
+                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Description</Label>
                                     <Input 
-                                        placeholder="e.g. Utility Invoicing (June)" 
+                                        placeholder="e.g. June Electricity Bill" 
                                         value={logData.description}
                                         onChange={(e) => setLogData(prev => ({ ...prev, description: e.target.value }))}
-                                        className="h-14 px-6 bg-muted/5 border-primary/5 rounded-2xl font-normal text-sm"
+                                        className="h-12 px-6 bg-muted/5 border-primary/5 rounded-2xl font-normal text-sm"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-5 pt-4">
+                            <div className="flex flex-col gap-4 pt-2">
                                 <Button 
                                     onClick={handleLogExpenditure}
-                                    className="w-full h-16 bg-primary hover:bg-primary/95 rounded-[1.75rem] shadow-2xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-3 group/submit"
+                                    className="w-full h-14 bg-primary hover:bg-primary/95 rounded-[1.75rem] shadow-2xl shadow-primary/20 transition-all font-medium flex items-center justify-center gap-3 group/submit"
                                 >
-                                    Commit Log Entry <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-2 transition-transform" />
+                                    Save Entry <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-2 transition-transform" />
                                 </Button>
                                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-[10px] uppercase tracking-widest font-black opacity-30 hover:opacity-100">
-                                    Retract Entry
+                                    Cancel
                                 </Button>
                             </div>
                         </div>
