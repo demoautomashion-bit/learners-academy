@@ -254,9 +254,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       await refresh()
       if (successMsg) toast.success(successMsg)
       return result
-    } catch (err) {
+    } catch (err: any) {
+      // Prioritize the error message from the server action if available
+      const specificError = err.message || 'Registry sync failed'
       console.error('[DataProvider] ACTION_ERROR:', err)
-      toast.error(errorMsg || (err instanceof Error ? err.message : 'Registry sync failed'))
+      toast.error(errorMsg || specificError)
       await refresh()
       throw err
     }

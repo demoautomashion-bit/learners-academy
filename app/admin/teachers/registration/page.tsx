@@ -79,10 +79,9 @@ export default function FacultyRegistrationPage() {
         studentsCount: 0,
         id: crypto.randomUUID()
       } as any)
-      toast.success("Staff member successfully added to the registry.")
       router.push('/admin/teachers')
     } catch (error) {
-      toast.error("Failed to add staff member.")
+      console.error('Faculty registration failed:', error)
     }
   }
 

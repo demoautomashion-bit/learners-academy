@@ -3,6 +3,7 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import type { Student, Question, ActionResult } from '@/lib/types'
+import { handleDatabaseError } from '../utils/error-handler'
 
 export async function getStudents(): Promise<ActionResult<Student[]>> {
   try {
@@ -64,8 +65,7 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {
-    console.error('DATABASE_ERROR [enrollStudent]:', error)
-    return { success: false, error: 'Failed to enroll student' }
+    return { success: false, error: handleDatabaseError(error, 'Database connection failed') }
   }
 }
 
@@ -97,8 +97,7 @@ export async function removeStudent(id: string): Promise<ActionResult> {
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {
-    console.error('DATABASE_ERROR [removeStudent]:', error)
-    return { success: false, error: 'Failed to remove student registry' }
+    return { success: false, error: handleDatabaseError(error, 'Failed to remove student registry') }
   }
 }
 

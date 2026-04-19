@@ -3,14 +3,14 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import type { Course, ActionResult } from '@/lib/types'
+import { handleDatabaseError } from '../utils/error-handler'
 
 export async function getCourses(): Promise<ActionResult<Course[]>> {
   try {
     const data = await db.course.findMany({ orderBy: { startDate: 'desc' } })
     return { success: true, data }
   } catch (error) {
-    console.error('DATABASE_ERROR [getCourses]:', error)
-    return { success: false, error: 'Failed to fetch academic catalog' }
+    return { success: false, error: handleDatabaseError(error, 'Failed to fetch academic catalog') }
   }
 }
 
@@ -27,8 +27,7 @@ export async function addCourse(course: Omit<Course, 'enrolled'>): Promise<Actio
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {
-    console.error('DATABASE_ERROR [addCourse]:', error)
-    return { success: false, error: 'Course creation failed' }
+    return { success: false, error: handleDatabaseError(error, 'Course creation failed') }
   }
 }
 

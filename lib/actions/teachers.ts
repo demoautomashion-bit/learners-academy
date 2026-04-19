@@ -3,6 +3,7 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import type { Teacher, ActionResult } from '@/lib/types'
+import { handleDatabaseError } from '../utils/error-handler'
 
 export async function getTeachers(): Promise<ActionResult<Teacher[]>> {
   try {
@@ -27,8 +28,7 @@ export async function addTeacher(teacher: Omit<Teacher, 'coursesCount' | 'studen
     revalidatePath('/')
     return { success: true, data: newTeacher }
   } catch (error) {
-    console.error('DATABASE_ERROR [addTeacher]:', error)
-    return { success: false, error: 'Failed to add teacher to registry' }
+    return { success: false, error: handleDatabaseError(error, 'Failed to add teacher to registry') }
   }
 }
 
@@ -38,8 +38,7 @@ export async function removeTeacher(id: string): Promise<ActionResult> {
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {
-    console.error('DATABASE_ERROR [removeTeacher]:', error)
-    return { success: false, error: 'Failed to remove teacher record' }
+    return { success: false, error: handleDatabaseError(error, 'Failed to remove teacher record') }
   }
 }
 
