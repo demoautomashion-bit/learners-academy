@@ -201,3 +201,11 @@ model Schedule {
   days        String[]
   slotId      String?
 }
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  user      String
+  action    String
+  category  String
+  createdAt DateTime @default(now())
+}

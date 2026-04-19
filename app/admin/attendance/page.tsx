@@ -77,29 +77,45 @@ const STATUS_CONFIG: Record<AttendanceStatus, { icon: any; color: string; bg: st
 export default function AttendanceRegistryPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { teachers, isInitialized } = useData()
+  const { teachers, attendance, markAttendance, addAttendanceEvent, logActivity, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   const [viewMode, setViewMode] = useState<'daily' | 'monthly'>('daily')
   
-  // State for daily attendance mapping: teacherId -> { status, subCount }
-  const [attendanceRecords, setAttendanceRecords] = useState<Record<string, { status: AttendanceStatus; subCount: number }>>({})
-  
-  // Mock Monthly Data for Pulse Badge and Analytics
-  const monthlyStats = useMemo(() => {
-    return teachers.reduce((acc, teacher) => {
-        const idHash = teacher.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
-        acc[teacher.id] = {
-            present: 18 + (idHash % 6),
-            absent: idHash % 3,
-            late: idHash % 4,
-            leave: idHash % 2,
-            substitutions: (idHash % 8)
+  // Derive attendance status from global attendance data for the selected date
+  const attendanceRecords = useMemo(() => {
+    const records: Record<string, { status: AttendanceStatus; subCount: number }> = {}
+    const dateStr = format(selectedDate, 'yyyy-MM-dd')
+    
+    attendance.forEach(record => {
+        const recordDate = format(new Date(record.date), 'yyyy-MM-dd')
+        if (recordDate === dateStr) {
+            records[record.teacherId] = {
+                status: (record.status as AttendanceStatus) || 'Present',
+                subCount: record.substituteCount || 0
+            }
         }
-        return acc
-    }, {} as Record<string, { present: number; absent: number; late: number; leave: number; substitutions: number }>)
-  }, [teachers])
+    })
+    return records
+  }, [attendance, selectedDate])
+  
+  // Monthly Data derived from real participation records
+  const monthlyStats = useMemo(() => {
+    const stats: Record<string, { present: number; absent: number; late: number; leave: number; substitutions: number }> = {}
+    
+    teachers.forEach(teacher => {
+        const teacherRecs = attendance.filter(a => a.teacherId === teacher.id)
+        stats[teacher.id] = {
+            present: teacherRecs.filter(a => a.status === 'Present').length,
+            absent: teacherRecs.filter(a => a.status === 'Absent').length,
+            late: teacherRecs.filter(a => a.status === 'Late').length,
+            leave: teacherRecs.filter(a => a.status === 'Leave').length,
+            substitutions: teacherRecs.reduce((acc, curr) => acc + (curr.substituteCount || 0), 0)
+        }
+    })
+    return stats
+  }, [teachers, attendance])
 
   // Weekly Horizon logic
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
@@ -115,52 +131,38 @@ export default function AttendanceRegistryPage() {
     (t.employeeId || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleActionClick = (teacherId: string, status: AttendanceStatus) => {
-    setAttendanceRecords(prev => {
-        const current = prev[teacherId] || { status: 'Present', subCount: 0 }
-        
-        if (status === 'Substitution') {
-            // Increment substitution, default status becomes/stays 'Present' if not already marked
-            return {
-                ...prev,
-                [teacherId]: {
-                    status: current.status === 'Absent' || current.status === 'Leave' ? 'Present' : current.status,
-                    subCount: current.subCount + 1
-                }
-            }
-        }
-        
-        // Otherwise set the base status
-        return {
-            ...prev,
-            [teacherId]: {
-                ...current,
-                status: status
-            }
-        }
-    })
+  const handleActionClick = async (teacherId: string, status: AttendanceStatus) => {
+    const current = attendanceRecords[teacherId] || { status: 'Present', subCount: 0 }
+    const dateStr = selectedDate.toISOString()
 
-    if (status !== 'Substitution') {
-        toast(`Protocol Updated: ${status}`, {
-            description: `Personnel status logged for ${format(selectedDate, 'MMM d')}.`
-        })
-    } else {
-        toast("Substitution Logged", {
-            description: `Extra class added for ${format(selectedDate, 'MMM d')}.`
-        })
+    try {
+        if (status === 'Substitution') {
+            await addAttendanceEvent(teacherId, dateStr, { 
+                type: 'Substitution', 
+                label: 'Extra Load', 
+                info: 'Manual Entry' 
+            })
+            toast("Substitution Logged", { description: "Extra class load recorded." })
+        } else {
+            await markAttendance(teacherId, dateStr, status)
+            toast(`Protocol Updated: ${status}`, { description: "Personnel status synchronized." })
+        }
+    } catch (err) {
+        toast.error("Registry Sync Failed")
     }
   }
 
-  const handleMarkAllPresent = () => {
-    const newRecords = { ...attendanceRecords }
-    filteredTeachers.forEach(t => {
-        const current = newRecords[t.id] || { status: 'Present', subCount: 0 }
-        newRecords[t.id] = { ...current, status: 'Present' }
-    })
-    setAttendanceRecords(newRecords)
-    toast.success("Bulk Protocol Applied", {
-        description: "All listed personnel marked as Present."
-    })
+  const handleMarkAllPresent = async () => {
+    const dateStr = selectedDate.toISOString()
+    const teachersToMark = filteredTeachers.filter(t => !attendanceRecords[t.id])
+    
+    try {
+        await Promise.all(teachersToMark.map(t => markAttendance(t.id, dateStr, 'Present')))
+        logActivity(`Bulk Attendance Finalized for ${format(selectedDate, 'MMM d')}`, 'Attendance')
+        toast.success("Bulk Protocol Applied")
+    } catch (err) {
+        toast.error("Bulk Registry Sync Failed")
+    }
   }
 
   const exportMonthlyPDF = () => {

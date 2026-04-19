@@ -32,7 +32,9 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       schedules,
       questions,
       assessments,
-      assignments
+      assignments,
+      activities,
+      attendance
     ] = await Promise.all([
       fetchEntity('teachers', db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })),
       fetchEntity('students', db.student.findMany({ where: studentFilter, orderBy: { enrolledAt: 'desc' } })),
@@ -43,7 +45,12 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       fetchEntity('schedules', db.schedule.findMany({ orderBy: { classTitle: 'asc' } })),
       fetchEntity('questions', db.question.findMany({ orderBy: { category: 'asc' } })),
       fetchEntity('assessments', db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })),
-      fetchEntity('assignments', db.assignment.findMany({ orderBy: { createdAt: 'desc' } }))
+      fetchEntity('assignments', db.assignment.findMany({ orderBy: { createdAt: 'desc' } })),
+      fetchEntity('activities', db.activityLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 })),
+      fetchEntity('attendance', db.teacherAttendance.findMany({ 
+        orderBy: { date: 'desc' },
+        include: { teacher: { select: { id: true, name: true, employeeId: true } } }
+      }))
     ])
 
     // Data Transformation: Ensure numeric fields are populated correctly
@@ -129,6 +136,8 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       data: {
         ...validData,
         enrollments,
+        activities: Array.isArray(activities) ? activities : [],
+        attendance: Array.isArray(attendance) ? attendance : []
       }
     }
   } catch (error) {

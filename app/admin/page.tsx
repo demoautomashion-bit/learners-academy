@@ -37,7 +37,9 @@ import { getInitials } from '@/lib/utils'
 
 export default function AdminDashboard() {
   const hasMounted = useHasMounted()
-  const { students, teachers, courses, feePayments, economics, isInitialized } = useData()
+  const { 
+    students, teachers, stats, activities, economics, isInitialized 
+  } = useData()
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -45,39 +47,50 @@ export default function AdminDashboard() {
   const kpis = [
     { 
       label: 'Students', 
-      value: students.length, 
+      value: stats.totalStudents, 
       sub: 'Total Enrollment', 
       icon: GraduationCap, 
       color: 'text-primary' 
     },
     { 
       label: 'Staff', 
-      value: teachers.length, 
+      value: stats.totalTeachers, 
       sub: 'Total Teachers', 
       icon: Users, 
       color: 'text-indigo-500' 
     },
     { 
-      label: 'Revenue', 
-      value: '92%', 
-      sub: 'This Quarter', 
-      icon: Target, 
+      label: 'Collected', 
+      value: `PKR ${stats.revenue.toLocaleString()}`, 
+      sub: 'This Period', 
+      icon: DollarSign, 
       color: 'text-success' 
     },
     { 
       label: 'Library', 
-      value: '1.2k', 
-      sub: 'Total Questions', 
+      value: stats.libraryCount, 
+      sub: 'Verified Units', 
       icon: BookOpen, 
       color: 'text-warning' 
     },
   ]
 
+  // Calculate dynamic pie data from real student distributions
   const pieData = [
-    { name: 'Foundation', value: 35, color: 'var(--color-primary)' },
-    { name: 'Core', value: 45, color: 'var(--color-success)' },
-    { name: 'Advanced', value: 20, color: 'var(--color-warning)' },
+    { name: 'Foundation', value: 0, color: 'var(--color-primary)' },
+    { name: 'Core', value: 0, color: 'var(--color-success)' },
+    { name: 'Advanced', value: 0, color: 'var(--color-warning)' },
   ]
+
+  students.forEach(s => {
+    const level = s.level || 'Foundation'
+    const segment = pieData.find(p => p.name === level)
+    if (segment) segment.value += 1
+  })
+
+  // Convert to percentages for display
+  const total = students.length || 1
+  pieData.forEach(p => p.value = Math.round((p.value / total) * 100))
 
   return (
     <PageShell>
@@ -202,20 +215,24 @@ export default function AdminDashboard() {
                 <Activity className="w-4 h-4 text-primary opacity-40" />
              </CardHeader>
              <CardContent className="p-0">
-                <div className="divide-y divide-primary/5">
-                    {[
-                        { user: 'Admin System', action: 'Daily Ledger Synchronized', time: '14 mins ago' },
-                        { user: 'Sarah Khan', action: 'New Faculty Registration', time: '1 hour ago' },
-                        { user: 'Registrar', action: 'Term 3 Enrollment Opened', time: '3 hours ago' },
-                    ].map((log, i) => (
-                        <div key={i} className="flex items-center justify-between p-5 px-6 hover:bg-primary/[0.02] transition-colors group">
-                            <div className="flex flex-col">
-                                <span className="text-sm font-medium group-hover:text-primary transition-colors">{log.user}</span>
-                                <span className="text-xs text-muted-foreground opacity-60 font-medium mt-0.5">{log.action}</span>
+                 <div className="divide-y divide-primary/5">
+                    {activities.length > 0 ? (
+                        activities.slice(0, 5).map((log, i) => (
+                            <div key={i} className="flex items-center justify-between p-5 px-6 hover:bg-primary/[0.02] transition-colors group">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium group-hover:text-primary transition-colors">{log.user}</span>
+                                    <span className="text-xs text-muted-foreground opacity-60 font-medium mt-0.5">{log.action}</span>
+                                </div>
+                                <span className="text-[10px] font-semibold text-muted-foreground uppercase opacity-40">
+                                    {new Date(log.createdAt).toLocaleDateString()}
+                                </span>
                             </div>
-                            <span className="text-[10px] font-semibold text-muted-foreground uppercase opacity-40">{log.time}</span>
+                        ))
+                    ) : (
+                        <div className="py-20 text-center opacity-20">
+                            <span className="text-[10px] uppercase font-black tracking-widest text-primary">No Recent Intelligence Recorded</span>
                         </div>
-                    ))}
+                    )}
                 </div>
              </CardContent>
         </Card>

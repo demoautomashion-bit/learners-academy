@@ -37,7 +37,7 @@ import {
   ShieldCheck,
   DollarSign
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
 import { PageShell } from '@/components/shared/page-shell'
@@ -55,7 +55,9 @@ export default function StudentsPage() {
   const router = useRouter()
   const { students, removeStudent, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
-  const [levelFilter, setLevelFilter] = useState<string>('all')
+  const searchParams = useSearchParams()
+  const initialLevel = searchParams.get('level') || 'all'
+  const [levelFilter, setLevelFilter] = useState<string>(initialLevel)
 
   const TIER_FILTERS = ['all', 'Pre-Foundation', 'Foundation', 'Level', 'Advanced', 'Professional']
 
@@ -246,7 +248,7 @@ export default function StudentsPage() {
                         <stat.icon className="w-5 h-5" />
                     </div>
                 </div>
-                <CardTitle className={cn("text-4xl font-serif font-medium tracking-tight", stat.color)}>{stat.value}</CardTitle>
+                <CardTitle className={cn("text-4xl font-sans font-normal tracking-tight", stat.color)}>{stat.value}</CardTitle>
                 <div className="flex items-center gap-2 mt-4">
                     <span className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-50 font-bold">{stat.sub}</span>
                     <ArrowUpRight className={cn("w-3 h-3", stat.color)} />

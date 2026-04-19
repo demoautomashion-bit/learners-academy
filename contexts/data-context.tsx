@@ -18,6 +18,8 @@ import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission
 import { getSchedules, addSchedule as dbAddSchedule, updateSchedule as dbUpdateSchedule, removeSchedule as dbRemoveSchedule } from '@/lib/actions/schedules'
 import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount } from '@/lib/actions/fees'
 import { getEconomicStats, addExpenditure as dbAddExpenditure } from '@/lib/actions/economics'
+import { markAttendance as dbMarkAttendance, addAttendanceEvent as dbAddAttendanceEvent } from '@/lib/actions/attendance'
+import { logActivity as dbLogActivity } from '@/lib/actions/activities'
 import { getInitialData } from '@/lib/actions/get-data'
 import { useAuth } from '@/contexts/auth-context'
 import { calculateStudentOverallProgress } from '@/lib/utils/student-progress'
@@ -35,6 +37,8 @@ interface DataContextType {
   enrollments: any[]
   economics: any | null
   feePayments: any[]
+  activities: any[]
+  attendance: any[]
   isInitialized: boolean
   isLoading: boolean
   hasError: boolean
@@ -73,6 +77,9 @@ interface DataContextType {
   approveQuestion: (id: string, flag: boolean) => Promise<void>
   approveAssessment: (id: string) => Promise<void>
   rejectAssessment: (id: string, feedback: string) => Promise<void>
+  logActivity: (action: string, category: string) => Promise<void>
+  markAttendance: (teacherId: string, date: string, status: string, subCount?: number) => Promise<void>
+  addAttendanceEvent: (teacherId: string, date: string, event: any) => Promise<void>
   resetToDefaults: () => void
   refresh: () => Promise<void>
   retryConnection: () => Promise<void>
@@ -86,7 +93,8 @@ function computeStats(
   courses: Course[], 
   submissions: Submission[],
   assessments: AssessmentTemplate[],
-  econ: any | null
+  econ: any | null,
+  questions: Question[]
 ): DashboardStats {
   const now = new Date()
   const thirtyDaysAgo = new Date(now)
@@ -101,16 +109,22 @@ function computeStats(
   const totalCompletionProgress = students.reduce((acc, s) => acc + calculateStudentOverallProgress(s, submissions, assessments), 0)
   const averageCompletion = totalStudents > 0 ? Math.round(totalCompletionProgress / totalStudents) : 0
 
+  // Calculate real metrics from database state
+  const totalRevenue = econ?.actualRevenue || econ?.feePayments?.reduce((acc: number, p: any) => acc + (p.amountPaid || 0), 0) || 0
+  const totalExpenditure = econ?.expenditures?.reduce((acc: number, e: any) => acc + (e.amount || 0), 0) || 0
+  const netMargin = totalRevenue > 0 ? Math.round(((totalRevenue - totalExpenditure) / totalRevenue) * 100) : 0
+
   return {
     totalStudents,
     totalTeachers: Array.isArray(teachers) ? teachers.length : 0,
     totalCourses: Array.isArray(courses) ? courses.length : 0,
     activeEnrollments: Array.isArray(students) ? students.filter(s => s && s.status === 'active').length : 0,
-    revenue: econ?.actualRevenue || 0,
+    revenue: totalRevenue,
     revenueChange: econ?.revenueChange || 0,
     newEnrollments: econ?.newEnrollments || newEnrollments,
     completionRate: averageCompletion,
-    netMargin: econ?.netMargin || 0
+    netMargin: netMargin || econ?.netMargin || 0,
+    libraryCount: Array.isArray(questions) ? questions.length : 0
   }
 }
 
@@ -126,6 +140,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [enrollments, setEnrollments] = useState<any[]>([])
   const [economics, setEconomics] = useState<any | null>(null)
   const [feePayments, setFeePayments] = useState<any[]>([])
+  const [activities, setActivities] = useState<any[]>([])
+  const [attendance, setAttendance] = useState<any[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -179,6 +195,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setSchedules(Array.isArray(d.schedules) ? d.schedules : [])
         setAssignments(Array.isArray(d.assignments) ? d.assignments : [])
         setEnrollments(Array.isArray(d.enrollments) ? d.enrollments : [])
+        setActivities(Array.isArray(d.activities) ? d.activities : [])
+        setAttendance(Array.isArray(d.attendance) ? d.attendance : [])
         
         if (econData && econData.success) {
           setEconomics(econData.data)
@@ -220,8 +238,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       totalStudents: 0, totalTeachers: 0, totalCourses: 0, activeEnrollments: 0,
       revenue: 0, revenueChange: 0, newEnrollments: 0, completionRate: 0, netMargin: 0
     }
-    return computeStats(teachers, students, courses, submissions, assessments, economics)
-  }, [teachers, students, courses, submissions, assessments, economics, isInitialized])
+    return computeStats(teachers, students, courses, submissions, assessments, economics, questions)
+  }, [teachers, students, courses, submissions, assessments, economics, questions, isInitialized])
 
   const executeAction = useCallback(async (
     action: () => Promise<any>, 
@@ -278,6 +296,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addFeeAccount = useCallback((d: any) => executeAction(() => dbAddFeeAccount(d), "Account initialized"), [executeAction])
   const updateClassFee = useCallback((id: string, a: number) => executeAction(() => dbUpdateClassFee(id, a), "Fee modified"), [executeAction])
   const updateTeacherProfile = useCallback((id: string, d: any) => executeAction(() => dbUpdateTeacher(id, d)), [executeAction])
+  const logActivity = useCallback((a: string, c: string) => executeAction(() => dbLogActivity(user?.name || 'Admin', a, c)), [executeAction, user?.name])
+  const markAttendance = useCallback((tid: string, date: string, s: string, sc?: number) => executeAction(() => dbMarkAttendance(tid, date, s, sc)), [executeAction])
+  const addAttendanceEvent = useCallback((tid: string, date: string, e: any) => executeAction(() => dbAddAttendanceEvent(tid, date, e)), [executeAction])
 
   if (hasError) {
     return (
@@ -307,8 +328,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      teachers, students, courses, assignments, submissions, stats, schedules, questions, assessments, economics, feePayments, enrollments, isInitialized, isLoading, hasError,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addSchedule, updateSchedule, removeSchedule, addExpenditure, recordPayment, addFeeAccount, updateClassFee, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, resetToDefaults: () => {}, refresh, retryConnection,
+      teachers, students, courses, assignments, submissions, stats, schedules, questions, assessments, economics, feePayments, enrollments, activities, attendance, isInitialized, isLoading, hasError,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addSchedule, updateSchedule, removeSchedule, addExpenditure, recordPayment, addFeeAccount, updateClassFee, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, resetToDefaults: () => {}, refresh, retryConnection,
     }}>
       {children}
     </DataContext.Provider>
@@ -369,6 +390,8 @@ export function useData() {
     assignments: Array.isArray(context.assignments) ? context.assignments : [],
     enrollments: Array.isArray(context.enrollments) ? context.enrollments : [],
     feePayments: Array.isArray(context.feePayments) ? context.feePayments : [],
+    activities: Array.isArray(context.activities) ? context.activities : [],
+    attendance: Array.isArray(context.attendance) ? context.attendance : [],
     isInitialized: !!context.isInitialized,
   }
 }

@@ -119,6 +119,41 @@ export default function EconomicsAuditorPage() {
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
+  const handleExport = () => {
+    const data = economics?.recentTransactions || []
+    if (data.length === 0) {
+        toast.error("No transaction data available for export.")
+        return
+    }
+
+    const headers = ["ID", "Category", "Participant", "Amount", "Status", "Date"]
+    const csvContent = [
+        headers.join(","),
+        ...data.map((t: any) => [
+            t.id,
+            t.category,
+            t.participant,
+            t.amount,
+            t.status,
+            t.date
+        ].join(","))
+    ].join("\n")
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", `Institutional_Audit_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    toast.success("Audit Exported Successfully", {
+        description: "Institutional ledger CSV is ready for review."
+    })
+  }
+
   const handleLogExpenditure = async () => {
     if (!logData.amount || !logData.category || !logData.description) {
         toast.error("Incomplete Protocol", { description: "Identify the expenditure amount and category." })
@@ -394,7 +429,7 @@ export default function EconomicsAuditorPage() {
                 </div>
                 <h3 className="font-serif text-3xl font-medium tracking-tight">Financial Health</h3>
                 <p className="text-xs text-muted-foreground mt-8 leading-relaxed font-normal italic opacity-60">
-                    Your institutional net margin is currently <span className="text-success font-black not-italic px-1 tracking-wider">78%</span>.
+                    Your institutional net margin is currently <span className="text-success font-black not-italic px-1 tracking-wider">{stats.netMargin}%</span>.
                 </p>
                 
                 <div className="mt-auto space-y-8">

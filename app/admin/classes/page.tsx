@@ -194,7 +194,10 @@ export default function ClassesPage() {
             >
               <Calendar className="w-4 h-4 opacity-60" /> <span className="text-xs">Schedule</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg">
+            <DropdownMenuItem 
+                onClick={() => router.push(`/admin/students?level=${course.level}`)}
+                className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg"
+            >
               <Users className="w-4 h-4 opacity-60" /> <span className="text-xs">Students</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="opacity-5" />
