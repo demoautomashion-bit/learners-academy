@@ -81,27 +81,27 @@ export default function AdminDashboard() {
 
   return (
     <PageShell>
-      <div className="flex flex-col gap-1 mb-8">
+      <div className="flex flex-col gap-1 mb-8 mt-2">
         <h1 className="font-serif text-3xl font-medium tracking-tight">Overview</h1>
-        <p className="text-muted-foreground font-normal opacity-60">Monitor students, staff, and finances.</p>
+        <p className="text-muted-foreground font-normal opacity-60 text-sm">Monitor Students, Staff, and Institutional Cashflow.</p>
       </div>
 
       <StabilityBoundary name="Key Performance Indicators">
         <EntityCardGrid 
           data={kpis}
           renderItem={(item, i) => (
-            <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium overflow-hidden rounded-2xl transition-premium group">
-              <CardHeader className="pb-2 relative isolate">
+            <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-md overflow-hidden rounded-[2rem] transition-premium group">
+              <CardHeader className="p-6 pb-2 relative isolate">
                   <div className="absolute right-6 top-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                      <item.icon className="w-12 h-12" />
+                      <item.icon className="w-10 h-10" />
                   </div>
-                  <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30">{item.label}</CardDescription>
-                  <CardTitle className={cn("text-3xl font-serif font-medium", item.color)}>{item.value}</CardTitle>
+                  <CardDescription className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{item.label}</CardDescription>
+                  <CardTitle className={cn("text-4xl font-sans font-normal mt-1", item.color)}>{item.value}</CardTitle>
               </CardHeader>
-              <CardContent className="pb-6">
-                  <div className="flex items-center gap-2">
+              <CardContent className="px-6 pb-6 pt-0">
+                  <div className="flex items-center gap-2 mt-4 opacity-40">
                       <div className={cn("w-1 h-1 rounded-full ", item.color.replace('text-', 'bg-'))} />
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground opacity-50">{item.sub}</span>
+                      <span className="text-xs text-muted-foreground font-medium">{item.sub}</span>
                   </div>
               </CardContent>
             </Card>
@@ -110,19 +110,19 @@ export default function AdminDashboard() {
         />
       </StabilityBoundary>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12 items-stretch">
-        <Card className="lg:col-span-2 glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden h-full flex flex-col">
-          <CardHeader className="bg-muted/5 border-b p-8 flex flex-row items-center justify-between">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 items-stretch">
+        <Card className="lg:col-span-2 glass-1 border-primary/5 rounded-[2rem] shadow-md overflow-hidden h-full flex flex-col">
+          <CardHeader className="bg-muted/5 border-b p-6 flex flex-row items-center justify-between">
             <div>
                 <CardTitle className="font-serif text-xl font-medium">Revenue Trend</CardTitle>
-                <CardDescription className="text-xs font-normal opacity-60">Fees collected vs targets.</CardDescription>
+                <CardDescription className="text-xs font-normal opacity-60">Comparative financial timeline analysis.</CardDescription>
             </div>
-            <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest opacity-40">
+            <div className="flex items-center gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider opacity-40">
                 <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-primary" /> Actual</div>
                 <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full border border-primary/40" /> Target</div>
             </div>
           </CardHeader>
-          <CardContent className="p-8 pt-12 flex-1">
+          <CardContent className="p-6 pt-10 flex-1">
             <div className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={economics?.historicalData || []}>
@@ -133,20 +133,20 @@ export default function AdminDashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="hsl(var(--muted-foreground))" opacity={0.05} />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, opacity: 0.4 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, opacity: 0.4 }} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, opacity: 0.6 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, opacity: 0.6 }} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card) / 0.9)', 
-                      borderRadius: '16px', border: '1px solid hsl(var(--primary) / 0.08)',
-                      fontSize: '11px'
+                      backgroundColor: 'hsl(var(--card) / 0.98)', 
+                      borderRadius: '20px', border: '1px solid hsl(var(--primary) / 0.08)',
+                      fontSize: '11px', backdropFilter: 'blur(10px)'
                     }}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="revenue" 
                     stroke="var(--color-primary)" 
-                    strokeWidth={2} 
+                    strokeWidth={3} 
                     fillOpacity={1} 
                     fill="url(#colorRev)" 
                   />
@@ -156,21 +156,21 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-1 border-primary/5 rounded-2xl shadow-premium p-8 h-full flex flex-col items-center justify-center text-center">
-            <div className="w-full h-[250px] mb-8">
+        <Card className="glass-1 border-primary/5 rounded-[2rem] shadow-md p-6 h-full flex flex-col items-center justify-center text-center">
+            <div className="w-full h-[220px] mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
+                    innerRadius={55}
+                    outerRadius={75}
+                    paddingAngle={8}
                     dataKey="value"
                   >
                     {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -178,26 +178,26 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
             </div>
             <h3 className="font-serif text-xl font-medium tracking-tight">Student Levels</h3>
-            <p className="text-xs text-muted-foreground mt-2 font-normal opacity-50 px-8">Students per level across academic tiers.</p>
+            <p className="text-xs text-muted-foreground mt-2 font-normal opacity-50 px-6">Tier distribution across academic units.</p>
             <div className="mt-8 flex flex-col gap-3 w-full">
                 {pieData.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between px-4 py-2 bg-primary/5 rounded-xl border border-primary/10">
+                    <div key={i} className="flex items-center justify-between px-5 py-3 bg-primary/5 rounded-2xl border border-primary/10">
                         <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
-                            <span className="text-[10px] uppercase tracking-widest font-bold opacity-60">{item.name}</span>
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide opacity-80">{item.name}</span>
                         </div>
-                        <span className="text-sm font-serif">{item.value}%</span>
+                        <span className="text-base font-sans font-medium">{item.value}%</span>
                     </div>
                 ))}
             </div>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-        <Card className="glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <Card className="glass-1 border-primary/5 rounded-[2rem] shadow-md overflow-hidden">
              <CardHeader className="bg-muted/5 border-b p-6 flex flex-row items-center justify-between">
                 <div>
-                   <CardTitle className="font-serif text-base font-medium">Recent Activity</CardTitle>
+                   <CardTitle className="font-serif text-xl font-medium">Internal Intelligence</CardTitle>
                 </div>
                 <Activity className="w-4 h-4 text-primary opacity-40" />
              </CardHeader>
@@ -208,12 +208,12 @@ export default function AdminDashboard() {
                         { user: 'Sarah Khan', action: 'New Faculty Registration', time: '1 hour ago' },
                         { user: 'Registrar', action: 'Term 3 Enrollment Opened', time: '3 hours ago' },
                     ].map((log, i) => (
-                        <div key={i} className="flex items-center justify-between p-4 px-6 hover:bg-primary/[0.02] transition-colors">
+                        <div key={i} className="flex items-center justify-between p-5 px-6 hover:bg-primary/[0.02] transition-colors group">
                             <div className="flex flex-col">
-                                <span className="text-xs font-medium">{log.user}</span>
-                                <span className="text-[10px] text-muted-foreground opacity-60">{log.action}</span>
+                                <span className="text-sm font-medium group-hover:text-primary transition-colors">{log.user}</span>
+                                <span className="text-xs text-muted-foreground opacity-60 font-medium mt-0.5">{log.action}</span>
                             </div>
-                            <span className="text-[9px] uppercase tracking-widest opacity-40">{log.time}</span>
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase opacity-40">{log.time}</span>
                         </div>
                     ))}
                 </div>
@@ -221,27 +221,27 @@ export default function AdminDashboard() {
         </Card>
 
         <StabilityBoundary name="Live Admissions Feed">
-          <Card className="glass-1 border-primary/5 rounded-2xl shadow-premium overflow-hidden">
+          <Card className="glass-1 border-primary/5 rounded-[2rem] shadow-md overflow-hidden">
                <CardHeader className="bg-muted/5 border-b p-6 flex flex-row items-center justify-between">
                   <div>
-                     <CardTitle className="font-serif text-base font-medium">New Admissions</CardTitle>
+                     <CardTitle className="font-serif text-xl font-medium">New Admissions</CardTitle>
                   </div>
                   <History className="w-4 h-4 text-primary opacity-40" />
                </CardHeader>
                <CardContent className="p-0">
                   <div className="divide-y divide-primary/5">
                       {students.slice(0, 3).map((student, i) => (
-                          <div key={i} className="flex items-center justify-between p-4 px-6 hover:bg-primary/[0.02] transition-colors">
-                              <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-bold">
+                          <div key={i} className="flex items-center justify-between p-5 px-6 hover:bg-primary/[0.02] transition-colors">
+                              <div className="flex items-center gap-4">
+                                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-xs text-primary font-bold">
                                       {getInitials(student.name)}
                                   </div>
                                   <div className="flex flex-col">
-                                      <span className="text-xs font-medium">{student.name}</span>
-                                      <span className="text-[10px] text-muted-foreground opacity-60">ID: {student.studentId}</span>
+                                      <span className="text-sm font-medium">{student.name}</span>
+                                      <span className="text-xs text-muted-foreground opacity-60 font-medium mt-0.5">ID: {student.studentId}</span>
                                   </div>
                               </div>
-                              <Badge variant="outline" className="text-[9px] font-normal border-primary/10">{student.level}</Badge>
+                              <Badge variant="outline" className="text-[10px] font-semibold border-primary/10 uppercase tracking-widest px-3 py-1">{student.level}</Badge>
                           </div>
                       ))}
                   </div>

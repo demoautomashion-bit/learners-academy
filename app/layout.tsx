@@ -43,7 +43,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn(cormorant.variable)}>
-      <body className="antialiased font-sans font-medium">
+      <body className="antialiased font-sans">
         <AuthProvider>
           <DataProvider>
             <StabilityBoundary name="Global Core">

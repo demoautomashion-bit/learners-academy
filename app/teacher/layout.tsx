@@ -127,7 +127,7 @@ export default function TeacherLayout({
   if (!user?.id) return null
 
   return (
-    <SidebarProvider style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif' }}>
+    <SidebarProvider>
       <Sidebar className="border-r border-white/5 bg-sidebar transition-all duration-300">
         <TeacherSidebarHeader />
         <SidebarContent className="px-3 py-4">

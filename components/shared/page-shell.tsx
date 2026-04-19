@@ -22,7 +22,6 @@ export function PageShell({
       animate="visible"
       variants={variants}
       className={cn("space-y-6", className)}
-      style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif' }}
     >
       {children}
     </motion.div>

@@ -121,9 +121,9 @@
 }
 
 @theme inline {
-  --font-sans: "Helvetica Neue";
+  --font-sans: Arial, Helvetica, sans-serif;
   --font-serif: var(--font-cormorant);
-  --font-mono: "Helvetica Neue";
+  --font-mono: Arial, Helvetica, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
