@@ -14,7 +14,8 @@ import {
   Hash,
   Lock,
   Eye,
-  EyeOff
+  EyeOff,
+  ArrowRight
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
