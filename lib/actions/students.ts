@@ -16,7 +16,6 @@ export async function getStudents(): Promise<ActionResult<Student[]>> {
 
 export async function enrollStudent(student: any): Promise<ActionResult<Student>> {
   try {
-    // Automated Institutional Enrollment
     // 1. Find courses that match the student's Academic Tier (grade) and Session Slot (classTiming)
     const matchingCourses = await db.course.findMany({
       where: {
@@ -28,14 +27,24 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
 
     const matchingCourseIds = matchingCourses.map(c => c.id)
 
-    // 2. Create the student with pre-linked courses
+    // Data Sanitization Layer
+    // 1. Convert empty placeholders to null to satisfy unique constraints
+    const { id: clientSideId, classTiming: ct, grade: g, enrolledCourses: ec, enrolledAt: ea, ...formData } = student
+    
+    const sanitizedStudent = {
+      ...formData,
+      email: student.email?.trim() === "" ? null : student.email,
+      phone: student.phone?.trim() === "" ? null : student.phone,
+      grade: student.grade,
+      classTiming: student.classTiming,
+      progress: 0,
+      enrolledCourses: matchingCourseIds,
+      enrolledAt: student.enrolledAt ? new Date(student.enrolledAt) : new Date()
+    }
+
+    // 2. Create the student with unified identity
     const result = await db.student.create({ 
-      data: { 
-        ...student, 
-        progress: 0,
-        enrolledCourses: matchingCourseIds,
-        enrolledAt: student.enrolledAt ? new Date(student.enrolledAt) : new Date()
-      }
+      data: sanitizedStudent
     })
 
     // 3. Initialize Financial Ledger (FeePayment records)

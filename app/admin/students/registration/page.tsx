@@ -86,8 +86,7 @@ export default function StudentRegistrationPage() {
         enrolledAt: new Date().toISOString(),
         status: 'active',
         progress: 0,
-        enrolledCourses: [],
-        id: crypto.randomUUID()
+        enrolledCourses: []
       } as any)
       // Note: the enrollStudent action already triggers a success toast
       router.push('/admin/students')
