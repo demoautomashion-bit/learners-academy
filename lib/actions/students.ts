@@ -16,16 +16,8 @@ export async function getStudents(): Promise<ActionResult<Student[]>> {
 
 export async function enrollStudent(student: any): Promise<ActionResult<Student>> {
   try {
-    const result = await db.student.create({ 
-      data: { 
-        ...student, 
-        progress: 0,
-        enrolledAt: student.enrolledAt ? new Date(student.enrolledAt) : new Date()
-      }
-    })
-
     // Automated Institutional Enrollment
-    // Find courses that match the student's Academic Tier (grade) and Session Slot (classTiming)
+    // 1. Find courses that match the student's Academic Tier (grade) and Session Slot (classTiming)
     const matchingCourses = await db.course.findMany({
       where: {
         level: student.grade,
@@ -34,20 +26,21 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
       }
     })
 
+    const matchingCourseIds = matchingCourses.map(c => c.id)
+
+    // 2. Create the student with pre-linked courses
+    const result = await db.student.create({ 
+      data: { 
+        ...student, 
+        progress: 0,
+        enrolledCourses: matchingCourseIds,
+        enrolledAt: student.enrolledAt ? new Date(student.enrolledAt) : new Date()
+      }
+    })
+
+    // 3. Initialize Financial Ledger (FeePayment records)
     if (matchingCourses.length > 0) {
       for (const course of matchingCourses) {
-        // Create Enrollment record
-        await db.enrollment.create({
-          data: {
-            studentId: result.id,
-            courseId: course.id,
-            enrolledAt: new Date(),
-            status: 'active',
-            progress: 0
-          }
-        })
-
-        // Create FeePayment record
         await db.feePayment.create({
           data: {
             studentId: result.id,
