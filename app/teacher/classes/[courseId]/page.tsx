@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 import type { Student } from '@/lib/types'
 import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { cn } from '@/lib/utils'
+import { isStudentInCourse } from '@/lib/utils/student-matching'
 
 export default function ClassWorkspacePage() {
   const params = useParams()
@@ -46,10 +47,7 @@ export default function ClassWorkspacePage() {
     )
   }
 
-  const classStudents = students?.filter(s => 
-    (s.enrolledCourses || []).includes(course.id) || 
-    (s.grade === course.level && s.classTiming === course.schedule)
-  ) || []
+  const classStudents = students?.filter(s => isStudentInCourse(s, course)) || []
 
   // Initialize empty grades if unset
   const getStudentMarks = (id: string) => {

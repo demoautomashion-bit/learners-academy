@@ -135,20 +135,32 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       assignments: (assignments || []).map((as: any) => ({ ...as, id: String(as?.id || '') })),
     }
 
-    // Derive enrollments from students' enrolledCourses (Logic layer)
+    // Derive enrollments from students (Logic layer - Inclusive of logical assignments)
     const enrollments = (validData.students || []).flatMap((s: any) => {
       const studentId = typeof s?.id === 'string' ? s.id : 'unknown'
       const studentName = typeof s?.name === 'string' ? s.name : 'Student'
-      const courses = Array.isArray(s?.enrolledCourses) ? s.enrolledCourses : []
       
-      return courses.map((courseId: string) => ({
-        id: `${studentId}-${courseId}`,
-        studentId: studentId,
-        studentName: studentName,
-        courseId,
-        progress: Number(s?.progress) || 0,
-        grade: String(s?.grade || 'N/A')
-      }))
+      // Map to all courses assigned to this student (formally or logically)
+      return (validData.courses || [])
+        .filter((c: any) => {
+          // Inline version of isStudentInCourse for server-side performance
+          const hasFormalLink = (s.enrolledCourses || []).includes(c.id)
+          if (hasFormalLink) return true
+          
+          const normalize = (val: string) => (val || '').toLowerCase().replace(/\s+/g, '').trim()
+          const levelMatch = normalize(s.grade) === normalize(c.level) || 
+                            (normalize(s.grade).includes('level1') && normalize(c.level).includes('levelone'))
+          const scheduleMatch = normalize(s.classTiming) === normalize(c.schedule)
+          return levelMatch && scheduleMatch
+        })
+        .map((course: any) => ({
+          id: `${studentId}-${course.id}`,
+          studentId: studentId,
+          studentName: studentName,
+          courseId: course.id,
+          progress: Number(s?.progress) || 0,
+          grade: String(s?.grade || 'N/A')
+        }))
     })
 
     return {

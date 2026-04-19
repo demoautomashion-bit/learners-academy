@@ -16,6 +16,7 @@ import { PageHeader } from '@/components/shared/page-header'
 import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { cn } from '@/lib/utils'
+import { isStudentInCourse } from '@/lib/utils/student-matching'
 
 export default function TeacherClassesPage() {
   const router = useRouter()
@@ -69,7 +70,7 @@ export default function TeacherClassesPage() {
     {
       label: 'Enrollment',
       render: (course) => {
-        const count = mockStudents?.filter(s => (s.enrolledCourses || []).includes(course.id)).length || 0
+        const count = mockStudents?.filter(s => isStudentInCourse(s, course)).length || 0
         return (
           <span className="font-sans font-medium text-sm text-foreground/80">
             {count} / {course.capacity}
@@ -93,7 +94,7 @@ export default function TeacherClassesPage() {
   ]
 
   const totalStudents = mockStudents?.filter(s => 
-    (s.enrolledCourses || []).some(courseId => myCourses.some(mc => mc.id === courseId))
+    myCourses.some(course => isStudentInCourse(s, course))
   ).length || 0
 
   return (

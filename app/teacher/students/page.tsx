@@ -24,6 +24,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { EntityCardGrid } from "@/components/shared/entity-card-grid"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
+import { isStudentInCourse } from "@/lib/utils/student-matching"
 
 export default function TeacherStudentsPage() {
   const router = useRouter()
@@ -40,8 +41,7 @@ export default function TeacherStudentsPage() {
   const teacherCourseIds = teacherCourses.map(c => c.id)
   
   const studentsInTeacherCourses = mockStudents?.filter(student => {
-    const studentEnrollments = mockEnrollments?.filter(e => e.studentId === student.id) || []
-    return studentEnrollments.some(e => teacherCourseIds.includes(e.courseId))
+    return teacherCourses.some(course => isStudentInCourse(student, course))
   }) || []
 
   const filteredStudents = studentsInTeacherCourses.filter(student => {
@@ -51,8 +51,9 @@ export default function TeacherStudentsPage() {
     
     if (courseFilter === "all") return matchesSearch
     
-    const studentEnrollments = mockEnrollments?.filter(e => e.studentId === student.id) || []
-    const matchesCourse = studentEnrollments.some(e => e.courseId === courseFilter)
+    // Check if student belongs to the specific filtered course
+    const selectedCourse = teacherCourses.find(c => c.id === courseFilter)
+    const matchesCourse = selectedCourse ? isStudentInCourse(student, selectedCourse) : false
     
     return matchesSearch && matchesCourse
   })
