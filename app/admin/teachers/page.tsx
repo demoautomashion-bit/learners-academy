@@ -123,33 +123,6 @@ export default function TeachersPage() {
       )
     },
     {
-      label: 'Review Protocol',
-      render: (teacher) => (
-        <div className="flex items-center gap-3">
-          <Switch 
-            checked={!!teacher.requiresReview}
-            onCheckedChange={async (checked) => {
-              try {
-                await updateTeacherReviewFlag(teacher.id, checked)
-                toast.success(checked ? "Institutional Oversight Active" : "Direct Publishing Enabled", {
-                    description: checked ? "Tests now require admin audit." : "Tests will go live automatically."
-                })
-              } catch (err) {
-                toast.error("Protocol Sync Failed")
-              }
-            }}
-            className="scale-90 data-[state=checked]:bg-primary"
-          />
-          <div className="flex flex-col">
-            <span className={cn("text-[9px] font-bold uppercase tracking-widest", teacher.requiresReview ? "text-primary" : "text-muted-foreground opacity-40")}>
-                {teacher.requiresReview ? "Mandatory Review" : "Pass-through"}
-            </span>
-          </div>
-        </div>
-      ),
-      width: '180px'
-    },
-    {
       label: 'Actions',
       render: (teacher) => (
         <DropdownMenu>
@@ -166,6 +139,29 @@ export default function TeachersPage() {
                 className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal"
             >
               <ExternalLink className="w-4 h-4 opacity-60" /> <span className="text-xs">View Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+                onSelect={(e) => e.preventDefault()}
+                className="flex items-center justify-between py-3 px-4 focus:bg-primary/5 transition-all"
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-normal">Test Review</span>
+                <span className="text-[9px] uppercase tracking-widest opacity-40 font-bold">
+                    {teacher.requiresReview ? "Mandatory Audit" : "Auto-Publish"}
+                </span>
+              </div>
+              <Switch 
+                checked={!!teacher.requiresReview}
+                onCheckedChange={async (checked) => {
+                  try {
+                    await updateTeacherReviewFlag(teacher.id, checked)
+                    toast.success(checked ? "Oversight Active" : "Direct Access Enabled")
+                  } catch (err) {
+                    toast.error("Sync Failed")
+                  }
+                }}
+                className="scale-75 data-[state=checked]:bg-primary"
+              />
             </DropdownMenuItem>
             <DropdownMenuItem 
                 onClick={() => handleStatusToggle(teacher)}
