@@ -46,7 +46,10 @@ export default function ClassWorkspacePage() {
     )
   }
 
-  const classStudents = students?.filter(s => (s.enrolledCourses || []).includes(course.id)) || []
+  const classStudents = students?.filter(s => 
+    (s.enrolledCourses || []).includes(course.id) || 
+    (s.grade === course.level && s.classTiming === course.schedule)
+  ) || []
 
   // Initialize empty grades if unset
   const getStudentMarks = (id: string) => {

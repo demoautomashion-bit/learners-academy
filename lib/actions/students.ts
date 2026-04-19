@@ -18,15 +18,28 @@ export async function getStudents(): Promise<ActionResult<Student[]>> {
 export async function enrollStudent(student: any): Promise<ActionResult<Student>> {
   try {
     // 1. Find courses that match the student's Academic Tier (grade) and Session Slot (classTiming)
+    // Intelligent Match: Handle variations like "Level 1" vs "Level One"
+    const normalizedGrade = student.grade.replace(/\d+/, (match: string) => {
+      const nums: any = { '1': 'One', '2': 'Two', '3': 'Three', '4': 'Four', '5': 'Five', '6': 'Six' }
+      return nums[match] || match
+    })
+
     const matchingCourses = await db.course.findMany({
       where: {
-        level: student.grade,
+        OR: [
+          { level: student.grade },
+          { level: normalizedGrade }
+        ],
         schedule: student.classTiming,
         status: 'active'
       }
     })
 
     const matchingCourseIds = matchingCourses.map(c => c.id)
+
+    if (matchingCourseIds.length === 0) {
+      console.warn(`[REGISTRY_ALERT] No direct batches found for student ${student.name} at level ${student.grade}. Identity created but enrollment is pending manual assignment.`)
+    }
 
     // Data Sanitization Layer
     // 1. Convert empty placeholders to null to satisfy unique constraints
