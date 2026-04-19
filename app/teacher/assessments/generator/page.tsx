@@ -45,10 +45,10 @@ import { AssessmentTemplate, QuestionType } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const assessmentSchema = z.object({
-  title: z.string().min(5, 'Institutional title must be formal and descriptive'),
+  title: z.string().min(5, 'Test title must be formal and descriptive'),
   phase: z.enum(['First Test', 'Last Test']),
-  courseId: z.string().min(1, 'Please select a target academic course'), // UUID based
-  classLevel: z.string().optional(), // Legacy display name
+  courseId: z.string().min(1, 'Please select a target course'), 
+  classLevel: z.string().optional(),
   nature: z.enum(['MCQ', 'Subjective', 'Mixed', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening']),
   totalMarks: z.coerce.number().optional(),
   markAllocation: z.object({
@@ -170,12 +170,12 @@ export default function AssessmentGeneratorPage() {
     try {
       await publishAssessment(newAssessment)
       toast.success(requiresReview 
-        ? "Institutional registry updated. Awaiting administrative review."
-        : "Automated exam generation successful. Paper is now LIVE."
+        ? "Test submitted for administrative review."
+        : "Test successfully created and published locally."
       )
       router.push('/teacher/assessments')
     } catch (err) {
-      toast.error("Generation failed. Check cloud connectivity.")
+      toast.error("Process failed. Please verify connection.")
     }
   }
 
@@ -183,145 +183,168 @@ export default function AssessmentGeneratorPage() {
   if (!isInitialized) return <AssessmentSkeleton />
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-20">
-      {/* Header Profile */}
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
       <div className="space-y-4">
         <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => router.push('/teacher/assessments')}
-            className="hover:bg-primary/5 text-primary p-0 h-auto font-normal opacity-60 group transition-premium"
+            className="hover:bg-primary/5 text-primary p-0 h-auto font-normal opacity-60 group transition-all"
         >
             <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
-            <span className="text-xs   font-normal">Abort Generation</span>
+            <span className="text-xs font-normal">Exit Creator</span>
         </Button>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-2">
+            <div className="space-y-1">
                 <div className="flex items-center gap-3">
-                   <div className="p-3 bg-primary/10  border ">
+                   <div className="p-2.5 bg-primary/10 rounded-2xl border border-primary/10">
                       <BrainCircuit className="w-6 h-6 text-primary" />
                    </div>
-                   <h1 className="text-3xl font-serif text-foreground leading-none font-medium">Examination Workshop</h1>
+                   <h1 className="text-3xl font-serif text-foreground leading-none font-medium">Create New Test</h1>
                 </div>
-                <p className="text-muted-foreground text-sm opacity-70">
-                    Automated pedagogical engine for cross-cycle assessment synthesis and registry.
+                <p className="text-muted-foreground text-sm opacity-60">
+                    Smart system to help you create and organize student tests.
                 </p>
             </div>
             {requiresReview && (
-              <Badge variant="outline" className="h-10 px-6  bg-warning/5 text-warning border-warning/10 text-xs   font-normal flex items-center gap-2">
-                 <AlertCircle className="w-4 h-4" /> Institutional Review Required
+              <Badge variant="outline" className="h-10 px-6 bg-warning/5 text-warning border-warning/10 text-[10px] uppercase tracking-widest font-bold flex items-center gap-2 rounded-xl">
+                 <AlertCircle className="w-4 h-4" /> Approval Required
               </Badge>
             )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-         {/* Configuration Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
          <div className="lg:col-span-8 space-y-6">
-            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-               <CardHeader className="p-8 border-b ">
+            <Card className="glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all hover:translate-y-[-2px]">
+               <CardHeader className="p-10 border-b border-primary/5">
                   <div className="flex items-center justify-between">
                      <div className="space-y-1">
-                        <CardTitle className="text-xl font-serif text-foreground/80 font-medium">Generative Logic Configuration</CardTitle>
-                        <CardDescription className="text-xs font-normal opacity-40">System parameters for academic block selection.</CardDescription>
+                        <CardTitle className="text-2xl font-serif text-foreground/80 font-medium">Setup & Configuration</CardTitle>
+                        <CardDescription className="text-xs font-normal opacity-40 italic">Set the basic parameters for your assessment.</CardDescription>
                      </div>
-                     <Settings className="w-5 h-5 text-primary/30" />
+                     <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary/30">
+                        <Settings className="w-5 h-5" />
+                     </div>
                   </div>
                </CardHeader>
-               <CardContent className="p-6 flex-1">
+               <CardContent className="p-10 pt-8">
                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                      <div className="grid gap-6">
-                         <div className="space-y-2">
-                            <label className="text-xs   font-normal opacity-40">Institutional Title</label>
-                            <Input 
-                               {...register('title')}
-                               placeholder="e.g. Cambridge A-Level Mock Examination (Mid-Term)"
-                               className="h-12 bg-muted/5   px-6 font-serif text-lg focus:ring-1 focus:ring-primary/20 transition-premium"
-                            />
-                            {errors.title && <p className="text-xs text-destructive   font-normal mt-1">{errors.title.message}</p>}
-                         </div>
+                       <div className="space-y-8">
+                          <div className="space-y-3">
+                             <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Assessment Title</label>
+                             <Input 
+                                {...register('title')}
+                                placeholder="e.g. Mid-Term Mock Test"
+                                className="h-14 bg-muted/5 border-primary/5 px-8 font-serif text-xl rounded-2xl focus:ring-1 focus:ring-primary/20 transition-all placeholder:opacity-20"
+                             />
+                             {errors.title && <p className="text-xs text-destructive font-medium mt-2 ml-1">{errors.title.message}</p>}
+                          </div>
  
-                         <div className="grid grid-cols-2 gap-6 items-stretch">
-                            <div className="space-y-2">
-                               <label className="text-xs   font-normal opacity-40">Target Term Cycle</label>
-                               <Select onValueChange={(val) => setValue('phase', val as any)}>
-                                  <SelectTrigger className="h-12 bg-muted/5   px-6 text-xs   font-normal">
-                                     <SelectValue placeholder="Select Cycle" />
-                                  </SelectTrigger>
-                                  <SelectContent className="">
-                                     <SelectItem value="First Test" className="text-xs  ">Mid-Term Cycle</SelectItem>
-                                     <SelectItem value="Last Test" className="text-xs  ">Final-Term Cycle</SelectItem>
-                                  </SelectContent>
-                               </Select>
-                            </div>
-                            <div className="space-y-2">
-                               <label className="text-xs   font-normal opacity-40">Target Academic Course</label>
-                               <Select onValueChange={(val) => setValue('courseId', val)}>
-                                  <SelectTrigger className="h-12 bg-muted/5   px-6 text-xs   font-normal">
-                                     <SelectValue placeholder="Select Course" />
-                                  </SelectTrigger>
-                                  <SelectContent className="">
-                                     {myClasses?.map(c => (
-                                        <SelectItem key={c.id} value={c.id} className="text-xs  ">{c.title}</SelectItem>
-                                     ))}
-                                  </SelectContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             <div className="space-y-3">
+                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Test Period</label>
+                                <div className="grid grid-cols-2 gap-3 p-1.5 bg-muted/10 border border-primary/5 rounded-2xl">
+                                    {['First Test', 'Last Test'].map(p => (
+                                        <button
+                                            key={p}
+                                            type="button"
+                                            onClick={() => setValue('phase', p as any)}
+                                            className={cn(
+                                                "h-11 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all",
+                                                watchPhase === p ? "bg-primary text-white shadow-lg" : "text-muted-foreground/60 hover:text-foreground hover:bg-primary/5"
+                                            )}
+                                        >
+                                            {p === 'First Test' ? 'Mid-Term' : 'Final-Term'}
+                                        </button>
+                                    ))}
+                                </div>
+                             </div>
+                             <div className="space-y-3">
+                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Assigned Group</label>
+                                <Select onValueChange={(val) => setValue('courseId', val)}>
+                                   <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
+                                      <SelectValue placeholder="Select Class/Batch" />
+                                   </SelectTrigger>
+                                   <SelectContent className="glass-2 border-primary/5 rounded-2xl">
+                                      {myClasses?.map(c => (
+                                         <SelectItem key={c.id} value={c.id} className="rounded-xl py-3 text-sm">{c.title}</SelectItem>
+                                      ))}
+                                   </SelectContent>
+                                 </Select>
+                                 {errors.courseId && <p className="text-xs text-destructive font-medium mt-2 ml-1">{errors.courseId.message}</p>}
+                             </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             <div className="space-y-3">
+                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Question Format</label>
+                                <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
+                                   <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
+                                      <SelectValue placeholder="Identify Format" />
+                                   </SelectTrigger>
+                                   <SelectContent className="glass-2 border-primary/5 rounded-2xl max-h-[300px]">
+                                      <SelectItem value="Mixed" className="rounded-xl py-3">Comprehensive (Mixed)</SelectItem>
+                                      <SelectItem value="MCQ" className="rounded-xl py-3">Objective (MCQ)</SelectItem>
+                                      <SelectItem value="Subjective" className="rounded-xl py-3">Subjective</SelectItem>
+                                      <SelectItem value="True/False" className="rounded-xl py-3">True/False</SelectItem>
+                                      <SelectItem value="Fill in the Blanks" className="rounded-xl py-3">Cloze (Blanks)</SelectItem>
+                                      <SelectItem value="Matching" className="rounded-xl py-3">Matching</SelectItem>
+                                      <SelectItem value="Writing" className="rounded-xl py-3">Essay / Writing</SelectItem>
+                                      <SelectItem value="Reading" className="rounded-xl py-3">Reading Comprehension</SelectItem>
+                                      <SelectItem value="Listening" className="rounded-xl py-3">Listening Audio</SelectItem>
+                                   </SelectContent>
                                 </Select>
-                                {errors.courseId && <p className="text-xs text-destructive font-normal mt-1">{errors.courseId.message}</p>}
-                            </div>
-                         </div>
+                             </div>
+                             <div className="space-y-3">
+                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Question Volume</label>
+                                <div className="relative">
+                                   <Input 
+                                      type="number"
+                                      {...register('questionCount', { valueAsNumber: true })}
+                                      className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 font-sans text-sm focus:ring-1 focus:ring-primary/20"
+                                   />
+                                   <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none opacity-20">
+                                      <Zap className="w-3.5 h-3.5 text-primary" />
+                                      <span className="text-[10px] font-bold uppercase tracking-widest">Slots</span>
+                                   </div>
+                                </div>
+                             </div>
+                          </div>
+                       </div>
 
-                         <div className="grid grid-cols-2 gap-6 items-stretch">
-                            <div className="space-y-2">
-                               <label className="text-xs   font-normal opacity-40">Examination Nature</label>
-                               <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
-                                  <SelectTrigger className="h-12 bg-muted/5   px-6 text-xs   font-normal">
-                                     <SelectValue placeholder="Select Nature" />
-                                  </SelectTrigger>
-                                  <SelectContent className="">
-                                     <SelectItem value="Mixed" className="text-xs  ">Mixed Synthesised</SelectItem>
-                                     <SelectItem value="MCQ" className="text-xs  ">MCQ Focus</SelectItem>
-                                     <SelectItem value="Subjective" className="text-xs  ">Subjective Synthesis</SelectItem>
-                                     <SelectItem value="True/False" className="text-xs  ">Binary Logic</SelectItem>
-                                     <SelectItem value="Fill in the Blanks" className="text-xs  ">Cloze Analysis</SelectItem>
-                                     <SelectItem value="Matching" className="text-xs  ">Graph Relationships</SelectItem>
-                                     <SelectItem value="Writing" className="text-xs  ">Analytical Composition</SelectItem>
-                                     <SelectItem value="Reading" className="text-xs  ">Textual Critical Analysis</SelectItem>
-                                     <SelectItem value="Listening" className="text-xs  ">Auditory Critical Analysis</SelectItem>
-                                  </SelectContent>
-                               </Select>
-                            </div>
-                            <div className="space-y-2">
-                               <label className="text-xs   font-normal opacity-40">Block Count</label>
-                               <div className="relative">
-                                  <Input 
-                                     type="number"
-                                     {...register('questionCount', { valueAsNumber: true })}
-                                     className="h-12 bg-muted/5   px-6 font-sans text-sm"
-                                  />
-                                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                     <Zap className="w-3.5 h-3.5 text-primary opacity-40" />
-                                     <span className="text-xs    opacity-30">Selection Target</span>
-                                  </div>
-                               </div>
-                            </div>
-                         </div>
-                      </div>
-
-                      <div className="space-y-6 pt-8 border-t ">
-                        <div className="flex items-center gap-3">
-                           <Boxes className="w-5 h-5 text-primary opacity-50" />
-                           <h3 className="opacity-50 font-sans text-xl font-serif font-medium">Synthesized Mark Allocation (Total: {totalCalculatedMarks})</h3>
+                       <div className="space-y-8 pt-10 border-t border-primary/5">
+                        <div className="flex flex-col gap-2">
+                           <div className="flex items-center gap-3 text-primary/60">
+                              <Boxes className="w-5 h-5" />
+                              <h3 className="font-serif text-xl font-medium text-foreground/80">Mark Distribution</h3>
+                           </div>
+                           <div className="flex h-2 w-full rounded-full overflow-hidden bg-muted/10 border border-primary/5">
+                              {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening'].map((type, i) => {
+                                 const val = Number(watchAlloc?.[type as keyof typeof watchAlloc]) || 0
+                                 const width = totalCalculatedMarks > 0 ? (val / totalCalculatedMarks) * 100 : 0
+                                 const colors = ['bg-primary', 'bg-indigo-400', 'bg-success', 'bg-amber-400', 'bg-destructive', 'bg-purple-400', 'bg-cyan-400', 'bg-pink-400']
+                                 return (
+                                    <motion.div 
+                                      key={type}
+                                      animate={{ width: `${width}%` }}
+                                      className={cn(colors[i % colors.length], "h-full opacity-80 shadow-inner")}
+                                    />
+                                 )
+                              })}
+                           </div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-stretch">
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                            {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening'].map(type => {
                               const isDisabled = watchNature !== 'Mixed' && watchNature !== type
                               return (
-                                 <div key={type} className={cn("space-y-2 transition-premium", isDisabled && "opacity-20 pointer-events-none")}>
-                                    <label className="text-xs    text-muted-foreground truncate">{type}</label>
+                                 <div key={type} className={cn("space-y-2.5 transition-all", isDisabled && "opacity-20 pointer-events-none grayscale")}>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">{type}</label>
                                     <Input 
                                        type="number"
                                        {...register(`markAllocation.${type}` as any, { valueAsNumber: true })}
-                                       className="h-11 bg-background   text-center font-sans"
+                                       className="h-12 bg-muted/5 border-primary/5 rounded-xl text-center font-sans focus:ring-primary/20"
                                     />
                                  </div>
                               )
@@ -329,146 +352,148 @@ export default function AssessmentGeneratorPage() {
                         </div>
                      </div>
 
-                      <div className="grid grid-cols-2 gap-6 pt-8 border-t items-stretch">
-                        <div className="space-y-2">
-                           <label className="text-xs   font-normal opacity-40">Access Code</label>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-10 border-t border-primary/5">
+                        <div className="space-y-3">
+                           <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Access Token</label>
                            <div className="flex gap-2">
                               <Input 
                                  {...register('accessCode')}
-                                 className="h-12 bg-primary/5   px-6 font-mono text-sm  text-primary"
+                                 className="h-14 bg-primary/5 border-primary/20 px-8 font-mono text-sm tracking-wider text-primary rounded-2xl"
                               />
                               <Button 
                                  type="button" 
-                                 variant="ghost" 
+                                 variant="outline" 
                                  size="icon" 
                                  onClick={() => setValue('accessCode', generateSecureToken())}
-                                 className="shrink-0 h-12 w-12  bg-card border  hover:bg-primary/5"
+                                 className="shrink-0 h-14 w-14 bg-background border-primary/10 hover:bg-primary/5 rounded-2xl transition-all"
                               >
                                  <RefreshCw className="w-4 h-4 opacity-40" />
                               </Button>
                            </div>
                         </div>
-                        <div className="space-y-2">
-                           <label className="text-xs   font-normal opacity-40">Duration (Minutes)</label>
+                        <div className="space-y-3">
+                           <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Time Limit (Min)</label>
                            <Input 
                               type="number"
                               {...register('duration', { valueAsNumber: true })}
-                              className="h-12 bg-muted/5   px-6 font-sans text-sm"
+                              className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 font-sans text-sm focus:ring-1 focus:ring-primary/20"
                            />
                         </div>
                       </div>
 
                       {/* Adaptive Toggle */}
-                      <div className="pt-8 border-t">
-                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors">
+                       <div className="pt-10 border-t border-primary/5">
+                        <label className="flex items-center gap-5 cursor-pointer p-6 bg-primary/[0.03] border border-primary/10 rounded-[2rem] hover:bg-primary/[0.06] transition-all group">
                           <input 
                             type="checkbox" 
                             {...register('isAdaptive')}
-                            className="w-5 h-5 rounded border-primary/30 text-primary focus:ring-primary/20"
+                            className="w-6 h-6 rounded-lg border-primary/30 text-primary focus:ring-primary/20 transition-all cursor-pointer"
                           />
-                          <div className="space-y-0.5">
-                            <p className="text-sm font-medium">Enable Adaptive Testing Mode (CAT Engine)</p>
-                            <p className="text-xs text-muted-foreground">Dynamically scales difficulty per string. Requires robust pool.</p>
+                          <div className="space-y-1">
+                            <p className="text-sm font-bold tracking-tight">Adaptive Testing Mode</p>
+                            <p className="text-xs text-muted-foreground opacity-60 font-normal">System dynamically adjusts difficulty based on student performance.</p>
                           </div>
                         </label>
                       </div>
 
-                      <div className="pt-8 flex gap-3">
-                          <Button 
-                             type="submit" 
-                             disabled={isSubmitting} 
-                             className="flex-1  bg-primary  hover: hover-lift transition-premium group"
-                          >
-                             {isSubmitting ? (
-                                <RefreshCw className="w-4 h-4 animate-spin" />
-                             ) : (
-                                <>
-                                   <Zap className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                                   <span className="text-xs   font-normal">Publish Assessment</span>
-                                </>
-                             )}
-                          </Button>
-                          <Button 
-                             type="button" 
-                             variant="outline" 
-                             onClick={() => router.back()}
-                             className="h-12 px-8   bg-card hover:bg-muted/10 transition-premium"
-                          >
-                             <span className="text-xs   font-normal">Abandon Selection</span>
-                          </Button>
-                      </div>
+                       <div className="pt-12 flex flex-col md:flex-row gap-4">
+                           <Button 
+                              type="submit" 
+                              disabled={isSubmitting} 
+                              className="flex-1 h-14 bg-primary hover:bg-primary/95 shadow-2xl shadow-primary/20 rounded-2xl transition-all group"
+                           >
+                              {isSubmitting ? (
+                                 <RefreshCw className="w-4 h-4 animate-spin" />
+                              ) : (
+                                 <div className="flex items-center justify-center gap-3">
+                                    <Zap className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                    <span className="text-sm font-bold uppercase tracking-widest">Publish Test</span>
+                                 </div>
+                              )}
+                           </Button>
+                           <Button 
+                              type="button" 
+                              variant="ghost" 
+                              onClick={() => router.back()}
+                              className="h-14 px-10 text-xs font-bold uppercase tracking-widest opacity-30 hover:opacity-100 transition-opacity"
+                           >
+                              Abandon
+                           </Button>
+                       </div>
                   </form>
                </CardContent>
             </Card>
          </div>
 
-         <div className="lg:col-span-4 space-y-6 focus-mode-sidebar sticky top-10">
-            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-                <CardHeader className="p-6 bg-primary/5 border-b  space-y-2">
-                    <div className="flex items-center gap-3">
-                        <Terminal className="w-5 h-5 text-primary opacity-60" />
-                        <CardTitle className="font-serif text-xl font-medium">Synthesis Intelligence</CardTitle>
+          <div className="lg:col-span-4 space-y-8 sticky top-8">
+            <Card className="glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                <CardHeader className="p-8 bg-primary/5 border-b border-primary/5 space-y-3">
+                    <div className="flex items-center gap-3 text-primary/60">
+                        <Terminal className="w-5 h-5" />
+                        <CardTitle className="font-serif text-xl font-medium tracking-tight">Question Stats</CardTitle>
                     </div>
-                    <CardDescription className="text-xs font-normal opacity-40">LA-Automated Block Audit</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 space-y-6 flex-1">
+                <CardContent className="p-8 space-y-8">
                    <div className="space-y-4">
-                      <div className="flex items-baseline justify-between">
-                         <span className="text-xs   font-normal opacity-40">Available Blocks</span>
-                         <span className="text-3xl font-normal font-sans">{availableBlocks.length}</span>
+                      <div className="flex items-baseline justify-between mb-2">
+                         <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Database Pool</span>
+                         <span className="text-4xl font-sans font-light">{availableBlocks.length}</span>
                       </div>
-                      <Progress value={(availableBlocks.length / 50) * 100} className="h-1 bg-primary/5" />
-                      <p className="text-xs text-muted-foreground/60 leading-relaxed font-normal">
-                         System is targeting {watch('questionCount')} blocks. {availableBlocks.length < (watch('questionCount') || 0) ? 
-                            "Alert: Insufficient blocks in registry to meet target." : 
-                            "Block density is optimal for target synthesis."}
+                      <Progress value={Math.min((availableBlocks.length / 50) * 100, 100)} className="h-1.5 bg-primary/5" />
+                      <p className="text-[11px] text-muted-foreground leading-relaxed opacity-60">
+                         {availableBlocks.length < (watch('questionCount') || 0) ? 
+                            "Insufficient question bank for current settings." : 
+                            "Optimal question density confirmed for selection."}
                       </p>
                    </div>
 
-                   <div className="space-y-4 pt-6 border-t ">
-                      <h4 className="text-xs opacity-40 font-medium">Block Nature Density</h4>
-                      <div className="grid gap-2">
+                   <div className="space-y-4 pt-8 border-t border-primary/5">
+                      <h4 className="text-[10px] uppercase tracking-widest font-black opacity-30">Type Availability</h4>
+                      <div className="grid gap-3">
                          {['MCQ', 'Subjective', 'Reading', 'Listening', 'Writing'].map(type => (
-                           <div key={type} className="flex items-center justify-between p-4  bg-muted/5 border  group transition-premium hover:bg-card">
-                              <span className="text-xs   font-normal opacity-60">{type} Units</span>
-                              <div className="flex items-center gap-3">
-                                 <span className="text-sm font-sans font-normal">{natureStats[type] || 0}</span>
-                                 <div className={cn("w-2 h-2 ", (natureStats[type] || 0) > 0 ? "bg-success" : "bg-muted-foreground/20")} />
-                              </div>
-                           </div>
+                            <div key={type} className="flex items-center justify-between p-4 bg-muted/5 border border-primary/5 rounded-2xl hover:bg-muted/10 transition-all group">
+                               <span className="text-xs font-medium opacity-60">{type} Units</span>
+                               <div className="flex items-center gap-3">
+                                  <span className="text-sm font-sans font-bold">{natureStats[type] || 0}</span>
+                                  <div className={cn("w-1.5 h-1.5 rounded-full ", (natureStats[type] || 0) > 0 ? "bg-success" : "bg-muted-foreground/20")} />
+                               </div>
+                            </div>
                          ))}
                       </div>
                    </div>
  
-                   <div className="pt-6 border-t ">
-                      <div className=" bg-info/5 border border-info/20 p-5 space-y-3">
-                         <div className="flex items-center gap-2">
-                            <History className="w-4 h-4 text-info opacity-60" />
-                            <span className="text-xs   font-normal text-info">Synthesis Log</span>
+                   <div className="pt-8 border-t border-primary/5">
+                      <div className="bg-primary/[0.03] border border-primary/10 p-6 rounded-2xl space-y-3 shadow-inner">
+                         <div className="flex items-center gap-2 text-primary">
+                            <History className="w-4 h-4 opacity-60" />
+                            <span className="text-[10px] uppercase tracking-widest font-black">Proctor Note</span>
                          </div>
-                         <p className="text-xs leading-relaxed text-muted-foreground font-normal italic">
-                            The LA-Synthesis engine selects blocks that have not been encountered in the last 12 weeks to ensure zero repetition during examination cycles.
+                         <p className="text-[11px] leading-relaxed text-muted-foreground font-medium italic opacity-60">
+                            Smart selection ensures zero question repetition across 12-week cycles for maximum integrity.
                          </p>
                       </div>
                    </div>
                 </CardContent>
             </Card>
 
-            <Card className="glass-1 bg-primary/5 border overflow-hidden p-6 space-y-4 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-                <div className="flex items-center gap-3">
-                   <Target className="w-5 h-5 text-primary opacity-60" />
-                   <h3 className="font-serif text-foreground/80 text-xl font-serif font-medium">Institutional Audit</h3>
+            <Card className="glass-1 bg-primary/5 border-primary/5 overflow-hidden p-10 rounded-[2.5rem] shadow-2xl relative isolate">
+                <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/10 blur-3xl -z-10" />
+                <div className="flex items-center gap-4 mb-8">
+                   <div className="p-2.5 bg-background rounded-xl border border-primary/5 shadow-sm">
+                      <Target className="w-5 h-5 text-primary" />
+                   </div>
+                   <h3 className="font-serif text-xl font-medium tracking-tight">Audit Status</h3>
                 </div>
-                <div className="space-y-4">
-                   <div className="flex items-center justify-between">
-                      <span className="text-xs   font-normal opacity-40">Confidence</span>
-                      <span className={cn("text-xs font-normal  ", availableBlocks.length > 20 ? "text-success" : "text-warning")}>
-                         {availableBlocks.length > 20 ? "High" : "Review Advised"}
+                <div className="space-y-6">
+                   <div className="flex items-center justify-between border-b border-primary/5 pb-4">
+                      <span className="text-[10px] uppercase tracking-widest font-black opacity-30">Confidence</span>
+                      <span className={cn("text-xs font-bold px-3 py-1 rounded-lg ", availableBlocks.length > 20 ? "bg-success/10 text-success" : "bg-warning/10 text-warning")}>
+                         {availableBlocks.length > 20 ? "Optimal" : "Low Density"}
                       </span>
                    </div>
-                   <div className="flex justify-between items-center bg-card p-4  shadow-sm border ">
-                        <span className="text-xs   font-normal opacity-40">Review Threshold</span>
-                        <Badge variant="outline" className="text-xs font-normal   ">{requiresReview ? "Mandatory" : "Optional"}</Badge>
+                   <div className="flex justify-between items-center bg-background/40 p-5 border border-primary/5 rounded-2xl shadow-sm">
+                        <span className="text-[10px] uppercase tracking-widest font-black opacity-30">Admin Review</span>
+                        <Badge variant="outline" className="text-[10px] uppercase tracking-widest font-black py-1 h-auto border-primary/20">{requiresReview ? "Required" : "Skipped"}</Badge>
                    </div>
                 </div>
             </Card>
