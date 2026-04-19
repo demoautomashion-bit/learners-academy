@@ -16,9 +16,11 @@ export async function getTeachers(): Promise<ActionResult<Teacher[]>> {
 
 export async function addTeacher(teacher: Omit<Teacher, 'coursesCount' | 'studentsCount'>): Promise<ActionResult<Teacher>> {
   try {
+    const { password, ...cleanTeacher } = teacher as any
     const newTeacher = await db.teacher.create({
       data: {
-        ...teacher,
+        ...cleanTeacher,
+        employeePassword: teacher.employeePassword || password, // Support both potential keys
         joinedAt: teacher.joinedAt ? new Date(teacher.joinedAt) : new Date()
       } as any
     })

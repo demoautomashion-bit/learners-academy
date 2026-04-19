@@ -11,12 +11,10 @@ import {
   UserCircle,
   Mail,
   Phone,
-  ShieldCheck,
-  ChevronLeft,
-  Sparkles,
-  ArrowRight,
   Hash,
-  Lock
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
@@ -36,6 +34,7 @@ export default function FacultyRegistrationPage() {
     employeeId: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
     password: ''
   })
+  const [showPassword, setShowPassword] = useState(false)
 
   // Animation variants
   const containerVariants = {
@@ -67,14 +66,15 @@ export default function FacultyRegistrationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const { password, ...registrationData } = formData
       await addTeacher({
-        ...formData,
+        ...registrationData,
+        employeePassword: password,
         subjects: [],
         qualifications: [],
         status: 'active',
         joinedAt: new Date().toISOString(),
         coursesCount: 0,
-        tempPassword: formData.password,
         studentsCount: 0,
         id: crypto.randomUUID()
       } as any)
@@ -199,13 +199,24 @@ export default function FacultyRegistrationPage() {
                         <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20 group-focus-within:opacity-100 transition-all" />
                         <Input 
                           name="password" 
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
                           value={formData.password} 
                           onChange={handleInputChange} 
                           required 
-                          className="h-12 pl-12 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-xl transition-all font-normal text-sm" 
+                          className="h-12 pl-12 pr-12 bg-muted/5 border-primary/5 focus:bg-background/80 focus:border-primary/20 rounded-xl transition-all font-normal text-sm" 
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>
