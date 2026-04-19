@@ -41,7 +41,7 @@ export default function AssessmentWorkspacePage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
-  const { assessments, submissions, students, gradeSubmission, isInitialized } = useData()
+  const { assessments, submissions, students, enrollments, gradeSubmission, isInitialized } = useData()
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null)
@@ -54,7 +54,24 @@ export default function AssessmentWorkspacePage() {
   
   const assessmentId = params.assessmentId as string
   const assessment = assessments.find(a => a.id === assessmentId)
-  const assessmentSubmissions = submissions?.filter(s => s.assignmentId === assessmentId)
+  const assessmentSubmissions = submissions?.filter(s => s.assignmentId === assessmentId) || []
+
+  // Candidate Pool Tracking: Identify students enrolled in matching courses who haven't submitted yet
+  const relevantCourseIds = assessment?.courseIds || []
+  const enrolledStudentIds = enrollments
+    ?.filter(e => relevantCourseIds.includes(e.courseId))
+    .map(e => e.studentId) || []
+
+  const submittedStudentIds = new Set(assessmentSubmissions.map(s => s.studentId))
+  const pendingCandidates = students
+    ?.filter(s => enrolledStudentIds.includes(s.id) && !submittedStudentIds.has(s.id))
+    .map(s => ({
+      id: `pending-${s.id}`,
+      studentId: s.id,
+      studentName: s.name,
+      status: 'not_started',
+      isPlaceholder: true
+    })) || []
   
   if (!assessment) return (
     <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
@@ -67,9 +84,11 @@ export default function AssessmentWorkspacePage() {
     </div>
   )
 
-  const filteredSubmissions = assessmentSubmissions?.filter(s => 
-    s.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.studentId.toLowerCase().includes(searchQuery.toLowerCase())
+  const allEntries = [...assessmentSubmissions, ...pendingCandidates]
+
+  const filteredSubmissions = allEntries.filter(s => 
+    (s.studentName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (s.studentId || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const pendingCount = assessmentSubmissions?.filter(s => s.status === 'pending').length
@@ -159,12 +178,12 @@ export default function AssessmentWorkspacePage() {
                         </thead>
                         <tbody className="divide-y divide-primary/5">
                             {filteredSubmissions?.map((s) => (
-                                <tr key={s.id} className="group hover:bg-primary/[0.02] transition-premium h-24">
+                                 <tr key={s.id} className={cn("group transition-premium h-24", s.isPlaceholder ? "opacity-40 grayscale-[0.5]" : "hover:bg-primary/[0.02]")}>
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
                                             <Avatar className="h-11 w-11 shadow-sm border-2 border-background ring-2 ring-primary/5">
                                                 <AvatarFallback className="bg-primary/5 text-primary text-xs ">
-                                                    {s.studentName.split(' ').map((n: string) => n[0]).join('')}
+                                                    {(s.studentName || 'S').split(' ').map((n: string) => n[0]).join('')}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="flex flex-col">
@@ -182,28 +201,37 @@ export default function AssessmentWorkspacePage() {
                                                 </div>
                                                 <span className="text-xs text-success/70   mt-1">Audit Verified</span>
                                             </div>
-                                        ) : (
+                                        ) : s.status === 'pending' ? (
                                             <Badge variant="secondary" className="bg-warning/5 text-warning border-warning/10 h-7 px-4  text-xs  font-normal ">
                                                 Awaiting Review
                                             </Badge>
+                                        ) : (
+                                            <div className="flex items-center gap-2 text-muted-foreground italic">
+                                                <Clock className="w-3.5 h-3.5 opacity-40" />
+                                                <span className="text-xs">Candidate has not initiated.</span>
+                                            </div>
                                         )}
                                     </td>
                                     <td className="px-8 py-5 text-right">
-                                        <Button 
-                                            variant={s.status === 'pending' ? 'default' : 'ghost'}
-                                            onClick={() => {
-                                                setSelectedSubmission(s)
-                                                setGradeInput(s.grade?.toString() || '')
-                                                setFeedbackInput(s.feedback || '')
-                                                setIsGradeOpen(true)
-                                            }}
-                                            className="h-11  px-6 group/btn transition-all"
-                                        >
-                                            <span className="text-xs   font-normal">
-                                                {s.status === 'pending' ? 'Execute Audit' : 'Edit Analysis'}
-                                            </span>
-                                            <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                                        </Button>
+                                        {!s.isPlaceholder ? (
+                                            <Button 
+                                                variant={s.status === 'pending' ? 'default' : 'ghost'}
+                                                onClick={() => {
+                                                    setSelectedSubmission(s)
+                                                    setGradeInput(s.grade?.toString() || '')
+                                                    setFeedbackInput(s.feedback || '')
+                                                    setIsGradeOpen(true)
+                                                }}
+                                                className="h-11  px-6 group/btn transition-all"
+                                            >
+                                                <span className="text-xs   font-normal">
+                                                    {s.status === 'pending' ? 'Execute Audit' : 'Edit Analysis'}
+                                                </span>
+                                                <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                                            </Button>
+                                        ) : (
+                                            <Badge variant="outline" className="opacity-20 font-normal text-[10px] uppercase tracking-tighter">Pending Action</Badge>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

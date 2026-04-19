@@ -24,20 +24,38 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
       }
     })
 
-    // Create FeePayment records for enrollment
-    if (student.enrolledCourses && student.enrolledCourses.length > 0) {
-      for (const courseId of student.enrolledCourses) {
-        const course = await db.course.findUnique({ where: { id: courseId } })
-        if (course) {
-          await db.feePayment.create({
-            data: {
-              studentId: result.id,
-              courseId: courseId,
-              totalAmount: course.feeAmount || 0,
-              status: 'Unpaid'
-            }
-          })
-        }
+    // Automated Institutional Enrollment
+    // Find courses that match the student's Academic Tier (grade) and Session Slot (classTiming)
+    const matchingCourses = await db.course.findMany({
+      where: {
+        level: student.grade,
+        timing: student.classTiming,
+        status: 'active'
+      }
+    })
+
+    if (matchingCourses.length > 0) {
+      for (const course of matchingCourses) {
+        // Create Enrollment record
+        await db.enrollment.create({
+          data: {
+            studentId: result.id,
+            courseId: course.id,
+            enrolledAt: new Date(),
+            status: 'active',
+            progress: 0
+          }
+        })
+
+        // Create FeePayment record
+        await db.feePayment.create({
+          data: {
+            studentId: result.id,
+            courseId: course.id,
+            totalAmount: course.feeAmount || 0,
+            status: 'Unpaid'
+          }
+        })
       }
     }
 
