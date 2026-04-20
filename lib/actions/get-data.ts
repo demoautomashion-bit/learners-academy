@@ -38,7 +38,8 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       studentFilter = { 
         OR: [
           { enrolledCourses: { hasSome: myCourseIds } },
-          { grade: { in: myLevels } }
+          { grade: { in: myLevels } },
+          { classTiming: { in: mySchedules } }
         ]
       }
     }

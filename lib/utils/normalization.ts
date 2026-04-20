@@ -21,5 +21,11 @@ export const normalizeAcademicLevel = (val: string) => {
 }
 
 export const normalizeTiming = (t: string) => {
-  return (t || '').toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
+  if (!t) return ''
+  // 1. Basic normalization (lowercase, strip whitespace and dots)
+  const base = t.toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
+  
+  // 2. Harden time segments (handle 06:00 vs 6:00)
+  // We look for any digit that is a '0' at the start of a segment (either start of string or after a non-digit like :)
+  return base.replace(/(^|[^0-9])0([0-9])/g, '$1$2')
 }

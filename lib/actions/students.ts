@@ -34,7 +34,9 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
                             (targetLevel.length > 0 && courseLevel.includes(targetLevel)) ||
                             (courseLevel.length > 0 && targetLevel.includes(courseLevel))
         
-        return levelsMatch && courseTiming === targetTiming
+        const timingsMatch = courseTiming === targetTiming
+        
+        return levelsMatch && timingsMatch
     })
 
     const matchingCourseIds = matchingCourses.map(c => c.id)
