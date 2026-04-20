@@ -43,7 +43,19 @@ export function isStudentInCourse(student: Student, course: Course): boolean {
 
   // Timing Normalization (Removes periods and spaces for AM/PM consistency)
   const normTiming = (t: string) => (t || '').toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
-  const scheduleMatch = normTiming(student.classTiming || '') === normTiming(course.schedule || '')
+  
+  const studentTime = normTiming(student.classTiming || '')
+  let courseTime = normTiming(course.schedule || '')
+
+  // Legacy Fallback: If schedule contains weekdays (e.g., 'Mon'), try to extract timing from title
+  if (courseTime.includes('mon') || courseTime.includes('tue')) {
+    const parts = (course.title || '').split(' - ')
+    if (parts.length > 1) {
+      courseTime = normTiming(parts[1])
+    }
+  }
+
+  const scheduleMatch = studentTime === courseTime
 
   return levelMatch && scheduleMatch
 }

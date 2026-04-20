@@ -105,7 +105,7 @@ export default function ClassesPage() {
             teacherName: selectedTeacher?.name || 'Unassigned',
             capacity: 25,
             status: 'active',
-            schedule: 'Mon, Tue, Wed, Thu, Fri',
+            schedule: formData.timing,
             duration: '90 Days',
             startDate: new Date().toISOString(),
             endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
@@ -184,16 +184,12 @@ export default function ClassesPage() {
     },
     {
       label: 'Timing',
-      render: (course) => {
-         const parts = String(course.title || course.name || '').split(' - ')
-         const timingString = parts.length > 1 ? parts[1] : 'Hours TBD'
-         return (
-            <div className="flex items-center gap-2 text-[10px] font-medium opacity-80 uppercase tracking-widest text-muted-foreground">
-                 <Clock className="w-3.5 h-3.5 text-primary opacity-60" />
-                 <span>{timingString}</span>
-            </div>
-         )
-      }
+      render: (course) => (
+        <div className="flex items-center gap-2 text-[10px] font-medium opacity-80 uppercase tracking-widest text-muted-foreground">
+          <Clock className="w-3.5 h-3.5 text-primary opacity-60" />
+          <span>{course.schedule || 'Hours TBD'}</span>
+        </div>
+      )
     },
     {
       label: 'Teacher',
