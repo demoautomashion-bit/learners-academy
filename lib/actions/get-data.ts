@@ -21,15 +21,18 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
   try {
     const isTeacher = role === 'teacher' && userId
     let studentFilter = {}
+    let myCourseIds: string[] = []
+    let myLevels: string[] = []
+    let mySchedules: string[] = []
     
     if (isTeacher) {
       const myCourses = await db.course.findMany({ 
         where: { teacherId: userId }, 
         select: { id: true, level: true, schedule: true } 
       })
-      const myCourseIds = myCourses.map(c => c.id)
-      const myLevels = myCourses.map(c => c.level)
-      const mySchedules = myCourses.map(c => c.schedule)
+      myCourseIds = myCourses.map(c => c.id)
+      myLevels = myCourses.map(c => c.level)
+      mySchedules = myCourses.map(c => c.schedule)
       
       studentFilter = { 
         OR: [

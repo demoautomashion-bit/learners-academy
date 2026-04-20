@@ -43,7 +43,7 @@ interface DataContextType {
   evaluations: any[]
   isInitialized: boolean
   isLoading: boolean
-  hasError: boolean
+  errorMsg: string | null
 
   // Actions
   enrollStudent: (student: any) => Promise<void>
@@ -148,7 +148,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [evaluations, setEvaluations] = useState<any[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [hasError, setHasError] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   
   const { user } = useAuth()
   const isRefreshingRef = useRef(false)
@@ -186,7 +186,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
       // Success! Reset the retry counter
       retryCountRef.current = 0
-      setHasError(false)
+      setErrorMsg(null)
 
       startTransition(() => {
         const d = initRes.data
@@ -220,8 +220,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return refresh()
       }
 
-      setHasError(true)
-      toast.error("Institutional Link Disrupted", { description: "Automatic synchronization failed after retries." })
+      setErrorMsg((err as any)?.message || "Automatic synchronization failed after retries.")
+      toast.error("Institutional Link Disrupted")
     } finally {
       setIsInitialized(true)
       setIsLoading(false)
@@ -309,14 +309,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addAttendanceEvent = useCallback((tid: string, date: string, e: any) => executeAction(() => dbAddAttendanceEvent(tid, date, e)), [executeAction])
   const saveEvaluations = useCallback((courseId: string, data: any[]) => executeAction(() => dbSaveEvaluations(courseId, data), "Evaluation Matrix Synchronized"), [executeAction])
 
-  if (hasError) {
+  if (errorMsg) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background text-center p-8">
         <div className="h-12 w-12 bg-destructive/10 rounded-full flex items-center justify-center mb-6">
           <div className="h-6 w-6 text-destructive">⚠️</div>
         </div>
         <h2 className="text-2xl font-serif mb-2">Institutional Link Disrupted</h2>
-        <p className="text-muted-foreground mb-8 max-w-xs mx-auto">Unable to synchronize with the registry.</p>
+        <p className="text-muted-foreground mb-4 max-w-xs mx-auto">Unable to synchronize with the registry.</p>
+        <div className="p-4 bg-muted/50 rounded-xl border border-border mb-8 max-w-md">
+            <p className="text-[10px] font-mono text-destructive uppercase tracking-widest mb-1 opacity-50">Diagnostic Trace</p>
+            <p className="text-xs font-medium">{errorMsg}</p>
+        </div>
         <button onClick={retryConnection} className="bg-primary text-white px-6 py-2 rounded-xl text-xs uppercase tracking-widest font-normal hover:bg-primary/90 transition-all shadow-premium mb-3 w-48">Retry Connection</button>
         <button onClick={() => window.location.reload()} className="bg-background text-foreground border border-border px-6 py-2 rounded-xl text-xs uppercase tracking-widest font-normal hover:bg-muted transition-all w-48">Reload Portal</button>
       </div>
@@ -337,7 +341,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      teachers, students, courses, assignments, submissions, stats, schedules, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, isInitialized, isLoading, hasError,
+      teachers, students, courses, assignments, submissions, stats, schedules, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, isInitialized, isLoading, errorMsg,
       enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addSchedule, updateSchedule, removeSchedule, addExpenditure, recordPayment, addFeeAccount, updateClassFee, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, resetToDefaults: () => {}, refresh, retryConnection,
     }}>
       {children}
