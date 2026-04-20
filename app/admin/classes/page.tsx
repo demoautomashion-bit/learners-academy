@@ -58,6 +58,7 @@ import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { Course } from '@/lib/types'
 import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
+import { formalizeRoster } from '@/lib/actions/enrollments'
 
 export default function ClassesPage() {
   const hasMounted = useHasMounted()
@@ -65,6 +66,7 @@ export default function ClassesPage() {
   const { courses, teachers, removeCourse, addCourse, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isSyncing, setIsSyncing] = useState<string | null>(null)
   
   // Local form state for batch initialization
   const [formData, setFormData] = useState({
@@ -130,6 +132,32 @@ export default function ClassesPage() {
       } catch (error) {
         toast.error("Error deleting class")
       }
+    }
+  }
+
+  const handleSyncRoster = async (id: string) => {
+    setIsSyncing(id)
+    const loadingToast = toast.loading("Resynchronizing Roster...", {
+      description: "Establishing formal identity links in the registry."
+    })
+    
+    try {
+      const result = await formalizeRoster(id)
+      if (result.success) {
+        toast.success("Roster Synchronized", {
+          id: loadingToast,
+          description: (result.data as any)?.message || "All student identities formalized."
+        })
+      } else {
+        toast.error("Synchronization Failed", {
+          id: loadingToast,
+          description: result.error
+        })
+      }
+    } catch (error) {
+      toast.error("Registry Sync Failure", { id: loadingToast })
+    } finally {
+      setIsSyncing(null)
     }
   }
 
@@ -206,6 +234,20 @@ export default function ClassesPage() {
                className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal rounded-lg"
             >
               <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Delete Class</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="opacity-5" />
+            <DropdownMenuItem 
+                disabled={isSyncing === course.id}
+                onClick={() => handleSyncRoster(course.id)}
+                className="gap-4 cursor-pointer p-4 mt-2 focus:bg-indigo-500/5 text-indigo-500 rounded-xl group border border-transparent hover:border-indigo-500/10 transition-all font-normal"
+            >
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/5 flex items-center justify-center border border-indigo-500/10 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold uppercase tracking-tight">Sync Roster</span>
+                <span className="text-[9px] opacity-40 font-normal">Formalize identities</span>
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

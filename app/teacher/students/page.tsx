@@ -47,6 +47,7 @@ export default function TeacherStudentsPage() {
   const filteredStudents = studentsInTeacherCourses.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (student.studentId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.id.toLowerCase().includes(searchQuery.toLowerCase())
     
     if (courseFilter === "all") return matchesSearch
@@ -176,10 +177,10 @@ export default function TeacherStudentsPage() {
                                 {student.name.split(" ").map(n => n[0]).join("")}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col items-end gap-2">
-                               {getPerformanceBadge(progress)}
-                               <span className="text-[10px] font-normal text-muted-foreground opacity-40 uppercase">{student.id}</span>
-                            </div>
+                             <div className="flex flex-col items-end gap-2">
+                                {getPerformanceBadge(progress)}
+                                <span className="text-[10px] font-normal text-muted-foreground opacity-40 uppercase">{student.studentId || student.id}</span>
+                             </div>
                           </div>
                           
                           <div className="space-y-1">

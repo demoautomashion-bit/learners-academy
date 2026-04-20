@@ -42,7 +42,7 @@ export default function StudentRegistrationPage() {
     email: '',
     phone: '',
     guardianName: '',
-    studentId: `STU-${Math.floor(10000 + Math.random() * 90000)}`,
+    studentId: `STD-${Math.floor(10000 + Math.random() * 90000)}`,
     grade: '',
     classTiming: ''
   })

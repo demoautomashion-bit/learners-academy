@@ -22,7 +22,7 @@ export default function ClassWorkspacePage() {
   const router = useRouter()
   const courseId = params.courseId as string
   const { user } = useAuth()
-  const { courses, students, isInitialized } = useData()
+  const { courses, students, evaluations, saveEvaluations, isInitialized } = useData()
 
   // Local State for Interactive Spreadsheet
   const [grades, setGrades] = useState<Record<string, { 
@@ -30,6 +30,24 @@ export default function ClassWorkspacePage() {
     participation: string, discipline: string, extra: string 
   }>>({})
   const [isSaving, setIsSaving] = useState(false)
+
+  // Hydrate local state from global evaluations context
+  useMemo(() => {
+    if (!evaluations || !courseId) return;
+    
+    const initialGrades: Record<string, any> = {};
+    evaluations.filter((e: any) => e.courseId === courseId).forEach((e: any) => {
+      initialGrades[e.studentId] = {
+        midterm: String(e.midterm || ''),
+        final: String(e.final || ''),
+        attendance: String(e.attendance || ''),
+        participation: String(e.participation || ''),
+        discipline: String(e.discipline || ''),
+        extra: String(e.extra || '')
+      };
+    });
+    setGrades(initialGrades);
+  }, [evaluations, courseId]);
 
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -100,12 +118,20 @@ export default function ClassWorkspacePage() {
 
   const handleSaveGrades = async () => {
     setIsSaving(true)
-    // Simulated network delay since this is a frontend-only plan
-    await new Promise(resolve => setTimeout(resolve, 800))
-    setIsSaving(false)
-    toast.success("Assessment Sheet Saved", {
-      description: "Scores and calculations synced to the institutional cloud."
-    })
+    
+    try {
+      const payload = Object.entries(grades).map(([studentId, marks]) => ({
+        studentId,
+        ...marks,
+        term: "Term 1" // Standardized for this batch
+      }));
+
+      await saveEvaluations(courseId, payload);
+    } catch (error) {
+      toast.error("Cloud Sync Failed");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   // Basic Roster Columns
@@ -118,6 +144,11 @@ export default function ClassWorkspacePage() {
     {
       label: 'Student Name',
       render: (s) => <span className="font-serif font-medium">{s.name}</span>
+    },
+    {
+      label: 'Dossier ID',
+      render: (s) => <span className="font-mono text-[10px] uppercase opacity-50 tracking-tighter">{s.studentId || 'N/A'}</span>,
+      width: '120px'
     },
     {
       label: 'Guardian Name',

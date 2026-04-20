@@ -54,7 +54,8 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       assessments,
       assignments,
       activities,
-      attendance
+      attendance,
+      evaluations
     ] = await Promise.all([
       fetchEntity('teachers', db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })),
       fetchEntity('students', db.student.findMany({ where: studentFilter, orderBy: { enrolledAt: 'desc' } })),
@@ -70,6 +71,9 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       fetchEntity('attendance', db.teacherAttendance.findMany({ 
         orderBy: { date: 'desc' },
         include: { teacher: { select: { id: true, name: true, employeeId: true } } }
+      })),
+      fetchEntity('evaluations', db.evaluation.findMany({
+        where: isTeacher ? { courseId: { in: myCourseIds } } : {}
       }))
     ])
 
@@ -108,6 +112,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         ...s, 
         id: String(s?.id || ''),
         name: typeof s?.name === 'string' ? s.name : (s?.name ? String(s.name) : 'Student'),
+        studentId: typeof s?.studentId === 'string' ? s.studentId : (typeof s?.id === 'string' ? `X-${s.id.slice(0, 5).toUpperCase()}` : 'TBD'),
         progress: Number(s?.progress) || 0,
         enrolledCourses: Array.isArray(s?.enrolledCourses) ? s.enrolledCourses : [],
         enrolledAt: s?.enrolledAt ? new Date(s.enrolledAt).toISOString() : new Date().toISOString()
@@ -133,6 +138,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       questions: (questions || []).map((q: any) => ({ ...q, id: String(q?.id || '') })),
       assessments: (assessments || []).map((a: any) => ({ ...a, id: String(a?.id || '') })),
       assignments: (assignments || []).map((as: any) => ({ ...as, id: String(as?.id || '') })),
+      evaluations: (evaluations || []).map((e: any) => ({ ...e, id: String(e?.id || '') })),
     }
 
     // Derive enrollments from students (Logic layer - Inclusive of logical assignments)
@@ -147,10 +153,33 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
           const hasFormalLink = (s.enrolledCourses || []).includes(c.id)
           if (hasFormalLink) return true
           
-          const normalize = (val: string) => (val || '').toLowerCase().replace(/\s+/g, '').trim()
-          const levelMatch = normalize(s.grade) === normalize(c.level) || 
-                            (normalize(s.grade).includes('level1') && normalize(c.level).includes('levelone'))
-          const scheduleMatch = normalize(s.classTiming) === normalize(c.schedule)
+          const normalize = (val: string) => {
+              if (!val) return ''
+              return val.toLowerCase()
+                .replace(/\s+/g, '')           // Remove all whitespace
+                .replace(/level/g, '')         // Remove the word 'level'
+                .replace(/one/g, '1')          // Standardize numeric 'One'
+                .replace(/two/g, '2')
+                .replace(/three/g, '3')
+                .replace(/four/g, '4')
+                .replace(/five/g, '5')
+                .replace(/st/g, '')            // Remove ordinal suffixes
+                .replace(/nd/g, '')
+                .replace(/rd/g, '')
+                .replace(/th/g, '')
+                .trim()
+          }
+          
+          const sLevel = normalize(s.grade || '')
+          const cLevel = normalize(c.level || '')
+          
+          const levelMatch = sLevel === cLevel || 
+                            (sLevel.length > 0 && cLevel.includes(sLevel)) ||
+                            (cLevel.length > 0 && sLevel.includes(cLevel))
+
+          const normTiming = (t: string) => (t || '').toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
+          const scheduleMatch = normTiming(s.classTiming || '') === normTiming(c.schedule || '')
+          
           return levelMatch && scheduleMatch
         })
         .map((course: any) => ({
