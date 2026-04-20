@@ -26,7 +26,7 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
     const targetLevel = normalizeAcademicLevel(student.grade || '')
     const targetTiming = normalizeTiming(student.classTiming || '')
 
-    const matchingCourseIds = allCourses.filter(c => {
+    const matchingCourses = allCourses.filter(c => {
         const courseLevel = normalizeAcademicLevel(c.level || '')
         const courseTiming = normalizeTiming(c.schedule || '')
         
@@ -35,7 +35,9 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
                             (courseLevel.length > 0 && targetLevel.includes(courseLevel))
         
         return levelsMatch && courseTiming === targetTiming
-    }).map(c => c.id)
+    })
+
+    const matchingCourseIds = matchingCourses.map(c => c.id)
 
     if (matchingCourseIds.length === 0) {
       console.warn(`[REGISTRY_ALERT] No direct batches found for student ${student.name} at level ${student.grade}. Identity created but enrollment is pending manual assignment.`)
@@ -69,6 +71,7 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
             studentId: result.id,
             courseId: course.id,
             totalAmount: course.feeAmount || 0,
+            amountPaid: 0,
             status: 'Unpaid'
           }
         })
