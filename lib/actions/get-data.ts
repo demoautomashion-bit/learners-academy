@@ -3,6 +3,7 @@
 import db from '@/lib/db'
 import { ActionResult } from '../types'
 import { RegistrySchema } from '../validations'
+import { isStudentInCourse } from '../utils/student-matching'
 
 /**
  * Institutional Data Synchronization Engine
@@ -37,12 +38,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       studentFilter = { 
         OR: [
           { enrolledCourses: { hasSome: myCourseIds } },
-          { 
-            AND: [
-              { grade: { in: myLevels } },
-              { classTiming: { in: mySchedules } }
-            ]
-          }
+          { grade: { in: myLevels } }
         ]
       }
     }
@@ -151,40 +147,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       
       // Map to all courses assigned to this student (formally or logically)
       return (validData.courses || [])
-        .filter((c: any) => {
-          // Inline version of isStudentInCourse for server-side performance
-          const hasFormalLink = (s.enrolledCourses || []).includes(c.id)
-          if (hasFormalLink) return true
-          
-          const normalize = (val: string) => {
-              if (!val) return ''
-              return val.toLowerCase()
-                .replace(/\s+/g, '')           // Remove all whitespace
-                .replace(/level/g, '')         // Remove the word 'level'
-                .replace(/one/g, '1')          // Standardize numeric 'One'
-                .replace(/two/g, '2')
-                .replace(/three/g, '3')
-                .replace(/four/g, '4')
-                .replace(/five/g, '5')
-                .replace(/st/g, '')            // Remove ordinal suffixes
-                .replace(/nd/g, '')
-                .replace(/rd/g, '')
-                .replace(/th/g, '')
-                .trim()
-          }
-          
-          const sLevel = normalize(s.grade || '')
-          const cLevel = normalize(c.level || '')
-          
-          const levelMatch = sLevel === cLevel || 
-                            (sLevel.length > 0 && cLevel.includes(sLevel)) ||
-                            (cLevel.length > 0 && sLevel.includes(cLevel))
-
-          const normTiming = (t: string) => (t || '').toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
-          const scheduleMatch = normTiming(s.classTiming || '') === normTiming(c.schedule || '')
-          
-          return levelMatch && scheduleMatch
-        })
+        .filter((c: any) => isStudentInCourse(s, c))
         .map((course: any) => ({
           id: `${studentId}-${course.id}`,
           studentId: studentId,
