@@ -3,7 +3,6 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import type { Student, Question, ActionResult } from '@/lib/types'
-import { normalizeAcademicLevel, normalizeTiming } from '../utils/normalization'
 import { handleDatabaseError } from '../utils/error-handler'
 
 export async function getStudents(): Promise<ActionResult<Student[]>> {
@@ -21,22 +20,12 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
     // 1. Identify all active courses for logical candidates
     const allCourses = await db.course.findMany({ where: { status: 'active' } })
     
-    // 2. Filter courses using the UNIVERSAL matching logic
-    // We recreate a lightweight version of isStudentInCourse logic here for server-side ID assignment
-    const targetLevel = normalizeAcademicLevel(student.grade || '')
-    const targetTiming = normalizeTiming(student.classTiming || '')
-
+    // 2. Match courses using EXACT string comparison.
+    // Both student grade and course level come from the same ACADEMY_LEVELS constant.
+    // Both student classTiming and course schedule come from SESSION_TIMINGS.
+    // Exact match is reliable and avoids all normalization edge cases.
     const matchingCourses = allCourses.filter(c => {
-        const courseLevel = normalizeAcademicLevel(c.level || '')
-        const courseTiming = normalizeTiming(c.schedule || '')
-        
-        const levelsMatch = courseLevel === targetLevel || 
-                            (targetLevel.length > 0 && courseLevel.includes(targetLevel)) ||
-                            (courseLevel.length > 0 && targetLevel.includes(courseLevel))
-        
-        const timingsMatch = courseTiming === targetTiming
-        
-        return levelsMatch && timingsMatch
+      return c.level === student.grade && c.schedule === student.classTiming
     })
 
     const matchingCourseIds = matchingCourses.map(c => c.id)

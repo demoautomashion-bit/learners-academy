@@ -21,27 +21,14 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
 
   try {
     const isTeacher = role === 'teacher' && userId
-    let studentFilter = {}
     let myCourseIds: string[] = []
-    let myLevels: string[] = []
-    let mySchedules: string[] = []
     
     if (isTeacher) {
       const myCourses = await db.course.findMany({ 
         where: { teacherId: userId }, 
-        select: { id: true, level: true, schedule: true } 
+        select: { id: true } 
       })
       myCourseIds = myCourses.map(c => c.id)
-      myLevels = myCourses.map(c => c.level)
-      mySchedules = myCourses.map(c => c.schedule)
-      
-      studentFilter = { 
-        OR: [
-          { enrolledCourses: { hasSome: myCourseIds } },
-          { grade: { in: myLevels } },
-          { classTiming: { in: mySchedules } }
-        ]
-      }
     }
 
     const [
@@ -58,7 +45,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       evaluations
     ] = await Promise.all([
       fetchEntity('teachers', db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })),
-      fetchEntity('students', db.student.findMany({ where: studentFilter, orderBy: { enrolledAt: 'desc' } })),
+      fetchEntity('students', db.student.findMany({ orderBy: { enrolledAt: 'desc' } })),
       fetchEntity('courses', db.course.findMany({ 
         orderBy: { startDate: 'desc' } 
       })),
