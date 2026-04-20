@@ -23,6 +23,7 @@ import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { StabilityBoundary } from '@/components/stability/stability-boundary'
+import { isStudentInCourse } from '@/lib/utils/student-matching'
 
 export default function TeacherDashboard() {
   const { user } = useAuth()
@@ -155,9 +156,7 @@ export default function TeacherDashboard() {
                 activeTests.slice(0, 3).map((assessment) => {
                   const subCount = submissions?.filter(s => s.assignmentId === assessment.id).length || 0
                   const enrolledCount = students?.filter(s =>
-                    (s.enrolledCourses || []).some(cId =>
-                      myCourses.some(mc => mc.id === cId && (assessment.classLevels || []).includes(mc.title))
-                    )
+                    myCourses.some(mc => isStudentInCourse(s, mc) && (assessment.classLevels || []).includes(mc.title))
                   ).length || 0
                   const safeTotal = enrolledCount > 0 ? enrolledCount : 1
 
@@ -205,7 +204,7 @@ export default function TeacherDashboard() {
                 </div>
               ) : (
                 myCourses.map((course) => {
-                  const courseStudents = students?.filter(s => (s.enrolledCourses || []).includes(course.id)) || []
+                  const courseStudents = students?.filter(s => isStudentInCourse(s, course)) || []
                   const courseStudentIds = courseStudents.map(s => s.id)
                   
                   const courseResults = submissions?.filter(s => 

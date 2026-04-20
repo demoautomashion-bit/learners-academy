@@ -3,6 +3,7 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import type { Student, Question, ActionResult } from '@/lib/types'
+import { normalizeAcademicLevel, normalizeTiming } from '../utils/normalization'
 import { handleDatabaseError } from '../utils/error-handler'
 
 export async function getStudents(): Promise<ActionResult<Student[]>> {
@@ -17,25 +18,24 @@ export async function getStudents(): Promise<ActionResult<Student[]>> {
 
 export async function enrollStudent(student: any): Promise<ActionResult<Student>> {
   try {
-    // 1. Find courses that match the student's Academic Tier (grade) and Session Slot (classTiming)
-    // Intelligent Match: Handle variations like "Level 1" vs "Level One"
-    const normalizedGrade = student.grade.replace(/\d+/, (match: string) => {
-      const nums: any = { '1': 'One', '2': 'Two', '3': 'Three', '4': 'Four', '5': 'Five', '6': 'Six' }
-      return nums[match] || match
-    })
+    // 1. Identify all active courses for logical candidates
+    const allCourses = await db.course.findMany({ where: { status: 'active' } })
+    
+    // 2. Filter courses using the UNIVERSAL matching logic
+    // We recreate a lightweight version of isStudentInCourse logic here for server-side ID assignment
+    const targetLevel = normalizeAcademicLevel(student.grade || '')
+    const targetTiming = normalizeTiming(student.classTiming || '')
 
-    const matchingCourses = await db.course.findMany({
-      where: {
-        OR: [
-          { level: student.grade },
-          { level: normalizedGrade }
-        ],
-        schedule: student.classTiming,
-        status: 'active'
-      }
-    })
-
-    const matchingCourseIds = matchingCourses.map(c => c.id)
+    const matchingCourseIds = allCourses.filter(c => {
+        const courseLevel = normalizeAcademicLevel(c.level || '')
+        const courseTiming = normalizeTiming(c.schedule || '')
+        
+        const levelsMatch = courseLevel === targetLevel || 
+                            (targetLevel.length > 0 && courseLevel.includes(targetLevel)) ||
+                            (courseLevel.length > 0 && targetLevel.includes(courseLevel))
+        
+        return levelsMatch && courseTiming === targetTiming
+    }).map(c => c.id)
 
     if (matchingCourseIds.length === 0) {
       console.warn(`[REGISTRY_ALERT] No direct batches found for student ${student.name} at level ${student.grade}. Identity created but enrollment is pending manual assignment.`)

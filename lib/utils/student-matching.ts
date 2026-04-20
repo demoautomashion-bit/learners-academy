@@ -1,4 +1,4 @@
-import type { Student, Course } from '@/lib/types'
+import { normalizeAcademicLevel, normalizeTiming } from './normalization'
 
 /**
  * Universal Bridging Logic: Student-Course Matching
@@ -15,45 +15,17 @@ export function isStudentInCourse(student: Student, course: Course): boolean {
   if (hasFormalLink) return true
 
   // Gate 2: Logical Affinity (Heuristic Matching)
-  // Advanced normalization to resolve variations in level and timing strings
-  const normalize = (val: string) => {
-    if (!val) return ''
-    return val.toLowerCase()
-      .replace(/\s+/g, '')           // Remove all whitespace
-      .replace(/level/g, '')         // Remove the word 'level'
-      .replace(/one/g, '1')          // Standardize numeric 'One'
-      .replace(/two/g, '2')
-      .replace(/three/g, '3')
-      .replace(/four/g, '4')
-      .replace(/five/g, '5')
-      .replace(/st/g, '')            // Remove ordinal suffixes
-      .replace(/nd/g, '')
-      .replace(/rd/g, '')
-      .replace(/th/g, '')
-      .trim()
-  }
-  
-  const studentLevel = normalize(student.grade || '')
-  const courseLevel = normalize(course.level || '')
+  const studentLevel = normalizeAcademicLevel(student.grade || '')
+  const courseLevel = normalizeAcademicLevel(course.level || '')
   
   // Direct match or partial overlaps (e.g., '1' in 'foundation1')
   const levelMatch = studentLevel === courseLevel || 
                     (studentLevel.length > 0 && courseLevel.includes(studentLevel)) ||
                     (courseLevel.length > 0 && studentLevel.includes(courseLevel))
 
-  // Timing Normalization (Removes periods and spaces for AM/PM consistency)
-  const normTiming = (t: string) => (t || '').toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
-  
-  const studentTime = normTiming(student.classTiming || '')
-  let courseTime = normTiming(course.schedule || '')
-
-  // Legacy Fallback: If schedule contains weekdays (e.g., 'Mon'), try to extract timing from title
-  if (courseTime.includes('mon') || courseTime.includes('tue')) {
-    const parts = (course.title || '').split(' - ')
-    if (parts.length > 1) {
-      courseTime = normTiming(parts[1])
-    }
-  }
+  // Timing Normalization
+  const studentTime = normalizeTiming(student.classTiming || '')
+  const courseTime = normalizeTiming(course.schedule || '')
 
   const scheduleMatch = studentTime === courseTime
 
