@@ -29,8 +29,8 @@ export function isStudentInCourse(student: any, course: any): boolean {
                     courseLevel.includes(studentLevel)
 
   // Timing Normalization: "04:00 PM - 05:00 PM" -> "04:00pm-05:00pm"
-  const studentTime = normalizeTiming(student.classTiming || student.timing || student.schedule || '')
-  const courseTime = normalizeTiming(course.schedule || course.timing || '')
+  const studentTime = normalizeTiming(student.classTiming || student.timing || '')
+  const courseTime = normalizeTiming(course.timing || '')
 
   // Special Case: If both are empty, we don't match on timing
   if (!studentTime || !courseTime) return false

@@ -73,6 +73,7 @@ model Student {
   evaluations     Evaluation[]
 }
 
+// ... existing models ...
 model Course {
   id          String       @id @default(cuid())
   title       String
@@ -83,7 +84,7 @@ model Course {
   capacity    Int
   enrolled    Int          @default(0)
   status      String       @default("active")
-  schedule    String
+  timing      String       @default("")
   duration    String
   startDate   DateTime
   endDate     DateTime
@@ -212,16 +213,6 @@ model AssessmentTemplate {
   submittedByTeacherId   String?
   submittedByTeacherName String?
   isAdaptive             Boolean  @default(false)
-}
-
-model Schedule {
-  id          String   @id @default(cuid())
-  classTitle  String
-  teacherName String
-  timing      String
-  roomNumber  String
-  days        String[]
-  slotId      String?
 }
 
 model ActivityLog {

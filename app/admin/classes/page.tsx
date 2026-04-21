@@ -98,14 +98,14 @@ export default function ClassesPage() {
     try {
         await addCourse({
             id: crypto.randomUUID(),
-            title: `${formData.level} - ${formData.timing}`,
+            title: formData.level,
             description: `Instructional cycle for ${formData.level} tier.`,
             level: formData.level as any,
             teacherId: formData.teacherId,
             teacherName: selectedTeacher?.name || 'Unassigned',
             capacity: 25,
             status: 'active',
-            schedule: formData.timing,
+            timing: formData.timing,
             duration: '90 Days',
             startDate: new Date().toISOString(),
             endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
@@ -187,7 +187,7 @@ export default function ClassesPage() {
       render: (course) => (
         <div className="flex items-center gap-2 text-[10px] font-medium opacity-80 uppercase tracking-widest text-muted-foreground">
           <Clock className="w-3.5 h-3.5 text-primary opacity-60" />
-          <span>{course.schedule || 'Hours TBD'}</span>
+          <span>{course.timing || 'Hours TBD'}</span>
         </div>
       )
     },
@@ -212,12 +212,6 @@ export default function ClassesPage() {
           <DropdownMenuContent align="end" className="w-56 p-2 glass-2 border-white/5 shadow-2xl overflow-hidden">
             <DropdownMenuLabel className="text-[10px] uppercase tracking-widest opacity-40 px-4 py-3 font-normal">Actions</DropdownMenuLabel>
             <DropdownMenuSeparator className="opacity-5" />
-            <DropdownMenuItem 
-               onClick={() => router.push(`/admin/classes/schedule?id=${course.id}`)}
-               className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg"
-            >
-              <Calendar className="w-4 h-4 opacity-60" /> <span className="text-xs">Schedule</span>
-            </DropdownMenuItem>
             <DropdownMenuItem 
                 onClick={() => router.push(`/admin/students?level=${course.level}`)}
                 className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg"

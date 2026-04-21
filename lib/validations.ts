@@ -66,7 +66,6 @@ export const RegistrySchema = z.object({
   students: z.array(StudentSchema).default([]),
   courses: z.array(CourseSchema).default([]),
   submissions: z.array(SubmissionSchema).default([]),
-  schedules: z.array(z.any()).default([]),
   questions: z.array(z.any()).default([]),
   assessments: z.array(z.any()).default([]),
   assignments: z.array(z.any()).default([]),

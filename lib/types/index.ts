@@ -45,7 +45,7 @@ export interface Course {
   capacity: number
   enrolled: number
   status: 'active' | 'draft' | 'completed' | 'archived'
-  schedule: string
+  timing: string
   duration: string
   startDate: Date | string
   endDate: Date | string
@@ -109,16 +109,6 @@ export interface ChartData {
   name: string
   value: number
   [key: string]: string | number
-}
-
-export interface Schedule {
-  id: string
-  classTitle: string
-  teacherName: string
-  timing: string
-  roomNumber: string
-  days: string[]
-  slotId?: string
 }
 
 export type QuestionCategory = 'Grammar' | 'Vocab & Idioms' | 'Listening' | 'Reading' | 'Speaking' | 'Writing'

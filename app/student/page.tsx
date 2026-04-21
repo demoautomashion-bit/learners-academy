@@ -44,7 +44,7 @@ const TIMINGS = [
 export default function StudentAccessPage() {
   const router = useRouter()
   const { login, updateUser, setAssessmentSession } = useAuth()
-  const { courses, schedules, assessments, students } = useData()
+  const { courses, assessments, students } = useData()
   const [isVerifying, setIsVerifying] = useState(false)
   const [step, setStep] = useState(1)
 
@@ -52,8 +52,8 @@ export default function StudentAccessPage() {
     ? Array.from(new Set(courses.map(c => c.title)))
     : CLASSES
     
-  const activeTimings = schedules.length > 0
-    ? Array.from(new Set(schedules.map(s => s.timing)))
+  const activeTimings = courses.length > 0
+    ? Array.from(new Set(courses.map(c => c.timing).filter(Boolean)))
     : TIMINGS
   const handleAccess = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useTransit
 import { toast } from 'sonner'
 import type { 
   Teacher, Student, Course, Assignment, Submission, 
-  DashboardStats, Schedule, Question, 
+  DashboardStats, Question, 
   AssessmentTemplate, StudentTest 
 } from '@/lib/types'
 
@@ -15,7 +15,6 @@ import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, u
 import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion } from '@/lib/actions/questions'
 import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction, updateAssessmentStatus as dbUpdateAssessmentStatus } from '@/lib/actions/assessments'
 import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
-import { getSchedules, addSchedule as dbAddSchedule, updateSchedule as dbUpdateSchedule, removeSchedule as dbRemoveSchedule } from '@/lib/actions/schedules'
 import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount } from '@/lib/actions/fees'
 import { getEconomicStats, addExpenditure as dbAddExpenditure } from '@/lib/actions/economics'
 import { markAttendance as dbMarkAttendance, addAttendanceEvent as dbAddAttendanceEvent } from '@/lib/actions/attendance'
@@ -32,7 +31,6 @@ interface DataContextType {
   assignments: Assignment[]
   submissions: Submission[]
   stats: DashboardStats
-  schedules: Schedule[]
   questions: Question[]
   assessments: AssessmentTemplate[]
   enrollments: any[]
@@ -67,9 +65,6 @@ interface DataContextType {
   updateCourseStatus: (id: string, status: Course['status']) => Promise<void>
   updateCourse: (id: string, data: Partial<Course>) => Promise<void>
   removeCourse: (id: string) => Promise<void>
-  addSchedule: (schedule: Schedule) => Promise<void>
-  updateSchedule: (id: string, updates: Partial<Schedule>) => Promise<void>
-  removeSchedule: (id: string) => Promise<void>
   addExpenditure: (data: any) => Promise<void>
   recordPayment: (id: string, amount: number) => Promise<void>
   addFeeAccount: (data: any) => Promise<void>
@@ -137,7 +132,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [courses, setCourses] = useState<Course[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [submissions, setSubmissions] = useState<Submission[]>([])
-  const [schedules, setSchedules] = useState<Schedule[]>([])
   const [questions, setQuestions] = useState<Question[]>([])
   const [assessments, setAssessments] = useState<AssessmentTemplate[]>([])
   const [enrollments, setEnrollments] = useState<any[]>([])
@@ -196,7 +190,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setQuestions(Array.isArray(d.questions) ? d.questions : [])
         setAssessments(Array.isArray(d.assessments) ? d.assessments : [])
         setSubmissions(Array.isArray(d.submissions) ? d.submissions : [])
-        setSchedules(Array.isArray(d.schedules) ? d.schedules : [])
         setAssignments(Array.isArray(d.assignments) ? d.assignments : [])
         setEnrollments(Array.isArray(d.enrollments) ? d.enrollments : [])
         setActivities(Array.isArray(d.activities) ? d.activities : [])
@@ -296,9 +289,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const rejectAssessment = useCallback((id: string, f: string) => executeAction(() => updateAssessmentReviewAction(id, 'draft', f), "Sent back"), [executeAction])
   const submitTestResult = useCallback((r: StudentTest) => executeAction(() => dbSubmitTestResult(r, assessments.find(a => a.id === r.templateId)?.title || 'Test'), "Results stored"), [assessments, executeAction])
   const gradeSubmission = useCallback((id: string, g: number, f: string) => executeAction(() => dbGradeSubmission(id, g, f), "Score recorded"), [executeAction])
-  const addSchedule = useCallback((s: Schedule) => executeAction(() => dbAddSchedule(s), "Schedule updated"), [executeAction])
-  const updateSchedule = useCallback((id: string, d: any) => executeAction(() => dbUpdateSchedule(id, d)), [executeAction])
-  const removeSchedule = useCallback((id: string) => executeAction(() => dbRemoveSchedule(id)), [executeAction])
   const addExpenditure = useCallback((d: any) => executeAction(() => dbAddExpenditure(d)), [executeAction])
   const recordPayment = useCallback((id: string, a: number) => executeAction(() => dbRecordPayment(id, a), "Payment captured"), [executeAction])
   const addFeeAccount = useCallback((d: any) => executeAction(() => dbAddFeeAccount(d), "Account initialized"), [executeAction])
@@ -341,8 +331,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      teachers, students, courses, assignments, submissions, stats, schedules, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, isInitialized, isLoading, errorMsg,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addSchedule, updateSchedule, removeSchedule, addExpenditure, recordPayment, addFeeAccount, updateClassFee, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, resetToDefaults: () => {}, refresh, retryConnection,
+      teachers, students, courses, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, isInitialized, isLoading, errorMsg,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, resetToDefaults: () => {}, refresh, retryConnection,
     }}>
       {children}
     </DataContext.Provider>
@@ -398,7 +388,6 @@ export function useData() {
     questions: sanitize<Question>(context.questions, 'question'),
     assessments: sanitize<AssessmentTemplate>(context.assessments, 'assessment'),
     submissions: Array.isArray(context.submissions) ? context.submissions : [],
-    schedules: Array.isArray(context.schedules) ? context.schedules : [],
     assignments: Array.isArray(context.assignments) ? context.assignments : [],
     enrollments: Array.isArray(context.enrollments) ? context.enrollments : [],
     feePayments: Array.isArray(context.feePayments) ? context.feePayments : [],

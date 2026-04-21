@@ -36,7 +36,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       students,
       courses,
       submissions,
-      schedules,
       questions,
       assessments,
       assignments,
@@ -50,7 +49,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { startDate: 'desc' } 
       })),
       fetchEntity('submissions', db.submission.findMany({ orderBy: { submittedAt: 'desc' } })),
-      fetchEntity('schedules', db.schedule.findMany({ orderBy: { classTitle: 'asc' } })),
       fetchEntity('questions', db.question.findMany({ orderBy: { category: 'asc' } })),
       fetchEntity('assessments', db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })),
       fetchEntity('assignments', db.assignment.findMany({ orderBy: { createdAt: 'desc' } })),
@@ -76,7 +74,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       students,
       courses: sanitizedCourses,
       submissions,
-      schedules,
       questions,
       assessments,
       assignments
@@ -116,11 +113,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         id: String(sub?.id || ''),
         studentName: typeof sub?.studentName === 'string' ? sub.studentName : 'Student',
         submittedAt: sub?.submittedAt ? new Date(sub.submittedAt).toISOString() : new Date().toISOString()
-      })),
-      schedules: (schedules || []).map((sch: any) => ({ 
-        ...sch, 
-        id: String(sch?.id || ''),
-        day: String(sch?.day || 'Monday') 
       })),
       questions: (questions || []).map((q: any) => ({ ...q, id: String(q?.id || '') })),
       assessments: (assessments || []).map((a: any) => ({ ...a, id: String(a?.id || '') })),
