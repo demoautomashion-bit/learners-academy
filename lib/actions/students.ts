@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache'
 import type { Student, Question, ActionResult } from '@/lib/types'
 import { handleDatabaseError } from '../utils/error-handler'
 
+import { isStudentInCourse } from '../utils/student-matching'
+
 export async function getStudents(): Promise<ActionResult<Student[]>> {
   try {
     const data = await db.student.findMany({ orderBy: { enrolledAt: 'desc' } })
@@ -20,13 +22,10 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
     // 1. Identify all active courses for logical candidates
     const allCourses = await db.course.findMany({ where: { status: 'active' } })
     
-    // 2. Match courses using EXACT string comparison.
-    // Both student grade and course level come from the same ACADEMY_LEVELS constant.
-    // Both student classTiming and course schedule come from SESSION_TIMINGS.
-    // Exact match is reliable and avoids all normalization edge cases.
-    const matchingCourses = allCourses.filter(c => {
-      return c.level === student.grade && c.schedule === student.classTiming
-    })
+    // 2. Match courses using the universal heuristic matching logic.
+    // This allows us to bridge differences between 'beginner' vs 'Beginners'
+    // or slightly different timing strings.
+    const matchingCourses = allCourses.filter(c => isStudentInCourse(student, c))
 
     const matchingCourseIds = matchingCourses.map(c => c.id)
 

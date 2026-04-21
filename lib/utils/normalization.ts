@@ -10,22 +10,27 @@
  */
 export const normalizeAcademicLevel = (val: string) => {
   if (!val) return ''
-  // Normalize each word independently — prevents "foundationone" → "foundati1"
+  
   return val.toLowerCase()
+    .replace(/level\s*/g, '') // Remove "level" prefix/infix
+    .replace(/grade\s*/g, '') // Remove "grade" prefix/infix
     .split(/\s+/)
     .map(word => {
-      if (word === 'level') return ''
-      if (word === 'one') return '1'
-      if (word === 'two') return '2'
-      if (word === 'three') return '3'
-      if (word === 'four') return '4'
-      if (word === 'five') return '5'
-      if (word === 'six') return '6'
-      // Strip ordinal suffixes from standalone words (e.g. "1st" → "1")
-      return word.replace(/(st|nd|rd|th)$/, '')
+      const numberMap: Record<string, string> = {
+        'one': '1', 'two': '2', 'three': '3', 'four': '4',
+        'five': '5', 'six': '6', 'seven': '7', 'eight': '8',
+        'nine': '9', 'ten': '10'
+      }
+      
+      // Convert number words to digits
+      if (numberMap[word]) return numberMap[word]
+      
+      // Strip common suffixes from numbers (1st -> 1, 2nd -> 2)
+      return word.replace(/^(\d+)(st|nd|rd|th)$/, '$1')
     })
-    .filter(Boolean) // remove empty strings (from "level" → "")
+    .filter(Boolean)
     .join('')
+    .replace(/[^a-z0-9]/g, '') // Pure alphanumeric for final comparison
     .trim()
 }
 

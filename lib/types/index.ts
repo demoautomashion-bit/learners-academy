@@ -39,7 +39,7 @@ export interface Course {
   id: string
   title: string
   description: string
-  level: 'beginner' | 'intermediate' | 'advanced'
+  level: string
   teacherId: string
   teacherName: string
   capacity: number

@@ -7,27 +7,37 @@ import { normalizeAcademicLevel, normalizeTiming } from './normalization'
  * 1. Formal Enrollment (Explicit ID match in array)
  * 2. Logical Assignment (Academic Tier + Session Timing match)
  */
-export function isStudentInCourse(student: Student, course: Course): boolean {
+export function isStudentInCourse(student: any, course: any): boolean {
   if (!student || !course) return false
 
-  // Gate 1: Formal Linkage (Immutable Database Record)
-  const hasFormalLink = (student.enrolledCourses || []).includes(course.id)
-  if (hasFormalLink) return true
+  // Gate 1: Formal Linkage (Primary Database Record)
+  // Ensure we check for existence of enrolledCourses array
+  if (Array.isArray(student.enrolledCourses) && student.enrolledCourses.includes(course.id)) {
+    return true
+  }
 
-  // Gate 2: Logical Affinity (Heuristic Matching)
-  const studentLevel = normalizeAcademicLevel(student.grade || '')
-  const courseLevel = normalizeAcademicLevel(course.level || '')
+  // Gate 2: Logical Affinity (Heuristic Matching for unlinked records)
+  // Normalizing levels: "Level One" -> "1", "Foundation 1" -> "foundation1"
+  const studentLevel = normalizeAcademicLevel(student.grade || student.level || '')
+  const courseLevel = normalizeAcademicLevel(course.level || course.title || '')
   
-  // Direct match or partial overlaps (e.g., '1' in 'foundation1')
+  if (!studentLevel || !courseLevel) return false
+
+  // Direct level match
   const levelMatch = studentLevel === courseLevel || 
-                    (studentLevel.length > 0 && courseLevel.includes(studentLevel)) ||
-                    (courseLevel.length > 0 && studentLevel.includes(courseLevel))
+                    studentLevel.includes(courseLevel) ||
+                    courseLevel.includes(studentLevel)
 
-  // Timing Normalization
-  const studentTime = normalizeTiming(student.classTiming || '')
-  const courseTime = normalizeTiming(course.schedule || '')
+  // Timing Normalization: "04:00 PM - 05:00 PM" -> "04:00pm-05:00pm"
+  const studentTime = normalizeTiming(student.classTiming || student.timing || student.schedule || '')
+  const courseTime = normalizeTiming(course.schedule || course.timing || '')
 
-  const scheduleMatch = studentTime === courseTime
+  // Special Case: If both are empty, we don't match on timing
+  if (!studentTime || !courseTime) return false
+
+  const scheduleMatch = studentTime === courseTime || 
+                        studentTime.includes(courseTime) || 
+                        courseTime.includes(studentTime)
 
   return levelMatch && scheduleMatch
 }
