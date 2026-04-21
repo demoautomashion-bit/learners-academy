@@ -52,6 +52,7 @@ export interface Course {
   roomNumber?: string
   thumbnail?: string
   feeAmount: number
+  timeSlotId?: string | null
   milestones?: {
     id: string
     title: string
@@ -109,6 +110,14 @@ export interface ChartData {
   name: string
   value: number
   [key: string]: string | number
+}
+
+export interface TimeSlot {
+  id: string
+  startTime: string
+  endTime: string
+  label?: string
+  createdAt?: string | Date
 }
 
 export type QuestionCategory = 'Grammar' | 'Vocab & Idioms' | 'Listening' | 'Reading' | 'Speaking' | 'Writing'

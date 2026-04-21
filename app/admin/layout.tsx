@@ -100,6 +100,7 @@ const adminNavItems = [
     icon: BookOpen,
     items: [
       { title: 'Classes', href: '/admin/classes', icon: LayoutGrid },
+      { title: 'Schedules', href: '/admin/schedule', icon: Calendar },
     ]
   },
   {

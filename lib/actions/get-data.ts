@@ -35,6 +35,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       teachers,
       students,
       courses,
+      timeSlots,
       submissions,
       questions,
       assessments,
@@ -48,6 +49,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       fetchEntity('courses', db.course.findMany({ 
         orderBy: { startDate: 'desc' } 
       })),
+      fetchEntity('timeSlots', db.timeSlot.findMany({ orderBy: { createdAt: 'asc' } })),
       fetchEntity('submissions', db.submission.findMany({ orderBy: { submittedAt: 'desc' } })),
       fetchEntity('questions', db.question.findMany({ orderBy: { category: 'asc' } })),
       fetchEntity('assessments', db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })),
@@ -117,6 +119,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       questions: (questions || []).map((q: any) => ({ ...q, id: String(q?.id || '') })),
       assessments: (assessments || []).map((a: any) => ({ ...a, id: String(a?.id || '') })),
       assignments: (assignments || []).map((as: any) => ({ ...as, id: String(as?.id || '') })),
+      timeSlots: (timeSlots || []).map((ts: any) => ({ ...ts, id: String(ts?.id || '') })),
       evaluations: (evaluations || []).map((e: any) => ({ ...e, id: String(e?.id || '') })),
     }
 

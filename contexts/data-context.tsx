@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useTransit
 import { toast } from 'sonner'
 import type { 
   Teacher, Student, Course, Assignment, Submission, 
-  DashboardStats, Question, 
+  DashboardStats, Question, TimeSlot,
   AssessmentTemplate, StudentTest 
 } from '@/lib/types'
 
@@ -20,6 +20,7 @@ import { getEconomicStats, addExpenditure as dbAddExpenditure } from '@/lib/acti
 import { markAttendance as dbMarkAttendance, addAttendanceEvent as dbAddAttendanceEvent } from '@/lib/actions/attendance'
 import { logActivity as dbLogActivity } from '@/lib/actions/activities'
 import { saveEvaluations as dbSaveEvaluations } from '@/lib/actions/evaluations'
+import { addTimeSlot as dbAddTimeSlot, removeTimeSlot as dbRemoveTimeSlot, addCourseToSlot as dbAddCourseToSlot, removeCourseFromSlot as dbRemoveCourseFromSlot } from '@/lib/actions/time-slots'
 import { getInitialData } from '@/lib/actions/get-data'
 import { useAuth } from '@/contexts/auth-context'
 import { calculateStudentOverallProgress } from '@/lib/utils/student-progress'
@@ -32,6 +33,7 @@ interface DataContextType {
   submissions: Submission[]
   stats: DashboardStats
   questions: Question[]
+  timeSlots: TimeSlot[]
   assessments: AssessmentTemplate[]
   enrollments: any[]
   economics: any | null
@@ -69,6 +71,10 @@ interface DataContextType {
   recordPayment: (id: string, amount: number) => Promise<void>
   addFeeAccount: (data: any) => Promise<void>
   updateClassFee: (id: string, amount: number) => Promise<void>
+  addTimeSlot: (data: { startTime: string, endTime: string, label?: string }) => Promise<void>
+  removeTimeSlot: (id: string) => Promise<void>
+  addCourseToSlot: (courseId: string, slotId: string) => Promise<void>
+  removeCourseFromSlot: (courseId: string) => Promise<void>
   updateTeacher: (id: string, data: Partial<Teacher>) => Promise<void>
   updateTeacherReviewFlag: (id: string, flag: boolean) => Promise<void>
   approveQuestion: (id: string, flag: boolean) => Promise<void>
@@ -130,6 +136,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [courses, setCourses] = useState<Course[]>([])
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [questions, setQuestions] = useState<Question[]>([])
@@ -187,6 +194,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setTeachers(Array.isArray(d.teachers) ? d.teachers : [])
         setStudents(Array.isArray(d.students) ? d.students : [])
         setCourses(Array.isArray(d.courses) ? d.courses : [])
+        setTimeSlots(Array.isArray(d.timeSlots) ? d.timeSlots : [])
         setQuestions(Array.isArray(d.questions) ? d.questions : [])
         setAssessments(Array.isArray(d.assessments) ? d.assessments : [])
         setSubmissions(Array.isArray(d.submissions) ? d.submissions : [])
@@ -293,6 +301,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const recordPayment = useCallback((id: string, a: number) => executeAction(() => dbRecordPayment(id, a), "Payment captured"), [executeAction])
   const addFeeAccount = useCallback((d: any) => executeAction(() => dbAddFeeAccount(d), "Account initialized"), [executeAction])
   const updateClassFee = useCallback((id: string, a: number) => executeAction(() => dbUpdateClassFee(id, a), "Fee modified"), [executeAction])
+  const addTimeSlot = useCallback((d: any) => executeAction(() => dbAddTimeSlot(d), "Slot added"), [executeAction])
+  const removeTimeSlot = useCallback((id: string) => executeAction(() => dbRemoveTimeSlot(id), "Slot removed"), [executeAction])
+  const addCourseToSlot = useCallback((cid: string, sid: string) => executeAction(() => dbAddCourseToSlot(cid, sid), "Course mapped"), [executeAction])
+  const removeCourseFromSlot = useCallback((cid: string) => executeAction(() => dbRemoveCourseFromSlot(cid), "Course unmapped"), [executeAction])
   const updateTeacherProfile = useCallback((id: string, d: any) => executeAction(() => dbUpdateTeacher(id, d)), [executeAction])
   const logActivity = useCallback((a: string, c: string) => executeAction(() => dbLogActivity(user?.name || 'Admin', a, c)), [executeAction, user?.name])
   const markAttendance = useCallback((tid: string, date: string, s: string, sc?: number) => executeAction(() => dbMarkAttendance(tid, date, s, sc)), [executeAction])
@@ -331,8 +343,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      teachers, students, courses, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, isInitialized, isLoading, errorMsg,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, resetToDefaults: () => {}, refresh, retryConnection,
+      teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, isInitialized, isLoading, errorMsg,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, resetToDefaults: () => {}, refresh, retryConnection,
     }}>
       {children}
     </DataContext.Provider>
@@ -387,6 +399,7 @@ export function useData() {
     courses: sanitize<Course>(context.courses, 'course'),
     questions: sanitize<Question>(context.questions, 'question'),
     assessments: sanitize<AssessmentTemplate>(context.assessments, 'assessment'),
+    timeSlots: Array.isArray(context.timeSlots) ? context.timeSlots : [],
     submissions: Array.isArray(context.submissions) ? context.submissions : [],
     assignments: Array.isArray(context.assignments) ? context.assignments : [],
     enrollments: Array.isArray(context.enrollments) ? context.enrollments : [],

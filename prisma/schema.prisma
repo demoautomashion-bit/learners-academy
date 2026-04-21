@@ -91,10 +91,21 @@ model Course {
   roomNumber  String?
   thumbnail   String?
   feeAmount   Float        @default(0)
+  timeSlotId  String?
   assignments Assignment[]
   teacher     Teacher      @relation(fields: [teacherId], references: [id])
   feePayments FeePayment[]
   evaluations Evaluation[]
+  timeSlot    TimeSlot?    @relation(fields: [timeSlotId], references: [id])
+}
+
+model TimeSlot {
+  id        String   @id @default(cuid())
+  startTime String
+  endTime   String
+  label     String?
+  createdAt DateTime @default(now())
+  courses   Course[]
 }
 
 model Evaluation {
