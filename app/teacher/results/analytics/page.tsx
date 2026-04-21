@@ -84,35 +84,6 @@ export default function InstitutionalAnalyticsPage() {
         <MetricStandard label="Active Protocols" value={teacherAssessments.length} icon={Zap} sub="Blocks Published" color="text-warning" />
       </motion.div>
 
-      {/* Trailing Helper for the Analytics design */}
-    </div>
-  )
-}
-
-function MetricStandard({ label, value, icon: Icon, sub, color }: { label: string, value: string | number, icon: any, sub: string, color: string }) {
-  return (
-    <motion.div variants={STAGGER_ITEM}>
-      <Card className="hover-lift transition-premium h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
-          <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
-            {label}
-          </CardTitle>
-          <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
-            <Icon className={cn("h-4 w-4", color)} />
-          </div>
-        </CardHeader>
-        <CardContent className="px-6 pb-6 flex-1">
-          <div className="text-3xl font-sans font-normal">{value}</div>
-          <div className="flex items-center gap-1.5 mt-2 opacity-40">
-            <div className={cn("h-1 w-1 bg-primary/40", color.replace('text-', 'bg-'))} />
-            <span className="text-[10px] text-muted-foreground font-normal">{sub}</span>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  )
-}
-
       {/* Mastery Heatmap & Trajectory */}
       <div className="grid gap-10 lg:grid-cols-12 items-stretch">
         <Card className="glass-1 lg:col-span-8 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
@@ -205,5 +176,29 @@ function MetricStandard({ label, value, icon: Icon, sub, color }: { label: strin
         </div>
       </div>
     </div>
+  )
+}
+
+function MetricStandard({ label, value, icon: Icon, sub, color }: { label: string, value: string | number, icon: any, sub: string, color: string }) {
+  return (
+    <motion.div variants={STAGGER_ITEM}>
+      <Card className="hover-lift transition-premium h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
+          <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
+            {label}
+          </CardTitle>
+          <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
+            <Icon className={cn("h-4 w-4", color)} />
+          </div>
+        </CardHeader>
+        <CardContent className="px-6 pb-6 flex-1">
+          <div className="text-3xl font-sans font-normal">{value}</div>
+          <div className="flex items-center gap-1.5 mt-2 opacity-40">
+            <div className={cn("h-1 w-1 bg-primary/40", color.replace('text-', 'bg-'))} />
+            <span className="text-[10px] text-muted-foreground font-normal">{sub}</span>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }
