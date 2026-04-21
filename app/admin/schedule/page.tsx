@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Plus, Clock, Users, MapPin, Trash2, Calendar, LayoutGrid, ArrowRight } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -117,34 +118,48 @@ export default function SchedulePage() {
             const slotCourses = courses.filter(c => c.timeSlotId === slot.id)
             
             return (
-              <Card key={slot.id} className="glass-1 border border-primary/5 shadow-premium overflow-hidden rounded-[1.5rem] flex flex-col">
-                <CardHeader className="bg-primary/5 p-5 pb-4 flex flex-row items-start justify-between">
-                  <div>
-                    {slot.label && <span className="text-[10px] uppercase font-bold tracking-widest text-primary block mb-1">{slot.label}</span>}
-                    <CardTitle className="text-lg font-serif tracking-tight flex items-center gap-2">
-                      <Clock className="w-4 h-4 opacity-50" />
+              <Card key={slot.id} className="relative overflow-hidden group shadow-xl border-0 rounded-[2rem] flex flex-col transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-primary/5 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -z-10 group-hover:bg-primary/20 transition-colors duration-500" />
+                
+                <CardHeader className="relative p-6 pb-4 border-b border-primary/10 bg-background/50 backdrop-blur-sm flex flex-row items-center justify-between">
+                  <div className="space-y-1">
+                    {slot.label && <Badge variant="outline" className="text-[9px] uppercase font-black tracking-widest text-primary border-primary/20 bg-primary/5 mb-2">{slot.label}</Badge>}
+                    <CardTitle className="text-xl font-serif tracking-tight flex items-center gap-2.5 text-foreground">
+                      <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                        <Clock className="w-4 h-4" />
+                      </div>
                       {slot.startTime} - {slot.endTime}
                     </CardTitle>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => removeTimeSlot(slot.id)} className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors">
+                  <Button variant="ghost" size="icon" onClick={() => removeTimeSlot(slot.id)} className="h-9 w-9 rounded-xl hover:bg-destructive/10 hover:text-destructive text-muted-foreground/40 transition-colors focus:ring-0">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </CardHeader>
-                <CardContent className="p-5 flex-1 flex flex-col gap-4">
+                <CardContent className="relative p-6 flex-1 flex flex-col gap-5 bg-background/30 backdrop-blur-sm">
                   <div className="space-y-3 flex-1">
                     {slotCourses.length === 0 ? (
                       <p className="text-xs italic opacity-40 text-center py-6">No classes assigned.</p>
                     ) : (
                       slotCourses.map(course => (
-                        <div key={course.id} className="group flex items-center justify-between p-3 bg-background rounded-xl border border-primary/5 shadow-sm hover:border-primary/20 transition-all">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">{course.title}</span>
-                            <span className="text-[10px] uppercase tracking-widest opacity-50 flex items-center gap-1 mt-1">
-                              <MapPin className="w-3 h-3" /> Room {course.roomNumber || 'TBD'}
-                            </span>
+                        <div key={course.id} className="group/course flex items-center justify-between p-3.5 bg-background/80 backdrop-blur-md rounded-2xl border border-primary/10 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300">
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-sm font-semibold text-foreground/90 group-hover/course:text-primary transition-colors">{course.title}</span>
+                            
+                            <div className="flex items-center gap-3">
+                              <span className="text-[10px] uppercase font-bold tracking-widest text-primary/60 flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded-md">
+                                <MapPin className="w-3 h-3" /> ROOM {course.roomNumber || 'TBD'}
+                              </span>
+                              <span className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                                <div className="w-4 h-4 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                                  <Users className="w-2 h-2 text-indigo-600 dark:text-indigo-400" />
+                                </div>
+                                {course.teacherName || 'TBD'}
+                              </span>
+                            </div>
                           </div>
-                          <Button variant="ghost" size="icon" onClick={() => removeCourseFromSlot(course.id)} className="opacity-0 group-hover:opacity-100 h-6 w-6 text-destructive transition-all">
-                            <Trash2 className="w-3 h-3" />
+                          <Button variant="ghost" size="icon" onClick={() => removeCourseFromSlot(course.id)} className="opacity-0 group-hover/course:opacity-100 h-8 w-8 rounded-xl text-destructive hover:bg-destructive/10 transition-all focus:ring-0">
+                            <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </div>
                       ))
@@ -153,8 +168,8 @@ export default function SchedulePage() {
 
                   <Dialog open={isAssignDialogOpen === slot.id} onOpenChange={(open) => setIsAssignDialogOpen(open ? slot.id : null)}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full border-dashed border-primary/20 bg-transparent hover:bg-primary/5 hover:border-primary/40 font-normal">
-                        <Users className="w-4 h-4 mr-2 opacity-50" /> Map Course to Slot
+                      <Button variant="outline" className="w-full h-11 border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 font-medium text-primary transition-colors rounded-xl">
+                        <Plus className="w-4 h-4 mr-2 opacity-70" /> Map Course Here
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[420px] glass-2 border-white/5 p-6 rounded-[2rem]">

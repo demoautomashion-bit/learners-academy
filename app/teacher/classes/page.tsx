@@ -34,37 +34,31 @@ export default function TeacherClassesPage() {
     course.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const getLevelColor = (level: Course['level']) => {
-    switch (level) {
-      case 'beginner':
-        return 'bg-success/10 text-success border-success/20'
-      case 'intermediate':
-        return 'bg-warning/10 text-warning border-warning/20'
-      case 'advanced':
-        return 'bg-primary/10 text-primary '
-    }
-  }
+  // Removed legacy getLevelColor
 
   const columns: Column<Course>[] = [
     {
-      label: 'Academic Registry',
+      label: 'Class',
       render: (course) => (
         <div className="flex flex-col">
           <span className="font-serif font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">
-            {course.title}
+            {course.title || course.name}
           </span>
-          <span className="text-[10px] text-muted-foreground/60 font-normal mt-0.5 max-w-[250px] truncate">
-            {course.description}
+          <span className="text-[10px] text-muted-foreground opacity-60 font-medium uppercase tracking-widest mt-1">
+            {course.level}
           </span>
         </div>
       ),
     },
     {
-      label: 'Level',
+      label: 'Timing',
       render: (course) => (
-        <Badge variant="outline" className={cn("text-[10px] font-normal", getLevelColor(course.level))}>
-          {course.level}
-        </Badge>
+        <div className="flex items-center gap-2 text-[10px] font-medium opacity-80 uppercase tracking-widest text-muted-foreground">
+          <span className="p-1 rounded-sm bg-primary/10 text-primary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span>{course.timing || 'Hours TBD'}</span>
+        </div>
       ),
     },
     {
