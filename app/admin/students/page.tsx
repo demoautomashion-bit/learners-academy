@@ -14,6 +14,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import {
@@ -35,7 +50,8 @@ import {
   LayoutGrid,
   TrendingUp,
   ShieldCheck,
-  DollarSign
+  DollarSign,
+  Pencil
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
@@ -46,18 +62,20 @@ import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { Student } from '@/lib/types'
-import { ACADEMY_LEVELS } from '@/lib/registry'
+import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
 import { motion } from 'framer-motion'
 import { isToday, parseISO } from 'date-fns'
 
 export default function StudentsPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { students, removeStudent, isInitialized } = useData()
+  const { students, removeStudent, updateStudent, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const searchParams = useSearchParams()
   const initialLevel = searchParams.get('level') || 'all'
   const [levelFilter, setLevelFilter] = useState<string>(initialLevel)
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const TIER_FILTERS = ['all', 'Pre-Foundation', 'Foundation', 'Level', 'Advanced', 'Professional']
 
@@ -85,21 +103,37 @@ export default function StudentsPage() {
   if (!isInitialized) return <DashboardSkeleton />
 
   const handleDelete = async (id: string) => {
-    if (confirm("Permanently archive this student dossier?")) {
+    if (confirm("Are you sure you want to delete this student from the academy registry? This action cannot be undone.")) {
       try {
         await removeStudent(id)
-        toast.active("Academic record archived", {
-            description: "The learner's identity has been shifted to the deep archive."
+        toast.active("Student Registry Updated", {
+            description: "The learner's identity has been removed from the active registry."
         })
       } catch (error) {
-        toast.error("Error during record archival")
+        toast.error("Error deleting student record")
       }
+    }
+  }
+
+  const handleEdit = (student: Student) => {
+    setEditingStudent(student)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateStudent = async (data: Partial<Student>) => {
+    if (!editingStudent) return
+    try {
+        await updateStudent(editingStudent.id, data)
+        setIsEditDialogOpen(false)
+        setEditingStudent(null)
+    } catch (error) {
+        // useData already shows a toast
     }
   }
 
   const columns: Column<Student>[] = [
     {
-      label: 'Dossier ID',
+      label: 'Student ID',
       render: (student) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/5 flex items-center justify-center">
@@ -108,13 +142,13 @@ export default function StudentsPage() {
           <span className="text-xs font-mono font-medium tracking-tight text-foreground/80">{student.studentId}</span>
         </div>
       ),
-      width: '180px'
+      width: '130px'
     },
     {
-      label: 'Candidate Name',
+      label: 'Student Name',
       render: (student) => (
         <div className="flex items-center gap-4 group/name">
-          <Avatar className="h-10 w-10 border border-primary/10 shadow-sm group-hover/name:scale-105 transition-transform duration-500">
+          <Avatar className="h-9 w-9 border border-primary/10 shadow-sm group-hover/name:scale-105 transition-transform duration-500">
             <AvatarImage src={student.avatar} />
             <AvatarFallback className="text-xs bg-primary/5 text-primary font-bold">
               {getInitials(student.name, 'S')}
@@ -124,7 +158,7 @@ export default function StudentsPage() {
             <span className="text-sm font-medium leading-none mb-1.5">{student.name}</span>
             <div className="flex items-center gap-2">
                 <div className="w-1 h-1 rounded-full bg-success animate-pulse" />
-                <span className="text-[9px] text-muted-foreground opacity-40 uppercase tracking-widest font-bold">Active Status</span>
+                <span className="text-[9px] text-muted-foreground opacity-40 uppercase tracking-widest font-bold">Enrolled</span>
             </div>
           </div>
         </div>
@@ -132,16 +166,17 @@ export default function StudentsPage() {
       width: '240px'
     },
     {
-      label: 'Guardian Authority',
+      label: 'Guardian Name',
       render: (student) => (
         <div className="flex items-center gap-3">
             <UserCheck className="w-3.5 h-3.5 text-primary opacity-30" />
-            <span className="text-[11px] text-foreground/70 font-normal leading-tight">{student.guardianName || 'N/A Academic Ward'}</span>
+            <span className="text-[11px] text-foreground/70 font-normal leading-tight">{student.guardianName || 'Not Specified'}</span>
         </div>
-      )
+      ),
+      width: '180px'
     },
     {
-      label: 'Placement & Slot',
+      label: 'Level & Timing',
       render: (student) => (
         <div className="flex flex-col gap-1.5">
            <div className="flex items-center gap-2">
@@ -149,22 +184,23 @@ export default function StudentsPage() {
            </div>
            <div className="flex items-center gap-2 opacity-40">
               <Clock className="w-3 h-3" />
-              <span className="text-[9px] font-medium uppercase tracking-tighter">{student.classTiming || 'Timing Not Set'}</span>
+              <span className="text-[9px] font-medium uppercase tracking-tighter">{student.classTiming || 'Schedule Pending'}</span>
            </div>
         </div>
-      )
+      ),
+      width: '160px'
     },
     {
-        label: 'Access Protocol',
+        label: 'Contact Info',
         render: (student) => (
           <div className="flex flex-col gap-1">
              <div className="flex items-center gap-2.5 group/email cursor-pointer">
-                <Mail className="w-3.5 h-3.5 text-primary opacity-20 group-hover/email:opacity-100 transition-opacity" />
-                <span className="text-[10px] text-muted-foreground opacity-50 group-hover/email:opacity-100 transition-opacity whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]">{student.email}</span>
+                <Mail className="w-3.5 h-3.5 text-primary opacity-30 group-hover/email:opacity-100 transition-opacity" />
+                <span className="text-[10px] text-muted-foreground opacity-60 group-hover/email:opacity-100 transition-opacity whitespace-nowrap">{student.email}</span>
              </div>
              <div className="flex items-center gap-2.5 group/phone cursor-pointer">
-                <Phone className="w-3.5 h-3.5 text-primary opacity-20 group-hover/phone:opacity-100 transition-opacity" />
-                <span className="text-[10px] text-muted-foreground font-mono opacity-50 group-hover/phone:opacity-100 transition-opacity">{student.phone}</span>
+                <Phone className="w-3.5 h-3.5 text-primary opacity-30 group-hover/phone:opacity-100 transition-opacity" />
+                <span className="text-[10px] text-muted-foreground font-mono opacity-60 group-hover/phone:opacity-100 transition-opacity">{student.phone}</span>
              </div>
           </div>
         )
@@ -187,15 +223,18 @@ export default function StudentsPage() {
             >
               <ExternalLink className="w-4 h-4 opacity-60" /> <span className="text-xs">View Performance</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg">
-              <Users className="w-4 h-4 opacity-60" /> <span className="text-xs">Manage Courses</span>
+            <DropdownMenuItem 
+               onClick={() => handleEdit(student)}
+               className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal rounded-lg"
+            >
+              <Pencil className="w-4 h-4 opacity-60" /> <span className="text-xs">Edit Profile</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="opacity-5" />
             <DropdownMenuItem 
                onClick={() => handleDelete(student.id)}
                className="gap-3 cursor-pointer py-3 focus:bg-destructive/5 text-destructive font-normal rounded-lg"
             >
-              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Archive Student</span>
+              <Trash2 className="w-4 h-4 opacity-60" /> <span className="text-xs font-medium">Delete Student</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="opacity-5" />
             <DropdownMenuItem 
@@ -289,6 +328,93 @@ export default function StudentsPage() {
           }
         />
       </div>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => !open && setIsEditDialogOpen(false)}>
+        <DialogContent className="sm:max-w-[480px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
+            {editingStudent && (
+                <div className="p-8 space-y-8">
+                    <DialogHeader className="space-y-3">
+                        <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-2">
+                            <Pencil className="w-6 h-6" />
+                        </div>
+                        <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Edit Student Profile</DialogTitle>
+                        <p className="text-xs text-muted-foreground opacity-60">Modify enrollment details and academic identity.</p>
+                    </DialogHeader>
+
+                    <form onSubmit={(e) => {
+                        e.preventDefault()
+                        const formData = new FormData(e.currentTarget)
+                        handleUpdateStudent({
+                            name: formData.get('name') as string,
+                            guardianName: formData.get('guardianName') as string,
+                            email: formData.get('email') as string,
+                            phone: formData.get('phone') as string,
+                            grade: formData.get('grade') as string,
+                            classTiming: formData.get('classTiming') as string,
+                        })
+                    }} className="space-y-6">
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Student Name</Label>
+                                <Input name="name" defaultValue={editingStudent.name} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Guardian Name</Label>
+                                <Input name="guardianName" defaultValue={editingStudent.guardianName} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Email</Label>
+                                    <Input name="email" defaultValue={editingStudent.email} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Phone</Label>
+                                    <Input name="phone" defaultValue={editingStudent.phone} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Academic Tier</Label>
+                                    <Select name="grade" defaultValue={editingStudent.grade}>
+                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                                            <SelectValue placeholder="Select level..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="glass-2 border-white/5">
+                                            {ACADEMY_LEVELS.map((level) => (
+                                                <SelectItem key={level} value={level}>{level}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Session Slot</Label>
+                                    <Select name="classTiming" defaultValue={editingStudent.classTiming}>
+                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                                            <SelectValue placeholder="Select timing..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="glass-2 border-white/5">
+                                            {SESSION_TIMINGS.map((slot) => (
+                                                <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3 pt-4">
+                            <Button type="submit" className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl shadow-xl shadow-primary/20 transition-all font-medium">
+                                Save Profile Changes
+                            </Button>
+                            <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-[10px] uppercase tracking-widest font-bold opacity-30">
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            )}
+        </DialogContent>
+      </Dialog>
     </PageShell>
   )
 }
