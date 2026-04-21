@@ -72,64 +72,46 @@ export default function InstitutionalAnalyticsPage() {
         </motion.p>
       </motion.div>
 
-      {/* Analytics Command Center */}
       <motion.div 
         className="grid gap-6 md:grid-cols-4 items-stretch"
         variants={STAGGER_CONTAINER}
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader className="pb-2">
-              <CardDescription className="text-xs opacity-40">System-Wide Mastery</CardDescription>
-              <CardTitle className="font-sans text-primary text-xl font-serif font-medium">{averageMastery}%</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 flex-1">
-               <div className="flex items-center gap-2 text-xs text-success ">
-                  <TrendingUp className="w-3 h-3" />
-                  <span>+4.2% Optimization</span>
-               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-        
-        <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader className="pb-2">
-              <CardDescription className="text-xs opacity-40">Elite Cohort</CardDescription>
-              <CardTitle className="font-sans text-xl font-serif font-medium">{highPerformers}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 flex-1">
-               <span className="text-xs text-muted-foreground font-normal">Candidates with &gt;80% Score</span>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader className="pb-2">
-              <CardDescription className="text-xs opacity-40">Protocol Completion</CardDescription>
-              <CardTitle className="font-sans text-success text-xl font-serif font-medium">{completionRate}%</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 flex-1">
-               <span className="text-xs text-muted-foreground font-normal">Audited Results vs Total Submissions</span>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={STAGGER_ITEM}>
-          <Card className="glass-1 hover-lift overflow-hidden group rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-            <CardHeader className="pb-2">
-              <CardDescription className="text-xs opacity-40">Active Protocols</CardDescription>
-              <CardTitle className="font-sans text-xl font-serif font-medium">{teacherAssessments.length}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 flex-1">
-               <span className="text-xs text-muted-foreground font-normal">Examination Blocks Published</span>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <MetricStandard label="System-Wide Mastery" value={`${averageMastery}%`} icon={Target} sub="+4.2% Optimization" color="text-primary" />
+        <MetricStandard label="Elite Cohort" value={highPerformers} icon={Award} sub="Candidates with >80%" color="text-indigo-400" />
+        <MetricStandard label="Protocol Completion" value={`${completionRate}%`} icon={ShieldCheck} sub="Audited vs Total" color="text-success" />
+        <MetricStandard label="Active Protocols" value={teacherAssessments.length} icon={Zap} sub="Blocks Published" color="text-warning" />
       </motion.div>
+
+      {/* Trailing Helper for the Analytics design */}
+    </div>
+  )
+}
+
+function MetricStandard({ label, value, icon: Icon, sub, color }: { label: string, value: string | number, icon: any, sub: string, color: string }) {
+  return (
+    <motion.div variants={STAGGER_ITEM}>
+      <Card className="hover-lift transition-premium h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
+          <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
+            {label}
+          </CardTitle>
+          <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
+            <Icon className={cn("h-4 w-4", color)} />
+          </div>
+        </CardHeader>
+        <CardContent className="px-6 pb-6 flex-1">
+          <div className="text-3xl font-sans font-normal">{value}</div>
+          <div className="flex items-center gap-1.5 mt-2 opacity-40">
+            <div className={cn("h-1 w-1 bg-primary/40", color.replace('text-', 'bg-'))} />
+            <span className="text-[10px] text-muted-foreground font-normal">{sub}</span>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
 
       {/* Mastery Heatmap & Trajectory */}
       <div className="grid gap-10 lg:grid-cols-12 items-stretch">

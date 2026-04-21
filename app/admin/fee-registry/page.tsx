@@ -411,20 +411,22 @@ export default function FeeRegistryPage() {
       <EntityCardGrid 
         data={stats}
         renderItem={(stat, i) => (
-          <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-premium overflow-hidden rounded-[1.5rem] transition-premium group relative isolate h-[180px]">
-            <div className="absolute right-[-10%] top-[-10%] w-20 h-20 bg-primary/5 blur-3xl -z-10 group-hover:scale-110 transition-transform" />
-            <CardHeader className="p-6 h-full flex flex-col justify-between">
-                <div className="flex items-center justify-between mb-2">
-                     <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">{stat.label}</CardDescription>
-                     <div className={cn("w-10 h-10 rounded-xl bg-background border border-primary/5 shadow-sm flex items-center justify-center group-hover:rotate-12 transition-transform shrink-0", stat.color)}>
-                        <stat.icon className="w-5 h-5" />
-                    </div>
-                </div>
-                <div>
-                    <CardTitle className={cn("text-[26px] font-serif font-medium tracking-tight truncate", stat.color)}>{stat.value}</CardTitle>
-                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-30 mt-2 font-normal italic truncate">{stat.sub}</p>
-                </div>
+          <Card key={i} className="hover-lift transition-premium h-full flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
+              <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
+                {stat.label}
+              </CardTitle>
+              <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
+                <stat.icon className={cn("h-4 w-4", stat.color)} />
+              </div>
             </CardHeader>
+            <CardContent className="px-6 pb-6 flex-1">
+              <div className="text-3xl font-sans font-normal">{stat.value}</div>
+              <div className="flex items-center gap-1.5 mt-2 opacity-40">
+                <div className={cn("h-1 w-1 bg-primary/40", stat.color.replace('text-', 'bg-'))} />
+                <span className="text-[10px] text-muted-foreground font-normal">{stat.sub}</span>
+              </div>
+            </CardContent>
           </Card>
         )}
         columns={4}

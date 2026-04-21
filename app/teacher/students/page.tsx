@@ -94,14 +94,22 @@ export default function TeacherStudentsPage() {
       <EntityCardGrid 
         data={stats}
         renderItem={(stat, i) => (
-          <Card key={i} className="hover-lift p-8 overflow-hidden group transition-premium h-full flex flex-col relative">
-            <div className="flex flex-col items-center justify-center text-center space-y-2">
-                <p className={cn("text-4xl font-sans font-normal transition-colors", stat.color)}>{stat.value}</p>
-                <p className="text-[10px] font-normal opacity-50 uppercase">{stat.label}</p>
-            </div>
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                {stat.icon && <stat.icon className="w-12 h-12" />}
-            </div>
+          <Card key={i} className="hover-lift transition-premium h-full flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
+              <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
+                {stat.label}
+              </CardTitle>
+              <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
+                <stat.icon className={cn("h-4 w-4", stat.color || 'text-primary')} />
+              </div>
+            </CardHeader>
+            <CardContent className="px-6 pb-6 flex-1">
+              <div className="text-3xl font-sans font-normal">{stat.value}</div>
+              <div className="flex items-center gap-1.5 mt-2 opacity-40">
+                <div className={cn("h-1 w-1 bg-primary/40", (stat.color || 'text-primary').replace('text-', 'bg-'))} />
+                <span className="text-[10px] text-muted-foreground font-normal">Live Data</span>
+              </div>
+            </CardContent>
           </Card>
         )}
         columns={3}

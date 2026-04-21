@@ -169,13 +169,22 @@ export default function ResultsPage() {
       <EntityCardGrid 
         data={stats}
         renderItem={(stat, i) => (
-          <Card key={i} className="hover-lift transition-premium">
-            <CardHeader className="p-6 pb-2">
-              <CardDescription className="flex items-center gap-2 text-[10px] font-normal opacity-60 uppercase">
-                {stat.icon && <stat.icon className="w-3 h-3" />} {stat.label}
-              </CardDescription>
-              <CardTitle className={cn("text-2xl font-serif font-medium", stat.color)}>{stat.value}</CardTitle>
+          <Card key={i} className="hover-lift transition-premium h-full flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
+              <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
+                {stat.label}
+              </CardTitle>
+              <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
+                {stat.icon ? <stat.icon className={cn("h-4 w-4", stat.color || 'text-primary')} /> : <Award className="h-4 w-4 text-primary" />}
+              </div>
             </CardHeader>
+            <CardContent className="px-6 pb-6 flex-1">
+              <div className="text-3xl font-sans font-normal">{stat.value}</div>
+              <div className="flex items-center gap-1.5 mt-2 opacity-40">
+                <div className={cn("h-1 w-1 bg-primary/40", (stat.color || 'text-primary').replace('text-', 'bg-'))} />
+                <span className="text-[10px] text-muted-foreground font-normal">Live Data</span>
+              </div>
+            </CardContent>
           </Card>
         )}
         columns={4}

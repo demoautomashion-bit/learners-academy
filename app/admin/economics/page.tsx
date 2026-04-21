@@ -363,19 +363,23 @@ export default function EconomicsAuditorPage() {
         <EntityCardGrid 
             data={stats}
             renderItem={(stat, i) => (
-            <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-md overflow-hidden rounded-[2rem] transition-all group relative isolate">
-                 <div className="absolute right-[-10%] top-[-10%] w-32 h-32 bg-primary/5 blur-3xl -z-10 group-hover:scale-110 transition-transform" />
-                <CardHeader className="p-6 pb-8">
-                    <div className="flex items-center justify-between mb-8">
-                        <CardDescription className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.label}</CardDescription>
-                        <div className={cn("w-9 h-9 rounded-xl bg-background border border-primary/5 shadow-sm flex items-center justify-center group-hover:rotate-12 transition-transform", stat.color)}>
-                            <stat.icon className="w-4 h-4" />
-                        </div>
-                    </div>
-                    <CardTitle className={cn("text-3xl font-sans font-normal tracking-tight", stat.color)}>{stat.value}</CardTitle>
-                    <p className="text-xs text-muted-foreground mt-4 font-medium opacity-60">{stat.sub}</p>
+              <Card key={i} className="hover-lift transition-premium h-full flex flex-col">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
+                  <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
+                    {stat.label}
+                  </CardTitle>
+                  <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
+                    <stat.icon className={cn("h-4 w-4", stat.color)} />
+                  </div>
                 </CardHeader>
-            </Card>
+                <CardContent className="px-6 pb-6 flex-1">
+                  <div className="text-3xl font-sans font-normal">{stat.value}</div>
+                  <div className="flex items-center gap-1.5 mt-2 opacity-40">
+                    <div className={cn("h-1 w-1 bg-primary/40", stat.color.replace('text-', 'bg-'))} />
+                    <span className="text-[10px] text-muted-foreground font-normal">{stat.sub}</span>
+                  </div>
+                </CardContent>
+              </Card>
             )}
             columns={4}
         />

@@ -273,26 +273,24 @@ export default function EnrollmentTrendPage() {
   )
 }
 
-function MetricCard({ label, value, icon: Icon, color, sub, isStatic }: { label: string, value: number, icon: any, color: string, sub: string, isStatic?: boolean }) {
+function MetricCard({ label, value, icon: Icon, color, sub }: { label: string, value: number, icon: any, color: string, sub: string, isStatic?: boolean }) {
     return (
-        <Card className="glass-2 border-white/5 rounded-[2rem] shadow-premium group hover:scale-[1.03] transition-all duration-500 overflow-hidden relative isolate">
-            {!isStatic && (
-                <div className={cn("absolute top-0 right-0 w-24 h-24 blur-3xl -z-10 opacity-20", color.replace('text', 'bg'))} />
-            )}
-            <CardHeader className="p-8">
-                <div className="flex items-center justify-between mb-8">
-                    <CardDescription className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">{label}</CardDescription>
-                    <div className={cn("w-10 h-10 rounded-xl bg-background border border-primary/5 shadow-sm flex items-center justify-center group-hover:rotate-12 transition-transform", color)}>
-                        <Icon className="w-5 h-5" />
-                    </div>
-                </div>
-                <div className="space-y-2">
-                    <CardTitle className={cn("text-4xl font-serif font-medium tracking-tight", color)}>{value}</CardTitle>
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground opacity-40 flex items-center gap-2">
-                        {sub} <ArrowUpRight className="w-3 h-3" />
-                    </p>
+        <Card className="hover-lift transition-premium h-full flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
+                <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
+                    {label}
+                </CardTitle>
+                <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
+                    <Icon className={cn("h-4 w-4", color)} />
                 </div>
             </CardHeader>
+            <CardContent className="px-6 pb-6 flex-1">
+                <div className={cn("text-3xl font-sans font-normal", color)}>{value}</div>
+                <div className="flex items-center gap-1.5 mt-2 opacity-40">
+                    <div className={cn("h-1 w-1 bg-primary/40", color.replace('text-', 'bg-'))} />
+                    <span className="text-[10px] text-muted-foreground font-normal">{sub}</span>
+                </div>
+            </CardContent>
         </Card>
     )
 }

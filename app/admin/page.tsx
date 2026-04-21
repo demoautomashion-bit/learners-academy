@@ -103,19 +103,21 @@ export default function AdminDashboard() {
         <EntityCardGrid 
           data={kpis}
           renderItem={(item, i) => (
-            <Card key={i} className="glass-1 hover-lift border-primary/5 shadow-md overflow-hidden rounded-[2rem] transition-premium group">
-              <CardHeader className="p-6 pb-2 relative isolate">
-                  <div className="absolute right-6 top-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                      <item.icon className="w-10 h-10" />
-                  </div>
-                  <CardDescription className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{item.label}</CardDescription>
-                  <CardTitle className={cn("text-4xl font-sans font-normal mt-1", item.color)}>{item.value}</CardTitle>
+            <Card key={i} className="hover-lift transition-premium h-full flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-6">
+                <CardTitle className="text-muted-foreground opacity-60 text-xl font-serif font-medium">
+                  {item.label}
+                </CardTitle>
+                <div className={cn("p-2 rounded-lg opacity-60 bg-muted/20")}>
+                  <item.icon className={cn("h-4 w-4", item.color)} />
+                </div>
               </CardHeader>
-              <CardContent className="px-6 pb-6 pt-0">
-                  <div className="flex items-center gap-2 mt-4 opacity-40">
-                      <div className={cn("w-1 h-1 rounded-full ", item.color.replace('text-', 'bg-'))} />
-                      <span className="text-xs text-muted-foreground font-medium">{item.sub}</span>
-                  </div>
+              <CardContent className="px-6 pb-6 flex-1">
+                <div className="text-3xl font-sans font-normal">{item.value}</div>
+                <div className="flex items-center gap-1.5 mt-2 opacity-40">
+                  <div className={cn("h-1 w-1 bg-primary/40", item.color.replace('text-', 'bg-'))} />
+                  <span className="text-[10px] text-muted-foreground font-normal">{item.sub}</span>
+                </div>
               </CardContent>
             </Card>
           )}
