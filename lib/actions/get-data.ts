@@ -108,7 +108,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         ...c,
         id: String(c?.id || ''),
         title: typeof c?.title === 'string' ? c.title : (c?.title ? String(c.title) : 'Untitled Course'),
-        level: typeof c?.level === 'string' ? c.level : (c?.level ? String(c.level) : 'beginner'),
+        level: typeof c?.level === 'string' ? c.level : (c?.level ? String(c.level) : 'Foundation'),
         teacherName: typeof c?.teacherName === 'string' ? c.teacherName : 'Unassigned'
       })),
       submissions: (submissions || []).map((sub: any) => ({

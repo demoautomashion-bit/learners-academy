@@ -369,7 +369,6 @@ function sanitize<T>(data: any, type: 'teacher' | 'student' | 'course' | 'questi
         break
       case 'course':
         base.name = base.name || 'Untitled Batch'
-        base.level = base.level || 'Foundation'
         base.instructorName = base.instructorName || 'Unassigned'
         break
       case 'assessment':

@@ -34,13 +34,13 @@ export const normalizeAcademicLevel = (val: string) => {
     .trim()
 }
 
-/**
- * Normalizes timing strings for comparison.
- * Simple approach: lowercase and strip all whitespace/dots.
- * Both sides (student and course) go through this identically,
- * so minor format differences cancel out automatically.
- */
 export const normalizeTiming = (t: string) => {
   if (!t) return ''
-  return t.toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
+  // 1. Lowercase and remove all spaces/dots/special chars
+  let cleaned = t.toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
+  
+  // 2. Remove leading zeros from hours globally (e.g., 08:00-09:00 -> 8:00-9:00)
+  cleaned = cleaned.replace(/(^|[^0-9])0(\d:)/g, '$1$2')
+  
+  return cleaned
 }
