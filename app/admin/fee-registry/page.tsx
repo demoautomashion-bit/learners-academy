@@ -50,7 +50,7 @@ import Image from 'next/image'
 export default function FeeRegistryPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { students, courses, feePayments, schedules, addFeeAccount, isInitialized } = useData()
+  const { students, courses, feePayments, addFeeAccount, isInitialized } = useData()
 
   // Print Ref wrapper for Grid Export
   const printGridRef = useRef<HTMLDivElement>(null)
@@ -110,9 +110,8 @@ export default function FeeRegistryPage() {
   // Process Class Ledger
   const classLedger = useMemo(() => {
      return courses.map(course => {
-        const schedule = schedules.find(s => s.classTitle === course.title || s.classTitle === course.name)
-        const roomNumber = schedule?.roomNumber || 'TBD'
-        const timing = schedule?.timing || 'TBD'
+        const roomNumber = course.roomNumber || 'TBD'
+        const timing = course.timing || 'TBD'
         
         const payments = feePayments.filter(p => p.courseId === course.id)
         const totalGenerated = payments.reduce((acc, p) => acc + (p.totalAmount || 0), 0)
@@ -135,7 +134,7 @@ export default function FeeRegistryPage() {
          if (timingFilter !== 'all' && c.timing !== timingFilter) return false;
          return true;
      })
-  }, [courses, schedules, feePayments, searchQuery, classFilter, timingFilter])
+  }, [courses, feePayments, searchQuery, classFilter, timingFilter])
 
   // Process Student Ledger
   const studentLedger = useMemo(() => {
@@ -143,11 +142,9 @@ export default function FeeRegistryPage() {
       return arr.map(student => {
           const payment = feePayments.find(p => p.studentId === student.id)
           const course = courses.find(c => c.id === payment?.courseId)
-          const schedule = schedules.find(s => s.classTitle === course?.title)
-          
           const classTitle = course?.title || student.grade || 'Unassigned'
-          const timing = schedule?.timing || student.classTiming || 'Unassigned'
-          const teacherName = schedule?.teacherName || 'Unassigned'
+          const timing = course?.timing || student.classTiming || 'Unassigned'
+          const teacherName = course?.teacherName || 'Unassigned'
           const amountPaid = payment?.amountPaid || payment?.initialDeposit || 0
           const totalAmount = payment?.totalAmount || 0
           const discountGiven = payment?.discount || 0
@@ -172,7 +169,7 @@ export default function FeeRegistryPage() {
           if (timingFilter !== 'all' && s.timing !== timingFilter) return false;
           return true;
       })
-  }, [students, feePayments, courses, schedules, searchQuery, classFilter, timingFilter])
+  }, [students, feePayments, courses, searchQuery, classFilter, timingFilter])
 
   // Capture targeted student logic
   const selectedStudentTarget = studentLedger.find(s => s.id === selectedStudentId)
@@ -385,8 +382,8 @@ export default function FeeRegistryPage() {
   return (
     <PageShell>
       <PageHeader 
-        title="Fee Management"
-        description="Economic command center tracking inflows and class-level profitability."
+        title="Fee Overview"
+        description="Monitor student payments, class revenue, and outstanding dues."
         actions={
             <Button onClick={() => setIsCollectOpen(true)} className="font-medium bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-11 px-8 rounded-xl shrink-0">
                <Plus className="w-4 h-4 mr-2" /> Log Transaction
@@ -397,7 +394,7 @@ export default function FeeRegistryPage() {
       {/* Ribbon Controls: Semester Dropdown */}
       <div className="flex justify-end mb-6">
           <div className="flex items-center gap-3">
-              <span className="text-[10px] uppercase tracking-widest font-black opacity-40">Target Cycle</span>
+              <span className="text-[10px] uppercase tracking-widest font-black opacity-40">Select Term</span>
               <Select value={activeSeason} onValueChange={setActiveSeason}>
                   <SelectTrigger className="w-40 h-10 border-none bg-primary/5 rounded-xl text-sm font-medium focus:ring-primary/20">
                       <SelectValue placeholder="Select Season..." />
@@ -488,7 +485,7 @@ export default function FeeRegistryPage() {
                    activeTab === 'classes' ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground opacity-60 hover:bg-primary/[0.02]"
                )}
             >
-               <Building className="w-4 h-4" /> Classes Collection
+            <Building className="w-4 h-4" /> Class Summaries
             </button>
             <button
                onClick={() => setActiveTab('students')}
@@ -497,7 +494,7 @@ export default function FeeRegistryPage() {
                    activeTab === 'students' ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground opacity-60 hover:bg-primary/[0.02]"
                )}
             >
-               <Users className="w-4 h-4" /> Student Balances
+               <Users className="w-4 h-4" /> Student Fees
             </button>
       </div>
 

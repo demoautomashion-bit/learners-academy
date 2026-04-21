@@ -36,7 +36,13 @@ export async function removeCourse(id: string): Promise<ActionResult> {
     const result = await db.course.delete({ where: { id } })
     revalidatePath('/')
     return { success: true, data: result }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'P2003') {
+      return { 
+        success: false, 
+        error: 'Cannot delete this class because it has related records (students, payments, or assignments). Please remove those first.' 
+      }
+    }
     console.error('DATABASE_ERROR [removeCourse]:', error)
     return { success: false, error: 'Database record deletion failed' }
   }

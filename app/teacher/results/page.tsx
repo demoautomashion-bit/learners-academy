@@ -89,7 +89,7 @@ export default function ResultsPage() {
 
   const columns: Column<any>[] = [
     {
-      label: 'Examination Block',
+      label: 'Exam Title',
       render: (assessment) => (
         <div className="flex flex-col">
           <span className="font-serif font-normal text-base text-foreground/80 group-hover:text-primary transition-colors">
@@ -156,12 +156,12 @@ export default function ResultsPage() {
   return (
     <PageShell>
       <PageHeader 
-        title="Academic Results"
-        description="Audit and publish grades for individual examination batches."
+        title="Student Results"
+        description="View and manage grades for class exams."
         actions={
           <Button variant="outline" className="hover-lift font-normal h-10 px-6">
             <Award className="w-4 h-4 mr-2" />
-            <span className="text-xs">Export Registry</span>
+            <span className="text-xs">Export Records</span>
           </Button>
         }
       />
@@ -220,7 +220,7 @@ export default function ResultsPage() {
         </div>
 
         <EntityDataGrid 
-          title="Examination Batches"
+          title="Exam Lists"
           data={filteredAssessments}
           columns={columns}
           emptyState={

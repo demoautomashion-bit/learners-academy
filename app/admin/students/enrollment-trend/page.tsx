@@ -116,8 +116,8 @@ export default function EnrollmentTrendPage() {
       </div>
 
       <PageHeader 
-        title="Enrollment Intelligence"
-        description="Predictive analytics and institutional intake velocity optimized for operational clarity."
+        title="Enrollment Trends"
+        description="Monitor student registrations and analyze enrollment growth over time."
         actions={
             <Button variant="outline" className="h-11 px-6 rounded-xl glass-2 border-primary/10 hover:bg-primary/5" onClick={() => router.back()}>
                 <ChevronLeft className="w-4 h-4 mr-2" /> Back to Registry
@@ -147,11 +147,11 @@ export default function EnrollmentTrendPage() {
 
       {/* "Chronos" Metric Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
-        <MetricCard label="Daily Ingress" value={metrics.daily} icon={Zap} color="text-amber-400" sub="24h Activity" />
-        <MetricCard label="Weekly Velocity" value={metrics.weekly} icon={TrendingUp} color="text-indigo-400" sub="7d Performance" />
-        <MetricCard label="Monthly Momentum" value={metrics.monthly} icon={Sparkles} color="text-emerald-400" sub="30d Growth" />
+        <MetricCard label="Daily Enrollment" value={metrics.daily} icon={Zap} color="text-amber-400" sub="Last 24 Hours" />
+        <MetricCard label="Weekly Enrollment" value={metrics.weekly} icon={TrendingUp} color="text-indigo-400" sub="Last 7 Days" />
+        <MetricCard label="Monthly Enrollment" value={metrics.monthly} icon={Sparkles} color="text-emerald-400" sub="Last 30 Days" />
         <MetricCard 
-            label="Trimester Epoch" 
+            label="Current Term" 
             value={metrics.trimester} 
             icon={theme.icon} 
             color={theme.color} 
@@ -164,13 +164,13 @@ export default function EnrollmentTrendPage() {
          <Card className="lg:col-span-2 glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-2xl h-full flex flex-col group">
             <CardHeader className="p-10 pb-6 border-b border-white/5 flex flex-row items-center justify-between bg-primary/[0.01]">
                 <div>
-                    <CardTitle className="font-serif text-2xl font-medium tracking-tight">Institutional Intake Vector</CardTitle>
+                    <CardTitle className="font-serif text-2xl font-medium tracking-tight">Growth Trends</CardTitle>
                     <CardDescription className="text-xs font-normal opacity-40 mt-1">
-                        Displaying <span className="text-primary font-bold">{filter}</span> enrollment velocity across the active interval.
+                        Viewing <span className="text-primary font-bold">{filter}</span> enrollment numbers.
                     </CardDescription>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                    <span className="text-[10px] uppercase tracking-widest font-black text-primary opacity-60">Linear Trace</span>
+                    <span className="text-[10px] uppercase tracking-widest font-black text-primary opacity-60">Growth Line</span>
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                         <span className="text-[9px] text-muted-foreground font-normal italic">Live Updates Enabled</span>
@@ -213,8 +213,8 @@ export default function EnrollmentTrendPage() {
 
          <Card className="glass-1 border-primary/5 rounded-[2.5rem] overflow-hidden shadow-2xl h-full flex flex-col">
             <CardHeader className="p-10 pb-6 border-b border-white/5 bg-primary/[0.01]">
-                <CardTitle className="font-serif text-2xl font-medium tracking-tight">Seasonal Echoes</CardTitle>
-                <CardDescription className="text-xs font-normal opacity-40 mt-1">Cross-epochal comparison of enrollment depth.</CardDescription>
+                <CardTitle className="font-serif text-2xl font-medium tracking-tight">Term Comparisons</CardTitle>
+                <CardDescription className="text-xs font-normal opacity-40 mt-1">Compare student registrations across different terms.</CardDescription>
             </CardHeader>
             <CardContent className="p-10 flex-1 flex flex-col">
                 <div className="h-[300px] w-full mb-12">

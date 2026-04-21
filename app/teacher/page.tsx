@@ -245,20 +245,20 @@ export default function TeacherDashboard() {
       <div className="grid gap-6 md:grid-cols-2 items-stretch mt-6">
         <Card className="hover-lift border-l-4 border-l-primary/40 overflow-hidden transition-premium h-full flex flex-col">
           <CardHeader className="p-6">
-            <CardTitle className="text-primary mb-2 text-xl font-serif font-medium">First Test Phase</CardTitle>
+            <CardTitle className="text-primary mb-2 text-xl font-serif font-medium">Mid-Term Exam Info</CardTitle>
             <CardContent className="p-0 flex-1">
               <p className="text-sm text-muted-foreground leading-relaxed opacity-70 font-normal">
-                Targeted registry block consisting of 12 queries filtered from core disciplines for mid-term academic vetting.
+                Mid-term exams updated with core curriculum topics to track student progress during the first half of the term.
               </p>
             </CardContent>
           </CardHeader>
         </Card>
         <Card className="hover-lift border-l-4 border-l-accent/40 overflow-hidden transition-premium h-full flex flex-col">
           <CardHeader className="p-6">
-            <CardTitle className="text-accent mb-2 text-xl font-serif font-medium">Last Test Phase</CardTitle>
+            <CardTitle className="text-accent mb-2 text-xl font-serif font-medium">Final Exam Info</CardTitle>
             <CardContent className="p-0 flex-1">
               <p className="text-sm text-muted-foreground leading-relaxed opacity-70 font-normal">
-                Summative evaluation registry encompassing comprehensive curriculum goals and advanced performance benchmarks.
+                Final assessments covering all curriculum goals to measure student performance at the end of the term.
               </p>
             </CardContent>
           </CardHeader>

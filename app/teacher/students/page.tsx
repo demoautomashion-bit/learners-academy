@@ -140,8 +140,8 @@ export default function TeacherStudentsPage() {
         <Card className="overflow-hidden hover-lift transition-premium">
           <CardHeader className="p-10 border-b flex flex-row items-center justify-between">
              <div className="space-y-1">
-                <CardTitle className="font-serif text-xl font-medium">Student Profiles</CardTitle>
-                <CardDescription className="text-xs font-normal opacity-60">View student details and track their learning progress.</CardDescription>
+                <CardTitle className="font-serif text-xl font-medium">Student List</CardTitle>
+                <CardDescription className="text-xs font-normal opacity-60">View and track student performance.</CardDescription>
              </div>
              <div className="p-2 rounded-lg bg-primary/5 opacity-40">
                   <Users className="w-4 h-4 text-primary" />
