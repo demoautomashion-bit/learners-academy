@@ -1,10 +1,11 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
+import { getInstitutionalAudioFiles } from '@/lib/actions/audio'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -74,6 +75,16 @@ export default function AssessmentLibraryPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [phaseFilter, setPhaseFilter] = useState('all')
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [audioRepo, setAudioRepo] = useState<string[]>([])
+
+  // Load Audio Repository
+  useEffect(() => {
+    const loadAudio = async () => {
+      const res = await getInstitutionalAudioFiles()
+      if (res.success) setAudioRepo(res.files)
+    }
+    loadAudio()
+  }, [isAddOpen])
 
   const {
     register,
@@ -226,12 +237,29 @@ export default function AssessmentLibraryPage() {
 
                 {watchType === 'Listening' && (
                   <div className="space-y-2 pt-2">
-                    <label className="text-xs    opacity-40">Audio Resource URL</label>
-                    <Input 
-                      {...register('audioUrl')}
-                      placeholder="https://institutional-storage.com/audio/clip-01.mp3"
-                      className="h-12 bg-primary/5   font-mono text-[10px]"
-                    />
+                    <label className="text-xs    opacity-40">Institutional Audio Repository</label>
+                    <Select onValueChange={(v) => setValue('audioUrl', v === 'manual' ? '' : `/assets/audio/${v}`)}>
+                       <SelectTrigger className="h-12 bg-primary/5   text-[10px] font-mono">
+                          <SelectValue placeholder="Select Audio File..." />
+                       </SelectTrigger>
+                       <SelectContent>
+                          {audioRepo.length > 0 ? (
+                            audioRepo.map(file => (
+                              <SelectItem key={file} value={file} className="font-mono text-[10px]">{file}</SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="none" disabled>No files found in public/assets/audio/</SelectItem>
+                          )}
+                          <SelectItem value="manual" className="border-t mt-2 opacity-60">Custom External Link...</SelectItem>
+                       </SelectContent>
+                    </Select>
+                    {watch('audioUrl') && !watch('audioUrl')?.startsWith('/assets/audio/') && (
+                      <Input 
+                        {...register('audioUrl')}
+                        placeholder="Paste custom link (e.g. https://...)"
+                        className="mt-2 h-10 bg-muted/10   text-[10px]"
+                      />
+                    )}
                   </div>
                 )}
 
