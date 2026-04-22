@@ -273,7 +273,10 @@ export default function StudentAssessmentsPage() {
           if (allCorrect) totalScore += points
         } catch {}
       } else if (q.type === 'Fill in the Blanks') {
-        if (answers[q.id]?.toLowerCase().trim() === q.correctAnswer?.toLowerCase().trim()) totalScore += points
+        const parts = q.content.split('____')
+        const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
+        const correctAnswer = (q.correctAnswer || '').trim().toLowerCase()
+        if (studentAnswer === correctAnswer) totalScore += points
       } else {
         if (answers[q.id] === q.correctAnswer) totalScore += points
       }
@@ -444,26 +447,24 @@ export default function StudentAssessmentsPage() {
       const parts = q.content.split('____')
       return (
         <div className="pt-4 space-y-4">
-          <p className="font-serif text-xl sm:text-2xl leading-loose text-foreground/90">
+          <div className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground/90 flex flex-wrap items-baseline gap-x-2 gap-y-4">
             {parts.map((part, i) => (
-              <span key={i}>
-                {part}
+              <span key={i} className="flex items-baseline gap-2">
+                <span>{part}</span>
                 {i < parts.length - 1 && (
-                  <span className="inline-block relative mx-1 align-baseline">
-                    <input
-                      type="text"
-                      value={currentAnswer}
-                      onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
-                      className="border-b-2 border-primary bg-transparent text-center text-primary font-semibold focus:outline-none w-32 pb-0.5 placeholder:text-muted-foreground/30"
-                      placeholder="________"
-                      autoComplete="off"
-                    />
-                  </span>
+                  <input
+                    type="text"
+                    value={answers[`${qId}-${i}`] || ''}
+                    onChange={e => setAnswers({ ...answers, [`${qId}-${i}`]: e.target.value })}
+                    className="border-b-2 border-primary bg-primary/5 text-center text-primary font-semibold focus:outline-none w-32 pb-0.5 px-2 rounded-t-md transition-all focus:bg-primary/10"
+                    placeholder="Type here"
+                    autoComplete="off"
+                  />
                 )}
               </span>
             ))}
-          </p>
-          <p className="text-editorial-label text-xs">Type your answer in the blank above.</p>
+          </div>
+          <p className="text-editorial-label text-[10px] opacity-60">Complete the sentence by filling all blanks above.</p>
         </div>
       )
     }
@@ -644,12 +645,12 @@ export default function StudentAssessmentsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-primary/10">
         <div className="space-y-1">
-          <h1 className="font-serif text-5xl font-black text-foreground drop-shadow-sm">Assessments</h1>
+          <h1 className="font-serif text-5xl font-bold text-foreground drop-shadow-sm">Assessments</h1>
           <p className="text-muted-foreground text-editorial-label uppercase tracking-[0.2em] opacity-60">Proctored Academic Registry</p>
         </div>
         <div className="flex items-center gap-3 bg-primary/5 px-5 py-3 rounded-2xl border border-primary/10 backdrop-blur-sm">
            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-           <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Identity: {user?.name || 'Verifying...'}</p>
+           <p className="text-[10px] font-medium uppercase tracking-widest text-primary">Identity: {user?.name || 'Verifying...'}</p>
         </div>
       </div>
 
@@ -675,21 +676,21 @@ export default function StudentAssessmentsPage() {
                 <Card 
                   key={assessment.id} 
                   className={cn(
-                    "group rounded-[2.5rem] border-primary/5 bg-card/60 backdrop-blur-xl shadow-premium overflow-hidden hover:shadow-massive hover-lift transition-premium relative",
+                    "group rounded-[2.5rem] border-primary/10 bg-card/40 backdrop-blur-2xl shadow-premium overflow-hidden hover:shadow-massive hover-lift transition-premium relative",
                     !isSessionReady && "opacity-60 grayscale-[0.5] cursor-not-allowed"
                   )}
                 >
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
-                  <CardHeader className="p-8 pb-4">
+                  <CardHeader className="p-8 pb-4 relative z-10">
                     <div className="flex justify-between items-start mb-4">
-                      <Badge variant="outline" className="text-[10px] uppercase tracking-widest bg-primary/5 border-primary/10 px-3 py-1">{assessment.nature}</Badge>
-                      <div className="p-2.5 bg-primary/10 rounded-xl">
+                      <Badge variant="outline" className="text-[10px] uppercase tracking-widest bg-primary/5 border-primary/10 px-3 py-1 font-medium">{assessment.nature}</Badge>
+                      <div className="p-2.5 bg-primary/10 rounded-xl ring-1 ring-primary/20 shadow-sm">
                         <Award className="w-5 h-5 text-primary" />
                       </div>
                     </div>
-                    <CardTitle className="font-serif text-2xl group-hover:text-primary transition-colors pr-4">{assessment.title}</CardTitle>
-                    <CardDescription className="text-[10px] uppercase tracking-widest font-bold opacity-30 mt-2">Institutional Examination Profile</CardDescription>
+                    <CardTitle className="font-serif text-2xl group-hover:text-primary transition-colors pr-4 font-semibold">{assessment.title}</CardTitle>
+                    <CardDescription className="text-[10px] uppercase tracking-widest font-medium opacity-40 mt-2">Institutional Examination Profile</CardDescription>
                   </CardHeader>
 
                   <CardContent className="p-8 pt-0 space-y-8">
@@ -714,9 +715,9 @@ export default function StudentAssessmentsPage() {
                       onClick={() => isSessionReady && startTest(assessment)}
                       disabled={!isSessionReady}
                       className={cn(
-                        "w-full h-14 rounded-2xl text-[11px] uppercase tracking-widest font-black shadow-xl group/btn transition-all duration-500",
+                        "w-full h-14 rounded-2xl text-[11px] uppercase tracking-widest font-bold shadow-xl group/btn transition-all duration-500",
                         isSessionReady 
-                          ? "bg-primary text-white shadow-primary/20 hover:scale-[1.02] active:scale-95" 
+                          ? "bg-primary text-white shadow-primary/20 hover:scale-[1.01] active:scale-95" 
                           : "bg-muted text-muted-foreground shadow-none"
                       )}
                     >
@@ -745,34 +746,26 @@ export default function StudentAssessmentsPage() {
         {isTestEngineOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center p-0 lg:p-8"
+            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex flex-col items-center justify-center p-0 lg:p-8"
           >
             {/* Result screen */}
             {showResult ? (
               <motion.div
-                initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                className="w-full max-w-lg bg-card border shadow-2xl rounded-3xl overflow-hidden"
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                className="w-full max-w-lg bg-card/80 backdrop-blur-2xl border-primary/10 shadow-massive rounded-[3rem] overflow-hidden"
               >
-                <div className="h-1.5 bg-success" />
-                <div className="p-6 sm:p-8 text-center space-y-6">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center text-success ring-4 ring-success/10">
-                    <Award className="w-8 h-8" />
+                <div className="h-1.5 bg-success/50" />
+                <div className="p-8 sm:p-10 text-center space-y-8">
+                  <div className="mx-auto w-20 h-20 rounded-full bg-success/10 flex items-center justify-center text-success ring-8 ring-success/5 shadow-inner">
+                    <Award className="w-10 h-10" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-serif font-bold">Assessment Complete</h2>
-                    <p className="text-muted-foreground text-sm mt-1">Real-time results based on your performance.</p>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { label: 'Score', value: `${finalScore} / ${activeTest?.totalMarks || 100}`, color: 'text-success' },
-                      { label: 'Status', value: 'Completed', color: '' },
-                      { label: 'Questions', value: String(randomizedQuestions.length), color: '' },
-                    ].map(stat => (
-                      <div key={stat.label} className="rounded-xl bg-muted/30 p-3">
-                        <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{stat.label}</p>
-                        <p className={`text-xl font-serif font-bold ${stat.color}`}>{stat.value}</p>
-                      </div>
-                    ))}
+                      ].map(stat => (
+                        <div key={stat.label} className="rounded-xl bg-muted/30 p-3">
+                          <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/60 mb-1">{stat.label}</p>
+                          <p className={`text-xl font-serif font-semibold ${stat.color}`}>{stat.value}</p>
+                        </div>
+                      ))}
                   </div>
                   {aiAuditResults.feedback && (
                     <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 text-left">
@@ -816,19 +809,19 @@ export default function StudentAssessmentsPage() {
                       <ClipboardList className="w-4 h-4" />
                     </div>
                     <div>
-                      <h2 className="font-serif font-bold text-base leading-none">{activeTest?.title}</h2>
-                      <p className="text-[9px] text-muted-foreground mt-0.5 uppercase tracking-widest font-bold">
+                      <h2 className="font-serif font-semibold text-base leading-none">{activeTest?.title}</h2>
+                      <p className="text-[9px] text-muted-foreground mt-0.5 uppercase tracking-widest font-medium">
                         Question {currentQuestionIndex + 1} of {randomizedQuestions.length}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {strikes > 0 && (
-                      <Badge variant="destructive" className="animate-pulse gap-1 text-[10px] rounded-full px-2 py-1">
+                      <Badge variant="destructive" className="animate-pulse gap-1 text-[10px] rounded-full px-2 py-1 font-medium">
                         <AlertTriangle className="w-3 h-3" /> {strikes}/3
                       </Badge>
                     )}
-                    <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-sm font-bold ${timeLeft < 300 ? 'bg-destructive/10 text-destructive animate-pulse' : 'bg-primary/10 text-primary'}`}>
+                    <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-sm font-semibold ${timeLeft < 300 ? 'bg-destructive/10 text-destructive animate-pulse' : 'bg-primary/10 text-primary'}`}>
                       <Timer className="w-4 h-4" /> {formatTime(timeLeft)}
                     </div>
                   </div>
@@ -836,29 +829,27 @@ export default function StudentAssessmentsPage() {
 
                 {/* Question area */}
                 <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-8 lg:px-12 py-6">
-                  <AnimatePresence mode="popLayout" initial={false}>
+                  <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={currentQuestionIndex}
-                      initial={{ opacity: 0, x: 20, scale: 0.98 }}
-                      animate={{ opacity: 1, x: 0, scale: 1 }}
-                      exit={{ opacity: 0, x: -20, scale: 0.98 }}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
                       transition={{ 
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 30,
-                        opacity: { duration: 0.2 }
+                        duration: 0.3,
+                        ease: [0.23, 1, 0.32, 1]
                       }}
                       className="space-y-5 max-w-3xl mx-auto w-full"
                     >
                       {randomizedQuestions[currentQuestionIndex] && (
                         <>
                           <div className="space-y-3">
-                            <Badge variant="secondary" className="text-[9px] uppercase tracking-[0.25em] font-bold px-2 py-0.5">
+                            <Badge variant="secondary" className="text-[9px] uppercase tracking-[0.25em] font-medium px-2 py-0.5 bg-secondary/50 border-secondary/10">
                               {randomizedQuestions[currentQuestionIndex].category}
                             </Badge>
                             {/* Don't repeat the content as heading if it's a Fill in the Blanks — the input renders it inline */}
                             {randomizedQuestions[currentQuestionIndex].type !== 'Fill in the Blanks' && (
-                              <h3 className="text-xl sm:text-2xl font-serif leading-snug text-foreground">
+                              <h3 className="text-xl sm:text-2xl font-serif leading-snug text-foreground font-medium">
                                 {randomizedQuestions[currentQuestionIndex].content}
                               </h3>
                             )}
