@@ -38,7 +38,7 @@ function BlankInput({
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="border-b-2 border-primary bg-primary/5 text-center text-primary font-semibold focus:outline-none w-32 pb-0.5 px-2 rounded-t-md transition-all focus:bg-primary/10 focus:ring-2 focus:ring-primary/20 ring-offset-2"
+      className="relative z-50 pointer-events-auto cursor-text border-b-2 border-primary bg-primary/5 text-center text-primary font-semibold focus:outline-none min-w-[140px] pb-1 px-3 rounded-t-md transition-all focus:bg-primary/10 focus:ring-2 focus:ring-primary/20 ring-offset-2"
       placeholder="Type here"
       autoComplete="off"
     />
@@ -471,20 +471,22 @@ export default function StudentAssessmentsPage() {
       const parts = q.content.split('____')
       return (
         <div className="pt-4 space-y-4">
-          <div className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground/90 flex flex-wrap items-baseline gap-x-2 gap-y-6">
+          <div className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground/90 flex flex-wrap items-center gap-x-3 gap-y-10">
             {parts.map((part, i) => (
-              <span key={i} className="flex items-baseline gap-2 flex-wrap">
+              <span key={i} className="flex items-center gap-3 flex-wrap">
                 <span>{part}</span>
                 {i < parts.length - 1 && (
-                  <BlankInput 
-                    value={answers[`${qId}-${i}`] || ''}
-                    onChange={(val) => setAnswers(prev => ({ ...prev, [`${qId}-${i}`]: val }))}
-                  />
+                  <div className="py-2">
+                    <BlankInput 
+                      value={answers[`${qId}-${i}`] || ''}
+                      onChange={(val) => setAnswers(prev => ({ ...prev, [`${qId}-${i}`]: val }))}
+                    />
+                  </div>
                 )}
               </span>
             ))}
           </div>
-          <p className="text-editorial-label text-[10px] opacity-60">Complete the sentence by filling all blanks above.</p>
+          <p className="text-editorial-label text-[10px] opacity-60 mt-4">Complete the sentence by filling all blanks above.</p>
         </div>
       )
     }
