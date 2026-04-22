@@ -30,3 +30,37 @@ export async function getInstitutionalAudioFiles() {
     return { success: false, error: 'Failed to scan repository', files: [] }
   }
 }
+
+/**
+ * Uploads an audio file to the institutional repository.
+ */
+export async function uploadAudioFile(formData: FormData) {
+  try {
+    const file = formData.get('file') as File
+    if (!file) {
+      return { success: false, error: 'No file provided' }
+    }
+
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+
+    const audioDir = path.join(process.cwd(), 'public', 'assets', 'audio')
+    if (!fs.existsSync(audioDir)) {
+      fs.mkdirSync(audioDir, { recursive: true })
+    }
+
+    // Sanitize filename: remove special chars, keep dots and underscores
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const filePath = path.join(audioDir, sanitizedName)
+
+    fs.writeFileSync(filePath, buffer)
+
+    return { 
+      success: true, 
+      filename: sanitizedName 
+    }
+  } catch (error) {
+    console.error('Failed to upload audio file:', error)
+    return { success: false, error: 'Upload failed' }
+  }
+}

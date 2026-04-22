@@ -1,11 +1,11 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
-import { getInstitutionalAudioFiles } from '@/lib/actions/audio'
+import { getInstitutionalAudioFiles, uploadAudioFile } from '@/lib/actions/audio'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -76,15 +76,47 @@ export default function AssessmentLibraryPage() {
   const [phaseFilter, setPhaseFilter] = useState('all')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [audioRepo, setAudioRepo] = useState<string[]>([])
+  const [showManualAudio, setShowManualAudio] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const audioInputRef = useRef<HTMLInputElement>(null)
 
   // Load Audio Repository
+  const loadAudio = async () => {
+    const res = await getInstitutionalAudioFiles()
+    if (res.success) setAudioRepo(res.files)
+  }
+
   useEffect(() => {
-    const loadAudio = async () => {
-      const res = await getInstitutionalAudioFiles()
-      if (res.success) setAudioRepo(res.files)
-    }
     loadAudio()
   }, [isAddOpen])
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    const toastId = toast.loading("Uploading institutional asset...")
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await uploadAudioFile(formData)
+      if (res.success) {
+        toast.success("Asset verified and stored.", { id: toastId })
+        await loadAudio()
+        setValue('audioUrl', `/assets/audio/${res.filename}`)
+        setShowManualAudio(false)
+      } else {
+        toast.error(res.error || "Registry rejection.", { id: toastId })
+      }
+    } catch (err) {
+      toast.error("Network disruption during upload.", { id: toastId })
+    } finally {
+      setIsUploading(false)
+      if (audioInputRef.current) audioInputRef.current.value = ''
+    }
+  }
 
   const {
     register,
@@ -237,8 +269,46 @@ export default function AssessmentLibraryPage() {
 
                 {watchType === 'Listening' && (
                   <div className="space-y-2 pt-2">
-                    <label className="text-xs    opacity-40">Institutional Audio Repository</label>
-                    <Select onValueChange={(v) => setValue('audioUrl', v === 'manual' ? '' : `/assets/audio/${v}`)}>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs    opacity-40">Institutional Audio Repository</label>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={loadAudio}
+                          className="h-6 px-2 text-[10px] opacity-40 hover:opacity-100 flex items-center gap-1"
+                        >
+                          <RefreshCw className={cn("w-3 h-3", isUploading && "animate-spin")} /> Refresh
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled={isUploading}
+                          onClick={() => audioInputRef.current?.click()}
+                          className="h-6 px-2 text-[10px] bg-primary/5 text-primary hover:bg-primary/10 flex items-center gap-1 rounded-md"
+                        >
+                          <Plus className="w-3 h-3" /> Upload
+                        </Button>
+                        <input 
+                          type="file" 
+                          ref={audioInputRef} 
+                          className="hidden" 
+                          accept="audio/*"
+                          onChange={handleAudioUpload}
+                        />
+                      </div>
+                    </div>
+                    <Select onValueChange={(v) => {
+                      if (v === 'manual') {
+                        setShowManualAudio(true)
+                        setValue('audioUrl', '')
+                      } else {
+                        setShowManualAudio(false)
+                        setValue('audioUrl', `/assets/audio/${v}`)
+                      }
+                    }}>
                        <SelectTrigger className="h-12 bg-primary/5   text-[10px] font-mono">
                           <SelectValue placeholder="Select Audio File..." />
                        </SelectTrigger>
@@ -253,7 +323,7 @@ export default function AssessmentLibraryPage() {
                           <SelectItem value="manual" className="border-t mt-2 opacity-60">Custom External Link...</SelectItem>
                        </SelectContent>
                     </Select>
-                    {watch('audioUrl') && !watch('audioUrl')?.startsWith('/assets/audio/') && (
+                    {showManualAudio && (
                       <Input 
                         {...register('audioUrl')}
                         placeholder="Paste custom link (e.g. https://...)"
