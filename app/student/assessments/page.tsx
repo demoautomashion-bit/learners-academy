@@ -231,6 +231,7 @@ export default function StudentAssessmentsPage() {
             answers,
             score: finalCalculatedScore,
             feedback: aiAuditResults.feedback || "Adaptive assessment complete.",
+            evaluationCategory: activeTest.evaluationCategory,
          }).catch(console.error)
       }
       return
@@ -312,6 +313,7 @@ export default function StudentAssessmentsPage() {
         answers,
         score: finalCalculatedScore,
         feedback: aiFeedbackChain,
+        evaluationCategory: activeTest.evaluationCategory,
       }).catch(console.error)
     }
   }

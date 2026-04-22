@@ -65,6 +65,7 @@ const assessmentSchema = z.object({
   questionCount: z.coerce.number().min(1, 'Count must be at least 1').max(100, 'Max 100 questions'),
   accessCode: z.string().min(5, 'Access code is required').regex(/^[A-Z0-9-]+$/, 'Letters, numbers, and hyphens only'),
   isAdaptive: z.boolean().default(false),
+  evaluationCategory: z.enum(['Midterm', 'Final', 'None']).default('None'),
 })
 
 type AssessmentFormValues = z.infer<typeof assessmentSchema>
@@ -104,7 +105,8 @@ export default function AssessmentGeneratorPage() {
         MCQ: 0, Subjective: 0, 'True/False': 0, 'Fill in the Blanks': 0,
         Writing: 0, Matching: 0, Reading: 0, Listening: 0
       },
-      isAdaptive: false
+      isAdaptive: false,
+      evaluationCategory: 'None'
     }
   })
 
@@ -165,6 +167,7 @@ export default function AssessmentGeneratorPage() {
       submittedByTeacherId: user?.id,
       submittedByTeacherName: user?.name,
       isAdaptive: data.isAdaptive,
+      evaluationCategory: data.evaluationCategory,
     }
 
     try {
@@ -242,40 +245,53 @@ export default function AssessmentGeneratorPage() {
                              {errors.title && <p className="text-xs text-destructive font-medium mt-2 ml-1">{errors.title.message}</p>}
                           </div>
  
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                             <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Test Period</label>
-                                <div className="grid grid-cols-2 gap-3 p-1.5 bg-muted/10 border border-primary/5 rounded-2xl">
-                                    {['First Test', 'Last Test'].map(p => (
-                                        <button
-                                            key={p}
-                                            type="button"
-                                            onClick={() => setValue('phase', p as any)}
-                                            className={cn(
-                                                "h-11 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all",
-                                                watchPhase === p ? "bg-primary text-white shadow-lg" : "text-muted-foreground/60 hover:text-foreground hover:bg-primary/5"
-                                            )}
-                                        >
-                                            {p === 'First Test' ? 'Mid-Term' : 'Final-Term'}
-                                        </button>
-                                    ))}
-                                </div>
-                             </div>
-                             <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Assigned Group</label>
-                                <Select onValueChange={(val) => setValue('courseId', val)}>
-                                   <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
-                                      <SelectValue placeholder="Select Class" />
-                                   </SelectTrigger>
-                                   <SelectContent className="glass-2 border-primary/5 rounded-2xl">
-                                      {myClasses?.map(c => (
-                                         <SelectItem key={c.id} value={c.id} className="rounded-xl py-3 text-sm">{c.title}</SelectItem>
-                                      ))}
-                                   </SelectContent>
-                                 </Select>
-                                 {errors.courseId && <p className="text-xs text-destructive font-medium mt-2 ml-1">{errors.courseId.message}</p>}
-                             </div>
-                          </div>
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                              <div className="space-y-3">
+                                 <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Test Period</label>
+                                 <div className="grid grid-cols-2 gap-3 p-1.5 bg-muted/10 border border-primary/5 rounded-2xl">
+                                     {['First Test', 'Last Test'].map(p => (
+                                         <button
+                                             key={p}
+                                             type="button"
+                                             onClick={() => setValue('phase', p as any)}
+                                             className={cn(
+                                                 "h-11 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all",
+                                                 watchPhase === p ? "bg-primary text-white shadow-lg" : "text-muted-foreground/60 hover:text-foreground hover:bg-primary/5"
+                                             )}
+                                         >
+                                             {p === 'First Test' ? 'Mid-Term' : 'Final-Term'}
+                                         </button>
+                                     ))}
+                                 </div>
+                              </div>
+                              <div className="space-y-3">
+                                 <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Assigned Group</label>
+                                 <Select onValueChange={(val) => setValue('courseId', val)}>
+                                    <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
+                                       <SelectValue placeholder="Select Class" />
+                                    </SelectTrigger>
+                                    <SelectContent className="glass-2 border-primary/5 rounded-2xl">
+                                       {myClasses?.map(c => (
+                                          <SelectItem key={c.id} value={c.id} className="rounded-xl py-3 text-sm">{c.title}</SelectItem>
+                                       ))}
+                                    </SelectContent>
+                                  </Select>
+                                  {errors.courseId && <p className="text-xs text-destructive font-medium mt-2 ml-1">{errors.courseId.message}</p>}
+                              </div>
+                              <div className="space-y-3">
+                                 <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Evaluation Link</label>
+                                 <Select defaultValue="None" onValueChange={(val) => setValue('evaluationCategory', val as any)}>
+                                    <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
+                                       <SelectValue placeholder="Link to Column" />
+                                    </SelectTrigger>
+                                    <SelectContent className="glass-2 border-primary/5 rounded-2xl">
+                                       <SelectItem value="None" className="rounded-xl py-3 text-sm">Standalone (None)</SelectItem>
+                                       <SelectItem value="Midterm" className="rounded-xl py-3 text-sm text-primary font-bold">Midterm Column</SelectItem>
+                                       <SelectItem value="Final" className="rounded-xl py-3 text-sm text-primary font-bold">Final Test Column</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                              </div>
+                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                              <div className="space-y-3">
                                 <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Question Format</label>

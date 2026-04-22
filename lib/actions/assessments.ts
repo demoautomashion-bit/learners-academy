@@ -52,6 +52,7 @@ export async function publishAssessment(assessment: Omit<AssessmentTemplate, 'id
         submittedByTeacherId: assessment.submittedByTeacherId,
         submittedByTeacherName: assessment.submittedByTeacherName,
         isAdaptive: assessment.isAdaptive || false,
+        evaluationCategory: (assessment as any).evaluationCategory || 'None',
         createdAt: new Date()
       } 
     })
@@ -161,6 +162,21 @@ export async function validateAccessToken(token: string, studentId: string, clas
       return {
         success: false,
         error: `Dossier Error: Student profile "${studentId}" is not authorized for this specific academic block.`
+      }
+    }
+
+    // Task 2: Block Retakes
+    const existingSubmission = await db.submission.findFirst({
+      where: {
+        studentId: student.id,
+        assignmentId: assessment.id
+      }
+    })
+
+    if (existingSubmission) {
+      return {
+        success: false,
+        error: "Institutional Audit: Duplicate response detected. You have already submitted your exam for this block. Entry prohibited."
       }
     }
 

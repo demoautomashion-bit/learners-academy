@@ -186,6 +186,7 @@ model Submission {
   answers             Json?
   aiFeedback          String?
   aiJustification     String?
+  evaluationCategory  String?
   student             Student    @relation(fields: [studentId], references: [id])
 }
 
@@ -224,6 +225,7 @@ model AssessmentTemplate {
   submittedByTeacherId   String?
   submittedByTeacherName String?
   isAdaptive             Boolean  @default(false)
+  evaluationCategory     String?
 }
 
 model ActivityLog {
