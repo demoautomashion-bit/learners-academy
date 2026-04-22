@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { useData } from "@/contexts/data-context"
 import { useAuth } from "@/contexts/auth-context"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -25,6 +26,7 @@ const AUTO_GRADED_TYPES = ['MCQ', 'True/False', 'Fill in the Blanks', 'Matching'
 const AI_GRADED_TYPES   = ['Subjective', 'Writing', 'Reading', 'Listening'] as const
 
 export default function StudentAssessmentsPage() {
+  const router = useRouter()
   const { user } = useAuth()
   const { assessments: mockAssessments, questions: mockQuestions, submitTestResult } = useData()
 
@@ -124,9 +126,9 @@ export default function StudentAssessmentsPage() {
     } catch (err: any) {
       console.error("[Test Start Error]", err)
       if (err.message?.includes("Duplicate response")) {
-         sessionStorage.removeItem('current_assessment_code')
-         sessionStorage.removeItem('current_assessment_data')
-         router.push('/')
+          sessionStorage.removeItem('current_assessment_code')
+          sessionStorage.removeItem('current_assessment_data')
+          router.push('/student')
       }
       toast.error(err.message || "Failed to initiate assessment sequence.", { id: "test-start" })
     }
@@ -224,20 +226,24 @@ export default function StudentAssessmentsPage() {
          style: { backgroundColor: 'oklch(0.577 0.245 27.325)', color: 'white' },
       })
       if (activeTest && user) {
-         submitTestResult({
-            id: `test-res-${Date.now()}`,
-            templateId: activeTest.id,
-            studentId: user.id,
-            studentName: user.name,
-            assignedAt: new Date().toISOString(),
-            completedAt: new Date().toISOString(),
-            status: 'Completed',
-            randomizedQuestions,
-            answers,
-            score: finalCalculatedScore,
-            feedback: aiAuditResults.feedback || "Adaptive assessment complete.",
-            evaluationCategory: activeTest.evaluationCategory,
-         }).catch(console.error)
+          submitTestResult({
+             id: `test-res-${Date.now()}`,
+             templateId: activeTest.id,
+             studentId: user.id,
+             studentName: user.name,
+             assignedAt: new Date().toISOString(),
+             completedAt: new Date().toISOString(),
+             status: 'Completed',
+             randomizedQuestions,
+             answers,
+             score: finalCalculatedScore,
+             feedback: aiAuditResults.feedback || "Adaptive assessment complete.",
+             evaluationCategory: activeTest.evaluationCategory,
+          }).then(() => {
+             // Task: Prevent retake loophole by clearing session immediately
+             sessionStorage.removeItem('current_assessment_code')
+             sessionStorage.removeItem('current_assessment_data')
+          }).catch(console.error)
       }
       return
     }
@@ -319,6 +325,10 @@ export default function StudentAssessmentsPage() {
         score: finalCalculatedScore,
         feedback: aiFeedbackChain,
         evaluationCategory: activeTest.evaluationCategory,
+      }).then(() => {
+        // Task: Prevent retake loophole by clearing session immediately
+        sessionStorage.removeItem('current_assessment_code')
+        sessionStorage.removeItem('current_assessment_data')
       }).catch(console.error)
     }
   }
@@ -777,11 +787,11 @@ export default function StudentAssessmentsPage() {
                       sessionStorage.removeItem('current_assessment_code')
                       sessionStorage.removeItem('current_assessment_data')
                       setIsTestEngineOpen(false)
-                      router.push('/')
+                      router.push('/student')
                     }} 
                     className="w-full h-11 font-semibold gap-2"
                   >
-                    Return to Portal <ArrowRight className="w-4 h-4" />
+                    Return to Credentials <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
               </motion.div>
