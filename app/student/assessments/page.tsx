@@ -123,6 +123,11 @@ export default function StudentAssessmentsPage() {
       }
     } catch (err: any) {
       console.error("[Test Start Error]", err)
+      if (err.message?.includes("Duplicate response")) {
+         sessionStorage.removeItem('current_assessment_code')
+         sessionStorage.removeItem('current_assessment_data')
+         router.push('/')
+      }
       toast.error(err.message || "Failed to initiate assessment sequence.", { id: "test-start" })
     }
   }
@@ -767,7 +772,15 @@ export default function StudentAssessmentsPage() {
                       <p className="text-muted-foreground text-sm leading-relaxed">"{aiAuditResults.feedback}"</p>
                     </div>
                   )}
-                  <Button onClick={() => setIsTestEngineOpen(false)} className="w-full h-11 font-semibold gap-2">
+                  <Button 
+                    onClick={() => {
+                      sessionStorage.removeItem('current_assessment_code')
+                      sessionStorage.removeItem('current_assessment_data')
+                      setIsTestEngineOpen(false)
+                      router.push('/')
+                    }} 
+                    className="w-full h-11 font-semibold gap-2"
+                  >
                     Return to Portal <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>

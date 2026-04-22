@@ -202,6 +202,18 @@ export async function generateRandomizedQuestions(studentId: string, assessmentI
     
     if (!assessment) throw new Error('Assessment registry entry not found')
 
+    // Task 2: Block Retakes (Server-side validation)
+    const existingSubmission = await db.submission.findFirst({
+      where: {
+        studentId: studentId,
+        assignmentId: assessmentId
+      }
+    })
+
+    if (existingSubmission) {
+      throw new Error("Institutional Audit: Duplicate response detected. You have already submitted your exam for this block. Entry prohibited.")
+    }
+
     const pool = await db.question.findMany({
       where: {
         isApproved: true,

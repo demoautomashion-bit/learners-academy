@@ -3,6 +3,7 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import type { Submission, StudentTest, ActionResult } from '@/lib/types'
+import { isStudentInCourse } from '../utils/student-matching'
 
 export async function getSubmissions(): Promise<ActionResult<Submission[]>> {
   try {
@@ -35,23 +36,27 @@ export async function submitTestResult(result: StudentTest, assignmentTitle: str
       }
     })
 
-    // 2. Automated Sync with Evaluation Sheet
+    // 2. Automated Sync with Evaluation Sheet (Enhanced with Logical Affinity)
     if (evaluationCategory === 'Midterm' || evaluationCategory === 'Final') {
       const assessment = await db.assessmentTemplate.findUnique({
         where: { id: result.templateId },
-        select: { courseIds: true }
+        select: { courseIds: true, id: true }
       })
 
       const student = await db.student.findUnique({
-        where: { id: result.studentId },
-        select: { enrolledCourses: true }
+        where: { id: result.studentId }
       })
 
       if (assessment && student) {
-        // Find courses student is in that are also linked to this test
-        const targetCourses = assessment.courseIds.filter(cid => 
-          student.enrolledCourses.includes(cid)
-        )
+        // Fetch all courses that are linked to this assessment
+        const courses = await db.course.findMany({
+          where: { id: { in: assessment.courseIds } }
+        })
+
+        // Identify target courses where the student belongs (Formal OR Logical)
+        const targetCourses = courses
+          .filter(course => isStudentInCourse(student, course))
+          .map(c => c.id)
 
         const field = evaluationCategory === 'Midterm' ? 'midterm' : 'final'
         const score = result.score || 0
@@ -93,6 +98,50 @@ export async function gradeSubmission(id: string, grade: number, feedback: strin
       where: { id },
       data: { grade, feedback, status: 'graded' }
     })
+
+    // Automated Sync with Evaluation Sheet for manual grading
+    if (res.evaluationCategory === 'Midterm' || res.evaluationCategory === 'Final') {
+      const assessment = await db.assessmentTemplate.findUnique({
+        where: { id: res.assignmentId },
+        select: { courseIds: true }
+      })
+
+      const student = await db.student.findUnique({
+        where: { id: res.studentId }
+      })
+
+      if (assessment && student) {
+        const courses = await db.course.findMany({
+          where: { id: { in: assessment.courseIds } }
+        })
+
+        const targetCourses = courses
+          .filter(course => isStudentInCourse(student, course))
+          .map(c => c.id)
+
+        const field = res.evaluationCategory === 'Midterm' ? 'midterm' : 'final'
+        
+        await Promise.all(targetCourses.map(courseId => 
+          db.evaluation.upsert({
+            where: {
+              studentId_courseId_term: {
+                studentId: res.studentId,
+                courseId: courseId,
+                term: "Term 1"
+              }
+            },
+            update: { [field]: grade },
+            create: {
+              studentId: res.studentId,
+              courseId: courseId,
+              term: "Term 1",
+              [field]: grade
+            }
+          })
+        ))
+      }
+    }
+
     revalidatePath('/')
     return { success: true, data: res }
   } catch (error) {
