@@ -201,11 +201,15 @@ export default function AssessmentLibraryPage() {
 
                 <div className="space-y-2">
                    <label className="text-xs    opacity-40">Block Content / Narrative</label>
-                   <Textarea 
+                    <Textarea 
                       {...register('content')}
-                      placeholder="Input the core pedagogical content here..."
+                      placeholder={
+                        watchType === 'Listening' ? "Enter the transcript here. Use '____' for gaps (e.g., 'The capital is ____.')" :
+                        watchType === 'Reading' ? "Enter the comprehension task or summary here. Use '____' for gaps." :
+                        "Input the core pedagogical content here..."
+                      }
                       className="min-h-[120px] bg-muted/20   p-4 text-sm resize-none focus:ring-1 focus:ring-primary/20"
-                   />
+                    />
                    {errors.content && <p className="text-xs text-destructive   ">{errors.content.message}</p>}
                 </div>
 
@@ -216,6 +220,17 @@ export default function AssessmentLibraryPage() {
                       {...register('passageText')}
                       placeholder="Input the analysis text..."
                       className="min-h-[180px] bg-primary/5   p-4 text-sm italic"
+                    />
+                  </div>
+                )}
+
+                {watchType === 'Listening' && (
+                  <div className="space-y-2 pt-2">
+                    <label className="text-xs    opacity-40">Audio Resource URL</label>
+                    <Input 
+                      {...register('audioUrl')}
+                      placeholder="https://institutional-storage.com/audio/clip-01.mp3"
+                      className="h-12 bg-primary/5   font-mono text-[10px]"
                     />
                   </div>
                 )}

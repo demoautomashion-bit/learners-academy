@@ -441,6 +441,31 @@ export default function StudentAssessmentsPage() {
     const qId = q.id
     const currentAnswer = answers[qId] || ''
 
+    // ── Helper: Cloze / Gap Fill Renderer ────────────────────────────────────
+    const renderClozeInput = (content: string, qId: string) => {
+      const parts = content.split('____')
+      return (
+        <div className="pt-4 space-y-4">
+          <div className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground/90 flex flex-wrap items-center gap-x-3 gap-y-10">
+            {parts.map((part, i) => (
+              <span key={i} className="flex items-center gap-3 flex-wrap">
+                <span>{part}</span>
+                {i < parts.length - 1 && (
+                  <div className="py-2">
+                    <BlankInput 
+                      value={answers[`${qId}-${i}`] || ''}
+                      onChange={(val) => setAnswers(prev => ({ ...prev, [`${qId}-${i}`]: val }))}
+                    />
+                  </div>
+                )}
+              </span>
+            ))}
+          </div>
+          <p className="text-editorial-label text-[10px] opacity-60 mt-4">Complete the sentence by filling all blanks above.</p>
+        </div>
+      )
+    }
+
     // True / False
     if (q.type === 'True/False') {
       return (
@@ -468,27 +493,7 @@ export default function StudentAssessmentsPage() {
 
     // Fill in the Blanks
     if (q.type === 'Fill in the Blanks') {
-      const parts = q.content.split('____')
-      return (
-        <div className="pt-4 space-y-4">
-          <div className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground/90 flex flex-wrap items-center gap-x-3 gap-y-10">
-            {parts.map((part, i) => (
-              <span key={i} className="flex items-center gap-3 flex-wrap">
-                <span>{part}</span>
-                {i < parts.length - 1 && (
-                  <div className="py-2">
-                    <BlankInput 
-                      value={answers[`${qId}-${i}`] || ''}
-                      onChange={(val) => setAnswers(prev => ({ ...prev, [`${qId}-${i}`]: val }))}
-                    />
-                  </div>
-                )}
-              </span>
-            ))}
-          </div>
-          <p className="text-editorial-label text-[10px] opacity-60 mt-4">Complete the sentence by filling all blanks above.</p>
-        </div>
-      )
+      return renderClozeInput(q.content, qId)
     }
 
     // Writing
@@ -594,55 +599,82 @@ export default function StudentAssessmentsPage() {
       )
     }
 
-    // Reading — Subjective answer below passage
+    // Reading — Interactive Blanks or Subjective
     if (q.type === 'Reading') {
+      const isCloze = q.content.includes('____')
       return (
-        <div className="space-y-3 pt-4">
+        <div className="space-y-6 pt-4">
           {q.passageText && (
-            <div className="rounded-xl border border-primary/10 bg-primary/[0.02] p-4 space-y-2">
-              <p className="text-editorial-label text-[10px] flex items-center gap-1.5 text-primary/70">
-                <BookOpen className="w-3 h-3" /> Reading Passage
+            <div className="rounded-3xl border border-primary/10 bg-primary/[0.02] p-8 space-y-4 shadow-inner">
+              <p className="text-editorial-label text-[10px] uppercase tracking-widest flex items-center gap-2 text-primary/70 font-bold">
+                <BookOpen className="w-4 h-4" /> Institutional Reading Passage
               </p>
-              <div className="max-h-[180px] overflow-y-auto pr-1">
-                <p className="font-serif text-base leading-relaxed text-foreground/80">{q.passageText}</p>
+              <div className="max-h-[300px] overflow-y-auto pr-4 custom-scrollbar">
+                <p className="font-serif text-lg leading-relaxed text-foreground/80 first-letter:text-4xl first-letter:font-bold first-letter:mr-1">{q.passageText}</p>
               </div>
             </div>
           )}
-          <Label className="text-editorial-label text-xs">Comprehension Response</Label>
-          <Textarea
-            placeholder="Write your answer based on the passage above."
-            className="min-h-[140px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
-            value={currentAnswer}
-            onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
-            spellCheck={false}
-          />
+          
+          {isCloze ? (
+             <div className="bg-background/40 p-6 rounded-[2rem] border border-primary/5">
+                <p className="text-editorial-label text-[10px] uppercase tracking-widest text-muted-foreground/40 mb-4">Task: Gap-Fill Analysis</p>
+                {renderClozeInput(q.content, qId)}
+             </div>
+          ) : (
+            <div className="space-y-3">
+              <Label className="text-editorial-label text-xs">Comprehension Response</Label>
+              <Textarea
+                placeholder="Write your answer based on the passage above."
+                className="min-h-[140px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
+                value={currentAnswer}
+                onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
+                spellCheck={false}
+              />
+            </div>
+          )}
         </div>
       )
     }
 
-    // Listening — audio player + text response
+    // Listening — Interactive Blanks or Subjective
     if (q.type === 'Listening') {
+      const isCloze = q.content.includes('____')
       return (
-        <div className="space-y-3 pt-4">
+        <div className="space-y-6 pt-4">
           {q.audioUrl && (
-            <div className="rounded-xl border border-primary/10 bg-primary/[0.02] p-3 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                <Volume2 className="w-4 h-4" />
+            <div className="rounded-3xl border border-primary/10 bg-primary/[0.02] p-6 flex flex-col gap-4 shadow-inner">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-2xl bg-primary/10 text-primary shrink-0 shadow-sm">
+                  <Volume2 className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-editorial-label text-[10px] uppercase tracking-widest text-primary/70 font-bold mb-1">Auditory Assessment Clip</p>
+                  <p className="text-xs text-muted-foreground opacity-60">Listen carefully before attempting the task below.</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-editorial-label text-[10px] text-primary/70 mb-1.5">Listening Clip — Play before answering</p>
-                <audio ref={audioRef} controls src={q.audioUrl} className="w-full h-8" />
+              <div className="bg-background/50 p-2 rounded-2xl border border-primary/5">
+                <audio ref={audioRef} controls src={q.audioUrl} className="w-full h-10" />
               </div>
             </div>
           )}
-          <Label className="text-editorial-label text-xs">Your Response</Label>
-          <Textarea
-            placeholder="Describe or respond to what you heard..."
-            className="min-h-[140px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
-            value={currentAnswer}
-            onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
-            spellCheck={false}
-          />
+
+          {isCloze ? (
+             <div className="bg-background/40 p-8 rounded-[2.5rem] border border-primary/5">
+                <p className="text-editorial-label text-[10px] uppercase tracking-widest text-muted-foreground/40 mb-4 font-bold">Task: Auditory Gap-Fill Transcript</p>
+                {renderClozeInput(q.content, qId)}
+             </div>
+          ) : (
+            <div className="space-y-3">
+              <Label className="text-editorial-label text-xs">Your Response</Label>
+              <Textarea
+                placeholder="Describe or respond to what you heard..."
+                className="min-h-[140px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
+                value={currentAnswer}
+                onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
+                spellCheck={false}
+              />
+            </div>
+          )}
         </div>
       )
     }
