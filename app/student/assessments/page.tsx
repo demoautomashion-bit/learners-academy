@@ -88,6 +88,10 @@ export default function StudentAssessmentsPage() {
       // Step 6: Server Action with Hard Validation
       const result = await generateRandomizedQuestions(user.id, assessment.id)
 
+      if (!result.success) {
+        throw new Error(result.error || "Registry synthesis failed")
+      }
+
       const isAdaptive = !!result.isAdaptive
       setIsAdaptiveMode(isAdaptive)
 
@@ -680,7 +684,7 @@ export default function StudentAssessmentsPage() {
                     !isSessionReady && "opacity-60 grayscale-[0.5] cursor-not-allowed"
                   )}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   
                   <CardHeader className="p-8 pb-4 relative z-10">
                     <div className="flex justify-between items-start mb-4">
