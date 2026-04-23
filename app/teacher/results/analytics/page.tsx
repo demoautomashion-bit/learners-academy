@@ -85,8 +85,8 @@ export default function InstitutionalAnalyticsPage() {
       </motion.div>
 
       {/* Mastery Heatmap & Trajectory */}
-      <div className="grid gap-10 lg:grid-cols-12 items-stretch">
-        <Card className="glass-1 lg:col-span-8 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+      <div className="grid gap-10 lg:grid-cols-12 items-start">
+        <Card className="glass-1 lg:col-span-8 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] flex flex-col">
           <CardHeader className="p-10 border-b ">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -139,7 +139,7 @@ export default function InstitutionalAnalyticsPage() {
 
         {/* Intelligence Feeds */}
         <div className="lg:col-span-4 space-y-6">
-          <Card className="glass-1 bg-primary/5 overflow-hidden p-10 space-y-6 flex flex-col items-center text-center rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full">
+          <Card className="glass-1 bg-primary/5 overflow-hidden p-10 space-y-6 flex flex-col items-center text-center rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px]">
             <div className="p-4 bg-white/40   ">
               <ShieldCheck className="w-8 h-8 text-primary" />
             </div>
@@ -158,7 +158,7 @@ export default function InstitutionalAnalyticsPage() {
             </div>
           </Card>
 
-          <Card className="glass-1 overflow-hidden p-8 space-y-6 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+          <Card className="glass-1 overflow-hidden p-8 space-y-6 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] flex flex-col">
             <h4 className="text-xs opacity-40 font-medium">Dossier Highlights</h4>
             {gradedResults.slice(0, 3).map((result, i) => (
               <div key={i} className="flex items-center justify-between border-b  pb-4 last:border-none">

@@ -833,15 +833,15 @@ export default function StudentAssessmentsPage() {
         {isTestEngineOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex flex-col items-center overflow-y-auto p-4 py-12 sm:p-8 lg:p-12"
+            className="fixed inset-0 z-[100] bg-background/90 backdrop-blur-2xl overflow-y-auto px-4 py-12 sm:px-8 lg:px-12 flex justify-center"
           >
             {/* Result screen */}
             {showResult ? (
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                className="w-full max-w-lg bg-card/80 backdrop-blur-2xl border-primary/10 shadow-massive rounded-[3rem] overflow-hidden"
+                className="w-full max-w-lg bg-card border-primary/10 shadow-massive rounded-[3rem] h-fit mb-24"
               >
-                <div className="h-1.5 bg-success/50" />
+                <div className="h-1.5 bg-success/50 w-full rounded-t-full" />
                 <div className="p-8 sm:p-10 text-center space-y-8">
                   <div className="mx-auto w-20 h-20 rounded-full bg-success/10 flex items-center justify-center text-success ring-8 ring-success/5 shadow-inner">
                     <Award className="w-10 h-10" />
@@ -864,24 +864,29 @@ export default function StudentAssessmentsPage() {
                     ))}
                   </div>
                   {aiAuditResults.feedback && (
-                    <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 text-left">
-                      <h4 className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-widest mb-2">
-                        <TrendingUp className="w-3.5 h-3.5" /> AI Academic Audit
+                    <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10 text-left">
+                      <h4 className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest mb-3">
+                        <TrendingUp className="w-4 h-4" /> AI Academic Audit
                       </h4>
-                      <p className="text-muted-foreground text-sm leading-relaxed">"{aiAuditResults.feedback}"</p>
+                      <p className="text-muted-foreground text-sm leading-relaxed italic">"{aiAuditResults.feedback}"</p>
                     </div>
                   )}
-                  <Button 
-                    onClick={() => {
-                      sessionStorage.removeItem('current_assessment_code')
-                      sessionStorage.removeItem('current_assessment_data')
-                      setIsTestEngineOpen(false)
-                      router.push('/student')
-                    }} 
-                    className="w-full h-11 font-semibold gap-2"
-                  >
-                    Return to Credentials <ArrowRight className="w-4 h-4" />
-                  </Button>
+                  
+                  <div className="pt-4 border-t border-primary/5">
+                    <Button 
+                      onClick={() => {
+                        sessionStorage.removeItem('current_assessment_code')
+                        sessionStorage.removeItem('current_assessment_data')
+                        setIsTestEngineOpen(false)
+                        router.push('/student')
+                      }} 
+                      size="lg"
+                      className="w-full h-14 font-bold gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                    >
+                      Return to Credentials <ArrowRight className="w-5 h-5" />
+                    </Button>
+                    <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 mt-4">Secure Session Termination</p>
+                  </div>
                 </div>
               </motion.div>
             ) : (

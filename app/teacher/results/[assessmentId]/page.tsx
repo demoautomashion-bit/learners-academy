@@ -146,7 +146,7 @@ export default function AssessmentWorkspacePage() {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-12 items-start mt-8 items-stretch">
+      <div className="grid gap-8 lg:grid-cols-12 items-start mt-8">
         {/* Left Column: List */}
         <div className="lg:col-span-8 space-y-6">
           <div className="flex items-center justify-between gap-4">
@@ -165,7 +165,7 @@ export default function AssessmentWorkspacePage() {
              </Button>
           </div>
 
-          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+          <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] flex flex-col">
              <CardContent className="p-6 flex-1">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -244,7 +244,7 @@ export default function AssessmentWorkspacePage() {
 
         {/* Right Column: Context/Stats */}
         <div className="lg:col-span-4 space-y-6">
-            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+            <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] flex flex-col">
                 <CardHeader className="bg-primary/5 border-b  py-6">
                     <CardTitle className="font-serif text-xl font-medium">Student Answer Sheet</CardTitle>
                     <CardDescription className="text-xs font-normal opacity-40">Marking student submission manually.</CardDescription>
@@ -267,7 +267,7 @@ export default function AssessmentWorkspacePage() {
                 </CardContent>
             </Card>
 
-            <Card className="glass-1 bg-primary/5 overflow-hidden p-8 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+            <Card className="glass-1 bg-primary/5 overflow-hidden p-8 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] flex flex-col">
                 <div className="space-y-6">
                     <div className="flex items-center gap-3">
                         <Award className="w-6 h-6 text-primary opacity-60" />
