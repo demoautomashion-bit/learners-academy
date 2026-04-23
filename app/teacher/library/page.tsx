@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
@@ -72,14 +72,26 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
 
 export default function QuestionLibraryPage() {
   const { user } = useAuth()
-  const { questions, addQuestion, updateQuestion, deleteQuestion, isInitialized, teachers, approveQuestion, audioFiles } = useData()
+  const { questions, addQuestion, updateQuestion, deleteQuestion, isInitialized, teachers, approveQuestion, audioFiles, courses } = useData()
   
   const currentTeacher = teachers.find(t => t.id === user?.id)
   const requiresReview = currentTeacher?.requiresReview ?? true
   
   const [activeTab, setActiveTab] = useState<QuestionCategory>('Grammar')
   const [searchQuery, setSearchQuery] = useState('')
-  const [levelFilter, setLevelFilter] = useState<string>('All Levels')
+  
+  const teacherLevels = useMemo(() => {
+    const myCourses = (courses || []).filter(c => c.teacherId === user?.id)
+    return Array.from(new Set(myCourses.map(c => c.level))).sort()
+  }, [courses, user?.id])
+
+  const [levelFilter, setLevelFilter] = useState<string>('')
+
+  useEffect(() => {
+    if (teacherLevels.length > 0 && !levelFilter) {
+      setLevelFilter(teacherLevels[0])
+    }
+  }, [teacherLevels, levelFilter])
   const [isOpen, setIsOpen] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
   const [matchPairs, setMatchPairs] = useState<{ left: string; right: string }[]>([
@@ -103,7 +115,7 @@ export default function QuestionLibraryPage() {
   const filteredQuestions = (questions || []).filter((q: Question) => {
     const categoryMatch = q.category === activeTab
     const searchMatch = (q.content || '').toLowerCase().includes(searchQuery.toLowerCase())
-    const levelMatch = levelFilter === 'All Levels' || q.classLevel === levelFilter
+    const levelMatch = q.classLevel === levelFilter
     return categoryMatch && searchMatch && levelMatch
   })
 
@@ -267,10 +279,10 @@ export default function QuestionLibraryPage() {
                     <FieldLabel className="text-xs opacity-60">Target Academic Level</FieldLabel>
                     <Select value={watch('classLevel')} onValueChange={(v) => setValue('classLevel', v)}>
                       <SelectTrigger className="h-10 text-sm">
-                        <SelectValue placeholder="Select Level (Optional)" />
+                        <SelectValue placeholder={teacherLevels.length > 0 ? "Select Level" : "No Classes Assigned"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {ACADEMY_LEVELS.map(level => (
+                        {teacherLevels.map(level => (
                           <SelectItem key={level} value={level} className="text-sm">{level}</SelectItem>
                         ))}
                       </SelectContent>
@@ -487,11 +499,10 @@ export default function QuestionLibraryPage() {
               </div>
               <Select value={levelFilter} onValueChange={setLevelFilter}>
                 <SelectTrigger className="h-12 md:w-56 text-xs bg-muted/10 border-primary/5 rounded-xl">
-                  <SelectValue placeholder="All Levels" />
+                  <SelectValue placeholder={teacherLevels.length > 0 ? "Select Level" : "No Classes Assigned"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Levels" className="text-xs">All Levels</SelectItem>
-                  {ACADEMY_LEVELS.map(level => (
+                  {teacherLevels.map(level => (
                     <SelectItem key={level} value={level} className="text-xs">{level}</SelectItem>
                   ))}
                 </SelectContent>
