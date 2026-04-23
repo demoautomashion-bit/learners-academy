@@ -26,6 +26,7 @@ export default function AudioLibraryPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [playingId, setPlayingId] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploadError, setUploadError] = useState<{ message: string; step?: string; code?: string; meta?: string; raw?: string } | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -58,13 +59,21 @@ export default function AudioLibraryPage() {
     }
 
     setIsUploading(true)
+    setUploadError(null)
     try {
       await uploadAudio(formData)
       setIsUploadOpen(false)
       setSelectedFile(null)
       toast.success('Institutional asset verified and stored')
-    } catch {
-      // Error handled by context
+    } catch (err: any) {
+      // Surface the structured diagnostic from the server action
+      setUploadError({
+        message: err.message || 'Upload failed',
+        step: err.diagnostic?.step,
+        code: err.diagnostic?.code,
+        meta: err.diagnostic?.meta,
+        raw: err.diagnostic?.raw,
+      })
     } finally {
       setIsUploading(false)
     }
@@ -90,7 +99,7 @@ export default function AudioLibraryPage() {
           </div>
         </div>
 
-        <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+        <Dialog open={isUploadOpen} onOpenChange={(open) => { setIsUploadOpen(open); if (!open) { setUploadError(null); setSelectedFile(null) } }}>
           <DialogTrigger asChild>
             <Button className="rounded-2xl h-12 px-6 hover-lift shadow-premium">
               <Plus className="w-5 h-5 mr-2" />
@@ -141,7 +150,39 @@ export default function AudioLibraryPage() {
                 </div>
               </div>
 
-              <DialogFooter className="pt-4 border-t border-primary/5 flex gap-3">
+                {/* Diagnostic Error Panel */}
+                {uploadError && (
+                  <div className={`rounded-2xl border p-4 space-y-3 text-left ${
+                    uploadError.code?.startsWith('P2') ? 'border-amber-500/30 bg-amber-500/5' : 'border-destructive/30 bg-destructive/5'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-destructive">⚠ Upload Failed</span>
+                      {uploadError.code && (
+                        <span className="text-[10px] font-mono bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full border border-amber-500/20">{uploadError.code}</span>
+                      )}
+                    </div>
+                    <div className="space-y-1 font-mono text-[11px] text-muted-foreground">
+                      {uploadError.step && <p><span className="opacity-50">Step:</span> <span className="text-foreground font-semibold">{uploadError.step}</span></p>}
+                      {uploadError.meta && <p><span className="opacity-50">Detail:</span> <span className="text-foreground">{uploadError.meta}</span></p>}
+                      <p className="opacity-70 truncate"><span className="opacity-50">Error:</span> {uploadError.message}</p>
+                    </div>
+                    {uploadError.raw && (
+                      <details className="cursor-pointer">
+                        <summary className="text-[10px] uppercase tracking-widest opacity-40 hover:opacity-70 transition-opacity">Full Trace ▼</summary>
+                        <pre className="mt-2 text-[10px] font-mono text-muted-foreground whitespace-pre-wrap break-all bg-muted/10 p-2 rounded-lg max-h-24 overflow-y-auto">{uploadError.raw}</pre>
+                      </details>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(JSON.stringify(uploadError, null, 2)).then(() => toast.success('Diagnostic copied'))}
+                      className="text-[10px] uppercase tracking-widest opacity-40 hover:opacity-80 transition-opacity underline"
+                    >
+                      Copy Diagnostic
+                    </button>
+                  </div>
+                )}
+
+                <DialogFooter className="pt-4 border-t border-primary/5 flex gap-3">
                 <Button type="button" variant="ghost" onClick={() => setIsUploadOpen(false)} className="rounded-xl">Cancel</Button>
                 <Button type="submit" disabled={isUploading || !selectedFile} className="rounded-xl flex-1">
                   {isUploading ? "Processing..." : "Verify & Upload"}

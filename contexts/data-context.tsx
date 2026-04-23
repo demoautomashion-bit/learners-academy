@@ -266,18 +266,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     try {
       const result = await action()
       if (result && typeof result === 'object' && 'success' in result && !result.success) {
-        throw new Error(result.error || 'Operation failed')
+        // Preserve diagnostic metadata on the error for downstream consumers
+        const err = new Error(result.error || 'Operation failed') as any
+        if (result.diagnostic) err.diagnostic = result.diagnostic
+        throw err
       }
       await refresh()
       if (successMsg) toast.success(successMsg)
       return result
     } catch (err: any) {
-      // Prioritize the error message from the server action if available
       const specificError = err.message || 'Registry sync failed'
       console.error('[DataProvider] ACTION_ERROR:', err)
       toast.error(errorMsg || specificError)
       await refresh()
-      throw err
+      throw err // Re-throw full error object including .diagnostic
     }
   }, [refresh])
 

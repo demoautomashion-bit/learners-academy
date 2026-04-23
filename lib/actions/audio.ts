@@ -52,8 +52,10 @@ export async function getTeacherAudioFiles(teacherId: string): Promise<ActionRes
 
 /**
  * Uploads an audio file, saves it to a teacher-specific directory, and records it in the database.
+ * Each step is labeled for precise diagnostic reporting.
  */
-export async function uploadAudioFile(formData: FormData, teacherId: string): Promise<ActionResult<AudioFile>> {
+export async function uploadAudioFile(formData: FormData, teacherId: string): Promise<ActionResult<AudioFile> & { diagnostic?: any }> {
+  let currentStep = 'init'
   try {
     console.log(`[AudioUpload] Initiation for Teacher: ${teacherId}`)
     const file = formData.get('file') as File
@@ -63,11 +65,13 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
     }
 
     const title = formData.get('title') as string || file.name
-    
-    // Safety Guard: Ensure teacher exists in DB to prevent foreign key violation
+
+    // Step: Verify teacher record
+    currentStep = 'teacher_lookup'
     const teacherExists = await db.teacher.findUnique({ where: { id: teacherId } })
     if (!teacherExists) {
-      console.warn(`[AudioUpload] Teacher record ${teacherId} missing. Creating ghost record for compatibility.`)
+      console.warn(`[AudioUpload] Teacher record ${teacherId} missing. Creating ghost record.`)
+      currentStep = 'teacher_create'
       await db.teacher.create({
         data: {
           id: teacherId,
@@ -79,39 +83,47 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
       })
     }
 
+    // Step: Read file buffer
+    currentStep = 'file_read'
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Teacher-specific directory
+    // Step: Create directory
+    currentStep = 'dir_create'
     const audioDir = path.join(process.cwd(), 'public', 'assets', 'audio', teacherId)
     if (!fs.existsSync(audioDir)) {
       fs.mkdirSync(audioDir, { recursive: true })
     }
 
-    // Sanitize filename
+    // Step: Write file to disk
+    currentStep = 'file_write'
     const sanitizedName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
     const filePath = path.join(audioDir, sanitizedName)
     const publicUrl = `/assets/audio/${teacherId}/${sanitizedName}`
-
     fs.writeFileSync(filePath, buffer)
     console.log(`[AudioUpload] File persisted to: ${publicUrl}`)
 
-    // Save record to DB
+    // Step: Save record to DB
+    currentStep = 'db_create'
     const result = await db.audioFile.create({
-      data: {
-        title,
-        filename: sanitizedName,
-        url: publicUrl,
-        teacherId
-      }
+      data: { title, filename: sanitizedName, url: publicUrl, teacherId }
     })
 
     revalidatePath('/teacher/audio-library')
-    // Sanitize: return a plain object, never a raw Prisma record with Date fields
     return { success: true, data: sanitizeAudioFile(result) }
+
   } catch (error: any) {
-    console.error('ACTION_ERROR [uploadAudioFile]:', error)
-    return { success: false, error: `Institutional asset upload failed: ${error.message || 'Unknown Error'}` }
+    console.error(`ACTION_ERROR [uploadAudioFile] at step [${currentStep}]:`, error)
+    return {
+      success: false,
+      error: error.message || 'Unknown error',
+      diagnostic: {
+        step: currentStep,
+        code: error.code || null,
+        meta: error.meta ? JSON.stringify(error.meta) : null,
+        raw: error.toString()
+      }
+    }
   }
 }
 

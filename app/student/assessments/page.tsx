@@ -307,14 +307,26 @@ export default function StudentAssessmentsPage() {
     })
 
     // 2. AI-graded questions evaluation
-    const auditPromises = aiGraded.map(q => evaluateSubjective(q, answers[q.id] || ""))
+    // Layer 3 Fix: If a question has a correctAnswer (e.g. Listening MCQ-style), grade it locally.
+    // Only send to AI evaluator if no correctAnswer exists (true subjective/writing).
+    const locallyGradable = aiGraded.filter(q => q.correctAnswer && q.correctAnswer.trim() !== '')
+    const trueSubjective  = aiGraded.filter(q => !q.correctAnswer || q.correctAnswer.trim() === '')
+
+    // Grade locally-gradable AI-type questions (Listening, Reading with correctAnswer)
+    locallyGradable.forEach(q => {
+      const points = getPointsForQuestion(q.type)
+      if (answers[q.id] === q.correctAnswer) totalScore += points
+    })
+
+    // Send true subjective questions to the AI auditor
+    const auditPromises = trueSubjective.map(q => evaluateSubjective(q, answers[q.id] || ""))
     const audits = await Promise.all(auditPromises)
 
     let aiFeedbackChain = ""
     let aiJustificationChain = ""
 
     audits.forEach((audit, index) => {
-      const q = aiGraded[index]
+      const q = trueSubjective[index]
       const points = getPointsForQuestion(q.type)
       totalScore += (audit.score * points)
       aiFeedbackChain += audit.feedback + " "
@@ -322,11 +334,22 @@ export default function StudentAssessmentsPage() {
     })
 
     const finalCalculatedScore = Math.round(totalScore)
-    
-    // 3. Final State Update & Persistance
+    const totalMarks = activeTest?.totalMarks || 100
+    const percentage = Math.round((finalCalculatedScore / totalMarks) * 100)
+
+    // Layer 2 Fix: Score-aware fallback feedback (always meaningful, never blank)
+    const scoreFeedback = aiFeedbackChain.trim() || (
+      percentage >= 70
+        ? "Strong academic performance. All key concepts were clearly demonstrated in your responses."
+        : percentage >= 50
+        ? "Satisfactory performance. A few areas need further reinforcement before the next assessment."
+        : "Additional review is recommended. The core concepts were not sufficiently addressed in your responses."
+    )
+
+    // 3. Final State Update & Persistence
     setAiAuditResults({
-      feedback: aiFeedbackChain || "Assessment complete. All questions were auto-graded.",
-      justification: aiJustificationChain || "All criteria met.",
+      feedback: scoreFeedback,
+      justification: aiJustificationChain || "Assessment auto-graded by institutional engine.",
     })
     setFinalScore(finalCalculatedScore)
 
