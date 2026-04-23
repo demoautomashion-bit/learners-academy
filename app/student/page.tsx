@@ -20,26 +20,10 @@ import { Shield, Lock, GraduationCap, ArrowRight, CheckCircle2 } from 'lucide-re
 import { toast } from 'sonner'
 import { useData } from '@/contexts/data-context'
 import { validateAccessToken } from '@/lib/actions/assessments'
+import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
 
-const CLASSES = [
-  'Pre-Foundation', 'Foundation One', 'Foundation Two', 'Foundation Three',
-  'Beginners', 'Level One', 'Level Two', 'Level Three', 'Level Four', 'Level Five', 'Level Six',
-  'Level Advanced', 'Professional Advanced',
-  'Speaking Class', 'Grammar Speaking Class', 'IELTS Preparation Course'
-]
 
-const TIMINGS = [
-  '08:00 AM - 09:00 AM',
-  '09:00 AM - 10:00 AM',
-  '10:00 AM - 11:00 AM',
-  '11:00 AM - 12:00 PM',
-  '12:00 PM - 01:00 PM',
-  '01:00 PM - 02:00 PM',
-  '02:00 PM - 03:00 PM',
-  '04:00 PM - 05:00 PM',
-  '05:00 PM - 06:00 PM',
-  '06:00 PM - 07:00 PM'
-]
+
 
 export default function StudentAccessPage() {
   const router = useRouter()
@@ -48,13 +32,8 @@ export default function StudentAccessPage() {
   const [isVerifying, setIsVerifying] = useState(false)
   const [step, setStep] = useState(1)
 
-  const activeClasses = courses.length > 0 
-    ? Array.from(new Set(courses.map(c => c.title)))
-    : CLASSES
-    
-  const activeTimings = courses.length > 0
-    ? Array.from(new Set(courses.map(c => c.timing).filter(Boolean)))
-    : TIMINGS
+  const activeClasses = ACADEMY_LEVELS
+  const activeTimings = SESSION_TIMINGS
   const handleAccess = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsVerifying(true)
