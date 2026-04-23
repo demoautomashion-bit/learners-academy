@@ -2,7 +2,7 @@
 
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
-import { put, del } from '@vercel/blob'
+import { del } from '@vercel/blob'
 import type { ActionResult } from '@/lib/types'
 
 export interface AudioFile {
@@ -48,27 +48,24 @@ export async function getTeacherAudioFiles(teacherId: string): Promise<ActionRes
 }
 
 /**
- * Uploads an audio file to Vercel Blob storage and records it in the database.
- * Each step is labeled for precise diagnostic reporting.
- * Replaces the previous fs.writeFileSync approach which fails on Vercel's read-only filesystem.
+ * Saves an audio file record to the database AFTER the client has uploaded
+ * it directly to Vercel Blob. This action only handles the DB write.
  */
-export async function uploadAudioFile(formData: FormData, teacherId: string): Promise<ActionResult<AudioFile> & { diagnostic?: any }> {
+export async function saveAudioRecord(
+  blobUrl: string,
+  title: string,
+  filename: string,
+  teacherId: string
+): Promise<ActionResult<AudioFile> & { diagnostic?: any }> {
   let currentStep = 'init'
   try {
-    console.log(`[AudioUpload] Initiation for Teacher: ${teacherId}`)
-    const file = formData.get('file') as File
-
-    if (!file || file.size === 0) {
-      return { success: false, error: 'No pedagogical asset provided or file is empty' }
-    }
-
-    const title = formData.get('title') as string || file.name
+    console.log(`[AudioRecord] Saving DB record for Teacher: ${teacherId}`)
 
     // Step: Verify teacher record
     currentStep = 'teacher_lookup'
     const teacherExists = await db.teacher.findUnique({ where: { id: teacherId } })
     if (!teacherExists) {
-      console.warn(`[AudioUpload] Teacher record ${teacherId} missing. Creating ghost record.`)
+      console.warn(`[AudioRecord] Teacher record ${teacherId} missing. Creating ghost record.`)
       currentStep = 'teacher_create'
       await db.teacher.create({
         data: {
@@ -81,22 +78,13 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
       })
     }
 
-    // Step: Upload to Vercel Blob (replaces local filesystem write)
-    currentStep = 'blob_upload'
-    const sanitizedName = `audio/${teacherId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
-    const blob = await put(sanitizedName, file, {
-      access: 'public',
-      contentType: file.type || 'audio/mpeg',
-    })
-    console.log(`[AudioUpload] Blob stored at: ${blob.url}`)
-
     // Step: Save record to DB
     currentStep = 'db_create'
     const result = await db.audioFile.create({
       data: {
-        title,
-        filename: file.name,
-        url: blob.url, // CDN URL from Vercel Blob
+        title: title || filename,
+        filename,
+        url: blobUrl,
         teacherId
       }
     })
@@ -105,7 +93,7 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
     return { success: true, data: sanitizeAudioFile(result) }
 
   } catch (error: any) {
-    console.error(`ACTION_ERROR [uploadAudioFile] at step [${currentStep}]:`, error)
+    console.error(`ACTION_ERROR [saveAudioRecord] at step [${currentStep}]:`, error)
     return {
       success: false,
       error: error.message || 'Unknown error',

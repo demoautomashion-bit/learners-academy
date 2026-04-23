@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { upload } from '@vercel/blob/client'
 import { useData } from '@/contexts/data-context'
+import { useAuth } from '@/contexts/auth-context'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +23,7 @@ import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 
 export default function AudioLibraryPage() {
   const { audioFiles, uploadAudio, deleteAudio, isInitialized } = useData()
+  const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -50,23 +53,45 @@ export default function AudioLibraryPage() {
 
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const file = formData.get('file') as File
-    
-    if (!file) {
-      toast.error('Please select a pedagogical asset')
+    const form = e.currentTarget
+    const titleInput = (form.elements.namedItem('title') as HTMLInputElement)?.value || ''
+
+    if (!selectedFile) {
+      toast.error('Please select an audio file')
+      return
+    }
+
+    // File size validation: 1MB min, 20MB max
+    const MIN_SIZE = 1 * 1024 * 1024  // 1MB
+    const MAX_SIZE = 20 * 1024 * 1024 // 20MB
+    if (selectedFile.size < MIN_SIZE) {
+      toast.error('File too small (min 1 MB). Please upload a proper audio recording.')
+      return
+    }
+    if (selectedFile.size > MAX_SIZE) {
+      toast.error('File too large (max 20 MB). Please compress the audio before uploading.')
       return
     }
 
     setIsUploading(true)
     setUploadError(null)
     try {
-      await uploadAudio(formData)
+      // Step 1: Upload file directly from browser to Vercel Blob CDN
+      // This bypasses all serverless payload limits (Next.js 1MB, Vercel 4.5MB)
+      const sanitizedName = `audio/${user?.id || 'teacher'}/${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+      const blob = await upload(sanitizedName, selectedFile, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+        multipart: true, // Chunked upload for reliability with large files
+      })
+
+      // Step 2: Save DB record via server action (just stores the CDN URL)
+      await uploadAudio(blob.url, titleInput || selectedFile.name, selectedFile.name)
+
       setIsUploadOpen(false)
       setSelectedFile(null)
       toast.success('Institutional asset verified and stored')
     } catch (err: any) {
-      // Surface the structured diagnostic from the server action
       setUploadError({
         message: err.message || 'Upload failed',
         step: err.diagnostic?.step,

@@ -22,7 +22,7 @@ import { logActivity as dbLogActivity } from '@/lib/actions/activities'
 import { saveEvaluations as dbSaveEvaluations } from '@/lib/actions/evaluations'
 import { addTimeSlot as dbAddTimeSlot, removeTimeSlot as dbRemoveTimeSlot, addCourseToSlot as dbAddCourseToSlot, removeCourseFromSlot as dbRemoveCourseFromSlot } from '@/lib/actions/time-slots'
 import { getInitialData } from '@/lib/actions/get-data'
-import { getTeacherAudioFiles, uploadAudioFile as dbUploadAudio, deleteAudioFile as dbDeleteAudio, type AudioFile } from '@/lib/actions/audio'
+import { getTeacherAudioFiles, saveAudioRecord as dbSaveAudioRecord, deleteAudioFile as dbDeleteAudio, type AudioFile } from '@/lib/actions/audio'
 import { useAuth } from '@/contexts/auth-context'
 import { calculateStudentOverallProgress } from '@/lib/utils/student-progress'
 
@@ -322,12 +322,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const markAttendance = useCallback((tid: string, date: string, s: string, sc?: number) => executeAction(() => dbMarkAttendance(tid, date, s, sc)), [executeAction])
   const addAttendanceEvent = useCallback((tid: string, date: string, e: any) => executeAction(() => dbAddAttendanceEvent(tid, date, e)), [executeAction])
   const saveEvaluations = useCallback((courseId: string, data: any[]) => executeAction(() => dbSaveEvaluations(courseId, data), "Evaluation Matrix Synchronized"), [executeAction])
-  const uploadAudio = useCallback((fd: FormData) => {
+  // uploadAudio now only saves the DB record — the file itself is uploaded client-side to Vercel Blob
+  const uploadAudio = useCallback((blobUrl: string, title: string, filename: string) => {
     if (!user?.id) {
        toast.error("Identity verification failed. Please re-login.")
        return Promise.reject("Missing User ID")
     }
-    return executeAction(() => dbUploadAudio(fd, user.id), "Institutional asset verified")
+    return executeAction(() => dbSaveAudioRecord(blobUrl, title, filename, user.id), "Institutional asset verified")
   }, [executeAction, user?.id])
   const deleteAudio = useCallback((id: string) => executeAction(() => dbDeleteAudio(id, user?.id || ''), "Asset purged"), [executeAction, user?.id])
 
