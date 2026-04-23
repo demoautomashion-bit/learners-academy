@@ -78,7 +78,7 @@ export default function QuestionLibraryPage() {
   
   const [activeTab, setActiveTab] = useState<QuestionCategory>('Grammar')
   const [searchQuery, setSearchQuery] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
   const [matchPairs, setMatchPairs] = useState<{ left: string; right: string }[]>([
     { left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' },
   ])
@@ -106,8 +106,40 @@ export default function QuestionLibraryPage() {
 
   const handleClose = () => {
     setIsOpen(false)
-    reset()
+    setEditingQuestion(null)
+    reset({
+      category: activeTab,
+      type: 'MCQ',
+      phase: 'Both',
+      difficulty: 'Medium',
+      content: '',
+      options: '',
+      correctAnswer: '',
+      imageUrl: '',
+      passageText: '',
+      audioUrl: ''
+    })
     setMatchPairs([{ left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' }])
+  }
+
+  const handleEdit = (q: Question) => {
+    setEditingQuestion(q)
+    setValue('category', q.category)
+    setValue('type', q.type as any)
+    setValue('phase', q.phase as any)
+    setValue('difficulty', q.difficulty as any)
+    setValue('content', q.content)
+    setValue('options', q.options?.join(', ') || '')
+    setValue('correctAnswer', q.correctAnswer || '')
+    setValue('imageUrl', q.imageUrl || '')
+    setValue('passageText', q.passageText || '')
+    setValue('audioUrl', q.audioUrl || '')
+    
+    if (q.type === 'Matching' && q.matchPairs) {
+      setMatchPairs(q.matchPairs as any)
+    }
+    
+    setIsOpen(true)
   }
 
   const updatePair = (i: number, field: 'left' | 'right', val: string) =>
@@ -120,8 +152,8 @@ export default function QuestionLibraryPage() {
       return
     }
 
-    const newQuestion: Question = {
-      id: Math.random().toString(36).substr(2, 9),
+    const questionData: Question = {
+      id: editingQuestion ? editingQuestion.id : Math.random().toString(36).substr(2, 9),
       category: data.category as QuestionCategory,
       type: data.type as any,
       content: data.content,
@@ -137,15 +169,20 @@ export default function QuestionLibraryPage() {
       passageText: data.passageText || undefined,
       audioUrl: data.audioUrl || undefined,
       matchPairs: data.type === 'Matching' ? validPairs : undefined,
-      isApproved: !requiresReview,
+      isApproved: editingQuestion ? editingQuestion.isApproved : !requiresReview,
       teacherId: user.id,
       difficulty: data.difficulty as any
     }
 
     try {
-      await addQuestion(newQuestion)
+      if (editingQuestion) {
+        await updateQuestion(editingQuestion.id, questionData)
+        toast.success('Question updated successfully')
+      } else {
+        await addQuestion(questionData)
+        toast.success('Question added to your bank')
+      }
       handleClose()
-      toast.success('Question added to your bank')
     } catch {
       // Error handled by context
     }
@@ -172,9 +209,11 @@ export default function QuestionLibraryPage() {
 
           <DialogContent className="max-w-xl p-0 overflow-hidden   ">
             <DialogHeader className="bg-muted/5 border-b  p-6 text-left items-start">
-              <DialogTitle className="text-xl font-serif font-normal">Add to Library</DialogTitle>
+              <DialogTitle className="text-xl font-serif font-normal">
+                {editingQuestion ? 'Edit Question Block' : 'Add to Library'}
+              </DialogTitle>
               <DialogDescription className="text-xs opacity-60">
-                Fields adapt to the selected block type for institutional precision.
+                {editingQuestion ? 'Update this pedagogical block in your institutional repository.' : 'Fields adapt to the selected block type for institutional precision.'}
               </DialogDescription>
             </DialogHeader>
 
@@ -409,7 +448,7 @@ export default function QuestionLibraryPage() {
                 </Button>
                 <Button type="submit" disabled={isSubmitting} className="">
                   <span className="text-xs   font-normal">
-                    {isSubmitting ? 'Adding...' : 'Add Block'}
+                    {isSubmitting ? (editingQuestion ? 'Saving...' : 'Adding...') : (editingQuestion ? 'Save Changes' : 'Add Block')}
                   </span>
                 </Button>
               </DialogFooter>
@@ -539,7 +578,12 @@ export default function QuestionLibraryPage() {
                               </Button>
                             )}
                             <div className="flex gap-1 items-center">
-                              <Button variant="ghost" size="icon" className="w-8 hover:bg-muted  transition-premium">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="w-8 hover:bg-muted  transition-premium"
+                                onClick={() => handleEdit(q)}
+                              >
                                 <Edit className="w-4 h-4" />
                               </Button>
                               <Button variant="ghost" size="icon"
