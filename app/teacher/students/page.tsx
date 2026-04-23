@@ -145,76 +145,80 @@ export default function TeacherStudentsPage() {
           </div>
         </div>
 
-        <Card className="overflow-hidden hover-lift transition-premium">
-          <CardHeader className="p-10 border-b flex flex-row items-center justify-between">
+        <Card className="overflow-hidden hover-lift transition-premium rounded-[2.5rem] border-primary/5">
+          <CardHeader className="p-8 sm:p-10 border-b flex flex-row items-center justify-between bg-muted/5">
              <div className="space-y-1">
-                <CardTitle className="font-serif text-xl font-medium">Student List</CardTitle>
-                <CardDescription className="text-xs font-normal opacity-60">View and track student performance.</CardDescription>
+                <CardTitle className="font-serif text-2xl font-bold">Student Registry</CardTitle>
+                <CardDescription className="text-xs font-normal opacity-60 uppercase tracking-widest">Institutional Academic Dossier</CardDescription>
              </div>
-             <div className="p-2 rounded-lg bg-primary/5 opacity-40">
-                  <Users className="w-4 h-4 text-primary" />
+             <div className="p-3 rounded-2xl bg-primary/10 ring-1 ring-primary/20 shadow-sm">
+                  <Users className="w-5 h-5 text-primary" />
              </div>
           </CardHeader>
-          <CardContent className="p-10">
+          <CardContent className="p-0">
             {filteredStudents.length === 0 ? (
-              <div className="py-24 text-center">
-                <div className="bg-primary/5 p-8 w-fit mx-auto mb-6 border rounded-2xl">
+              <div className="py-32 text-center">
+                <div className="bg-primary/5 p-8 w-fit mx-auto mb-6 border rounded-[2rem]">
                   <Users className="w-12 h-12 text-primary/30" />
                 </div>
-                <p className="font-serif text-2xl opacity-40 font-normal">No students found matching your search.</p>
+                <p className="font-serif text-2xl opacity-40 font-normal">No student profiles found.</p>
               </div>
             ) : (
-              <EntityCardGrid 
-                data={filteredStudents}
-                renderItem={(student) => {
+              <div className="divide-y divide-primary/5">
+                {filteredStudents.map((student) => {
                   const enrollment = mockEnrollments.find(e => e.studentId === student.id)
                   const progress = enrollment?.progress || 0
                   
                   return (
-                    <Card 
+                    <motion.div
                       key={student.id}
-                      className="cursor-pointer transition-premium hover-lift overflow-hidden group h-full flex flex-col"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="group cursor-pointer hover:bg-primary/[0.02] transition-all p-4 sm:p-6 lg:px-10 flex flex-col sm:flex-row sm:items-center gap-6"
                       onClick={() => router.push(`/teacher/students/${student.id}`)}
                     >
-                      <CardContent className="p-6 flex-1">
-                        <div className="flex flex-col gap-8">
-                          <div className="flex items-center justify-between">
-                            <Avatar className="h-16 w-16 ring-4 ring-primary/5 transition-all group-hover:ring-primary/10">
-                              <AvatarImage src={student.avatar} alt={student.name} />
-                              <AvatarFallback className="bg-primary/5 text-primary text-xl font-serif">
-                                {student.name.split(" ").map(n => n[0]).join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                             <div className="flex flex-col items-end gap-2">
-                                {getPerformanceBadge(progress)}
-                                <span className="text-[10px] font-normal text-muted-foreground opacity-40 uppercase">{student.studentId || student.id}</span>
-                             </div>
+                      {/* Left: Avatar & Identity */}
+                      <div className="flex items-center gap-5 min-w-[280px]">
+                        <Avatar className="h-12 w-12 ring-2 ring-primary/5 transition-all group-hover:ring-primary/20 shadow-sm">
+                          <AvatarImage src={student.avatar} alt={student.name} />
+                          <AvatarFallback className="bg-primary/5 text-primary font-serif font-bold">
+                            {student.name.split(" ").map(n => n[0]).join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col min-w-0">
+                          <h3 className="font-serif text-lg font-bold group-hover:text-primary transition-colors truncate">{student.name}</h3>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold text-muted-foreground opacity-40 uppercase tracking-tighter">{student.studentId || 'No ID'}</span>
+                            <span className="w-1 h-1 rounded-full bg-border" />
+                            <span className="text-[10px] text-muted-foreground opacity-40 truncate">{student.email}</span>
                           </div>
-                          
-                          <div className="space-y-1">
-                            <h3 className="font-serif text-lg leading-tight font-medium group-hover:text-primary transition-colors">{student.name}</h3>
-                            <p className="text-[10px] text-muted-foreground opacity-60 font-normal truncate">{student.email}</p>
-                          </div>
-                          
-                          <div className="pt-6 border-t space-y-4">
-                            <div className="flex items-center justify-between">
-                               <span className="text-[10px] font-normal opacity-40 uppercase">Course Progress</span>
-                               <span className="text-base font-serif font-normal text-primary">{progress}%</span>
-                            </div>
-                            <Progress value={progress} className="h-1 bg-primary/10" />
-                          </div>
-                          
-                          <Button variant="ghost" className="w-full justify-between h-10 bg-primary/5 hover:bg-primary text-primary hover:text-white transition-all font-normal text-[10px]">
-                            View Full Profile
-                            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                          </Button>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+
+                      {/* Middle: Progress Bar */}
+                      <div className="flex-1 flex flex-col gap-2 px-2">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-[9px] font-black opacity-30 uppercase tracking-[0.2em]">Academic Growth</span>
+                          <span className="text-xs font-bold font-sans text-primary">{progress}%</span>
+                        </div>
+                        <Progress value={progress} className="h-1.5 bg-primary/5" />
+                      </div>
+
+                      {/* Right: Badge & Action */}
+                      <div className="flex items-center justify-between sm:justify-end gap-6 sm:min-w-[240px]">
+                        <div className="flex flex-col items-end gap-1">
+                          {getPerformanceBadge(progress)}
+                          <span className="text-[9px] text-muted-foreground opacity-30 font-bold uppercase tracking-widest">Performance</span>
+                        </div>
+                        
+                        <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                        </div>
+                      </div>
+                    </motion.div>
                   )
-                }}
-                columns={3}
-              />
+                })}
+              </div>
             )}
           </CardContent>
         </Card>
