@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
-import { getInstitutionalAudioFiles, uploadAudioFile } from '@/lib/actions/audio'
+import { getTeacherAudioFiles, uploadAudioFile } from '@/lib/actions/audio'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -82,8 +82,8 @@ export default function AssessmentLibraryPage() {
 
   // Load Audio Repository
   const loadAudio = async () => {
-    const res = await getInstitutionalAudioFiles()
-    if (res.success) setAudioRepo(res.files)
+    const res = await getTeacherAudioFiles(user?.id || '')
+    if (res.success && res.data) setAudioRepo(res.data.map((f: any) => f.url))
   }
 
   useEffect(() => {

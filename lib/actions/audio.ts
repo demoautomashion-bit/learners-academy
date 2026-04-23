@@ -2,8 +2,7 @@
 
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
-import fs from 'fs'
-import path from 'path'
+import { put, del } from '@vercel/blob'
 import type { ActionResult } from '@/lib/types'
 
 export interface AudioFile {
@@ -17,8 +16,7 @@ export interface AudioFile {
 
 /**
  * Converts a raw Prisma AudioFile record to a plain, JSON-serializable object.
- * This prevents "unexpected response" errors caused by Date objects crossing the
- * Next.js Server Action boundary.
+ * Prevents "unexpected response" errors from Date objects crossing the Server Action boundary.
  */
 function sanitizeAudioFile(record: any): AudioFile {
   return {
@@ -27,8 +25,8 @@ function sanitizeAudioFile(record: any): AudioFile {
     filename: record.filename,
     url: record.url,
     teacherId: record.teacherId,
-    createdAt: record.createdAt instanceof Date 
-      ? record.createdAt.toISOString() 
+    createdAt: record.createdAt instanceof Date
+      ? record.createdAt.toISOString()
       : String(record.createdAt)
   }
 }
@@ -42,7 +40,6 @@ export async function getTeacherAudioFiles(teacherId: string): Promise<ActionRes
       where: { teacherId },
       orderBy: { createdAt: 'desc' }
     })
-    // Sanitize: map all records to plain objects with string dates
     return { success: true, data: files.map(sanitizeAudioFile) }
   } catch (error) {
     console.error('DATABASE_ERROR [getTeacherAudioFiles]:', error)
@@ -51,15 +48,16 @@ export async function getTeacherAudioFiles(teacherId: string): Promise<ActionRes
 }
 
 /**
- * Uploads an audio file, saves it to a teacher-specific directory, and records it in the database.
+ * Uploads an audio file to Vercel Blob storage and records it in the database.
  * Each step is labeled for precise diagnostic reporting.
+ * Replaces the previous fs.writeFileSync approach which fails on Vercel's read-only filesystem.
  */
 export async function uploadAudioFile(formData: FormData, teacherId: string): Promise<ActionResult<AudioFile> & { diagnostic?: any }> {
   let currentStep = 'init'
   try {
     console.log(`[AudioUpload] Initiation for Teacher: ${teacherId}`)
     const file = formData.get('file') as File
-    
+
     if (!file || file.size === 0) {
       return { success: false, error: 'No pedagogical asset provided or file is empty' }
     }
@@ -83,30 +81,24 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
       })
     }
 
-    // Step: Read file buffer
-    currentStep = 'file_read'
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    // Step: Create directory
-    currentStep = 'dir_create'
-    const audioDir = path.join(process.cwd(), 'public', 'assets', 'audio', teacherId)
-    if (!fs.existsSync(audioDir)) {
-      fs.mkdirSync(audioDir, { recursive: true })
-    }
-
-    // Step: Write file to disk
-    currentStep = 'file_write'
-    const sanitizedName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
-    const filePath = path.join(audioDir, sanitizedName)
-    const publicUrl = `/assets/audio/${teacherId}/${sanitizedName}`
-    fs.writeFileSync(filePath, buffer)
-    console.log(`[AudioUpload] File persisted to: ${publicUrl}`)
+    // Step: Upload to Vercel Blob (replaces local filesystem write)
+    currentStep = 'blob_upload'
+    const sanitizedName = `audio/${teacherId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+    const blob = await put(sanitizedName, file, {
+      access: 'public',
+      contentType: file.type || 'audio/mpeg',
+    })
+    console.log(`[AudioUpload] Blob stored at: ${blob.url}`)
 
     // Step: Save record to DB
     currentStep = 'db_create'
     const result = await db.audioFile.create({
-      data: { title, filename: sanitizedName, url: publicUrl, teacherId }
+      data: {
+        title,
+        filename: file.name,
+        url: blob.url, // CDN URL from Vercel Blob
+        teacherId
+      }
     })
 
     revalidatePath('/teacher/audio-library')
@@ -128,7 +120,7 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
 }
 
 /**
- * Removes an audio file from the repository and the database.
+ * Removes an audio file from Vercel Blob and the database.
  */
 export async function deleteAudioFile(id: string, teacherId: string): Promise<ActionResult> {
   try {
@@ -138,10 +130,13 @@ export async function deleteAudioFile(id: string, teacherId: string): Promise<Ac
 
     if (!fileRecord) return { success: false, error: 'Asset not found or unauthorized' }
 
-    // Remove from filesystem
-    const filePath = path.join(process.cwd(), 'public', 'assets', 'audio', teacherId, fileRecord.filename)
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath)
+    // Remove from Vercel Blob using the stored CDN URL
+    try {
+      await del(fileRecord.url)
+      console.log(`[AudioDelete] Blob removed: ${fileRecord.url}`)
+    } catch (blobErr) {
+      // Log but don't block DB cleanup if blob is already gone
+      console.warn('[AudioDelete] Blob removal warning:', blobErr)
     }
 
     // Remove from DB
@@ -152,29 +147,5 @@ export async function deleteAudioFile(id: string, teacherId: string): Promise<Ac
   } catch (error) {
     console.error('ACTION_ERROR [deleteAudioFile]:', error)
     return { success: false, error: 'Asset purge operation failed' }
-  }
-}
-
-/**
- * Legacy compatibility layer (scans public folder)
- * Keeping this for existing tests but moving towards DB-backed storage
- */
-export async function getInstitutionalAudioFiles() {
-  try {
-    const audioDir = path.join(process.cwd(), 'public', 'assets', 'audio')
-    if (!fs.existsSync(audioDir)) return { success: true, files: [] }
-    const files = fs.readdirSync(audioDir, { withFileTypes: true })
-    
-    // Flatten recursive scan or just top level? For now just top level + dirs
-    const audioFiles: string[] = []
-    files.forEach(f => {
-       if (f.isFile() && ['.mp3', '.wav', '.m4a', '.ogg'].includes(path.extname(f.name).toLowerCase())) {
-          audioFiles.push(f.name)
-       }
-    })
-
-    return { success: true, files: audioFiles }
-  } catch (error) {
-    return { success: false, error: 'Scan failed', files: [] }
   }
 }
