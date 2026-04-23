@@ -4,9 +4,12 @@ import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import type { Question, ActionResult } from '@/lib/types'
 
-export async function getQuestions(): Promise<ActionResult<Question[]>> {
+export async function getQuestions(teacherId?: string): Promise<ActionResult<Question[]>> {
   try {
-    const data = await db.question.findMany({ orderBy: { id: 'desc' } })
+    const data = await db.question.findMany({ 
+      where: teacherId ? { teacherId } : {},
+      orderBy: { id: 'desc' } 
+    })
     return { success: true, data }
   } catch (error) {
     console.error('DATABASE_ERROR [getQuestions]:', error)
@@ -41,8 +44,15 @@ export async function addQuestion(question: Omit<Question, 'id'>): Promise<Actio
   }
 }
 
-export async function deleteQuestion(id: string): Promise<ActionResult> {
+export async function deleteQuestion(id: string, teacherId?: string): Promise<ActionResult> {
   try {
+    // Security Audit: Verify ownership before purge
+    if (teacherId) {
+      const existing = await db.question.findUnique({ where: { id } })
+      if (existing && existing.teacherId && existing.teacherId !== teacherId) {
+        return { success: false, error: 'Authorization Failure: You do not own this pedagogical block.' }
+      }
+    }
     const result = await db.question.delete({ where: { id } })
     revalidatePath('/')
     return { success: true, data: result }
@@ -52,8 +62,15 @@ export async function deleteQuestion(id: string): Promise<ActionResult> {
   }
 }
 
-export async function updateQuestion(id: string, data: Partial<Question>): Promise<ActionResult<Question>> {
+export async function updateQuestion(id: string, data: Partial<Question>, teacherId?: string): Promise<ActionResult<Question>> {
   try {
+    // Security Audit: Verify ownership before modification
+    if (teacherId) {
+      const existing = await db.question.findUnique({ where: { id } })
+      if (existing && existing.teacherId && existing.teacherId !== teacherId) {
+        return { success: false, error: 'Authorization Failure: This block is locked for your identity.' }
+      }
+    }
     const result = await db.question.update({ where: { id }, data: data as any })
     revalidatePath('/')
     return { success: true, data: result }

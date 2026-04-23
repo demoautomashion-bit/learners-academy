@@ -39,19 +39,11 @@ export default function TeacherDashboard() {
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
 
-  const myCourses = courses?.filter(c => c.teacherId === user?.id) || []
-  const myCourseTitles = myCourses.map(c => c.title)
- 
-  const activeTests = assessments?.filter(a => 
-    a.status === 'active' && 
-    (a.submittedByTeacherId === user?.id || (a.classLevels || []).some(level => myCourseTitles.includes(level)))
-  ) || []
+  const myCourses = courses || []
+  
+  const activeTests = assessments?.filter(a => a.status === 'active') || []
 
-  const pendingSubmissions = submissions?.filter(s => {
-    if (s.status !== 'pending') return false
-    const match = assessments.find(a => a.id === s.assignmentId)
-    return match && (match.submittedByTeacherId === user?.id || (match.classLevels || []).some(level => myCourseTitles.includes(level)))
-  }) || []
+  const pendingSubmissions = submissions?.filter(s => s.status === 'pending') || []
  
   const stats = [
     {

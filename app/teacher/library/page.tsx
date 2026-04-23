@@ -194,9 +194,9 @@ export default function QuestionLibraryPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-serif text-foreground font-medium">Academic Question Bank</h1>
+          <h1 className="text-3xl font-serif text-foreground font-medium">My Question Bank</h1>
           <p className="text-muted-foreground mt-1 text-sm opacity-70">
-            Personalize your private repository of {CATEGORIES.length} academic categories.
+            Manage your private repository of {CATEGORIES.length} academic categories.
           </p>
         </div>
 

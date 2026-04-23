@@ -22,13 +22,21 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
   try {
     const isTeacher = role === 'teacher' && userId
     let myCourseIds: string[] = []
+    let myAssessmentIds: string[] = []
     
     if (isTeacher) {
-      const myCourses = await db.course.findMany({ 
-        where: { teacherId: userId }, 
-        select: { id: true } 
-      })
+      const [myCourses, myAssessments] = await Promise.all([
+        db.course.findMany({ 
+          where: { teacherId: userId }, 
+          select: { id: true } 
+        }),
+        db.assessmentTemplate.findMany({
+          where: { submittedByTeacherId: userId },
+          select: { id: true }
+        })
+      ])
       myCourseIds = myCourses.map(c => c.id)
+      myAssessmentIds = myAssessments.map(a => a.id)
     }
 
     const [
@@ -44,18 +52,51 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       attendance,
       evaluations
     ] = await Promise.all([
-      fetchEntity('teachers', db.teacher.findMany({ orderBy: { joinedAt: 'desc' } })),
-      fetchEntity('students', db.student.findMany({ orderBy: { enrolledAt: 'desc' } })),
+      fetchEntity('teachers', db.teacher.findMany({ 
+        where: isTeacher ? { id: userId } : {},
+        orderBy: { joinedAt: 'desc' } 
+      })),
+      fetchEntity('students', db.student.findMany({ 
+        where: isTeacher ? {
+          enrolledCourses: { hasSome: myCourseIds }
+        } : {},
+        orderBy: { enrolledAt: 'desc' } 
+      })),
       fetchEntity('courses', db.course.findMany({ 
+        where: isTeacher ? { teacherId: userId } : {},
         orderBy: { startDate: 'desc' } 
       })),
       fetchEntity('timeSlots', db.timeSlot.findMany({ orderBy: { createdAt: 'asc' } })),
-      fetchEntity('submissions', db.submission.findMany({ orderBy: { submittedAt: 'desc' } })),
-      fetchEntity('questions', db.question.findMany({ orderBy: { category: 'asc' } })),
-      fetchEntity('assessments', db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })),
-      fetchEntity('assignments', db.assignment.findMany({ orderBy: { createdAt: 'desc' } })),
-      fetchEntity('activities', db.activityLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 })),
+      fetchEntity('submissions', db.submission.findMany({ 
+        where: isTeacher ? {
+          assignmentId: { in: myAssessmentIds }
+        } : {},
+        orderBy: { submittedAt: 'desc' } 
+      })),
+      fetchEntity('questions', db.question.findMany({ 
+        where: isTeacher ? { teacherId: userId } : {},
+        orderBy: { category: 'asc' } 
+      })),
+      fetchEntity('assessments', db.assessmentTemplate.findMany({ 
+        where: isTeacher ? { submittedByTeacherId: userId } : {},
+        orderBy: { createdAt: 'desc' } 
+      })),
+      fetchEntity('assignments', db.assignment.findMany({ 
+        where: isTeacher ? { teacherId: userId } : {},
+        orderBy: { createdAt: 'desc' } 
+      })),
+      fetchEntity('activities', db.activityLog.findMany({ 
+        where: isTeacher ? { 
+          OR: [
+            { user: { contains: userId } },
+            { action: { contains: userId } }
+          ]
+        } : {},
+        orderBy: { createdAt: 'desc' }, 
+        take: 50 
+      })),
       fetchEntity('attendance', db.teacherAttendance.findMany({ 
+        where: isTeacher ? { teacherId: userId } : {},
         orderBy: { date: 'desc' },
         include: { teacher: { select: { id: true, name: true, employeeId: true } } }
       })),

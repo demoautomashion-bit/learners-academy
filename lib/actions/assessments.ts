@@ -5,9 +5,12 @@ import { revalidatePath } from 'next/cache'
 import { getSeedFromId, createPRNG, shuffleArray } from '@/lib/utils/random'
 import type { AssessmentTemplate, Question, ActionResult } from '@/lib/types'
 
-export async function getAssessments(): Promise<ActionResult<AssessmentTemplate[]>> {
+export async function getAssessments(teacherId?: string): Promise<ActionResult<AssessmentTemplate[]>> {
   try {
-    const data = await db.assessmentTemplate.findMany({ orderBy: { createdAt: 'desc' } })
+    const data = await db.assessmentTemplate.findMany({ 
+      where: teacherId ? { submittedByTeacherId: teacherId } : {},
+      orderBy: { createdAt: 'desc' } 
+    })
     return { success: true, data }
   } catch (error: any) {
     if (error?.code === 'P2022') {
@@ -81,8 +84,16 @@ export async function updateAssessmentReviewAction(id: string, status: Assessmen
   }
 }
 
-export async function updateAssessmentStatus(id: string, status: AssessmentTemplate['status']): Promise<ActionResult<AssessmentTemplate>> {
+export async function updateAssessmentStatus(id: string, status: AssessmentTemplate['status'], teacherId?: string): Promise<ActionResult<AssessmentTemplate>> {
   try {
+    // Security Audit: Verify ownership
+    if (teacherId) {
+      const existing = await db.assessmentTemplate.findUnique({ where: { id } })
+      if (existing && existing.submittedByTeacherId && existing.submittedByTeacherId !== teacherId) {
+        return { success: false, error: 'Authorization Failure: You do not have permissions for this assessment.' }
+      }
+    }
+
     if (status === 'active') {
       const assessment = await db.assessmentTemplate.findUnique({ where: { id } })
       if (assessment?.accessCode) {
@@ -111,8 +122,15 @@ export async function updateAssessmentStatus(id: string, status: AssessmentTempl
   }
 }
 
-export async function removeAssessment(id: string): Promise<ActionResult> {
+export async function removeAssessment(id: string, teacherId?: string): Promise<ActionResult> {
   try {
+    // Security Audit: Verify ownership
+    if (teacherId) {
+      const existing = await db.assessmentTemplate.findUnique({ where: { id } })
+      if (existing && existing.submittedByTeacherId && existing.submittedByTeacherId !== teacherId) {
+        return { success: false, error: 'Authorization Failure: This assessment is locked for your identity.' }
+      }
+    }
     const result = await db.assessmentTemplate.delete({ where: { id } })
     revalidatePath('/')
     return { success: true, data: result }
@@ -217,6 +235,8 @@ export async function generateRandomizedQuestions(studentId: string, assessmentI
     const pool = await db.question.findMany({
       where: {
         isApproved: true,
+        // Isolation: Only use questions belonging to the teacher who created the assessment
+        teacherId: assessment.submittedByTeacherId,
         OR: [
           { phase: assessment.phase },
           { phase: 'Both' }
