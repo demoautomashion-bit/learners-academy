@@ -99,9 +99,16 @@ export async function updateQuestion(id: string, data: Partial<Question>): Promi
 
 export async function removeStudent(id: string): Promise<ActionResult> {
   try {
-    const result = await db.student.delete({ where: { id } })
+    // Deep Purge: Remove all institutional ties in a single transaction
+    await db.$transaction([
+      db.feePayment.deleteMany({ where: { studentId: id } }),
+      db.submission.deleteMany({ where: { studentId: id } }),
+      db.evaluation.deleteMany({ where: { studentId: id } }),
+      db.student.delete({ where: { id } })
+    ])
+
     revalidatePath('/')
-    return { success: true, data: result }
+    return { success: true, data: { id } }
   } catch (error) {
     return { success: false, error: handleDatabaseError(error, 'Failed to remove student registry') }
   }

@@ -33,18 +33,19 @@ export async function addCourse(course: Omit<Course, 'enrolled'>): Promise<Actio
 
 export async function removeCourse(id: string): Promise<ActionResult> {
   try {
-    const result = await db.course.delete({ where: { id } })
+    // Deep Purge: Clear all academic and financial ties to this class
+    await db.$transaction([
+      db.evaluation.deleteMany({ where: { courseId: id } }),
+      db.feePayment.deleteMany({ where: { courseId: id } }),
+      db.assignment.deleteMany({ where: { courseId: id } }),
+      db.course.delete({ where: { id } })
+    ])
+
     revalidatePath('/')
-    return { success: true, data: result }
+    return { success: true, data: { id } }
   } catch (error: any) {
-    if (error.code === 'P2003') {
-      return { 
-        success: false, 
-        error: 'Cannot delete this class because it has related records (students, payments, or assignments). Please remove those first.' 
-      }
-    }
     console.error('DATABASE_ERROR [removeCourse]:', error)
-    return { success: false, error: 'Database record deletion failed' }
+    return { success: false, error: handleDatabaseError(error, 'Database record deletion failed') }
   }
 }
 
