@@ -833,7 +833,7 @@ export default function StudentAssessmentsPage() {
         {isTestEngineOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex flex-col items-center justify-start overflow-y-auto p-4 sm:p-8 lg:p-12"
+            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex flex-col items-center overflow-y-auto p-4 py-12 sm:p-8 lg:p-12"
           >
             {/* Result screen */}
             {showResult ? (
