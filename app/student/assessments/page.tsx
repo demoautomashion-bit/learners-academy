@@ -816,12 +816,21 @@ export default function StudentAssessmentsPage() {
                     <Award className="w-10 h-10" />
                   </div>
                   <div>
-                      ].map(stat => (
-                        <div key={stat.label} className="rounded-xl bg-muted/30 p-3">
-                          <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/60 mb-1">{stat.label}</p>
-                          <p className={`text-xl font-serif font-semibold ${stat.color}`}>{stat.value}</p>
-                        </div>
-                      ))}
+                    <h2 className="font-serif text-3xl font-bold text-foreground">Assessment Complete</h2>
+                    <p className="text-muted-foreground text-sm mt-1 opacity-60">Your submission has been recorded.</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-left">
+                    {[
+                      { label: 'Final Score', value: `${finalScore} / ${activeTest?.totalMarks || 100}`, color: 'text-success' },
+                      { label: 'Percentage', value: `${Math.round((finalScore / (activeTest?.totalMarks || 100)) * 100)}%`, color: finalScore / (activeTest?.totalMarks || 100) >= 0.5 ? 'text-success' : 'text-destructive' },
+                      { label: 'Questions', value: `${randomizedQuestions.length} Blocks`, color: 'text-primary' },
+                      { label: 'Status', value: finalScore / (activeTest?.totalMarks || 100) >= 0.5 ? 'Pass ✓' : 'Review ⚠', color: finalScore / (activeTest?.totalMarks || 100) >= 0.5 ? 'text-success' : 'text-amber-500' },
+                    ].map(stat => (
+                      <div key={stat.label} className="rounded-xl bg-muted/30 p-3">
+                        <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/60 mb-1">{stat.label}</p>
+                        <p className={`text-xl font-serif font-semibold ${stat.color}`}>{stat.value}</p>
+                      </div>
+                    ))}
                   </div>
                   {aiAuditResults.feedback && (
                     <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 text-left">

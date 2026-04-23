@@ -12,7 +12,25 @@ export interface AudioFile {
   filename: string
   url: string
   teacherId: string
-  createdAt: Date | string
+  createdAt: string // Always a string for safe client serialization
+}
+
+/**
+ * Converts a raw Prisma AudioFile record to a plain, JSON-serializable object.
+ * This prevents "unexpected response" errors caused by Date objects crossing the
+ * Next.js Server Action boundary.
+ */
+function sanitizeAudioFile(record: any): AudioFile {
+  return {
+    id: record.id,
+    title: record.title,
+    filename: record.filename,
+    url: record.url,
+    teacherId: record.teacherId,
+    createdAt: record.createdAt instanceof Date 
+      ? record.createdAt.toISOString() 
+      : String(record.createdAt)
+  }
 }
 
 /**
@@ -24,7 +42,8 @@ export async function getTeacherAudioFiles(teacherId: string): Promise<ActionRes
       where: { teacherId },
       orderBy: { createdAt: 'desc' }
     })
-    return { success: true, data: files as any }
+    // Sanitize: map all records to plain objects with string dates
+    return { success: true, data: files.map(sanitizeAudioFile) }
   } catch (error) {
     console.error('DATABASE_ERROR [getTeacherAudioFiles]:', error)
     return { success: false, error: 'Failed to access institutional audio repository' }
@@ -88,7 +107,8 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
     })
 
     revalidatePath('/teacher/audio-library')
-    return { success: true, data: result as any }
+    // Sanitize: return a plain object, never a raw Prisma record with Date fields
+    return { success: true, data: sanitizeAudioFile(result) }
   } catch (error: any) {
     console.error('ACTION_ERROR [uploadAudioFile]:', error)
     return { success: false, error: `Institutional asset upload failed: ${error.message || 'Unknown Error'}` }
