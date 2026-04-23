@@ -280,7 +280,7 @@ export default function TeacherLayout({
           </DropdownMenu>
         </header>
 
-        <main className="flex-1 p-6 text-foreground">
+        <main className="flex-1 overflow-y-auto premium-scrollbar p-4 sm:p-6 md:p-10">
           <TeacherErrorBoundary>
             {children}
           </TeacherErrorBoundary>

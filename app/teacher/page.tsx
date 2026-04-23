@@ -85,20 +85,20 @@ export default function TeacherDashboard() {
   ]
 
   return (
-    <PageShell>
+    <PageShell className="px-4 sm:px-6 md:px-8">
       <PageHeader 
         title={`Welcome, ${(String(user?.name || 'Teacher')).split(' ').filter(Boolean)[0] || 'Teacher'}`}
         description="Manage your classes and track student progress with ease."
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline" asChild className="hover-lift font-normal">
-              <Link href="/teacher/library" className="flex items-center text-xs">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" asChild className="hover-lift font-normal flex-1 sm:flex-none">
+              <Link href="/teacher/library" className="flex items-center text-xs justify-center">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Question
               </Link>
             </Button>
-            <Button asChild className="hover-lift font-normal shadow-lg shadow-primary/20">
-              <Link href="/teacher/assessments" className="text-xs">
+            <Button asChild className="hover-lift font-normal shadow-lg shadow-primary/20 flex-1 sm:flex-none">
+              <Link href="/teacher/assessments" className="text-xs justify-center">
                 Create New Test
               </Link>
             </Button>

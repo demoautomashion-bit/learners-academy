@@ -78,6 +78,7 @@ export default function QuestionLibraryPage() {
   
   const [activeTab, setActiveTab] = useState<QuestionCategory>('Grammar')
   const [searchQuery, setSearchQuery] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
   const [matchPairs, setMatchPairs] = useState<{ left: string; right: string }[]>([
     { left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' },

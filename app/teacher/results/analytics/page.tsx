@@ -65,7 +65,7 @@ export default function InstitutionalAnalyticsPage() {
           <div className="p-3 bg-primary/10  border ">
             <BarChart3 className="w-6 h-6 text-primary" />
           </div>
-          <motion.h1 variants={STAGGER_ITEM} className="text-5xl font-serif font-normal text-foreground leading-none">Institutional Analytics</motion.h1>
+          <motion.h1 variants={STAGGER_ITEM} className="text-3xl sm:text-5xl font-serif text-foreground font-medium mb-3">Institutional Analytics</motion.h1>
         </div>
         <motion.p variants={STAGGER_ITEM} className="text-muted-foreground text-editorial-meta opacity-70">
             Aggregate pedagogical intelligence reports and cross-cycle mastery heatmaps.

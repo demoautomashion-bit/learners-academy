@@ -24,7 +24,7 @@ export function PageHeader({
       className={cn("flex flex-col gap-5 md:flex-row md:items-end md:justify-between", className)}
     >
       <div className="max-w-2xl">
-        <h1 className="font-serif text-3xl text-foreground font-medium">
+        <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-foreground font-medium tracking-tight">
           {title}
         </h1>
         {description && (
