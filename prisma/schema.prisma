@@ -27,6 +27,7 @@ model Teacher {
   assignments      Assignment[]
   courses          Course[]
   attendance       TeacherAttendance[]
+  audioFiles       AudioFile[]
 }
 
 model TeacherAttendance {
@@ -234,4 +235,14 @@ model ActivityLog {
   action    String
   category  String
   createdAt DateTime @default(now())
+}
+
+model AudioFile {
+  id        String   @id @default(cuid())
+  title     String
+  filename  String
+  url       String
+  teacherId String
+  createdAt DateTime @default(now())
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
 }

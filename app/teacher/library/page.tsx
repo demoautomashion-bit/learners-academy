@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import Link from 'next/link'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
 import type { Question, QuestionCategory } from '@/lib/types'
@@ -25,7 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { toast } from 'sonner'
-import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen, Check } from 'lucide-react'
+import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen, Check, Play, Pause } from 'lucide-react'
 import Image from 'next/image'
 
 const questionSchema = z.object({
@@ -69,7 +70,7 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
 
 export default function QuestionLibraryPage() {
   const { user } = useAuth()
-  const { questions, addQuestion, deleteQuestion, isInitialized, teachers, approveQuestion } = useData()
+  const { questions, addQuestion, deleteQuestion, isInitialized, teachers, approveQuestion, audioFiles } = useData()
   
   // Find current teacher's requiresReview flag
   const currentTeacher = teachers.find(t => t.id === user?.id)
@@ -87,6 +88,9 @@ export default function QuestionLibraryPage() {
       resolver: zodResolver(questionSchema),
       defaultValues: { type: 'MCQ', phase: 'Both', difficulty: 'Medium' },
     })
+  
+  const [playingPreview, setPlayingPreview] = useState(false)
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null)
 
   const selectedType = watch('type')
   const selectedCategory = watch('category')
@@ -239,17 +243,58 @@ export default function QuestionLibraryPage() {
                     </Field>
                   )}
 
-                  {/* Audio URL — shown only when category === Listening */}
+                  {/* Audio Picker — shown only when category === Listening */}
                   {selectedCategory === 'Listening' && (
                     <Field>
                       <FieldLabel className="text-xs flex items-center gap-1.5">
-                        <Volume2 className="w-3 h-3" /> Audio Clip URL
+                        <Volume2 className="w-3 h-3" /> Institutional Audio Library
                       </FieldLabel>
-                      <Input
-                        {...register('audioUrl')}
-                        className="h-8 text-xs"
-                        placeholder="https://... (.mp3, .wav, .ogg)"
-                      />
+                      <div className="flex gap-2">
+                        <Select value={watch('audioUrl')} onValueChange={(v) => setValue('audioUrl', v)}>
+                          <SelectTrigger className="h-10 text-xs flex-1">
+                            <SelectValue placeholder="Select from your library..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {audioFiles?.length > 0 ? (
+                              audioFiles.map(f => (
+                                <SelectItem key={f.id} value={f.url} className="text-xs">
+                                  {f.title}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="none" disabled className="text-xs">No assets found in library</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        {watch('audioUrl') && (
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-10 w-10 shrink-0"
+                            onClick={() => {
+                              if (playingPreview) {
+                                previewAudioRef.current?.pause()
+                                setPlayingPreview(false)
+                              } else {
+                                if (previewAudioRef.current) {
+                                  previewAudioRef.current.src = watch('audioUrl') || ''
+                                  previewAudioRef.current.play()
+                                  setPlayingPreview(true)
+                                }
+                              }
+                            }}
+                          >
+                            {playingPreview ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                          </Button>
+                        )}
+                      </div>
+                      <audio ref={previewAudioRef} onEnded={() => setPlayingPreview(false)} className="hidden" />
+                      {!audioFiles?.length && (
+                        <p className="text-[10px] text-muted-foreground mt-1 opacity-60">
+                          Your audio vault is empty. Please add assets in the <Link href="/teacher/audio-library" className="text-primary hover:underline">Audio Library</Link> first.
+                        </p>
+                      )}
                     </Field>
                   )}
 

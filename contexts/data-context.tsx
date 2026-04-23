@@ -22,6 +22,7 @@ import { logActivity as dbLogActivity } from '@/lib/actions/activities'
 import { saveEvaluations as dbSaveEvaluations } from '@/lib/actions/evaluations'
 import { addTimeSlot as dbAddTimeSlot, removeTimeSlot as dbRemoveTimeSlot, addCourseToSlot as dbAddCourseToSlot, removeCourseFromSlot as dbRemoveCourseFromSlot } from '@/lib/actions/time-slots'
 import { getInitialData } from '@/lib/actions/get-data'
+import { getTeacherAudioFiles, uploadAudioFile as dbUploadAudio, deleteAudioFile as dbDeleteAudio, type AudioFile } from '@/lib/actions/audio'
 import { useAuth } from '@/contexts/auth-context'
 import { calculateStudentOverallProgress } from '@/lib/utils/student-progress'
 
@@ -41,6 +42,7 @@ interface DataContextType {
   activities: any[]
   attendance: any[]
   evaluations: any[]
+  audioFiles: AudioFile[]
   isInitialized: boolean
   isLoading: boolean
   errorMsg: string | null
@@ -84,6 +86,8 @@ interface DataContextType {
   markAttendance: (teacherId: string, date: string, status: string, subCount?: number) => Promise<void>
   addAttendanceEvent: (teacherId: string, date: string, event: any) => Promise<void>
   saveEvaluations: (courseId: string, data: any[]) => Promise<void>
+  uploadAudio: (formData: FormData) => Promise<void>
+  deleteAudio: (id: string) => Promise<void>
   resetToDefaults: () => void
   refresh: () => Promise<void>
   retryConnection: () => Promise<void>
@@ -147,6 +151,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [activities, setActivities] = useState<any[]>([])
   const [attendance, setAttendance] = useState<any[]>([])
   const [evaluations, setEvaluations] = useState<any[]>([])
+  const [audioFiles, setAudioFiles] = useState<AudioFile[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -176,9 +181,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // We don't reset hasError here to avoid flickering if it's already set
       // setHasError(false)
       
-      const [initRes, econData] = await Promise.all([
+      const [initRes, econData, audioRes] = await Promise.all([
         getInitialData(user?.id, user?.role as any),
-        getEconomicStats().catch(() => ({ success: false, data: null }))
+        getEconomicStats().catch(() => ({ success: false, data: null })),
+        user?.role === 'teacher' ? getTeacherAudioFiles(user.id) : Promise.resolve({ success: true, data: [] })
       ])
 
       if (!initRes.success || !initRes.data) {
@@ -209,6 +215,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
         
         setEvaluations(Array.isArray(d.evaluations) ? d.evaluations : [])
+
+        if (user?.role === 'teacher' && audioRes?.success) {
+           setAudioFiles(audioRes.data as any)
+        }
       })
     } catch (err) {
       console.error('[DataProvider] SYNC_FAILURE:', err)
@@ -310,6 +320,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const markAttendance = useCallback((tid: string, date: string, s: string, sc?: number) => executeAction(() => dbMarkAttendance(tid, date, s, sc)), [executeAction])
   const addAttendanceEvent = useCallback((tid: string, date: string, e: any) => executeAction(() => dbAddAttendanceEvent(tid, date, e)), [executeAction])
   const saveEvaluations = useCallback((courseId: string, data: any[]) => executeAction(() => dbSaveEvaluations(courseId, data), "Evaluation Matrix Synchronized"), [executeAction])
+  const uploadAudio = useCallback((fd: FormData) => executeAction(() => dbUploadAudio(fd, user?.id || ''), "Institutional asset verified"), [executeAction, user?.id])
+  const deleteAudio = useCallback((id: string) => executeAction(() => dbDeleteAudio(id, user?.id || ''), "Asset purged"), [executeAction, user?.id])
 
   if (errorMsg) {
     return (
@@ -343,8 +355,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, isInitialized, isLoading, errorMsg,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, resetToDefaults: () => {}, refresh, retryConnection,
+      teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, isInitialized, isLoading, errorMsg,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, resetToDefaults: () => {}, refresh, retryConnection,
     }}>
       {children}
     </DataContext.Provider>

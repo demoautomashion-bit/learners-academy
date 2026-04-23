@@ -55,7 +55,8 @@ import {
   Award,
   Sparkles,
   Search,
-  BookMarked
+  BookMarked,
+  Volume2
 } from 'lucide-react'
 
 const teacherNavItems = [
@@ -79,6 +80,7 @@ const teacherNavItems = [
     icon: ClipboardList,
     items: [
         { title: 'Question Bank', href: '/teacher/library', icon: Library },
+        { title: 'Audio Library', href: '/teacher/audio-library', icon: Volume2 },
         { title: 'Test Registry', href: '/teacher/assessments', icon: ClipboardList },
         { title: 'Test Generator', href: '/teacher/assessments/generator', icon: Sparkles },
     ]
