@@ -25,6 +25,7 @@ export default function AudioLibraryPage() {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [playingId, setPlayingId] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -60,6 +61,7 @@ export default function AudioLibraryPage() {
     try {
       await uploadAudio(formData)
       setIsUploadOpen(false)
+      setSelectedFile(null)
       toast.success('Institutional asset verified and stored')
     } catch {
       // Error handled by context
@@ -116,8 +118,10 @@ export default function AudioLibraryPage() {
                     onClick={() => fileInputRef.current?.click()}
                     className="border-2 border-dashed border-primary/10 rounded-2xl p-8 text-center cursor-pointer hover:bg-primary/[0.02] transition-all group"
                   >
-                    <UploadCloud className="w-10 h-10 text-primary/20 mx-auto mb-4 group-hover:scale-110 transition-transform" />
-                    <p className="text-xs text-muted-foreground">Click to upload or drag & drop</p>
+                    <UploadCloud className={`w-10 h-10 mx-auto mb-4 transition-transform ${selectedFile ? 'text-success animate-bounce' : 'text-primary/20 group-hover:scale-110'}`} />
+                    <p className="text-xs text-muted-foreground">
+                      {selectedFile ? `Selected: ${selectedFile.name}` : 'Click to upload or drag & drop'}
+                    </p>
                     <p className="text-[10px] text-muted-foreground/40 mt-1">MP3, WAV, or OGG (Max 20MB)</p>
                     <input 
                       ref={fileInputRef}
@@ -127,7 +131,10 @@ export default function AudioLibraryPage() {
                       className="hidden" 
                       onChange={(e) => {
                         const file = e.target.files?.[0]
-                        if (file) toast.info(`Selected: ${file.name}`)
+                        if (file) {
+                          setSelectedFile(file)
+                          toast.info(`Asset detected: ${file.name}`)
+                        }
                       }}
                     />
                   </div>
@@ -136,7 +143,7 @@ export default function AudioLibraryPage() {
 
               <DialogFooter className="pt-4 border-t border-primary/5 flex gap-3">
                 <Button type="button" variant="ghost" onClick={() => setIsUploadOpen(false)} className="rounded-xl">Cancel</Button>
-                <Button type="submit" disabled={isUploading} className="rounded-xl flex-1">
+                <Button type="submit" disabled={isUploading || !selectedFile} className="rounded-xl flex-1">
                   {isUploading ? "Processing..." : "Verify & Upload"}
                 </Button>
               </DialogFooter>

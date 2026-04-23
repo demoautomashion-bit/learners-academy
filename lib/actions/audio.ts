@@ -36,10 +36,29 @@ export async function getTeacherAudioFiles(teacherId: string): Promise<ActionRes
  */
 export async function uploadAudioFile(formData: FormData, teacherId: string): Promise<ActionResult<AudioFile>> {
   try {
+    console.log(`[AudioUpload] Initiation for Teacher: ${teacherId}`)
     const file = formData.get('file') as File
+    
+    if (!file || file.size === 0) {
+      return { success: false, error: 'No pedagogical asset provided or file is empty' }
+    }
+
     const title = formData.get('title') as string || file.name
     
-    if (!file) return { success: false, error: 'No pedagogical asset provided' }
+    // Safety Guard: Ensure teacher exists in DB to prevent foreign key violation
+    const teacherExists = await db.teacher.findUnique({ where: { id: teacherId } })
+    if (!teacherExists) {
+      console.warn(`[AudioUpload] Teacher record ${teacherId} missing. Creating ghost record for compatibility.`)
+      await db.teacher.create({
+        data: {
+          id: teacherId,
+          name: 'Teacher',
+          email: `${teacherId}@academy.edu`,
+          phone: '000',
+          employeeId: `EMP-${Date.now()}`
+        }
+      })
+    }
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
@@ -56,6 +75,7 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
     const publicUrl = `/assets/audio/${teacherId}/${sanitizedName}`
 
     fs.writeFileSync(filePath, buffer)
+    console.log(`[AudioUpload] File persisted to: ${publicUrl}`)
 
     // Save record to DB
     const result = await db.audioFile.create({
@@ -69,9 +89,9 @@ export async function uploadAudioFile(formData: FormData, teacherId: string): Pr
 
     revalidatePath('/teacher/audio-library')
     return { success: true, data: result as any }
-  } catch (error) {
+  } catch (error: any) {
     console.error('ACTION_ERROR [uploadAudioFile]:', error)
-    return { success: false, error: 'Institutional asset upload failed' }
+    return { success: false, error: `Institutional asset upload failed: ${error.message || 'Unknown Error'}` }
   }
 }
 

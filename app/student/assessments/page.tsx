@@ -297,7 +297,7 @@ export default function StudentAssessmentsPage() {
           if (allCorrect) totalScore += points
         } catch {}
       } else if (q.type === 'Fill in the Blanks') {
-        const parts = q.content.split('____')
+        const parts = q.content.split(/_{3,}/)
         const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
         const correctAnswer = (q.correctAnswer || '').trim().toLowerCase()
         if (studentAnswer === correctAnswer) totalScore += points
@@ -375,7 +375,9 @@ export default function StudentAssessmentsPage() {
              if (allCorrect) score = 1
            } catch {}
         } else if (q.type === 'Fill in the Blanks') {
-           if (answer?.toLowerCase().trim() === q.correctAnswer?.toLowerCase().trim()) score = 1
+           const parts = q.content.split(/_{3,}/)
+           const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
+           if (studentAnswer === q.correctAnswer?.toLowerCase().trim()) score = 1
         } else {
            if (answer === q.correctAnswer) score = 1
         }
@@ -443,7 +445,7 @@ export default function StudentAssessmentsPage() {
 
     // ── Helper: Cloze / Gap Fill Renderer ────────────────────────────────────
     const renderClozeInput = (content: string, qId: string) => {
-      const parts = content.split('____')
+      const parts = content.split(/_{3,}/)
       return (
         <div className="pt-4 space-y-4">
           <div className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground/90 flex flex-wrap items-center gap-x-3 gap-y-10">

@@ -320,7 +320,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const markAttendance = useCallback((tid: string, date: string, s: string, sc?: number) => executeAction(() => dbMarkAttendance(tid, date, s, sc)), [executeAction])
   const addAttendanceEvent = useCallback((tid: string, date: string, e: any) => executeAction(() => dbAddAttendanceEvent(tid, date, e)), [executeAction])
   const saveEvaluations = useCallback((courseId: string, data: any[]) => executeAction(() => dbSaveEvaluations(courseId, data), "Evaluation Matrix Synchronized"), [executeAction])
-  const uploadAudio = useCallback((fd: FormData) => executeAction(() => dbUploadAudio(fd, user?.id || ''), "Institutional asset verified"), [executeAction, user?.id])
+  const uploadAudio = useCallback((fd: FormData) => {
+    if (!user?.id) {
+       toast.error("Identity verification failed. Please re-login.")
+       return Promise.reject("Missing User ID")
+    }
+    return executeAction(() => dbUploadAudio(fd, user.id), "Institutional asset verified")
+  }, [executeAction, user?.id])
   const deleteAudio = useCallback((id: string) => executeAction(() => dbDeleteAudio(id, user?.id || ''), "Asset purged"), [executeAction, user?.id])
 
   if (errorMsg) {
