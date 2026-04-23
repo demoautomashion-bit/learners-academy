@@ -206,6 +206,7 @@ model Question {
   isApproved    Boolean  @default(false)
   teacherId     String?
   difficulty    String   @default("Medium")
+  classLevel    String?
 }
 
 model AssessmentTemplate {

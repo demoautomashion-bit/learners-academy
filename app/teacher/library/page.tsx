@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
 import type { Question, QuestionCategory } from '@/lib/types'
+import { ACADEMY_LEVELS } from '@/lib/registry'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -40,6 +41,7 @@ const questionSchema = z.object({
   passageText: z.string().optional(),
   audioUrl: z.string().optional(),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).default('Medium'),
+  classLevel: z.string().optional(),
 })
 
 type QuestionFormValues = z.infer<typeof questionSchema>
@@ -70,14 +72,14 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
 
 export default function QuestionLibraryPage() {
   const { user } = useAuth()
-  const { questions, addQuestion, deleteQuestion, isInitialized, teachers, approveQuestion, audioFiles } = useData()
+  const { questions, addQuestion, updateQuestion, deleteQuestion, isInitialized, teachers, approveQuestion, audioFiles } = useData()
   
-  // Find current teacher's requiresReview flag
   const currentTeacher = teachers.find(t => t.id === user?.id)
-  const requiresReview = currentTeacher?.requiresReview ?? true // Default to true if not found for safety
+  const requiresReview = currentTeacher?.requiresReview ?? true
   
   const [activeTab, setActiveTab] = useState<QuestionCategory>('Grammar')
   const [searchQuery, setSearchQuery] = useState('')
+  const [levelFilter, setLevelFilter] = useState<string>('All Levels')
   const [isOpen, setIsOpen] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
   const [matchPairs, setMatchPairs] = useState<{ left: string; right: string }[]>([
@@ -98,9 +100,12 @@ export default function QuestionLibraryPage() {
   const imageUrl = watch('imageUrl')
   const correctAnswer = watch('correctAnswer')
 
-  const filteredQuestions = questions?.filter((q: Question) =>
-    q.category === activeTab && q.content.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredQuestions = (questions || []).filter((q: Question) => {
+    const categoryMatch = q.category === activeTab
+    const searchMatch = (q.content || '').toLowerCase().includes(searchQuery.toLowerCase())
+    const levelMatch = levelFilter === 'All Levels' || q.classLevel === levelFilter
+    return categoryMatch && searchMatch && levelMatch
+  })
 
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -118,7 +123,8 @@ export default function QuestionLibraryPage() {
       correctAnswer: '',
       imageUrl: '',
       passageText: '',
-      audioUrl: ''
+      audioUrl: '',
+      classLevel: undefined
     })
     setMatchPairs([{ left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' }])
   }
@@ -135,6 +141,7 @@ export default function QuestionLibraryPage() {
     setValue('imageUrl', q.imageUrl || '')
     setValue('passageText', q.passageText || '')
     setValue('audioUrl', q.audioUrl || '')
+    setValue('classLevel', q.classLevel || undefined)
     
     if (q.type === 'Matching' && q.matchPairs) {
       setMatchPairs(q.matchPairs as any)
@@ -172,7 +179,8 @@ export default function QuestionLibraryPage() {
       matchPairs: data.type === 'Matching' ? validPairs : undefined,
       isApproved: editingQuestion ? editingQuestion.isApproved : !requiresReview,
       teacherId: user.id,
-      difficulty: data.difficulty as any
+      difficulty: data.difficulty as any,
+      classLevel: data.classLevel
     }
 
     try {
@@ -184,14 +192,13 @@ export default function QuestionLibraryPage() {
         toast.success('Question added to your bank')
       }
       handleClose()
-    } catch {
-      // Error handled by context
+    } catch (error) {
+      console.error('Failed to save question:', error)
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-serif text-foreground font-medium">My Question Bank</h1>
@@ -221,7 +228,6 @@ export default function QuestionLibraryPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="p-6 max-h-[min(500px,50vh)] overflow-y-auto space-y-4 premium-scrollbar">
                 <FieldGroup className="space-y-4">
-                  {/* Category + Phase + Difficulty row */}
                   <div className="grid grid-cols-3 gap-3 items-stretch">
                     <Field>
                       <FieldLabel className="text-xs   opacity-60">Category</FieldLabel>
@@ -256,8 +262,21 @@ export default function QuestionLibraryPage() {
                       </Select>
                     </Field>
                   </div>
+                  
+                  <Field>
+                    <FieldLabel className="text-xs opacity-60">Target Academic Level</FieldLabel>
+                    <Select value={watch('classLevel')} onValueChange={(v) => setValue('classLevel', v)}>
+                      <SelectTrigger className="h-10 text-sm">
+                        <SelectValue placeholder="Select Level (Optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ACADEMY_LEVELS.map(level => (
+                          <SelectItem key={level} value={level} className="text-sm">{level}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
 
-                  {/* Type */}
                   <Field>
                     <FieldLabel className="text-xs">Question Type</FieldLabel>
                     <Select defaultValue="MCQ" onValueChange={(v) => setValue('type', v as any)}>
@@ -268,7 +287,6 @@ export default function QuestionLibraryPage() {
                     </Select>
                   </Field>
 
-                  {/* Reading passage — shown only when category === Reading */}
                   {selectedCategory === 'Reading' && (
                     <Field>
                       <FieldLabel className="text-xs flex items-center gap-1.5">
@@ -283,7 +301,6 @@ export default function QuestionLibraryPage() {
                     </Field>
                   )}
 
-                  {/* Audio Picker — shown only when category === Listening */}
                   {selectedCategory === 'Listening' && (
                     <Field>
                       <FieldLabel className="text-xs flex items-center gap-1.5">
@@ -338,7 +355,6 @@ export default function QuestionLibraryPage() {
                     </Field>
                   )}
 
-                  {/* Content — label and placeholder adapt to type */}
                   <Field>
                     <FieldLabel className="text-xs">
                       {selectedType === 'True/False'        ? 'Statement to evaluate'
@@ -362,7 +378,6 @@ export default function QuestionLibraryPage() {
                     {errors.content && <p className="text-xs text-destructive  mt-0.5">{errors.content.message}</p>}
                   </Field>
 
-                  {/* Image URL — all types except Listening */}
                   {selectedCategory !== 'Listening' && (
                     <Field>
                       <FieldLabel className="text-xs">Visual Aid (Optional)</FieldLabel>
@@ -382,7 +397,6 @@ export default function QuestionLibraryPage() {
                     </Field>
                   )}
 
-                  {/* MCQ options */}
                   {selectedType === 'MCQ' && (
                     <Field>
                       <FieldLabel className="text-xs">Options (comma-separated)</FieldLabel>
@@ -390,7 +404,6 @@ export default function QuestionLibraryPage() {
                     </Field>
                   )}
 
-                  {/* Matching pair builder */}
                   {selectedType === 'Matching' && (
                     <Field>
                       <FieldLabel className="text-xs">Match Pairs</FieldLabel>
@@ -422,7 +435,6 @@ export default function QuestionLibraryPage() {
                     </Field>
                   )}
 
-                  {/* Correct Answer — MCQ, True/False, Fill in the Blanks */}
                   {(selectedType === 'MCQ' || selectedType === 'True/False' || selectedType === 'Fill in the Blanks') && (
                     <Field>
                       <FieldLabel className="text-xs">Correct Answer</FieldLabel>
@@ -430,7 +442,7 @@ export default function QuestionLibraryPage() {
                         <div className="grid grid-cols-2 gap-2 items-stretch">
                           {['True', 'False'].map(opt => (
                             <button key={opt} type="button" onClick={() => setValue('correctAnswer', opt)}
-                              className={`h-8  border-2 text-xs  transition-premium ${correctAnswer === opt ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:'}`}>
+                              className={`h-8  border-2 text-xs  transition-premium ${correctAnswer === opt ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground'}`}>
                               {opt}
                             </button>
                           ))}
@@ -444,10 +456,10 @@ export default function QuestionLibraryPage() {
               </div>
 
               <DialogFooter className="bg-muted/5 border-t  p-6 mt-0 flex flex-col sm:flex-row gap-3">
-                <Button type="button" variant="outline" onClick={handleClose} className="">
+                <Button type="button" variant="outline" onClick={handleClose}>
                   <span className="text-xs   font-normal">Cancel</span>
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="">
+                <Button type="submit" disabled={isSubmitting}>
                   <span className="text-xs   font-normal">
                     {isSubmitting ? (editingQuestion ? 'Saving...' : 'Adding...') : (editingQuestion ? 'Save Changes' : 'Add Block')}
                   </span>
@@ -458,7 +470,6 @@ export default function QuestionLibraryPage() {
         </Dialog>
       </div>
 
-      {/* Library Grid */}
       <div className="grid gap-6 md:grid-cols-[1fr_200px] items-stretch">
         <div className="space-y-4">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
@@ -468,37 +479,48 @@ export default function QuestionLibraryPage() {
               ))}
             </TabsList>
 
-            <div className="mt-6">
-              <div className="relative mb-6">
+            <div className="mt-6 flex flex-col md:flex-row gap-4 items-stretch">
+              <div className="relative flex-1 group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40 transition-premium" />
                 <Input placeholder={`Search in ${activeTab}...`} value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-12     text-sm transition-premium focus:ring-1 focus:ring-primary/20" />
               </div>
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger className="h-12 md:w-56 text-xs bg-muted/10 border-primary/5 rounded-xl">
+                  <SelectValue placeholder="All Levels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Levels" className="text-xs">All Levels</SelectItem>
+                  {ACADEMY_LEVELS.map(level => (
+                    <SelectItem key={level} value={level} className="text-xs">{level}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <motion.div 
-                className="grid gap-4"
-                variants={STAGGER_CONTAINER}
-                initial="hidden"
-                animate="visible"
-              >
-                {filteredQuestions.length === 0 ? (
-                  <Card className="glass-1 border-dashed py-16 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <div className="bg-primary/5 p-4  mb-4">
-                        <LibraryIcon className="w-8 h-8 text-primary/30" />
-                      </div>
-                      <p className="font-sans text-lg font-normal">Empty Category</p>
-                      <p className="text-editorial-meta opacity-60 text-sm mt-1">No blocks found in the {activeTab} registry.</p>
+            <motion.div 
+              className="grid gap-4 mt-6"
+              variants={STAGGER_CONTAINER}
+              initial="hidden"
+              animate="visible"
+            >
+              {filteredQuestions.length === 0 ? (
+                <Card className="glass-1 border-dashed py-16 rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="bg-primary/5 p-4  mb-4">
+                      <LibraryIcon className="w-8 h-8 text-primary/30" />
                     </div>
-                  </Card>
-                ) : (
-                  filteredQuestions?.map(q => (
-                    <motion.div key={q.id} variants={STAGGER_ITEM}>
-                      <Card className="glass-1 overflow-hidden hover-lift transition-premium flex flex-col rounded-2xl shadow-premium hover:translate-y-[-2px] h-full">
-                        <div className="p-6">
-                          <div className="flex justify-between items-start gap-6">
-                            <div className="space-y-3 flex-1 min-w-0">
-                            {/* Badges */}
+                    <p className="font-sans text-lg font-normal">Empty Category</p>
+                    <p className="text-editorial-meta opacity-60 text-sm mt-1">No blocks found in the {activeTab} registry.</p>
+                  </div>
+                </Card>
+              ) : (
+                filteredQuestions.map(q => (
+                  <motion.div key={q.id} variants={STAGGER_ITEM}>
+                    <Card className="glass-1 overflow-hidden hover-lift transition-premium flex flex-col rounded-2xl shadow-premium hover:translate-y-[-2px] h-full">
+                      <div className="p-6">
+                        <div className="flex justify-between items-start gap-6">
+                          <div className="space-y-3 flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <Badge variant="outline" className={`text-xs px-2 h-5 font-normal   border-none ${TYPE_BADGE_COLORS[q.type] || ''}`}>
                                 {q.type}
@@ -526,12 +548,15 @@ export default function QuestionLibraryPage() {
                               <Badge variant={q.isApproved ? 'outline' : 'secondary'} className={`text-xs px-2 h-5    ${q.isApproved ? 'border-success/30 bg-success/5 text-success' : 'border-warning/30 bg-warning/5 text-warning'}`}>
                                 {q.isApproved ? 'Approved' : 'Pending Review'}
                               </Badge>
+                              {q.classLevel && (
+                                <Badge variant="outline" className="text-xs px-2 h-5 font-bold border-primary/10 text-primary/80">
+                                  {q.classLevel}
+                                </Badge>
+                              )}
                             </div>
 
-                            {/* Content */}
                             <p className="text-sm text-foreground/80 leading-relaxed font-sans font-normal">{q.content}</p>
 
-                            {/* Match pairs preview */}
                             {q.type === 'Matching' && q.matchPairs && (
                               <div className="space-y-1">
                                 {(q.matchPairs as { left: string; right: string }[]).slice(0, 3).map((pair, i) => (
@@ -547,7 +572,6 @@ export default function QuestionLibraryPage() {
                               </div>
                             )}
 
-                            {/* MCQ options */}
                             {q.type === 'MCQ' && q.options && (
                               <div className="flex flex-wrap gap-1">
                                 {q.options?.map((opt, i) => (
@@ -558,7 +582,6 @@ export default function QuestionLibraryPage() {
                               </div>
                             )}
 
-                            {/* Image */}
                             {q.imageUrl && (
                               <div className="relative w-full h-24  overflow-hidden border  mt-1">
                                 <Image src={q.imageUrl} alt="Visual aid" fill className="object-cover" />
@@ -566,7 +589,6 @@ export default function QuestionLibraryPage() {
                             )}
                           </div>
 
-                          {/* Actions */}
                           <div className="flex gap-2 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
                             {!q.isApproved && !requiresReview && (
                               <Button 
@@ -597,15 +619,13 @@ export default function QuestionLibraryPage() {
                         </div>
                       </div>
                     </Card>
-                    </motion.div>
-                  ))
-                )}
-              </motion.div>
-            </div>
+                  </motion.div>
+                ))
+              )}
+            </motion.div>
           </Tabs>
         </div>
 
-        {/* Stats sidebar */}
         <div className="space-y-4">
           <Card className="glass-1 overflow-hidden rounded-2xl shadow-premium transition-premium hover:translate-y-[-2px] h-full flex flex-col">
             <CardHeader className="p-6 border-b ">

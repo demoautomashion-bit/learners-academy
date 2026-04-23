@@ -139,6 +139,7 @@ export interface Question {
   isApproved: boolean
   teacherId?: string
   difficulty?: 'Easy' | 'Medium' | 'Hard'
+  classLevel?: string
 }
 
 export interface ActionResult<T = any> {

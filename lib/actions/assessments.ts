@@ -237,11 +237,21 @@ export async function generateRandomizedQuestions(studentId: string, assessmentI
         isApproved: true,
         // Isolation: Only use questions belonging to the teacher who created the assessment
         teacherId: assessment.submittedByTeacherId,
+        // Level-based Filtering: Match the level of the test
         OR: [
-          { phase: assessment.phase },
-          { phase: 'Both' }
+          { classLevel: { in: assessment.classLevels } },
+          { classLevel: null } // Fallback for legacy blocks
         ],
-        ...(assessment.nature !== 'Mixed' ? { type: assessment.nature } : {})
+        // Phase and Type constraints
+        AND: [
+          { 
+            OR: [
+              { phase: assessment.phase },
+              { phase: 'Both' }
+            ]
+          },
+          ...(assessment.nature !== 'Mixed' ? [{ type: assessment.nature }] : [])
+        ]
       }
     })
 

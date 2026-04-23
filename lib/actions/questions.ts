@@ -33,7 +33,8 @@ export async function addQuestion(question: Omit<Question, 'id'>): Promise<Actio
         matchPairs: question.matchPairs as any,
         isApproved: question.isApproved ?? false,
         teacherId: question.teacherId,
-        difficulty: question.difficulty || "Medium"
+        difficulty: question.difficulty || "Medium",
+        classLevel: question.classLevel
       }
     })
     revalidatePath('/')
@@ -71,7 +72,13 @@ export async function updateQuestion(id: string, data: Partial<Question>, teache
         return { success: false, error: 'Authorization Failure: This block is locked for your identity.' }
       }
     }
-    const result = await db.question.update({ where: { id }, data: data as any })
+    const result = await db.question.update({ 
+      where: { id }, 
+      data: {
+        ...data,
+        matchPairs: data.matchPairs as any
+      } as any 
+    })
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {
