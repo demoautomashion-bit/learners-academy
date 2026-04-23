@@ -66,8 +66,8 @@ export default function TeacherClassesPage() {
       render: (course) => {
         const count = mockStudents?.filter(s => isStudentInCourse(s, course)).length || 0
         return (
-          <span className="font-sans font-medium text-sm text-foreground/80">
-            {count} / {course.capacity}
+          <span className="font-sans font-medium text-sm text-foreground/80 flex items-center gap-1.5">
+            {count} <span className="text-[10px] uppercase opacity-40 font-bold tracking-tighter">Students</span>
           </span>
         )
       },

@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Save, Users, FileSpreadsheet, BarChart3, ArrowLeft, RefreshCw } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Save, Users, FileSpreadsheet, BarChart3, ArrowLeft, RefreshCw, User, ShieldCheck } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
@@ -138,25 +139,54 @@ export default function ClassWorkspacePage() {
   const rosterColumns: Column<Student>[] = [
     {
       label: 'S.No',
-      render: (_, i) => <span className="font-mono text-muted-foreground">{String(i).padStart(2, '0')}</span>,
-      width: '80px'
+      render: (_, i) => <span className="font-mono text-muted-foreground text-[10px]">{String(i + 1).padStart(2, '0')}</span>,
+      width: '60px'
     },
     {
       label: 'Student Name',
-      render: (s) => <span className="font-serif font-medium">{s.name}</span>
+      render: (s) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8 border border-primary/10">
+            <AvatarImage src={s.avatar} alt={s.name} />
+            <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
+              {s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="font-serif font-medium text-sm leading-tight">{s.name}</span>
+            <span className="text-[9px] text-muted-foreground opacity-50 uppercase tracking-widest mt-0.5">Academic Record</span>
+          </div>
+        </div>
+      )
     },
     {
-      label: 'Dossier ID',
-      render: (s) => <span className="font-mono text-[10px] uppercase opacity-50 tracking-tighter">{s.studentId || 'N/A'}</span>,
-      width: '120px'
+      label: 'Student ID',
+      render: (s) => (
+        <div className="flex items-center gap-1.5">
+          <div className="w-1 h-1 rounded-full bg-primary/40" />
+          <span className="font-mono text-[11px] font-bold text-primary/70 tracking-tight">{s.studentId || 'N/A'}</span>
+        </div>
+      ),
+      width: '140px'
     },
     {
       label: 'Guardian Name',
-      render: (s) => <span className="text-muted-foreground opacity-80">{s.guardianName || 'Unknown'}</span>
+      render: (s) => <span className="text-muted-foreground text-xs opacity-80">{s.guardianName || 'Unknown'}</span>
     },
     {
-      label: 'Session',
-      render: (s) => <Badge variant="secondary">{s.classTiming || 'TBC'}</Badge>
+      label: 'Status',
+      render: (s) => (
+        <Badge 
+          variant="outline" 
+          className={cn(
+            "text-[9px] uppercase tracking-widest px-2 py-0.5 font-bold border-0",
+            s.status === 'active' ? "bg-success/10 text-success" : "bg-muted/10 text-muted-foreground"
+          )}
+        >
+          {s.status || 'active'}
+        </Badge>
+      ),
+      width: '100px'
     }
   ]
 
@@ -191,7 +221,7 @@ export default function ClassWorkspacePage() {
               <FileSpreadsheet className="w-4 h-4" /> Assessment Sheet
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-6 h-14 font-medium gap-2 text-muted-foreground data-[state=active]:text-foreground transition-all">
-              <BarChart3 className="w-4 h-4" /> Intelligence
+              <BarChart3 className="w-4 h-4" /> Performance Insights
             </TabsTrigger>
           </TabsList>
         </div>
@@ -305,10 +335,14 @@ export default function ClassWorkspacePage() {
           </TabsContent>
 
           <TabsContent value="analytics" className="m-0 mt-2 fade-in zoom-in duration-300">
-             <Card className="border-dashed bg-muted/5 py-24 text-center">
-                <BarChart3 className="w-12 h-12 mx-auto text-primary/30 mb-4" />
-                <h3 className="text-xl font-serif">Intelligence Modules Pending</h3>
-                <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-2">Class performance dashboards will auto-generate here once sufficient evaluations are logged in the Assessment Sheet.</p>
+             <Card className="border-dashed bg-muted/5 py-24 text-center rounded-[2rem]">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-6">
+                  <BarChart3 className="w-8 h-8 text-primary/40" />
+                </div>
+                <h3 className="text-xl font-serif font-bold">Analytics Engine Initializing</h3>
+                <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-2 leading-relaxed">
+                  Class performance dashboards and individual growth metrics will auto-generate here once sufficient evaluations are logged in the Assessment Sheet.
+                </p>
              </Card>
           </TabsContent>
 
