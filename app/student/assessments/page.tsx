@@ -745,6 +745,14 @@ export default function StudentAssessmentsPage() {
             <Lock className="w-16 h-16 text-primary/20 mx-auto mb-6" />
             <h3 className="text-2xl font-serif font-bold">No active sessions found</h3>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-2 leading-relaxed">Your access token does not match any current active assessments in this academic branch.</p>
+            <Button 
+              onClick={() => router.push('/student')} 
+              variant="outline"
+              className="mt-8 rounded-xl px-8 font-bold border-primary/20 hover:bg-primary/5 text-primary"
+            >
+              <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+              Return to Credentials
+            </Button>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -825,7 +833,7 @@ export default function StudentAssessmentsPage() {
         {isTestEngineOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex flex-col items-center justify-center p-0 lg:p-8"
+            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex flex-col items-center justify-start overflow-y-auto p-4 sm:p-8 lg:p-12"
           >
             {/* Result screen */}
             {showResult ? (
