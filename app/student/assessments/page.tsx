@@ -38,8 +38,8 @@ function BlankInput({
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="relative z-50 pointer-events-auto cursor-text border-b-2 border-primary bg-primary/5 text-center text-primary font-semibold focus:outline-none min-w-[140px] pb-1 px-3 rounded-t-md transition-all focus:bg-primary/10 focus:ring-2 focus:ring-primary/20 ring-offset-2"
-      placeholder="Type here"
+      className="relative z-50 pointer-events-auto cursor-text border-b-2 border-primary bg-primary/5 text-center text-primary font-semibold focus:outline-none min-w-[100px] sm:min-w-[140px] pb-1 px-3 rounded-t-md transition-all focus:bg-primary/10 focus:ring-2 focus:ring-primary/20 ring-offset-2"
+      placeholder="…"
       autoComplete="off"
     />
   );
@@ -471,7 +471,7 @@ export default function StudentAssessmentsPage() {
       const parts = content.split(/_{3,}/)
       return (
         <div className="pt-4 space-y-4">
-          <div className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground/90 flex flex-wrap items-center gap-x-3 gap-y-10">
+          <div className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground/90 flex flex-wrap items-center gap-x-3 gap-y-4 sm:gap-y-10">
             {parts.map((part, i) => (
               <span key={i} className="flex items-center gap-3 flex-wrap">
                 <span>{part}</span>
@@ -564,12 +564,12 @@ export default function StudentAssessmentsPage() {
 
       return (
         <div className="space-y-3 pt-4">
-          <div className="grid grid-cols-2 gap-3 mb-2">
+          <div className="hidden sm:grid grid-cols-2 gap-3 mb-2">
             <p className="text-editorial-label text-[10px] pl-1">Column A — Term</p>
             <p className="text-editorial-label text-[10px] pl-1">Column B — Match</p>
           </div>
           {pairs.map((pair: any, i: number) => (
-            <div key={i} className="grid grid-cols-2 gap-3 items-center">
+            <div key={i} className="flex flex-col sm:grid sm:grid-cols-2 gap-3 items-center">
               <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-sm font-medium leading-tight">
                 {pair.left}
               </div>
@@ -724,7 +724,7 @@ export default function StudentAssessmentsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-primary/10">
         <div className="space-y-1">
-          <h1 className="font-serif text-5xl font-bold text-foreground drop-shadow-sm">Assessments</h1>
+          <h1 className="font-serif text-3xl sm:text-5xl font-bold text-foreground drop-shadow-sm">Assessments</h1>
           <p className="text-muted-foreground text-editorial-label uppercase tracking-[0.2em] opacity-60">Proctored Academic Registry</p>
         </div>
         <div className="flex items-center gap-3 bg-primary/5 px-5 py-3 rounded-2xl border border-primary/10 backdrop-blur-sm">
@@ -763,13 +763,13 @@ export default function StudentAssessmentsPage() {
                 <Card 
                   key={assessment.id} 
                   className={cn(
-                    "group rounded-[2.5rem] border-primary/10 bg-card/40 backdrop-blur-2xl shadow-premium overflow-hidden hover:shadow-massive hover-lift transition-premium relative",
+                    "group rounded-3xl sm:rounded-[2.5rem] border-primary/10 bg-card/40 backdrop-blur-2xl shadow-premium overflow-hidden hover:shadow-massive hover-lift transition-premium relative",
                     !isSessionReady && "opacity-60 grayscale-[0.5] cursor-not-allowed"
                   )}
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   
-                  <CardHeader className="p-8 pb-4 relative z-10">
+                  <CardHeader className="p-6 sm:p-8 pb-4 relative z-10">
                     <div className="flex justify-between items-start mb-4">
                       <Badge variant="outline" className="text-[10px] uppercase tracking-widest bg-primary/5 border-primary/10 px-3 py-1 font-medium">{assessment.nature}</Badge>
                       <div className="p-2.5 bg-primary/10 rounded-xl ring-1 ring-primary/20 shadow-sm">
@@ -780,8 +780,8 @@ export default function StudentAssessmentsPage() {
                     <CardDescription className="text-[10px] uppercase tracking-widest font-medium opacity-40 mt-2">Institutional Examination Profile</CardDescription>
                   </CardHeader>
 
-                  <CardContent className="p-8 pt-0 space-y-8">
-                    <div className="grid grid-cols-2 gap-6 bg-primary/[0.03] p-4 rounded-2xl border border-primary/5">
+                  <CardContent className="p-6 sm:p-8 pt-0 space-y-8">
+                    <div className="grid grid-cols-2 gap-4 sm:gap-6 bg-primary/[0.03] p-4 rounded-2xl border border-primary/5">
                       <div className="space-y-1">
                         <p className="text-[9px] uppercase tracking-widest font-black text-primary/60">Duration</p>
                         <div className="flex items-center gap-2">
@@ -977,19 +977,19 @@ export default function StudentAssessmentsPage() {
 
                   {(isAdaptiveMode ? currentQuestionIndex === (activeTest?.questionCount || 10) - 1 : currentQuestionIndex === randomizedQuestions.length - 1) ? (
                     <Button
-                      size="sm"
+                      size="lg"
                       onClick={() => isAdaptiveMode ? handleAdaptiveSubmit() : finishTest(false)}
-                      className="bg-success hover:bg-success/90 rounded-xl px-6 font-bold gap-1.5 shadow-md shadow-success/20"
+                      className="bg-success hover:bg-success/90 rounded-xl px-8 h-12 sm:h-10 font-bold gap-1.5 shadow-md shadow-success/20"
                     >
-                      Finish & Submit <CheckCircle className="w-4 h-4" />
+                      Finish & Submit <CheckCircle className="w-5 h-5" />
                     </Button>
                   ) : (
                     <Button
-                      size="sm"
+                      size="lg"
                       onClick={() => isAdaptiveMode ? handleAdaptiveSubmit() : setCurrentQuestionIndex(p => p + 1)}
-                      className="rounded-xl px-6 font-bold gap-1.5"
+                      className="rounded-xl px-8 h-12 sm:h-10 font-bold gap-1.5"
                     >
-                      {isAdaptiveMode ? "Submit Answer & Continue" : "Next"} <ChevronRight className="w-4 h-4" />
+                      {isAdaptiveMode ? "Submit Answer & Continue" : "Next"} <ChevronRight className="w-5 h-5" />
                     </Button>
                   )}
                 </div>
