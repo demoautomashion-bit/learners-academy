@@ -40,10 +40,12 @@ function BlankInput({
       onChange={(e) => onChange(e.target.value)}
       className="relative z-50 pointer-events-auto cursor-text border-b-2 border-primary bg-primary/5 text-center text-primary font-semibold focus:outline-none min-w-[100px] sm:min-w-[140px] pb-1 px-3 rounded-t-md transition-all focus:bg-primary/10 focus:ring-2 focus:ring-primary/20 ring-offset-2"
       placeholder="…"
-      autoComplete="off"
+      autoComplete="one-time-code"
       spellCheck={false}
       autoCorrect="off"
       autoCapitalize="none"
+      inputMode="text"
+      data-gramm="false"
     />
   );
 }
@@ -543,6 +545,9 @@ export default function StudentAssessmentsPage() {
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="none"
+            autoComplete="one-time-code"
+            inputMode="text"
+            data-gramm="false"
           />
           {wordCount > 0 && wordCount < 80 && (
             <p className="text-xs text-warning/80 font-medium">Aim for at least 80 words for a complete academic response.</p>
@@ -661,6 +666,9 @@ export default function StudentAssessmentsPage() {
                 spellCheck={false}
                 autoCorrect="off"
                 autoCapitalize="none"
+                autoComplete="one-time-code"
+                inputMode="text"
+                data-gramm="false"
               />
             </div>
           )}
@@ -706,6 +714,9 @@ export default function StudentAssessmentsPage() {
                 spellCheck={false}
                 autoCorrect="off"
                 autoCapitalize="none"
+                autoComplete="one-time-code"
+                inputMode="text"
+                data-gramm="false"
               />
             </div>
           )}
@@ -725,6 +736,9 @@ export default function StudentAssessmentsPage() {
           spellCheck={false}
           autoCorrect="off"
           autoCapitalize="none"
+          autoComplete="one-time-code"
+          inputMode="text"
+          data-gramm="false"
         />
       </div>
     )
