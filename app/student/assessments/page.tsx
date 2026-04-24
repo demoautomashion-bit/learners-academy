@@ -41,6 +41,9 @@ function BlankInput({
       className="relative z-50 pointer-events-auto cursor-text border-b-2 border-primary bg-primary/5 text-center text-primary font-semibold focus:outline-none min-w-[100px] sm:min-w-[140px] pb-1 px-3 rounded-t-md transition-all focus:bg-primary/10 focus:ring-2 focus:ring-primary/20 ring-offset-2"
       placeholder="…"
       autoComplete="off"
+      spellCheck={false}
+      autoCorrect="off"
+      autoCapitalize="none"
     />
   );
 }
@@ -538,6 +541,8 @@ export default function StudentAssessmentsPage() {
             value={currentAnswer}
             onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
             spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="none"
           />
           {wordCount > 0 && wordCount < 80 && (
             <p className="text-xs text-warning/80 font-medium">Aim for at least 80 words for a complete academic response.</p>
@@ -654,6 +659,8 @@ export default function StudentAssessmentsPage() {
                 value={currentAnswer}
                 onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
                 spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="none"
               />
             </div>
           )}
@@ -697,6 +704,8 @@ export default function StudentAssessmentsPage() {
                 value={currentAnswer}
                 onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
                 spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="none"
               />
             </div>
           )}
@@ -713,6 +722,9 @@ export default function StudentAssessmentsPage() {
           className="min-h-[220px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
           value={currentAnswer}
           onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="none"
         />
       </div>
     )
