@@ -26,6 +26,20 @@ const AUTO_GRADED_TYPES = ['MCQ', 'True/False', 'Fill in the Blanks', 'Matching'
 const AI_GRADED_TYPES   = ['Subjective', 'Writing', 'Reading', 'Listening'] as const
 
 // ── Components ─────────────────────────────────────────────────────────────
+function WatermarkOverlay({ name, id }: { name: string; id: string }) {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[200] overflow-hidden opacity-[0.03] select-none" aria-hidden="true">
+      <div className="absolute inset-0 flex flex-wrap gap-20 p-20 rotate-[-25deg] scale-150">
+        {Array.from({ length: 40 }).map((_, i) => (
+          <div key={i} className="text-xl font-bold whitespace-nowrap tracking-widest text-foreground uppercase">
+            {name} — {id}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function BlankInput({ 
   value, 
   onChange 
@@ -91,6 +105,7 @@ export default function StudentAssessmentsPage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<string>('Medium')
   const [adaptiveHistory, setAdaptiveHistory] = useState<{questionId: string, difficulty: string, score: number}[]>([])
 
+  const [isBlackedOut, setIsBlackedOut] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   // ── Start Test ──────────────────────────────────────────────────────────────
@@ -177,6 +192,9 @@ export default function StudentAssessmentsPage() {
     if (!isTestEngineOpen || showResult) return
 
     const handleViolation = (reason: string) => {
+      if (reason === "Print Screen Attempted") {
+        setIsBlackedOut(true)
+      }
       setStrikes(prev => {
         const next = prev + 1
         if (next >= 3) { toast.error(`CRITICAL VIOLATION: ${reason}. Auto-submitting.`); finishTest(true); return next }
@@ -190,27 +208,43 @@ export default function StudentAssessmentsPage() {
       })
     }
 
-    const onVisibility = () => { if (document.visibilityState === 'hidden') handleViolation("Tab Switch Detected") }
+    const onVisibility = () => { 
+      if (document.visibilityState === 'hidden') {
+        setIsPaused(true)
+        handleViolation("Tab Switch Detected")
+      }
+    }
     const onBlur = () => handleViolation("App De-focus Detected")
     const onFullscreen = () => { if (!document.fullscreenElement) handleViolation("Fullscreen Exit Detected") }
     const preventKeys = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen') {
+        e.preventDefault()
+        handleViolation("Print Screen Attempted")
+      }
       if ((e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) || e.key === 'F12') {
-        e.preventDefault(); toast.error("Security: Action Disabled during Assessment")
+        e.preventDefault(); 
+        handleViolation("Clipboard/Inspector Action")
       }
     }
     const preventRightClick = (e: MouseEvent) => e.preventDefault()
+    const preventCopy = (e: ClipboardEvent) => {
+      e.preventDefault()
+      handleViolation("Copy Attempted")
+    }
 
     window.addEventListener('visibilitychange', onVisibility)
     window.addEventListener('blur', onBlur)
     document.addEventListener('fullscreenchange', onFullscreen)
     window.addEventListener('keydown', preventKeys)
     window.addEventListener('contextmenu', preventRightClick)
+    window.addEventListener('copy', preventCopy)
     return () => {
       window.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('blur', onBlur)
       document.removeEventListener('fullscreenchange', onFullscreen)
       window.removeEventListener('keydown', preventKeys)
       window.removeEventListener('contextmenu', preventRightClick)
+      window.removeEventListener('copy', preventCopy)
     }
   }, [isTestEngineOpen, showResult])
 
@@ -858,9 +892,31 @@ export default function StudentAssessmentsPage() {
       <AnimatePresence>
         {isTestEngineOpen && (
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-background/90 backdrop-blur-2xl overflow-y-auto px-4 py-12 sm:px-8 lg:px-12 flex justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] bg-background flex flex-col select-none touch-none"
+            style={{ 
+              userSelect: 'none', 
+              WebkitUserSelect: 'none', 
+              WebkitTouchCallout: 'none' 
+            }}
           >
+            {user && <WatermarkOverlay name={user.name} id={user.studentId || user.id} />}
+            
+            {/* Blackout Guard */}
+            {isBlackedOut && (
+              <div className="fixed inset-0 z-[300] bg-black flex flex-col items-center justify-center text-center p-10">
+                <AlertTriangle className="w-20 h-20 text-destructive mb-6 animate-pulse" />
+                <h2 className="text-3xl font-serif font-bold text-white mb-4">Security Violation Detected</h2>
+                <p className="text-muted-foreground max-w-md mb-8">Screen capture attempts are strictly prohibited during institutional assessments. This action has been logged in your academic record.</p>
+                <Button onClick={() => setIsBlackedOut(false)} variant="outline" className="text-white border-white/20 hover:bg-white/10">
+                  I Understand, Resume Test
+                </Button>
+              </div>
+            )}
+            
+            {/* Header */}
             {/* Result screen */}
             {showResult ? (
               <motion.div
