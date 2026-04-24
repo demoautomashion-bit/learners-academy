@@ -119,6 +119,21 @@ export default function QuestionLibraryPage() {
     return categoryMatch && searchMatch && levelMatch
   })
 
+  const classBasedStats = useMemo(() => {
+    const stats: Record<string, { total: number; types: Record<string, number> }> = {}
+    
+    questions.forEach((q: Question) => {
+      const level = q.classLevel || 'Unassigned'
+      if (!stats[level]) {
+        stats[level] = { total: 0, types: {} }
+      }
+      stats[level].total++
+      stats[level].types[q.type] = (stats[level].types[q.type] || 0) + 1
+    })
+    
+    return stats
+  }, [questions])
+
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
 
@@ -642,23 +657,40 @@ export default function QuestionLibraryPage() {
             <CardHeader className="p-6 border-b ">
               <CardTitle className="opacity-60 text-xl font-serif font-medium">Block Registry Intelligence</CardTitle>
             </CardHeader>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-6">
               <div className="flex justify-between items-end">
-                <span className="text-xs   font-normal opacity-50">Total Blocks</span>
+                <span className="text-xs font-normal opacity-50">Total Library Blocks</span>
                 <span className="text-3xl font-sans font-normal text-primary">{questions.length}</span>
               </div>
-              <div className="pt-4 border-t  space-y-2.5">
-                <p className="text-xs   font-normal opacity-40">By Taxonomy</p>
-                {TYPE_OPTIONS?.map(t => {
-                  const count = questions?.filter((q: Question) => q.type === t.value).length
-                  return count > 0 ? (
-                    <div key={t.value} className="flex justify-between items-center group">
-                      <span className="text-xs text-muted-foreground font-normal transition-colors group-hover:text-foreground">{t.value}</span>
-                      <Badge variant="outline" className="h-4 px-1.5 text-xs  bg-primary/[0.02] font-normal">{count}</Badge>
+              
+              <div className="space-y-6 max-h-[500px] overflow-y-auto premium-scrollbar pr-2">
+                {Object.entries(classBasedStats).sort(([a], [b]) => a.localeCompare(b)).map(([level, data]) => (
+                  <div key={level} className="pt-4 border-t first:border-t-0 first:pt-0 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs font-bold uppercase tracking-widest text-primary/70">{level}</p>
+                      <Badge variant="secondary" className="h-5 px-2 text-[10px] font-bold bg-primary/10 text-primary border-none">
+                        {data.total} Total
+                      </Badge>
                     </div>
-                  ) : null
-                })}
+                    <div className="grid gap-2">
+                      {Object.entries(data.types).map(([type, count]) => (
+                        <div key={type} className="flex justify-between items-center group">
+                          <span className="text-[11px] text-muted-foreground font-medium transition-colors group-hover:text-foreground">
+                            {type}
+                          </span>
+                          <span className="text-[11px] font-mono opacity-40">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
+
+              {questions.length === 0 && (
+                <p className="text-xs text-center text-muted-foreground italic opacity-50 py-8">
+                  No data available for analysis.
+                </p>
+              )}
             </div>
           </Card>
         </div>

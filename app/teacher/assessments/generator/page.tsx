@@ -125,12 +125,15 @@ export default function AssessmentGeneratorPage() {
      return questions?.filter(q => q.phase === watchPhase || q.phase === 'Both')
   }, [questions, watchPhase])
 
-  const natureStats = useMemo(() => {
-     const stats: Record<string, number> = {}
-     availableBlocks.forEach(q => {
-        stats[q.type] = (stats[q.type] || 0) + 1
-     })
-     return stats
+  const classStats = useMemo(() => {
+    const stats: Record<string, { total: number; types: Record<string, number> }> = {}
+    availableBlocks.forEach(q => {
+       const level = q.classLevel || 'Unassigned'
+       if (!stats[level]) stats[level] = { total: 0, types: {} }
+       stats[level].total++
+       stats[level].types[q.type] = (stats[level].types[q.type] || 0) + 1
+    })
+    return stats
   }, [availableBlocks])
 
   const totalCalculatedMarks = useMemo(() => {
@@ -463,19 +466,29 @@ export default function AssessmentGeneratorPage() {
                       </p>
                    </div>
 
-                   <div className="space-y-4 pt-8 border-t border-primary/5">
-                      <h4 className="text-[10px] uppercase tracking-widest font-black opacity-30">Type Availability</h4>
-                      <div className="grid gap-3">
-                         {['MCQ', 'Subjective', 'Reading', 'Listening', 'Writing'].map(type => (
-                            <div key={type} className="flex items-center justify-between p-4 bg-muted/5 border border-primary/5 rounded-2xl hover:bg-muted/10 transition-all group">
-                               <span className="text-xs font-medium opacity-60">{type} Units</span>
-                               <div className="flex items-center gap-3">
-                                  <span className="text-sm font-sans font-bold">{natureStats[type] || 0}</span>
-                                  <div className={cn("w-1.5 h-1.5 rounded-full ", (natureStats[type] || 0) > 0 ? "bg-success" : "bg-muted-foreground/20")} />
-                               </div>
+                   <div className="space-y-6 pt-8 border-t border-primary/5 max-h-[400px] overflow-y-auto premium-scrollbar pr-2">
+                      {Object.entries(classStats).sort(([a], [b]) => a.localeCompare(b)).map(([level, data]) => (
+                         <div key={level} className="space-y-3 pt-4 first:pt-0 border-t first:border-t-0">
+                            <div className="flex justify-between items-center">
+                               <h4 className="text-[10px] uppercase tracking-widest font-black text-primary/60">{level}</h4>
+                               <Badge variant="outline" className="text-[9px] h-4 bg-primary/5 border-none font-bold">{data.total} Units</Badge>
                             </div>
-                         ))}
-                      </div>
+                            <div className="grid gap-2">
+                               {Object.entries(data.types).map(([type, count]) => (
+                                  <div key={type} className="flex items-center justify-between p-3 bg-muted/5 border border-primary/5 rounded-xl hover:bg-muted/10 transition-all group">
+                                     <span className="text-[11px] font-medium opacity-60">{type}</span>
+                                     <div className="flex items-center gap-2">
+                                        <span className="text-[11px] font-sans font-bold">{count}</span>
+                                        <div className="w-1 h-1 rounded-full bg-success/40" />
+                                     </div>
+                                  </div>
+                               ))}
+                            </div>
+                         </div>
+                      ))}
+                      {availableBlocks.length === 0 && (
+                         <p className="text-[11px] text-center text-muted-foreground opacity-40 py-4">No questions available for this phase.</p>
+                      )}
                    </div>
  
                    <div className="pt-8 border-t border-primary/5">
