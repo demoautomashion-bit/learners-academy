@@ -87,8 +87,8 @@ export default function EconomicsAuditorPage() {
         const doc = new jsPDF()
         const pageWidth = doc.internal.pageSize.getWidth()
         
-        // 1. Institutional Branding (Vector-Based for Reliability)
-        doc.setFillColor(31, 41, 55) // Brand Primary
+        // 1. Institutional Branding (Vector-Based)
+        doc.setFillColor(31, 41, 55)
         doc.rect(0, 0, pageWidth, 35, 'F')
         
         doc.setTextColor(255, 255, 255)
@@ -99,67 +99,109 @@ export default function EconomicsAuditorPage() {
         doc.setFontSize(8)
         doc.setFont('helvetica', 'normal')
         doc.text("Institutional Financial Audit Registry", 15, 24)
-        doc.text("Address: Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.", 15, 28)
+        doc.text("Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.", 15, 28)
         doc.text("Contact: +92-3003583286 / +92-3115455533", 15, 31)
 
-        // 2. Report Header
+        // 2. Report Header & Filter Context
         doc.setTextColor(40)
         doc.setFontSize(14)
         doc.setFont('helvetica', 'bold')
-        doc.text(`${(temporalFilter || 'Cycle').toUpperCase()} PERFORMANCE AUDIT`, 15, 50)
+        const filterTitle = (temporalFilter || 'Cycle').toUpperCase()
+        doc.text(`${filterTitle} PERFORMANCE AUDIT`, 15, 50)
         
         doc.setFontSize(8)
         doc.setFont('helvetica', 'normal')
-        doc.text(`Generated on: ${new Date().toLocaleString()}`, 15, 56)
+        doc.text(`Audit Generation Timestamp: ${new Date().toLocaleString()}`, 15, 56)
 
-        // 3. Financial Summary Matrix
+        // 3. Summary Matrix
         const summaryY = 65
         const stats = [
-            { label: 'Inflow', value: `PKR ${(financialMetrics?.totalEarnings || 0).toLocaleString()}` },
-            { label: 'Outflow', value: `PKR ${(financialMetrics?.totalExpenses || 0).toLocaleString()}` },
-            { label: 'Net Margin', value: `PKR ${(financialMetrics?.margin || 0).toLocaleString()}` }
+            { label: 'Total Inflow', value: `PKR ${(financialMetrics?.totalEarnings || 0).toLocaleString()}`, color: [34, 197, 94] },
+            { label: 'Total Outflow', value: `PKR ${(financialMetrics?.totalExpenses || 0).toLocaleString()}`, color: [239, 68, 68] },
+            { label: 'Net Margin', value: `PKR ${(financialMetrics?.margin || 0).toLocaleString()}`, color: [31, 41, 55] }
         ]
 
         stats.forEach((s, i) => {
             const x = 15 + (i * 60)
-            doc.setFillColor(245, 245, 245)
-            doc.rect(x, summaryY, 55, 15, 'F')
-            doc.setTextColor(100)
-            doc.setFontSize(7)
+            doc.setDrawColor(230)
+            doc.setFillColor(252, 252, 252)
+            doc.rect(x, summaryY, 55, 18, 'FD')
+            
+            doc.setTextColor(120)
+            doc.setFontSize(6)
             doc.text(s.label, x + 5, summaryY + 6)
-            doc.setTextColor(40)
-            doc.setFontSize(9)
-            doc.text(s.value, x + 5, summaryY + 12)
+            
+            doc.setTextColor(s.color[0], s.color[1], s.color[2])
+            doc.setFontSize(10)
+            doc.setFont('helvetica', 'bold')
+            doc.text(s.value, x + 5, summaryY + 13)
         })
 
-        // 4. Transaction Ledger Table (Simple Mapping)
-        const tableData = (economics?.transactions || []).map((t: any) => [
-            String(t.description || 'Manual Entry'),
-            String(t.category || 'General'),
-            new Date(t.date || t.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-            `${t.type === 'credit' ? '+' : '-'} ${Number(t.amount || 0).toLocaleString()}`
-        ])
+        // 4. Filtered Transaction Ledger
+        // We apply the EXACT same filtering as the dashboard UI
+        const rawTransactions = economics?.transactions || []
+        const filteredTransactions = rawTransactions.filter((t: any) => {
+            const d = typeof t.date === 'string' ? parseISO(t.date) : t.date
+            if (!d) return false
+            if (temporalFilter === 'daily') return isSameDay(d, new Date())
+            if (temporalFilter === 'weekly') return isSameWeek(d, new Date())
+            if (temporalFilter === 'monthly') return isSameMonth(d, new Date())
+            return d >= currentTrimester.start && d <= currentTrimester.end
+        })
+
+        const tableData = filteredTransactions.map((t: any) => {
+            const amount = Number(t.amount || 0)
+            const type = t.type || 'debit'
+            return [
+                String(t.description || 'Institutional Record'),
+                String(t.person || 'System Entry'),
+                String(t.category || 'General'),
+                new Date(t.date || t.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                { 
+                    content: `${type === 'credit' ? '+' : '-'} ${amount.toLocaleString()}`,
+                    styles: { textColor: type === 'credit' ? [34, 197, 94] : [239, 68, 68], fontStyle: 'bold' }
+                }
+            ]
+        })
 
         autoTable(doc, {
-            startY: 90,
-            head: [['Description', 'Category', 'Date', 'Amount (PKR)']],
+            startY: 95,
+            head: [['Description', 'Personnel/Entity', 'Category', 'Date', 'Amount (PKR)']],
             body: tableData,
             theme: 'striped',
-            headStyles: { fillColor: [31, 41, 55], textColor: 255 },
-            styles: { fontSize: 8, cellPadding: 4 },
-            columnStyles: { 3: { halign: 'right' } }
+            headStyles: { fillColor: [31, 41, 55], textColor: 255, fontSize: 8 },
+            styles: { fontSize: 7.5, cellPadding: 3.5 },
+            columnStyles: { 4: { halign: 'right' } },
+            margin: { left: 15, right: 15 }
         })
 
-        // 5. Save Report
+        // 5. Formal Footer & Authorization
+        const finalY = (doc as any).lastAutoTable?.finalY || 150
+        const footerY = Math.max(finalY + 25, 250) // Push to bottom of page if possible
+
+        // Signature Lines
+        doc.setDrawColor(200)
+        doc.line(15, footerY, 65, footerY)
+        doc.line(pageWidth - 65, footerY, pageWidth - 15, footerY)
+        
+        doc.setTextColor(150)
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.text("Auditor Signature", 15, footerY + 5)
+        doc.text("Institutional Authority", pageWidth - 15, footerY + 5, { align: 'right' })
+        
+        doc.setFontSize(6)
+        doc.text("This document is a computer-generated institutional audit record and does not require a physical stamp unless specified.", 15, footerY + 15)
+        doc.text(`Registry Ref: TLA-ECON-${new Date().getTime().toString().slice(-6)}`, pageWidth - 15, footerY + 15, { align: 'right' })
+
+        // Save Document
         const dateStamp = new Date().toISOString().split('T')[0]
-        doc.save(`Learners_Academy_Audit_${dateStamp}.pdf`)
-        toast.success("Audit Exported Successfully")
+        doc.save(`TLA_Audit_Report_${temporalFilter}_${dateStamp}.pdf`)
+        toast.success("Audit Exported", { description: "Refined institutional document is ready." })
         
     } catch (error) {
-        console.error("PDF_EXPORT_CRITICAL:", error)
-        toast.error("Export Protocol Failed", {
-            description: "An error occurred during document generation."
-        })
+        console.error("PDF_REFINE_CRITICAL:", error)
+        toast.error("Audit Generation Failed")
     }
   }
 
