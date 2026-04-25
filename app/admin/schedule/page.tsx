@@ -15,6 +15,16 @@ import { PageHeader } from '@/components/shared/page-header'
 import { toast } from 'sonner'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
+import { ScrollArea } from '@/components/ui/scroll-area'
+
+const TIME_OPTIONS = [
+  '07:00 AM', '07:30 AM', '08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM',
+  '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
+  '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM',
+  '04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM', '06:00 PM', '06:30 PM',
+  '07:00 PM', '07:30 PM', '08:00 PM', '08:30 PM', '09:00 PM', '09:30 PM',
+  '10:00 PM'
+]
 
 export default function SchedulePage() {
   const hasMounted = useHasMounted()
@@ -79,21 +89,33 @@ export default function SchedulePage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Start Time</Label>
-                      <Input 
-                        placeholder="08:00 AM" 
-                        value={slotData.startTime} 
-                        onChange={e => setSlotData({ ...slotData, startTime: e.target.value })}
-                        className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm"
-                      />
+                      <Select value={slotData.startTime} onValueChange={v => setSlotData({ ...slotData, startTime: v })}>
+                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm px-4 focus:ring-primary/20">
+                          <SelectValue placeholder="08:00 AM" />
+                        </SelectTrigger>
+                        <SelectContent className="glass-2 border-white/5 max-h-[200px]">
+                            <ScrollArea className="h-[180px]">
+                                {TIME_OPTIONS.map(time => (
+                                    <SelectItem key={`start-${time}`} value={time} className="text-xs">{time}</SelectItem>
+                                ))}
+                            </ScrollArea>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">End Time</Label>
-                      <Input 
-                        placeholder="09:00 AM" 
-                        value={slotData.endTime} 
-                        onChange={e => setSlotData({ ...slotData, endTime: e.target.value })}
-                        className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm"
-                      />
+                      <Select value={slotData.endTime} onValueChange={v => setSlotData({ ...slotData, endTime: v })}>
+                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm px-4 focus:ring-primary/20">
+                          <SelectValue placeholder="09:00 AM" />
+                        </SelectTrigger>
+                        <SelectContent className="glass-2 border-white/5 max-h-[200px]">
+                            <ScrollArea className="h-[180px]">
+                                {TIME_OPTIONS.map(time => (
+                                    <SelectItem key={`end-${time}`} value={time} className="text-xs">{time}</SelectItem>
+                                ))}
+                            </ScrollArea>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <Button onClick={handleCreateSlot} className="w-full h-14 mt-4 bg-primary rounded-2xl shadow-xl transition-all font-medium flex items-center justify-center gap-2">
