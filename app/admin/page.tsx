@@ -104,8 +104,8 @@ export default function AdminDashboard() {
   return (
     <PageShell>
       <div className="flex flex-col gap-1 mb-8 mt-2">
-        <h1 className="font-serif text-3xl font-medium tracking-tight">Overview</h1>
-        <p className="text-muted-foreground font-normal opacity-60 text-sm">Monitor Students, Staff, and Institutional Cashflow.</p>
+        <h1 className="font-serif text-2xl md:text-3xl font-medium tracking-tight">Overview</h1>
+        <p className="text-muted-foreground font-normal opacity-60 text-xs md:text-sm">Monitor Students, Staff, and Institutional Cashflow.</p>
       </div>
 
       <StabilityBoundary name="Key Performance Indicators">
@@ -146,8 +146,8 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full border border-primary/40" /> Target</div>
             </div>
           </CardHeader>
-          <CardContent className="p-6 pt-10 flex-1">
-            <div className="h-[350px] w-full">
+          <CardContent className="p-4 md:p-6 pt-6 md:pt-10 flex-1">
+            <div className="h-[250px] md:h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={economics?.historicalData || []}>
                   <defs>
@@ -157,8 +157,8 @@ export default function AdminDashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="hsl(var(--muted-foreground))" opacity={0.05} />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, opacity: 0.6 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, opacity: 0.6 }} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, opacity: 0.4 }} dy={10} hide={window?.innerWidth < 640} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, opacity: 0.4 }} hide={window?.innerWidth < 640} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card) / 0.98)', 
@@ -180,8 +180,8 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-1 border-primary/5 rounded-[2rem] shadow-md p-6 h-full flex flex-col items-center justify-center text-center">
-            <div className="w-full h-[220px] mb-6">
+         <Card className="glass-1 border-primary/5 rounded-[2rem] shadow-md p-6 h-full flex flex-col items-center justify-center text-center">
+            <div className="w-full h-[180px] md:h-[220px] mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

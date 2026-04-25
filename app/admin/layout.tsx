@@ -276,8 +276,8 @@ export default function AdminLayout({
         </Sidebar>
 
         <SidebarInset className="bg-background">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b px-8 bg-background/80 backdrop-blur-md">
-            <SidebarTrigger className="-ml-2" />
+          <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b px-4 md:px-8 bg-background/80 backdrop-blur-md">
+            <SidebarTrigger className="-ml-2 h-10 w-10" />
             <div className="flex-1" />
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-4 outline-none hover:opacity-80 transition-opacity">
@@ -309,7 +309,7 @@ export default function AdminLayout({
             </DropdownMenu>
           </header>
 
-          <main className="flex-1 p-8 text-foreground">
+          <main className="flex-1 p-4 sm:p-6 md:p-8 text-foreground max-w-[100vw] overflow-x-hidden">
             <StabilityBoundary name="Admin Content Area" key={pathname || ''}>
               {children}
             </StabilityBoundary>

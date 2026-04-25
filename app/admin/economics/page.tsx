@@ -406,9 +406,9 @@ export default function EconomicsAuditorPage() {
         title="Institutional Economics"
         description="Auditing financial inflows, expenditures, and fiscal growth vectors."
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
               <Select value={temporalFilter} onValueChange={(v) => setTemporalFilter(v as TemporalFilter)}>
-                  <SelectTrigger className="h-11 w-48 bg-muted/5 border-primary/10 rounded-xl focus:ring-primary/20 px-4 text-xs font-semibold uppercase tracking-wider">
+                  <SelectTrigger className="h-11 w-full md:w-48 bg-muted/5 border-primary/10 rounded-xl focus:ring-primary/20 px-4 text-xs font-semibold uppercase tracking-wider shadow-sm md:shadow-none">
                       <div className="flex items-center gap-2">
                           <Calendar className="w-3.5 h-3.5 text-primary opacity-60" />
                           <SelectValue placeholder="Filter Cycle" />
@@ -421,15 +421,17 @@ export default function EconomicsAuditorPage() {
                       <SelectItem value="seasonal" className="text-[10px] uppercase tracking-widest font-bold">{currentTrimester.season} Cycle</SelectItem>
                   </SelectContent>
               </Select>
-              <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={exportEconomicsPDF}>
-                 <Printer className="w-4 h-4 mr-2" /> PDF Report
-              </Button>
-              <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handleExport}>
-                 <FileText className="w-4 h-4 mr-2" /> Audit Export
-              </Button>
+              <div className="grid grid-cols-2 gap-3 md:flex md:items-center md:gap-3">
+                <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5 w-full md:w-auto" onClick={exportEconomicsPDF}>
+                   <Printer className="w-4 h-4 mr-2" /> PDF
+                </Button>
+                <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5 w-full md:w-auto" onClick={handleExport}>
+                   <FileText className="w-4 h-4 mr-2" /> Export
+                </Button>
+              </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button className="h-11 px-8 font-medium bg-primary shadow-xl shadow-primary/20 rounded-xl text-white">
+                    <Button className="h-14 md:h-11 px-8 font-medium bg-primary shadow-xl shadow-primary/20 rounded-xl text-white w-full md:w-auto">
                         <Plus className="w-4 h-4 mr-2" /> Log Entry
                     </Button>
                 </DialogTrigger>

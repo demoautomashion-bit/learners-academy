@@ -546,18 +546,18 @@ export default function FeeRegistryPage() {
         title="Fee Overview"
         description="Monitor student payments, class revenue, and outstanding dues."
         actions={
-            <Button onClick={() => setIsCollectOpen(true)} className="font-medium bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-11 px-8 rounded-xl shrink-0">
+            <Button onClick={() => setIsCollectOpen(true)} className="font-medium bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-14 md:h-11 px-8 rounded-xl w-full md:w-auto shrink-0">
                <Plus className="w-4 h-4 mr-2" /> Log Transaction
             </Button>
         }
       />
 
       {/* Ribbon Controls: Semester Dropdown */}
-      <div className="flex justify-end mb-6">
-          <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:justify-end items-center gap-4 mb-6">
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start bg-primary/5 p-3 md:p-0 rounded-xl md:bg-transparent">
               <span className="text-[10px] uppercase tracking-widest font-black opacity-40">Select Term</span>
               <Select value={activeSeason} onValueChange={setActiveSeason}>
-                  <SelectTrigger className="w-40 h-10 border-none bg-primary/5 rounded-xl text-sm font-medium focus:ring-primary/20">
+                  <SelectTrigger className="w-40 h-10 border-none bg-white md:bg-primary/5 rounded-xl text-sm font-medium focus:ring-primary/20 shadow-sm md:shadow-none">
                       <SelectValue placeholder="Select Season..." />
                   </SelectTrigger>
                   <SelectContent className="glass-2 border-white/5">

@@ -107,33 +107,40 @@ export function EntityDataGrid<T>({
         </Table>
       </div>
 
-      {/* Mobile Card View */}
-      <div className="md:hidden divide-y divide-primary/5">
+      {/* Mobile Card View - Elegant Master-Detail Pattern */}
+      <div className="md:hidden divide-y divide-primary/5 bg-background/50">
         {data.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground opacity-50">
             {emptyState || 'No institutional records found.'}
           </div>
         ) : (
           data.map((item, ri) => (
-            <div key={ri} className="p-6 space-y-4 hover:bg-primary/[0.01] transition-colors">
-              {columns.map((col, ci) => (
-                <div key={ci} className={cn(
-                  "flex flex-col gap-1",
-                  ci === columns.length - 1 && "pt-2"
-                )}>
-                  {col.label && ci < columns.length - 1 && (
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground opacity-40">
+            <div key={ri} className="p-5 space-y-5 hover:bg-primary/[0.02] transition-all relative">
+              {/* Primary Identifier (First Column) */}
+              <div className="flex items-center justify-between w-full">
+                <div className="flex-1">
+                  {columns[1] && <div className="mb-1">{columns[1].render(item, ri)}</div>}
+                  {columns[0] && <div className="scale-90 origin-left">{columns[0].render(item, ri)}</div>}
+                </div>
+                {/* Action Column (Last Column) */}
+                <div className="shrink-0">
+                  {columns[columns.length - 1].render(item, ri)}
+                </div>
+              </div>
+
+              {/* Secondary Details Grid */}
+              <div className="grid grid-cols-2 gap-4 pt-1 border-t border-primary/5">
+                {columns.slice(2, -1).map((col, ci) => (
+                  <div key={ci} className="space-y-1">
+                    <span className="text-[9px] uppercase tracking-widest font-black text-muted-foreground opacity-30">
                       {col.label}
                     </span>
-                  )}
-                  <div className={cn(
-                    "w-full",
-                    ci === columns.length - 1 && "flex justify-end"
-                  )}>
-                    {col.render(item, ri)}
+                    <div className="text-[11px] font-medium text-foreground/80 leading-snug">
+                      {col.render(item, ri)}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ))
         )}

@@ -7,8 +7,8 @@ export function DashboardSkeleton() {
       {/* Header Skeleton */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
-          <Skeleton className="h-10 w-64 rounded-md" />
-          <Skeleton className="h-5 w-96 rounded-md" />
+          <Skeleton className="h-10 w-full md:w-64 rounded-md" />
+          <Skeleton className="h-5 w-full md:w-96 rounded-md" />
         </div>
         <div className="flex gap-2">
           <Skeleton className="h-10 w-32 rounded-xl" />
