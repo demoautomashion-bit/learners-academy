@@ -42,6 +42,31 @@ export default function AdminDashboard() {
     students, teachers, stats, activities, economics, isInitialized 
   } = useData()
 
+  // Calculate dynamic pie data from real student distributions
+  const pieData = useMemo(() => {
+    const levelsMap: Record<string, number> = {}
+    students.forEach(s => {
+      const level = s.level || 'Unassigned'
+      levelsMap[level] = (levelsMap[level] || 0) + 1
+    })
+    
+    const totalCount = students.length || 1
+    const brandColors = [
+      'var(--color-primary)', 
+      'var(--color-success)', 
+      'var(--color-warning)', 
+      'var(--color-accent)',
+      'var(--color-destructive)',
+      '#6366f1' // Indigo fallback
+    ]
+    
+    return Object.entries(levelsMap).map(([name, count], index) => ({
+      name,
+      value: Math.round((count / totalCount) * 100),
+      color: brandColors[index % brandColors.length]
+    }))
+  }, [students])
+
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
@@ -76,30 +101,7 @@ export default function AdminDashboard() {
     },
   ]
 
-  // Calculate dynamic pie data from real student distributions
-  const pieData = useMemo(() => {
-    const levelsMap: Record<string, number> = {}
-    students.forEach(s => {
-      const level = s.level || 'Unassigned'
-      levelsMap[level] = (levelsMap[level] || 0) + 1
-    })
-    
-    const totalCount = students.length || 1
-    const brandColors = [
-      'var(--color-primary)', 
-      'var(--color-success)', 
-      'var(--color-warning)', 
-      'var(--color-accent)',
-      'var(--color-destructive)',
-      '#6366f1' // Indigo fallback
-    ]
-    
-    return Object.entries(levelsMap).map(([name, count], index) => ({
-      name,
-      value: Math.round((count / totalCount) * 100),
-      color: brandColors[index % brandColors.length]
-    }))
-  }, [students])
+  ]
 
   return (
     <PageShell>
