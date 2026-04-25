@@ -267,10 +267,24 @@ export default function EconomicsAuditorPage() {
         description="Auditing financial inflows, expenditures, and fiscal growth vectors."
         actions={
           <div className="flex items-center gap-3">
-             <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5">
-                <FileText className="w-4 h-4 mr-2" /> Audit Export
-             </Button>
-             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Select value={temporalFilter} onValueChange={(v) => setTemporalFilter(v as TemporalFilter)}>
+                  <SelectTrigger className="h-11 w-48 bg-muted/5 border-primary/10 rounded-xl focus:ring-primary/20 px-4 text-xs font-semibold uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                          <Calendar className="w-3.5 h-3.5 text-primary opacity-60" />
+                          <SelectValue placeholder="Filter Cycle" />
+                      </div>
+                  </SelectTrigger>
+                  <SelectContent className="glass-2 border-white/5">
+                      <SelectItem value="daily" className="text-[10px] uppercase tracking-widest font-bold">Daily Cycle</SelectItem>
+                      <SelectItem value="weekly" className="text-[10px] uppercase tracking-widest font-bold">Weekly Cycle</SelectItem>
+                      <SelectItem value="monthly" className="text-[10px] uppercase tracking-widest font-bold">Monthly Cycle</SelectItem>
+                      <SelectItem value="seasonal" className="text-[10px] uppercase tracking-widest font-bold">{currentTrimester.season} Cycle</SelectItem>
+                  </SelectContent>
+              </Select>
+              <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handleExport}>
+                 <FileText className="w-4 h-4 mr-2" /> Audit Export
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                     <Button className="h-11 px-8 font-medium bg-primary shadow-xl shadow-primary/20 rounded-xl text-white">
                         <Plus className="w-4 h-4 mr-2" /> Log Entry
@@ -287,7 +301,7 @@ export default function EconomicsAuditorPage() {
                                     Sync a manual financial record with the institutional database.
                                 </DialogDescription>
                             </DialogHeader>
-
+    
                             <div className="space-y-6">
                                 <div className="space-y-2.5">
                                     <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">Amount (PKR)</Label>
@@ -322,7 +336,7 @@ export default function EconomicsAuditorPage() {
                                     />
                                 </div>
                             </div>
-
+    
                             <div className="flex flex-col gap-4 pt-4">
                                 <Button 
                                     onClick={handleLogExpenditure}
@@ -337,27 +351,11 @@ export default function EconomicsAuditorPage() {
                         </div>
                     </DialogContent>
                  </Dialog>
-            </div>
+          </div>
         }
       />
 
-      {/* TEMPORAL LENS CONTROLS */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-muted/10 border border-primary/5 rounded-2xl glass-2 mt-8 w-fit shrink-0 overflow-x-auto max-w-full no-scrollbar">
-          {(['daily', 'weekly', 'monthly', 'seasonal'] as const).map((t) => (
-              <button 
-                  key={t} 
-                  onClick={() => setTemporalFilter(t)}
-                  className={cn(
-                      "px-6 py-2.5 text-xs text-nowrap font-semibold uppercase tracking-wide transition-all rounded-xl flex items-center gap-2",
-                      temporalFilter === t 
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
-                          : "text-muted-foreground/60 hover:text-foreground hover:bg-primary/5"
-                  )}
-              >
-                  {t === 'seasonal' ? `${currentTrimester.season} Cycle` : t}
-              </button>
-          ))}
-      </div>
+      {/* TEMPORAL LENS CONTROLS - REPLACED BY DROPDOWN IN HEADER */}
 
       <div className="mt-6">
         <EntityCardGrid 
@@ -391,7 +389,7 @@ export default function EconomicsAuditorPage() {
                 <Badge className="bg-destructive/10 text-destructive border-transparent font-semibold text-[10px] uppercase tracking-widest h-auto px-4 py-1.5 rounded-lg">Fiscal Outflow</Badge>
             </div>
             <CardHeader className="p-8 pb-4 border-b border-primary/5">
-                <CardTitle className="font-serif text-2xl font-medium tracking-tight">Expense Trend</CardTitle>
+                <CardTitle className="font-serif text-2xl font-medium tracking-tight capitalize">{temporalFilter === 'seasonal' ? currentTrimester.season : temporalFilter} Expense Trend</CardTitle>
                 <CardDescription className="text-xs font-normal opacity-60 mt-1 max-w-sm">Historical expenditure trajectory analysis.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 flex-1 min-h-[440px]">
@@ -435,7 +433,7 @@ export default function EconomicsAuditorPage() {
                 </div>
                 <h3 className="font-serif text-3xl font-medium tracking-tight">Financial Health</h3>
                 <p className="text-xs text-muted-foreground mt-8 leading-relaxed font-normal italic opacity-60">
-                    Your institutional net margin is currently <span className="text-success font-black not-italic px-1 tracking-wider">{stats.netMargin}%</span>.
+                    Your institutional net margin for the <span className="text-primary font-bold">{temporalFilter === 'seasonal' ? currentTrimester.season : temporalFilter}</span> period is currently <span className="text-success font-black not-italic px-1 tracking-wider">PKR {financialMetrics.margin.toLocaleString()}</span>.
                 </p>
                 
                 <div className="mt-auto space-y-8">
@@ -480,7 +478,7 @@ export default function EconomicsAuditorPage() {
       <div className="mt-12">
         <EntityDataGrid 
           title="Institutional Ledger"
-          description="Granular history of all transactional records and fiscal logging."
+          description={`Granular history of all transactional records for the current ${temporalFilter === 'seasonal' ? 'trimester' : temporalFilter} cycle.`}
           data={economics?.logs || []}
           columns={columns}
           actions={
