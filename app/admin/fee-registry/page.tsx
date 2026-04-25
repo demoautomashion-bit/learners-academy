@@ -218,20 +218,32 @@ export default function FeeRegistryPage() {
         const doc = new jsPDF()
         const pageWidth = doc.internal.pageSize.getWidth()
         
-        // 1. Institutional Branding (Vector-Based)
+        // 1. Institutional Branding (Premium Vector Background)
         doc.setFillColor(31, 41, 55)
-        doc.rect(0, 0, pageWidth, 35, 'F')
+        doc.rect(0, 0, pageWidth, 40, 'F')
         
+        // Logo Accent (White disk for logo placement)
+        doc.setFillColor(255, 255, 255)
+        doc.circle(23, 20, 11, 'F')
+        
+        try {
+            // Institutional Logo
+            doc.addImage('/images/logo.png', 'PNG', 15, 12, 16, 16)
+        } catch (e) {
+            console.warn("Institutional logo asset not resolved for PDF render.")
+        }
+        
+        // Institutional Info
         doc.setTextColor(255, 255, 255)
-        doc.setFontSize(20)
+        doc.setFontSize(18)
         doc.setFont('helvetica', 'bold')
-        doc.text("THE LEARNERS ACADEMY", 15, 18)
+        doc.text("THE LEARNERS ACADEMY", 42, 18)
         
         doc.setFontSize(8)
         doc.setFont('helvetica', 'normal')
-        doc.text("Institutional Fee Management Registry", 15, 24)
-        doc.text("Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.", 15, 28)
-        doc.text("Contact: +92-3003583286 / +92-3115455533", 15, 31)
+        doc.text("Institutional Fee Management Registry", 42, 24)
+        doc.text("Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.", 42, 28)
+        doc.text("Contact: +92-3003583286 / +92-3115455533", 42, 31)
 
         // 2. Report Header
         doc.setTextColor(40)
