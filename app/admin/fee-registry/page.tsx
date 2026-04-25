@@ -173,7 +173,7 @@ export default function FeeRegistryPage() {
              id: student.id,
              studentId: student.studentId || 'N/A',
              name: student.name,
-             fatherName: student.parentName || 'N/A',
+             guardianName: student.guardianName || 'N/A',
              classTitle,
              timing,
              teacherName,
@@ -451,7 +451,7 @@ export default function FeeRegistryPage() {
       
       const tId = selectedStudentTarget.studentId
       const tName = selectedStudentTarget.name
-      const tFather = selectedStudentTarget.fatherName
+      const tGuardian = selectedStudentTarget.guardianName
       const tTerm = `${activeSeason}-${new Date().getFullYear()}`
       const tClass = selectedStudentTarget.classTitle
       const tTiming = selectedStudentTarget.timing
@@ -469,7 +469,7 @@ export default function FeeRegistryPage() {
           <div className="w-[300px] flex flex-col font-mono text-[11px] text-black bg-white leading-tight mx-auto print:mx-0">
              {/* Header */}
              <div className="flex items-center gap-3 border-b-2 border-dashed border-black pb-3 mb-3">
-                 <div className="w-10 h-14 bg-black/10 shrink-0" /> {/* Logo Placeholder */}
+                 <img src="/images/logo.png" alt="TLA Logo" className="w-12 h-12 object-contain shrink-0" />
                  <div className="flex flex-col text-center w-full">
                      <span className="font-bold text-sm tracking-tighter">THE LEARNERS ACADEMY</span>
                      <span className="font-bold text-xs tracking-tighter uppercase">English Language Program</span>
@@ -487,7 +487,7 @@ export default function FeeRegistryPage() {
                  </div>
              </div>
              <div className="flex mb-1.5"><span className="font-bold w-[90px]">Name:</span><span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[190px]">{tName}</span></div>
-             <div className="flex mb-1.5"><span className="font-bold w-[90px]">Father's Name:</span><span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[190px]">{tFather}</span></div>
+             <div className="flex mb-1.5"><span className="font-bold w-[90px]">Guardian Name:</span><span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[190px]">{tGuardian}</span></div>
              <div className="flex mb-1.5"><span className="font-bold w-[90px]">Term:</span><span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[190px]">{tTerm}</span></div>
              <div className="flex mb-1.5"><span className="font-bold w-[90px]">Class:</span><span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[190px]">{tClass}</span></div>
              <div className="flex mb-1.5"><span className="font-bold w-[90px]">Timing:</span><span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[190px]">{tTiming}</span></div>
@@ -523,7 +523,7 @@ export default function FeeRegistryPage() {
              </div>
              
              <div className="text-center font-bold mb-2">{copyType}</div>
-             <div className="text-[8px] text-center mb-4">Software By: Nexilumina Solutions</div>
+             <div className="text-[8px] text-center mb-4">Software By: ITRAX</div>
           </div>
       )
   }
