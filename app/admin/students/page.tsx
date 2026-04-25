@@ -65,6 +65,7 @@ import { Student } from '@/lib/types'
 import { ACADEMY_LEVELS, SESSION_TIMINGS } from '@/lib/registry'
 import { motion } from 'framer-motion'
 import { isToday, parseISO } from 'date-fns'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function StudentsPage() {
   const hasMounted = useHasMounted()
@@ -330,87 +331,96 @@ export default function StudentsPage() {
       </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={(open) => !open && setIsEditDialogOpen(false)}>
-        <DialogContent className="sm:max-w-[480px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
+        <DialogContent className="sm:max-w-[500px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
             {editingStudent && (
-                <div className="p-8 space-y-8">
-                    <DialogHeader className="space-y-3">
-                        <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-2">
-                            <Pencil className="w-6 h-6" />
-                        </div>
-                        <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Edit Student Profile</DialogTitle>
-                        <p className="text-xs text-muted-foreground opacity-60">Modify enrollment details and academic identity.</p>
-                    </DialogHeader>
+                <div className="flex flex-col max-h-[85vh]">
+                    <div className="p-8 pb-4">
+                        <DialogHeader className="space-y-3">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-2">
+                                <Pencil className="w-6 h-6" />
+                            </div>
+                            <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Edit Student Profile</DialogTitle>
+                            <p className="text-xs text-muted-foreground opacity-60">Modify enrollment details and academic identity.</p>
+                        </DialogHeader>
+                    </div>
 
-                    <form onSubmit={(e) => {
-                        e.preventDefault()
-                        const formData = new FormData(e.currentTarget)
-                        handleUpdateStudent({
-                            name: formData.get('name') as string,
-                            guardianName: formData.get('guardianName') as string,
-                            email: formData.get('email') as string,
-                            phone: formData.get('phone') as string,
-                            grade: formData.get('grade') as string,
-                            classTiming: formData.get('classTiming') as string,
-                        })
-                    }} className="space-y-6">
-                        <div className="grid grid-cols-1 gap-4">
-                            <div className="space-y-2">
-                                <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Student Name</Label>
-                                <Input name="name" defaultValue={editingStudent.name} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Guardian Name</Label>
-                                <Input name="guardianName" defaultValue={editingStudent.guardianName} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                    <ScrollArea className="flex-1 px-8">
+                        <form id="edit-student-form" onSubmit={(e) => {
+                            e.preventDefault()
+                            const formData = new FormData(e.currentTarget)
+                            handleUpdateStudent({
+                                studentId: formData.get('studentId') as string,
+                                name: formData.get('name') as string,
+                                guardianName: formData.get('guardianName') as string,
+                                email: formData.get('email') as string,
+                                phone: formData.get('phone') as string,
+                                grade: formData.get('grade') as string,
+                                classTiming: formData.get('classTiming') as string,
+                            })
+                        }} className="space-y-6 py-2">
+                            <div className="grid grid-cols-1 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Email</Label>
-                                    <Input name="email" defaultValue={editingStudent.email} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Student ID</Label>
+                                    <Input name="studentId" defaultValue={editingStudent.studentId} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm font-mono" />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Phone</Label>
-                                    <Input name="phone" defaultValue={editingStudent.phone} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Academic Tier</Label>
-                                    <Select name="grade" defaultValue={editingStudent.grade}>
-                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
-                                            <SelectValue placeholder="Select level..." />
-                                        </SelectTrigger>
-                                        <SelectContent className="glass-2 border-white/5">
-                                            {ACADEMY_LEVELS.map((level) => (
-                                                <SelectItem key={level} value={level}>{level}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Student Name</Label>
+                                    <Input name="name" defaultValue={editingStudent.name} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Session Slot</Label>
-                                    <Select name="classTiming" defaultValue={editingStudent.classTiming}>
-                                        <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
-                                            <SelectValue placeholder="Select timing..." />
-                                        </SelectTrigger>
-                                        <SelectContent className="glass-2 border-white/5">
-                                            {SESSION_TIMINGS.map((slot) => (
-                                                <SelectItem key={slot} value={slot}>{slot}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Guardian Name</Label>
+                                    <Input name="guardianName" defaultValue={editingStudent.guardianName} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Email</Label>
+                                        <Input name="email" defaultValue={editingStudent.email} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Phone</Label>
+                                        <Input name="phone" defaultValue={editingStudent.phone} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Academic Tier</Label>
+                                        <Select name="grade" defaultValue={editingStudent.grade}>
+                                            <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                                                <SelectValue placeholder="Select level..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="glass-2 border-white/5">
+                                                {ACADEMY_LEVELS.map((level) => (
+                                                    <SelectItem key={level} value={level}>{level}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Session Slot</Label>
+                                        <Select name="classTiming" defaultValue={editingStudent.classTiming}>
+                                            <SelectTrigger className="h-11 bg-muted/5 border-primary/5 rounded-xl px-4 text-sm focus:ring-primary/20">
+                                                <SelectValue placeholder="Select timing..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="glass-2 border-white/5">
+                                                {SESSION_TIMINGS.map((slot) => (
+                                                    <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </form>
+                    </ScrollArea>
 
-                        <div className="flex flex-col gap-3 pt-4">
-                            <Button type="submit" className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl shadow-xl shadow-primary/20 transition-all font-medium">
-                                Save Profile Changes
-                            </Button>
-                            <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-[10px] uppercase tracking-widest font-bold opacity-30">
-                                Cancel
-                            </Button>
-                        </div>
-                    </form>
+                    <div className="p-8 pt-4 flex flex-col gap-3">
+                        <Button type="submit" form="edit-student-form" className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl shadow-xl shadow-primary/20 transition-all font-medium">
+                            Save Profile Changes
+                        </Button>
+                        <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-[10px] uppercase tracking-widest font-bold opacity-30">
+                            Cancel
+                        </Button>
+                    </div>
                 </div>
             )}
         </DialogContent>
