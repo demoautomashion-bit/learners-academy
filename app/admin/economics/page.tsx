@@ -82,189 +82,85 @@ export default function EconomicsAuditorPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [logData, setLogData] = useState({ amount: '', category: '', description: '' })
 
-  const handleDownloadPDF = async () => {
-      // Toast notification for generation
-      const loadingToast = toast.loading("Generating Branded PDF Report...")
+  const exportEconomicsPDF = () => {
+    try {
+        const doc = new jsPDF()
+        const pageWidth = doc.internal.pageSize.getWidth()
+        
+        // 1. Institutional Branding (Vector-Based for Reliability)
+        doc.setFillColor(31, 41, 55) // Brand Primary
+        doc.rect(0, 0, pageWidth, 35, 'F')
+        
+        doc.setTextColor(255, 255, 255)
+        doc.setFontSize(20)
+        doc.setFont('helvetica', 'bold')
+        doc.text("THE LEARNERS ACADEMY", 15, 18)
+        
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.text("Institutional Financial Audit Registry", 15, 24)
+        doc.text("Address: Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.", 15, 28)
+        doc.text("Contact: +92-3003583286 / +92-3115455533", 15, 31)
 
-      try {
-          // Initialize jsPDF with default constructor for maximum compatibility
-          const doc = new jsPDF()
-          const pageWidth = doc.internal.pageSize.getWidth()
-          
-          // 1. Add Branding Logo with timeout and rendering isolation
-          const img = new Image()
-          img.src = '/images/logo.png'
-          
-          await Promise.race([
-              new Promise((resolve) => {
-                  img.onload = resolve
-                  img.onerror = () => {
-                      console.warn("Logo failed to load, falling back to text branding")
-                      resolve(null)
-                  }
-              }),
-              new Promise((resolve) => setTimeout(() => resolve(null), 1500)) // 1.5s timeout
-          ])
+        // 2. Report Header
+        doc.setTextColor(40)
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${(temporalFilter || 'Cycle').toUpperCase()} PERFORMANCE AUDIT`, 15, 50)
+        
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 15, 56)
 
-          // Header Background / Accent
-          doc.setFillColor(31, 41, 55) // Dark Charcoal / Brand Primary
-          doc.rect(0, 0, pageWidth, 40, 'F')
+        // 3. Financial Summary Matrix
+        const summaryY = 65
+        const stats = [
+            { label: 'Inflow', value: `PKR ${(financialMetrics?.totalEarnings || 0).toLocaleString()}` },
+            { label: 'Outflow', value: `PKR ${(financialMetrics?.totalExpenses || 0).toLocaleString()}` },
+            { label: 'Net Margin', value: `PKR ${(financialMetrics?.margin || 0).toLocaleString()}` }
+        ]
 
-          try {
-              if (img.complete && img.naturalWidth > 0) {
-                  doc.addImage(img, 'PNG', 15, 8, 24, 24)
-              } else {
-                  throw new Error("No image")
-              }
-          } catch (e) {
-              // Fallback to text logo if image rendering fails
-              doc.setTextColor(255, 255, 255)
-              doc.setFontSize(22)
-              doc.setFont('helvetica', 'bold')
-              doc.text('TLA', 15, 25)
-          }
+        stats.forEach((s, i) => {
+            const x = 15 + (i * 60)
+            doc.setFillColor(245, 245, 245)
+            doc.rect(x, summaryY, 55, 15, 'F')
+            doc.setTextColor(100)
+            doc.setFontSize(7)
+            doc.text(s.label, x + 5, summaryY + 6)
+            doc.setTextColor(40)
+            doc.setFontSize(9)
+            doc.text(s.value, x + 5, summaryY + 12)
+        })
 
-          // Academy Title
-          doc.setTextColor(255, 255, 255)
-          doc.setFontSize(18)
-          doc.setFont('helvetica', 'bold')
-          doc.text('THE LEARNERS ACADEMY', 45, 18)
-          
-          doc.setFontSize(8)
-          doc.setFont('helvetica', 'normal')
-          doc.setTextColor(200, 200, 200)
-          doc.text('Institutional Financial Audit Registry', 45, 23)
-          
-          // Contact Info
-          doc.setFontSize(7)
-          doc.text('Address: Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.', 45, 30)
-          doc.text('Contact: +92-3003583286 / +92-3115455533', 45, 34)
+        // 4. Transaction Ledger Table (Simple Mapping)
+        const tableData = (economics?.transactions || []).map((t: any) => [
+            String(t.description || 'Manual Entry'),
+            String(t.category || 'General'),
+            new Date(t.date || t.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+            `${t.type === 'credit' ? '+' : '-'} ${Number(t.amount || 0).toLocaleString()}`
+        ])
 
-          // Report Metadata
-          doc.setTextColor(31, 41, 55)
-          doc.setFontSize(10)
-          doc.setFont('helvetica', 'bold')
-          doc.text(`${(temporalFilter || 'MONTHLY').toUpperCase()} PERFORMANCE AUDIT`, 15, 55)
-          
-          doc.setFont('helvetica', 'normal')
-          doc.setFontSize(8)
-          doc.text(`Generated on: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`, pageWidth - 15, 55, { align: 'right' })
+        autoTable(doc, {
+            startY: 90,
+            head: [['Description', 'Category', 'Date', 'Amount (PKR)']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [31, 41, 55], textColor: 255 },
+            styles: { fontSize: 8, cellPadding: 4 },
+            columnStyles: { 3: { halign: 'right' } }
+        })
 
-          // Summary Cards
-          doc.setDrawColor(230, 230, 230)
-          doc.setFillColor(249, 250, 251)
-          
-          const cardWidth = (pageWidth - 40) / 3
-          const cardY = 65
-          
-          const inflow = Number(financialMetrics?.totalEarnings) || 0
-          const outflow = Number(financialMetrics?.totalExpenses) || 0
-          const margin = Number(financialMetrics?.margin) || 0
-
-          // Inflow Card
-          doc.rect(15, cardY, cardWidth, 20, 'FD')
-          doc.setTextColor(100, 100, 100)
-          doc.setFontSize(7)
-          doc.text('TOTAL INFLOW', 20, cardY + 7)
-          doc.setTextColor(34, 197, 94) // Success Green
-          doc.setFontSize(10)
-          doc.text(`PKR ${inflow.toLocaleString()}`, 20, cardY + 15)
-
-          // Outflow Card
-          doc.rect(15 + cardWidth + 5, cardY, cardWidth, 20, 'FD')
-          doc.setTextColor(100, 100, 100)
-          doc.setFontSize(7)
-          doc.text('TOTAL OUTFLOW', 20 + cardWidth + 5, cardY + 7)
-          doc.setTextColor(239, 68, 68) // Destructive Red
-          doc.setFontSize(10)
-          doc.text(`PKR ${outflow.toLocaleString()}`, 20 + cardWidth + 5, cardY + 15)
-
-          // Margin Card
-          doc.rect(15 + (cardWidth + 5) * 2, cardY, cardWidth, 20, 'FD')
-          doc.setTextColor(100, 100, 100)
-          doc.setFontSize(7)
-          doc.text('NET MARGIN', 20 + (cardWidth + 5) * 2, cardY + 7)
-          doc.setTextColor(31, 41, 55)
-          doc.setFontSize(10)
-          doc.text(`PKR ${margin.toLocaleString()}`, 20 + (cardWidth + 5) * 2, cardY + 15)
-
-          // Transactions Table with Robust Data Handling
-          const transactions = economics?.transactions || []
-          const tableData = transactions.map((t: any) => {
-              const amountVal = Number(t?.amount) || 0
-              const description = String(t?.description || "Institutional Transaction")
-              const category = String(t?.category || "General")
-              const type = t?.type || "debit"
-              
-              let dateStr = "N/A"
-              try {
-                  const dateSrc = t?.date || t?.createdAt
-                  if (dateSrc) {
-                      const dateObj = new Date(dateSrc)
-                      if (!isNaN(dateObj.getTime())) {
-                          dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                      }
-                  }
-              } catch (e) { /* Fail silently to N/A */ }
-
-              return [
-                  description,
-                  category,
-                  dateStr,
-                  { 
-                      content: `${type === 'credit' ? '+' : '-'} ${amountVal.toLocaleString()}`,
-                      styles: { textColor: type === 'credit' ? [34, 197, 94] : [239, 68, 68], fontStyle: 'bold' }
-                  }
-              ]
-          })
-
-          autoTable(doc, {
-              startY: 95,
-              head: [['Transaction Description', 'Category', 'Date', 'Amount (PKR)']],
-              body: tableData,
-              headStyles: { 
-                  fillColor: [31, 41, 55], 
-                  textColor: [255, 255, 255],
-                  fontSize: 8,
-                  fontStyle: 'bold',
-                  halign: 'left'
-              },
-              columnStyles: {
-                  3: { halign: 'right' }
-              },
-              styles: {
-                  fontSize: 8,
-                  cellPadding: 4
-              },
-              alternateRowStyles: {
-                  fillColor: [250, 250, 250]
-              },
-              margin: { left: 15, right: 15 }
-          })
-
-          // Footer with Property Safety
-          const lastTable = (doc as any).lastAutoTable
-          const finalY = (lastTable && lastTable.finalY) ? lastTable.finalY : 150
-          
-          doc.setDrawColor(200, 200, 200)
-          doc.line(15, finalY + 10, pageWidth - 15, finalY + 10)
-          
-          doc.setFontSize(7)
-          doc.setTextColor(150, 150, 150)
-          doc.text('Confidential Audit Registry - Generated by Nexilumina Solutions Audit Engine', 15, finalY + 18)
-          doc.text(`Page 1 of 1`, pageWidth - 15, finalY + 18, { align: 'right' })
-
-          doc.save(`Learners_Academy_Audit_${new Date().toISOString().split('T')[0]}.pdf`)
-          toast.dismiss(loadingToast)
-          toast.success("Audit Downloaded Successfully")
-
-      } catch (error) {
-          console.error("PDF Generation Critical Failure:", error)
-          toast.dismiss(loadingToast)
-          toast.error("Failed to generate PDF", {
-              description: "Initialization or data formatting failed. Please try again."
-          })
-      }
+        // 5. Save Report
+        const dateStamp = new Date().toISOString().split('T')[0]
+        doc.save(`Learners_Academy_Audit_${dateStamp}.pdf`)
+        toast.success("Audit Exported Successfully")
+        
+    } catch (error) {
+        console.error("PDF_EXPORT_CRITICAL:", error)
+        toast.error("Export Protocol Failed", {
+            description: "An error occurred during document generation."
+        })
+    }
   }
 
   const currentTrimester = useMemo(() => getActiveTrimester(), [])
@@ -471,7 +367,7 @@ export default function EconomicsAuditorPage() {
                       <SelectItem value="seasonal" className="text-[10px] uppercase tracking-widest font-bold">{currentTrimester.season} Cycle</SelectItem>
                   </SelectContent>
               </Select>
-              <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handleDownloadPDF}>
+              <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={exportEconomicsPDF}>
                  <Printer className="w-4 h-4 mr-2" /> PDF Report
               </Button>
               <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handleExport}>
