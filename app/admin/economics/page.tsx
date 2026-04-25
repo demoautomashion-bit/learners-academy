@@ -1,8 +1,9 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { useState, useMemo, useRef } from 'react'
-import { useReactToPrint } from 'react-to-print'
+import { useState, useMemo } from 'react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -81,11 +82,154 @@ export default function EconomicsAuditorPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [logData, setLogData] = useState({ amount: '', category: '', description: '' })
 
-  const printRef = useRef<HTMLDivElement>(null)
-  const handlePrint = useReactToPrint({
-      contentRef: printRef,
-      documentTitle: `Institutional_Economics_Report_${new Date().toISOString().split('T')[0]}`
-  })
+  const handleDownloadPDF = async () => {
+      const doc = new jsPDF()
+      const pageWidth = doc.internal.pageSize.getWidth()
+      
+      // Toast notification for generation
+      const loadingToast = toast.loading("Generating Branded PDF Report...")
+
+      try {
+          // 1. Add Branding Logo
+          const img = new Image()
+          img.src = '/images/logo.png'
+          
+          await new Promise((resolve, reject) => {
+              img.onload = resolve
+              img.onerror = () => {
+                  console.warn("Logo failed to load, falling back to text branding")
+                  resolve(null)
+              }
+          })
+
+          // Header Background / Accent
+          doc.setFillColor(31, 41, 55) // Dark Charcoal / Brand Primary
+          doc.rect(0, 0, pageWidth, 40, 'F')
+
+          if (img.complete && img.naturalWidth > 0) {
+              doc.addImage(img, 'PNG', 15, 8, 24, 24)
+          } else {
+              doc.setTextColor(255, 255, 255)
+              doc.setFontSize(22)
+              doc.setFont('helvetica', 'bold')
+              doc.text('TLA', 15, 25)
+          }
+
+          // Academy Title
+          doc.setTextColor(255, 255, 255)
+          doc.setFontSize(18)
+          doc.setFont('helvetica', 'bold')
+          doc.text('THE LEARNERS ACADEMY', 45, 18)
+          
+          doc.setFontSize(8)
+          doc.setFont('helvetica', 'normal')
+          doc.setTextColor(200, 200, 200)
+          doc.text('Institutional Financial Audit Registry', 45, 23)
+          
+          // Contact Info
+          doc.setFontSize(7)
+          doc.text('Address: Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.', 45, 30)
+          doc.text('Contact: +92-3003583286 / +92-3115455533', 45, 34)
+
+          // Report Metadata
+          doc.setTextColor(31, 41, 55)
+          doc.setFontSize(10)
+          doc.setFont('helvetica', 'bold')
+          doc.text(`${temporalFilter.toUpperCase()} PERFORMANCE AUDIT`, 15, 55)
+          
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(8)
+          doc.text(`Generated on: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`, pageWidth - 15, 55, { align: 'right' })
+
+          // Summary Cards
+          doc.setDrawColor(230, 230, 230)
+          doc.setFillColor(249, 250, 251)
+          
+          const cardWidth = (pageWidth - 40) / 3
+          const cardY = 65
+          
+          // Inflow Card
+          doc.rect(15, cardY, cardWidth, 20, 'FD')
+          doc.setTextColor(100, 100, 100)
+          doc.setFontSize(7)
+          doc.text('TOTAL INFLOW', 20, cardY + 7)
+          doc.setTextColor(34, 197, 94) // Success Green
+          doc.setFontSize(10)
+          doc.text(`PKR ${financialMetrics.totalEarnings.toLocaleString()}`, 20, cardY + 15)
+
+          // Outflow Card
+          doc.rect(15 + cardWidth + 5, cardY, cardWidth, 20, 'FD')
+          doc.setTextColor(100, 100, 100)
+          doc.setFontSize(7)
+          doc.text('TOTAL OUTFLOW', 20 + cardWidth + 5, cardY + 7)
+          doc.setTextColor(239, 68, 68) // Destructive Red
+          doc.setFontSize(10)
+          doc.text(`PKR ${financialMetrics.totalExpenses.toLocaleString()}`, 20 + cardWidth + 5, cardY + 15)
+
+          // Margin Card
+          doc.rect(15 + (cardWidth + 5) * 2, cardY, cardWidth, 20, 'FD')
+          doc.setTextColor(100, 100, 100)
+          doc.setFontSize(7)
+          doc.text('NET MARGIN', 20 + (cardWidth + 5) * 2, cardY + 7)
+          doc.setTextColor(31, 41, 55)
+          doc.setFontSize(10)
+          doc.text(`PKR ${financialMetrics.margin.toLocaleString()}`, 20 + (cardWidth + 5) * 2, cardY + 15)
+
+          // Transactions Table
+          const tableData = (economics?.transactions || []).map((t: any) => [
+              t.description,
+              t.category || 'Institutional',
+              new Date(t.date || t.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+              { 
+                  content: `${t.type === 'credit' ? '+' : '-'} ${t.amount.toLocaleString()}`,
+                  styles: { textColor: t.type === 'credit' ? [34, 197, 94] : [239, 68, 68], fontStyle: 'bold' }
+              }
+          ])
+
+          autoTable(doc, {
+              startY: 95,
+              head: [['Transaction Description', 'Category', 'Date', 'Amount (PKR)']],
+              body: tableData,
+              headStyles: { 
+                  fillColor: [31, 41, 55], 
+                  textColor: [255, 255, 255],
+                  fontSize: 8,
+                  fontStyle: 'bold',
+                  halign: 'left'
+              },
+              columnStyles: {
+                  3: { halign: 'right' }
+              },
+              styles: {
+                  fontSize: 8,
+                  cellPadding: 4
+              },
+              alternateRowStyles: {
+                  fillColor: [250, 250, 250]
+              },
+              margin: { left: 15, right: 15 }
+          })
+
+          // Footer
+          const finalY = (doc as any).lastAutoTable.finalY || 150
+          doc.setDrawColor(200, 200, 200)
+          doc.line(15, finalY + 10, pageWidth - 15, finalY + 10)
+          
+          doc.setFontSize(7)
+          doc.setTextColor(150, 150, 150)
+          doc.text('Confidential Audit Registry - Generated by Nexilumina Solutions Audit Engine', 15, finalY + 18)
+          doc.text(`Page 1 of 1`, pageWidth - 15, finalY + 18, { align: 'right' })
+
+          doc.save(`Learners_Academy_Audit_${new Date().toISOString().split('T')[0]}.pdf`)
+          toast.dismiss(loadingToast)
+          toast.success("Audit Downloaded Successfully")
+
+      } catch (error) {
+          console.error("PDF Generation Error:", error)
+          toast.dismiss(loadingToast)
+          toast.error("Failed to generate PDF")
+      }
+  }
 
   const currentTrimester = useMemo(() => getActiveTrimester(), [])
 
@@ -291,7 +435,7 @@ export default function EconomicsAuditorPage() {
                       <SelectItem value="seasonal" className="text-[10px] uppercase tracking-widest font-bold">{currentTrimester.season} Cycle</SelectItem>
                   </SelectContent>
               </Select>
-              <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handlePrint}>
+              <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handleDownloadPDF}>
                  <Printer className="w-4 h-4 mr-2" /> PDF Report
               </Button>
               <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handleExport}>
@@ -517,100 +661,6 @@ export default function EconomicsAuditorPage() {
             </div>
           }
         />
-      </div>
-      {/* HIDDEN BRANDED PDF REPORT COMPONENT */}
-      <div className="hidden">
-          <div ref={printRef} className="p-12 bg-white text-black font-sans w-[210mm]">
-              {/* Header: Institutional Branding */}
-              <div className="flex items-center gap-6 border-b-4 border-primary pb-8 mb-8">
-                  <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0 overflow-hidden">
-                     {/* Using a styled typography logo as placeholder or real asset if available */}
-                     <span className="text-3xl font-black">TLA</span>
-                  </div>
-                  <div className="flex flex-col">
-                      <h1 className="text-3xl font-serif font-black tracking-tighter text-primary">THE LEARNERS ACADEMY</h1>
-                      <p className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-60 mt-1">Institutional Financial Audit Registry</p>
-                      <div className="flex flex-col gap-0.5 mt-3 text-[10px] opacity-70 font-medium">
-                          <span>Address: Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.</span>
-                          <span>Contact: +92-3003583286 / +92-3115455533</span>
-                      </div>
-                  </div>
-                  <div className="ml-auto text-right self-start pt-2">
-                      <span className="text-[10px] uppercase tracking-widest font-black opacity-30 italic">Confidential Audit</span>
-                  </div>
-              </div>
-
-              {/* Report Metadata */}
-              <div className="grid grid-cols-2 gap-8 mb-10">
-                  <div className="p-5 rounded-2xl bg-muted/5 border border-primary/5">
-                      <span className="text-[9px] uppercase tracking-widest font-bold opacity-40">Audit Context</span>
-                      <p className="text-sm font-medium mt-1">{temporalFilter === 'seasonal' ? currentTrimester.season : temporalFilter} Cycle Performance</p>
-                  </div>
-                  <div className="p-5 rounded-2xl bg-muted/5 border border-primary/5 text-right">
-                      <span className="text-[9px] uppercase tracking-widest font-bold opacity-40">Generation Date</span>
-                      <p className="text-sm font-medium mt-1">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                  </div>
-              </div>
-
-              {/* Fiscal Summary Matrix */}
-              <div className="grid grid-cols-4 gap-4 mb-10">
-                  {[
-                      { label: 'Total Inflow', value: `PKR ${financialMetrics.totalEarnings.toLocaleString()}`, color: 'text-success' },
-                      { label: 'Total Outflow', value: `PKR ${financialMetrics.totalExpenses.toLocaleString()}`, color: 'text-destructive' },
-                      { label: 'Net Surplus', value: `PKR ${financialMetrics.margin.toLocaleString()}`, color: 'text-primary' },
-                      { label: 'Fiscal Volume', value: `PKR ${financialMetrics.volume.toLocaleString()}`, color: 'text-black' },
-                  ].map((stat, i) => (
-                      <div key={i} className="p-4 border border-black/10 rounded-xl">
-                          <span className="text-[8px] uppercase tracking-widest font-bold opacity-50">{stat.label}</span>
-                          <p className={cn("text-sm font-bold mt-1", stat.color)}>{stat.value}</p>
-                      </div>
-                  ))}
-              </div>
-
-              {/* The Ledger Table */}
-              <table className="w-full border-collapse">
-                  <thead>
-                      <tr className="bg-primary text-white">
-                          <th className="px-4 py-3 text-left text-[9px] uppercase tracking-widest font-bold">Transaction Description</th>
-                          <th className="px-4 py-3 text-left text-[9px] uppercase tracking-widest font-bold">Category</th>
-                          <th className="px-4 py-3 text-left text-[9px] uppercase tracking-widest font-bold">Date</th>
-                          <th className="px-4 py-3 text-right text-[9px] uppercase tracking-widest font-bold">Amount (PKR)</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      {(economics?.transactions || []).map((log: any, i: number) => (
-                          <tr key={i} className={cn(
-                              "border-b border-black/5",
-                              i % 2 === 0 ? "bg-white" : "bg-black/[0.02]"
-                          )}>
-                              <td className="px-4 py-3 text-[11px] font-medium">{log.description}</td>
-                              <td className="px-4 py-3 text-[10px] uppercase tracking-wider font-bold opacity-60">{log.category || 'Institutional'}</td>
-                              <td className="px-4 py-3 text-[11px] opacity-70">
-                                  {new Date(log.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                              </td>
-                              <td className={cn(
-                                  "px-4 py-3 text-right text-[11px] font-bold",
-                                  log.type === 'credit' ? "text-success" : "text-destructive"
-                              )}>
-                                  {log.type === 'credit' ? '+' : '-'} {log.amount.toLocaleString()}
-                              </td>
-                          </tr>
-                      ))}
-                  </tbody>
-              </table>
-
-              {/* Audit Footer */}
-              <div className="mt-12 pt-8 border-t border-dashed border-black/20 flex justify-between items-end">
-                  <div className="flex flex-col gap-1">
-                      <span className="text-[8px] uppercase tracking-widest font-bold opacity-30">Software Verified</span>
-                      <span className="text-[9px] font-serif italic font-bold">Nexilumina Solutions Audit Engine</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-2">
-                      <div className="w-32 border-b border-black h-8" />
-                      <span className="text-[9px] uppercase tracking-widest font-bold opacity-40">Institutional Registrar Stamp</span>
-                  </div>
-              </div>
-          </div>
       </div>
     </PageShell>
   )
