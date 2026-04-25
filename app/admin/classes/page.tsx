@@ -326,6 +326,7 @@ export default function ClassesPage() {
                                     className="h-11 pl-12 bg-muted/5 border-primary/5 rounded-xl text-sm focus:ring-primary/20" 
                                 />
                             </div>
+                        </div>
                         <div className="space-y-2">
                             <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Tuition Fee (PKR)</Label>
                             <div className="relative">
