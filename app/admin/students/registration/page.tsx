@@ -182,7 +182,7 @@ export default function StudentRegistrationPage() {
                       <div className="space-y-2 group">
                         <Label className="text-xs font-semibold text-muted-foreground ml-1 group-focus-within:text-primary transition-colors">Contact</Label>
                         <div className="grid grid-cols-2 gap-2">
-                            <Input name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className="h-12 px-3 bg-muted/5 border-primary/10 rounded-xl text-[10px]" />
+                            <Input name="email" value={formData.email} onChange={handleInputChange} placeholder="Email (Optional)" className="h-12 px-3 bg-muted/5 border-primary/10 rounded-xl text-[10px]" />
                             <Input name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone" className="h-12 px-3 bg-muted/5 border-primary/10 rounded-xl text-[10px]" />
                         </div>
                       </div>

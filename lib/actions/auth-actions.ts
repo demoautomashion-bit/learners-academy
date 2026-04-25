@@ -26,7 +26,7 @@ export async function loginAction(credentials: LoginCredentials): Promise<AuthSe
       dbUser = await db.teacher.findUnique({ where: { email } })
       if (!dbUser || dbUser.employeePassword !== password) dbUser = null
     } else if (selectedRole === 'student') {
-      dbUser = await db.student.findUnique({ where: { email } })
+      dbUser = await db.student.findFirst({ where: { email } })
       if (!dbUser || (dbUser.password !== password && dbUser.studentId !== password)) dbUser = null
     }
 

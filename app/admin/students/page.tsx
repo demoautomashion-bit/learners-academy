@@ -373,8 +373,8 @@ export default function StudentsPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Email</Label>
-                                        <Input name="email" defaultValue={editingStudent.email} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
+                                        <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Email (Optional)</Label>
+                                        <Input name="email" defaultValue={editingStudent.email} className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Phone</Label>

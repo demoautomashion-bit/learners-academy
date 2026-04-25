@@ -39,7 +39,7 @@ export async function enrollStudent(student: any): Promise<ActionResult<Student>
     
     const sanitizedStudent = {
       ...formData,
-      email: student.email?.trim() === "" ? null : student.email,
+      email: (!student.email || student.email.trim() === "") ? "N/A" : student.email.trim(),
       phone: student.phone?.trim() === "" ? null : student.phone,
       grade: student.grade,
       classTiming: student.classTiming,
@@ -156,6 +156,7 @@ export async function updateStudent(id: string, data: Partial<Student>): Promise
       where: { id },
       data: {
         ...data,
+        email: (data.email === "" || (data.hasOwnProperty('email') && !data.email)) ? "N/A" : data.email,
         enrolledAt: data.enrolledAt ? new Date(data.enrolledAt) : undefined,
       }
     })
