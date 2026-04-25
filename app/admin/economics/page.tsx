@@ -88,8 +88,8 @@ export default function EconomicsAuditorPage() {
     const earningsList = (economics?.transactions || []).filter((t: any) => t.type === 'credit')
 
     const expenses = expensesList.filter((log: any) => {
-        const rawDate = log.date || log.createdAt
-        const d = typeof rawDate === 'string' ? parseISO(rawDate) : rawDate
+        const d = typeof log.date === 'string' ? parseISO(log.date) : log.date
+        if (!d) return false
         if (temporalFilter === 'daily') return isSameDay(d, new Date())
         if (temporalFilter === 'weekly') return isSameWeek(d, new Date())
         if (temporalFilter === 'monthly') return isSameMonth(d, new Date())
@@ -97,8 +97,8 @@ export default function EconomicsAuditorPage() {
     })
 
     const earnings = earningsList.filter((pay: any) => {
-        const rawDate = pay.paymentDate || pay.createdAt
-        const d = typeof rawDate === 'string' ? parseISO(rawDate) : rawDate
+        const d = typeof pay.date === 'string' ? parseISO(pay.date) : pay.date
+        if (!d) return false
         if (temporalFilter === 'daily') return isSameDay(d, new Date())
         if (temporalFilter === 'weekly') return isSameWeek(d, new Date())
         if (temporalFilter === 'monthly') return isSameMonth(d, new Date())
