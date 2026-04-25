@@ -22,6 +22,9 @@ import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import { toast } from 'sonner'
 
 const HEALTH_THRESHOLDS = {
   STABLE: 80,
@@ -83,13 +86,143 @@ export default function BatchFinancialsPage() {
     { label: 'Projected Target', value: `PKR ${globalExpected.toLocaleString()}`, sub: currentTrimester.label, icon: Target, color: 'text-primary' },
   ]
 
+  const exportBatchFinancialsPDF = () => {
+    try {
+        const doc = new jsPDF()
+        const pageWidth = doc.internal.pageSize.getWidth()
+        
+        // 1. Institutional Branding (Premium Vector Background)
+        doc.setFillColor(31, 41, 55)
+        doc.rect(0, 0, pageWidth, 40, 'F')
+        
+        // Logo Accent (White disk for logo placement)
+        doc.setFillColor(255, 255, 255)
+        doc.circle(23, 20, 11, 'F')
+        
+        try {
+            // Institutional Logo
+            doc.addImage('/images/logo.png', 'PNG', 15, 12, 16, 16)
+        } catch (e) {
+            console.warn("Institutional logo asset not resolved for PDF render.")
+        }
+        
+        // Institutional Info
+        doc.setTextColor(255, 255, 255)
+        doc.setFontSize(18)
+        doc.setFont('helvetica', 'bold')
+        doc.text("THE LEARNERS ACADEMY", 42, 18)
+        
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.text("Global Fiscal Ledger & Batch Performance Audit", 42, 24)
+        doc.text("Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.", 42, 28)
+        doc.text("Contact: +92-3003583286 / +92-3115455533", 42, 31)
+
+        // 2. Report Header
+        doc.setTextColor(40)
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`FISCAL PERFORMANCE REPORT - ${currentTrimester.label.toUpperCase()}`, 15, 55)
+        
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Report Generated: ${new Date().toLocaleString()}`, 15, 61)
+
+        // 3. Global Summary Matrix
+        const summaryY = 70
+        const stats = [
+            { label: 'Overall Recovery', value: `${globalVelocity.toFixed(1)}%`, color: globalVelocity > 80 ? [34, 197, 94] : [239, 68, 68] },
+            { label: 'Total Target', value: `PKR ${globalExpected.toLocaleString()}`, color: [31, 41, 55] },
+            { label: 'Total Realized', value: `PKR ${globalRealized.toLocaleString()}`, color: [34, 197, 94] }
+        ]
+
+        stats.forEach((s, i) => {
+            const x = 15 + (i * 60)
+            doc.setDrawColor(230)
+            doc.setFillColor(252, 252, 252)
+            doc.rect(x, summaryY, 55, 20, 'FD')
+            
+            doc.setTextColor(120)
+            doc.setFontSize(6.5)
+            doc.text(s.label, x + 5, summaryY + 7)
+            
+            doc.setTextColor(s.color[0], s.color[1], s.color[2])
+            doc.setFontSize(10)
+            doc.setFont('helvetica', 'bold')
+            doc.text(s.value, x + 5, summaryY + 14)
+        })
+
+        // 4. Batch Performance Table
+        const tableData = sortedBatches.map((batch) => [
+            `${batch.title || batch.name}\n(Instructor: ${batch.instructorName || batch.teacherName || 'TBD'})`,
+            `PKR ${batch.expectedRevenue.toLocaleString()}`,
+            { 
+                content: `PKR ${batch.realizedRecovery.toLocaleString()}`,
+                styles: { textColor: [34, 197, 94], fontStyle: 'bold' }
+            },
+            { 
+                content: `${batch.velocityPercent.toFixed(1)}%`,
+                styles: { 
+                    textColor: batch.velocityPercent < 50 ? [239, 68, 68] : (batch.velocityPercent > 80 ? [34, 197, 94] : [217, 119, 6]),
+                    fontStyle: 'bold'
+                }
+            }
+        ])
+
+        autoTable(doc, {
+            startY: 100,
+            head: [['Batch Identification', 'Revenue Target', 'Realized Recovery', 'Velocity']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [31, 41, 55], textColor: 255, fontSize: 8.5 },
+            styles: { fontSize: 8, cellPadding: 5, valign: 'middle' },
+            columnStyles: { 
+                1: { halign: 'right' },
+                2: { halign: 'right' },
+                3: { halign: 'center' }
+            },
+            margin: { left: 15, right: 15 }
+        })
+
+        // 5. Institutional Footer
+        const finalY = (doc as any).lastAutoTable?.finalY || 150
+        const footerY = Math.max(finalY + 30, 250)
+
+        doc.setDrawColor(200)
+        doc.line(15, footerY, 70, footerY)
+        doc.line(pageWidth - 70, footerY, pageWidth - 15, footerY)
+        
+        doc.setTextColor(150)
+        doc.setFontSize(8)
+        doc.text("Accounts Officer", 15, footerY + 6)
+        doc.text("Administrative Seal", pageWidth - 15, footerY + 6, { align: 'right' })
+        
+        doc.setFontSize(6.5)
+        doc.text("© THE LEARNERS ACADEMY - Institutional Financial Intelligence Extract", 15, footerY + 18)
+        doc.text(`Doc ID: TLA-BATCH-${new Date().getTime().toString().slice(-6)}`, pageWidth - 15, footerY + 18, { align: 'right' })
+
+        // Save
+        const dateStamp = new Date().toISOString().split('T')[0]
+        doc.save(`TLA_Fiscal_Audit_${dateStamp}.pdf`)
+        toast.success("Fiscal Audit Exported")
+        
+    } catch (error) {
+        console.error("BATCH_PDF_ERROR:", error)
+        toast.error("Export Protocol Interrupted")
+    }
+  }
+
   return (
     <PageShell>
       <PageHeader 
         title="Institutional Batch Ledger"
         description="Granular performance audit of revenue targets, collection rates, and fiscal health categorized by instructional units."
         actions={
-            <Button variant="outline" className="font-normal border-primary/10 hover:bg-primary/5 h-11 rounded-xl glass-2">
+            <Button 
+                variant="outline" 
+                onClick={exportBatchFinancialsPDF}
+                className="font-normal border-primary/10 hover:bg-primary/5 h-11 rounded-xl glass-2"
+            >
                 <Download className="w-4 h-4 mr-2" /> Global Fiscal Audit
             </Button>
         }
