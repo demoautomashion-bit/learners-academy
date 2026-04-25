@@ -58,7 +58,7 @@ model Student {
   id              String       @id @default(cuid())
   name            String
   email           String?
-  phone           String
+  phone           String?
   enrolledCourses String[]
   status          String       @default("active")
   avatar          String?
