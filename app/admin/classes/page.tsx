@@ -73,7 +73,8 @@ export default function ClassesPage() {
     teacherId: '',
     level: '',
     timing: '',
-    roomNumber: ''
+    roomNumber: '',
+    feeAmount: 5000
   })
 
   const activeTeachers = (teachers || []).filter(t => t.status === 'active')
@@ -110,11 +111,11 @@ export default function ClassesPage() {
             startDate: new Date().toISOString(),
             endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
             roomNumber: formData.roomNumber,
-            feeAmount: 5000
+            feeAmount: formData.feeAmount
         } as any)
         
         setIsDialogOpen(false)
-        setFormData({ teacherId: '', level: '', timing: '', roomNumber: '' })
+        setFormData({ teacherId: '', level: '', timing: '', roomNumber: '', feeAmount: 5000 })
         toast.active("Instructional Cycle Initialized", {
             description: "New academic batch has been formalized in the registry.",
             icon: <Sparkles className="w-4 h-4 text-primary" />
@@ -323,6 +324,18 @@ export default function ClassesPage() {
                                     value={formData.roomNumber}
                                     onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
                                     className="h-11 pl-12 bg-muted/5 border-primary/5 rounded-xl text-sm focus:ring-primary/20" 
+                                />
+                            </div>
+                        <div className="space-y-2">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Tuition Fee (PKR)</Label>
+                            <div className="relative">
+                                <Plus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-20" />
+                                <Input 
+                                    type="number"
+                                    placeholder="5000" 
+                                    value={formData.feeAmount}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, feeAmount: +e.target.value }))}
+                                    className="h-11 pl-12 bg-muted/5 border-primary/5 rounded-xl text-sm focus:ring-primary/20 font-bold text-primary" 
                                 />
                             </div>
                         </div>

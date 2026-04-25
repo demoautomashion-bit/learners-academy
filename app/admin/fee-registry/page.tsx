@@ -45,6 +45,13 @@ import { SCHEDULE_SLOTS } from '@/lib/registry'
 import { getActiveTrimester } from '@/lib/trimesters'
 import { useReactToPrint } from 'react-to-print'
 import { toast } from 'sonner'
+import { 
+    format, 
+    parseISO, 
+    isSameDay,
+    isSameWeek,
+    isSameMonth
+} from 'date-fns'
 import Image from 'next/image'
 
 export default function FeeRegistryPage() {
@@ -90,17 +97,25 @@ export default function FeeRegistryPage() {
 
   // Top 4 Metrics Calculations
   const stats = useMemo(() => {
+     const now = new Date()
      let daily = 0; let weekly = 0; let monthly = 0; let semester = 0;
+     
      feePayments.forEach(p => {
-         const paid = p.amountPaid || p.initialDeposit || 0
-         daily += (paid * 0.05)
-         weekly += (paid * 0.25)
-         monthly += paid
-         semester += (paid * 3)
+         const paidDate = p.paymentDate ? (typeof p.paymentDate === 'string' ? parseISO(p.paymentDate) : p.paymentDate) : null
+         if (!paidDate) return
+         
+         const amount = p.amountPaid || 0
+         
+         if (isSameDay(paidDate, now)) daily += amount
+         if (isSameWeek(paidDate, now)) weekly += amount
+         if (isSameMonth(paidDate, now)) monthly += amount
+         
+         // Semester is mapped to total payments for that season (historical aggregate)
+         semester += amount
      })
 
      return [
-        { label: 'Daily Collected', value: `PKR ${daily.toLocaleString()}`, sub: 'Last 24 Hours', icon: DollarSign, color: 'text-primary' },
+        { label: 'Daily Collected', value: `PKR ${daily.toLocaleString()}`, sub: 'Today', icon: DollarSign, color: 'text-primary' },
         { label: 'Weekly Collected', value: `PKR ${weekly.toLocaleString()}`, sub: 'Past 7 Days', icon: TrendingUp, color: 'text-success' },
         { label: 'Monthly Collected', value: `PKR ${monthly.toLocaleString()}`, sub: 'Current Month', icon: CreditCard, color: 'text-indigo-400' },
         { label: 'Semester Collected', value: `PKR ${semester.toLocaleString()}`, sub: `${activeSeason} Volume`, icon: CheckCircle2, color: 'text-amber-500' },
@@ -178,15 +193,18 @@ export default function FeeRegistryPage() {
   // Auto-fill target class when a student is selected
   useEffect(() => {
      if (selectedStudentTarget && isCollectOpen && selectedStudentTarget.courseId !== 'none' && feeData.courseId !== selectedStudentTarget.courseId) {
+         // Get the target course to fetch the feeAmount default
+         const targetCourse = courses.find(c => c.id === selectedStudentTarget.courseId)
+         
          setFeeData(prev => ({ 
              ...prev, 
              courseId: selectedStudentTarget.courseId,
-             tuitionFee: selectedStudentTarget.totalAmount || 0,
+             tuitionFee: selectedStudentTarget.totalAmount || targetCourse?.feeAmount || 5000,
              discount: selectedStudentTarget.discountGiven || 0,
              paidAmount: selectedStudentTarget.amountPaid || 0
          }))
      }
-  }, [selectedStudentTarget, isCollectOpen, feeData.courseId])
+  }, [selectedStudentTarget, isCollectOpen, feeData.courseId, courses])
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
