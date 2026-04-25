@@ -14,6 +14,8 @@ import {
   Download,
   Users
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { getActiveTrimester } from '@/lib/trimesters'
 import { useData } from '@/contexts/data-context'
 import { cn } from '@/lib/utils'
 import { PageShell } from '@/components/shared/page-shell'
@@ -21,9 +23,18 @@ import { PageHeader } from '@/components/shared/page-header'
 import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 
+const HEALTH_THRESHOLDS = {
+  STABLE: 80,
+  ATTENTION: 50
+}
+
+const FALLBACK_FEE = 5000
+
 export default function BatchFinancialsPage() {
   const hasMounted = useHasMounted()
+  const router = useRouter()
   const { courses, students, feePayments, isInitialized } = useData()
+  const currentTrimester = getActiveTrimester()
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -36,7 +47,7 @@ export default function BatchFinancialsPage() {
           s.level === course.level || s.courseId === course.id
       )
       
-      const expectedRevenue = batchStudents.length * (course.feeAmount || 5000)
+      const expectedRevenue = batchStudents.length * (course.feeAmount || FALLBACK_FEE)
       
       let realizedRecovery = 0
       batchStudents.forEach(student => {
@@ -69,7 +80,7 @@ export default function BatchFinancialsPage() {
 
   const stats = [
     { label: 'Overall Recovery', value: `${globalVelocity.toFixed(1)}%`, sub: 'Institutional Average', icon: TrendingUp, color: 'text-success' },
-    { label: 'Projected Target', value: `PKR ${globalExpected.toLocaleString()}`, sub: 'Active Trimester', icon: Target, color: 'text-primary' },
+    { label: 'Projected Target', value: `PKR ${globalExpected.toLocaleString()}`, sub: currentTrimester.label, icon: Target, color: 'text-primary' },
   ]
 
   return (
@@ -107,9 +118,9 @@ export default function BatchFinancialsPage() {
                 badgeStr: "Critical Alert",
                 badgeClass: "border-destructive/20 text-destructive bg-destructive/5"
             }
-            if (batch.velocityPercent >= 80) {
+            if (batch.velocityPercent >= HEALTH_THRESHOLDS.STABLE) {
                 healthConfig = { badgeStr: "Stable Health", badgeClass: "border-success/20 text-success bg-success/5" }
-            } else if (batch.velocityPercent >= 50) {
+            } else if (batch.velocityPercent >= HEALTH_THRESHOLDS.ATTENTION) {
                 healthConfig = { badgeStr: "Attention Required", badgeClass: "border-warning/20 text-warning bg-warning/5" }
             }
 
@@ -154,7 +165,12 @@ export default function BatchFinancialsPage() {
                             <Users className="w-4 h-4" />
                             <span>Census: {batch.studentCount}</span>
                         </div>
-                        <Button variant="ghost" size="sm" className="h-9 px-4 text-xs font-medium hover:bg-primary/5 hover:text-primary transition-colors rounded-xl">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => router.push(`/admin/fee-registry?classId=${batch.id}`)}
+                            className="h-9 px-4 text-xs font-medium hover:bg-primary/5 hover:text-primary transition-colors rounded-xl"
+                        >
                             Details <ChevronRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
                     </div>

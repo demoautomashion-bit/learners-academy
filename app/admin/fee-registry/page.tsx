@@ -33,7 +33,7 @@ import {
   Receipt,
   Plus
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
 import { PageShell } from '@/components/shared/page-shell'
@@ -77,7 +77,9 @@ export default function FeeRegistryPage() {
   const [activeTab, setActiveTab] = useState<'classes' | 'students'>('classes')
   const [activeSeason, setActiveSeason] = useState('Spring')
   const [searchQuery, setSearchQuery] = useState('')
-  const [classFilter, setClassFilter] = useState('all')
+  const searchParams = useSearchParams()
+  const initialClassId = searchParams.get('classId') || 'all'
+  const [classFilter, setClassFilter] = useState(initialClassId)
   const [timingFilter, setTimingFilter] = useState('all')
 
   // Transaction State
