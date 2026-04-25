@@ -247,3 +247,12 @@ model AudioFile {
   createdAt DateTime @default(now())
   teacher   Teacher  @relation(fields: [teacherId], references: [id])
 }
+
+model SystemSettings {
+  id               String   @id @default("singleton")
+  academyName      String   @default("The Learners Academy")
+  tagline          String   @default("Premium English Language Education")
+  missionStatement String   @default("Empowering learners with world-class language education through specialized faculty and audited curricula.")
+  logoUrl          String?
+  updatedAt        DateTime @updatedAt
+}

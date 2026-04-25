@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { getSystemSettings, updateSystemSettings, updateAdminPassword } from '@/lib/actions/settings'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,28 +39,79 @@ export default function SettingsPage() {
   const hasMounted = useHasMounted()
   const { user, updateUser, isAuthenticated, isLoading: authLoading } = useAuth()
   const { isInitialized: dataInitialized } = useData()
+  const [identity, setIdentity] = useState({
+    academyName: '',
+    tagline: '',
+    missionStatement: '',
+    logoUrl: ''
+  })
+  const [security, setSecurity] = useState({
+    current: '',
+    newPass: '',
+    confirm: ''
+  })
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const res = await getSystemSettings()
+      if (res) {
+        setIdentity({
+          academyName: res.academyName || '',
+          tagline: res.tagline || '',
+          missionStatement: res.missionStatement || '',
+          logoUrl: res.logoUrl || ''
+        })
+      }
+    }
+    loadSettings()
+  }, [])
 
   if (!hasMounted) return null
   if (authLoading || !dataInitialized || !isAuthenticated || !user?.id) return <DashboardSkeleton />
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onloadend = () => {
-        updateUser({ avatar: reader.result as string })
-        toast.success('Institutional branding updated successfully')
+      reader.onloadend = async () => {
+        const base64 = reader.result as string
+        setIsLoading(true)
+        const res = await updateSystemSettings({ logoUrl: base64 })
+        setIsLoading(false)
+        
+        if (res.success) {
+            setIdentity(prev => ({ ...prev, logoUrl: base64 }))
+            updateUser({ avatar: base64 })
+            toast.success('Institutional branding updated successfully')
+        }
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const handleSave = async () => {
+  const handleSaveIdentity = async () => {
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 800))
+    const res = await updateSystemSettings(identity)
     setIsLoading(false)
-    toast.success('System configuration synchronized')
+    if (res.success) toast.success('Institutional profile synchronized')
+    else toast.error(res.error || 'Identity sync failed')
+  }
+
+  const handleUpdateSecurity = async () => {
+    if (security.newPass !== security.confirm) {
+        return toast.error('Tokens do not match')
+    }
+    setIsLoading(true)
+    const res = await updateAdminPassword(user.id, security.current, security.newPass)
+    setIsLoading(false)
+    
+    if (res.success) {
+        toast.success('Security protocols rotated')
+        setSecurity({ current: '', newPass: '', confirm: '' })
+    } else {
+        toast.error(res.error || 'Auth rotation failed')
+    }
   }
 
   return (
@@ -79,10 +131,6 @@ export default function SettingsPage() {
             <Shield className="w-4 h-4" />
             Security & Auth
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="gap-2 px-8 py-2 rounded-xl text-[10px] uppercase tracking-widest font-bold data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-primary">
-            <Palette className="w-4 h-4" />
-            Portal Aesthetic
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -96,17 +144,26 @@ export default function SettingsPage() {
                   <div className="grid grid-cols-2 gap-8">
                     <div className="space-y-2">
                         <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Legal Academy Name</label>
-                        <Input defaultValue="The Learners Academy" className="h-12 bg-primary/[0.02] border-none" />
+                        <Input 
+                            value={identity.academyName} 
+                            onChange={e => setIdentity(prev => ({ ...prev, academyName: e.target.value }))}
+                            className="h-12 bg-primary/[0.02] border-none" 
+                        />
                     </div>
                     <div className="space-y-2">
                         <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Official Tagline</label>
-                        <Input defaultValue="Premium English Language Education" className="h-12 bg-primary/[0.02] border-none" />
+                        <Input 
+                            value={identity.tagline} 
+                            onChange={e => setIdentity(prev => ({ ...prev, tagline: e.target.value }))}
+                            className="h-12 bg-primary/[0.02] border-none" 
+                        />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Mission Synthesis</label>
                     <Textarea 
-                        defaultValue="Empowering learners with world-class language education since 2010 through specialized faculty and audited curricula."
+                        value={identity.missionStatement}
+                        onChange={e => setIdentity(prev => ({ ...prev, missionStatement: e.target.value }))}
                         rows={5}
                         className="bg-primary/[0.02] border-none resize-none leading-relaxed"
                     />
@@ -144,8 +201,8 @@ export default function SettingsPage() {
           </div>
 
           <div className="flex justify-end mt-12">
-            <Button onClick={handleSave} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20">
-              {isLoading ? 'Synchronizing...' : 'Saves General Changes'}
+            <Button onClick={handleSaveIdentity} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20">
+              {isLoading ? 'Synchronizing...' : 'Save General Changes'}
             </Button>
           </div>
         </TabsContent>
@@ -166,15 +223,27 @@ export default function SettingsPage() {
                         <div className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Current Password</label>
-                                <SecureInput placeholder="••••••••" className="h-12 bg-muted/20 border-none" />
+                                <SecureInput 
+                                    value={security.current}
+                                    onChange={e => setSecurity(prev => ({ ...prev, current: e.target.value }))}
+                                    placeholder="••••••••" className="h-12 bg-muted/20 border-none" 
+                                />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">New Authority Token</label>
-                                <SecureInput placeholder="••••••••" className="h-12 bg-muted/20 border-none" />
+                                <SecureInput 
+                                    value={security.newPass}
+                                    onChange={e => setSecurity(prev => ({ ...prev, newPass: e.target.value }))}
+                                    placeholder="••••••••" className="h-12 bg-muted/20 border-none" 
+                                />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Confirm Token</label>
-                                <SecureInput placeholder="••••••••" className="h-12 bg-muted/20 border-none" />
+                                <SecureInput 
+                                    value={security.confirm}
+                                    onChange={e => setSecurity(prev => ({ ...prev, confirm: e.target.value }))}
+                                    placeholder="••••••••" className="h-12 bg-muted/20 border-none" 
+                                />
                             </div>
                         </div>
                         <div className="p-8 bg-muted/10 rounded-3xl border border-dashed flex flex-col justify-center items-center text-center">
@@ -201,50 +270,8 @@ export default function SettingsPage() {
            </div>
 
            <div className="flex justify-end mt-12 max-w-4xl">
-             <Button onClick={handleSave} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20 bg-destructive hover:bg-destructive/90">
+             <Button onClick={handleUpdateSecurity} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20 bg-destructive hover:bg-destructive/90">
                 Update Security Protocols
-             </Button>
-           </div>
-        </TabsContent>
-
-        <TabsContent value="appearance" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-           <Card className="glass-1 rounded-[2rem] border-primary/5 shadow-2xl p-10 max-w-4xl">
-                <div className="flex items-center gap-4 mb-12">
-                    <div className="w-10 h-10 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
-                        <Palette className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h3 className="font-serif text-2xl font-medium tracking-tight">Interface Configuration</h3>
-                        <p className="text-xs text-muted-foreground opacity-40 mt-1">Tailor the visual density and theme of the portal.</p>
-                    </div>
-                </div>
-                
-                <div className="space-y-12">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <p className="font-medium text-sm">Dark Aesthetic Override</p>
-                            <p className="text-xs text-muted-foreground opacity-60">
-                                Shift to a premium dark-mode for lower ocular strain during nightly audits.
-                            </p>
-                        </div>
-                        <Switch />
-                    </div>
-                    <Separator className="opacity-5" />
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <p className="font-medium text-sm">High-Density Compact Mode</p>
-                            <p className="text-xs text-muted-foreground opacity-60">
-                                Reduce universal padding to maximize informational throughput on large screens.
-                            </p>
-                        </div>
-                        <Switch />
-                    </div>
-                </div>
-           </Card>
-
-           <div className="flex justify-end mt-12 max-w-4xl">
-             <Button onClick={handleSave} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20">
-                Apply Appearance Specs
              </Button>
            </div>
         </TabsContent>
