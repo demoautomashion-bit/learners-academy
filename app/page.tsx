@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/logo'
 import { ParticleField } from '@/components/particle-field'
+import { PerspectiveTilt } from '@/components/shared/perspective-tilt'
 
 const PORTALS = [
   {
@@ -52,14 +53,9 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center mb-10"
         >
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="flex flex-col items-center"
-          >
+          <PerspectiveTilt intensity={25} glareOpacity={0.2}>
             <Logo size="2xl" orientation="vertical" />
-          </motion.div>
+          </PerspectiveTilt>
         </motion.div>
 
         {/* Portal Grid */}
@@ -78,50 +74,49 @@ export default function HomePage() {
           }}
         >
           {PORTALS.map((portal) => (
-            <motion.div
-              key={portal.title}
-              variants={{
-                hidden: { opacity: 0, scale: 0.95, y: 20 },
-                show: { opacity: 1, scale: 1, y: 0 }
-              }}
-              whileHover={{ y: -5 }}
-              className="group h-full"
-            >
+            <PerspectiveTilt key={portal.title} intensity={12} className="h-full">
               <Link href={portal.href} className="block h-full">
-                <Card className={`min-h-[280px] border-border bg-card/60 backdrop-blur-2xl overflow-hidden transition-all duration-500 shadow-xl hover:border-primary/30 hover:shadow-primary/10 relative flex flex-col justify-center`}>
+                <Card className={`min-h-[300px] border-border bg-card/40 backdrop-blur-3xl overflow-hidden transition-all duration-700 shadow-2xl hover:border-primary/40 relative flex flex-col justify-center`}>
                   
-                  {/* Hover Accent Glow */}
-                  <div className="absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  <div className="absolute top-0 right-0 p-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-[-10px] group-hover:translate-y-0">
+                  {/* Floating Depth Elements */}
+                  <div className="absolute top-0 right-0 p-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-[-10px] group-hover:translate-y-0 z-30">
                     <div className="px-3 py-1 rounded-full bg-background/80 backdrop-blur-md text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground border border-border">
                       {portal.accent}
                     </div>
                   </div>
 
-                  <CardContent className="p-6 md:p-8 flex flex-col items-center text-center h-full relative z-10 flex-grow">
-                    <div className={`p-4 rounded-3xl bg-primary/5 mb-6 ring-1 ring-black/5 dark:ring-white/5 group-hover:scale-110 transition-transform duration-500`}>
-                      <portal.icon className="w-8 h-8 text-primary" />
+                  <CardContent className="p-8 flex flex-col items-center text-center h-full relative z-10 flex-grow group">
+                    <div 
+                      className={`p-5 rounded-[2.5rem] bg-primary/5 mb-8 ring-1 ring-black/5 dark:ring-white/10 group-hover:bg-primary/10 transition-all duration-700`}
+                      style={{ transform: "translateZ(80px)" }}
+                    >
+                      <portal.icon className="w-10 h-10 text-primary drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />
                     </div>
                     
-                    <h3 className="font-serif text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
-                      {portal.title}
-                    </h3>
-                    <p className="font-sans text-xs uppercase tracking-widest font-bold text-muted-foreground mb-4">
-                      {portal.subtitle}
-                    </p>
-                    <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-4 flex-grow">
-                      {portal.description}
-                    </p>
+                    <div style={{ transform: "translateZ(40px)" }} className="space-y-4 flex flex-col items-center flex-grow">
+                      <div>
+                        <h3 className="font-serif text-2xl font-bold mb-1 transition-colors">
+                          {portal.title}
+                        </h3>
+                        <p className="font-sans text-[10px] uppercase tracking-[0.3em] font-bold text-primary/60">
+                          {portal.subtitle}
+                        </p>
+                      </div>
+                      <p className="font-sans text-sm text-muted-foreground leading-relaxed flex-grow max-w-[240px]">
+                        {portal.description}
+                      </p>
+                    </div>
 
-                    <Button variant="outline" className="font-sans mt-auto w-full group/btn h-12 text-sm font-bold uppercase tracking-widest transition-premium border-primary/20 hover:bg-primary/5 hover:text-primary hover:border-primary/50">
-                      Enter Portal
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                    </Button>
+                    <div style={{ transform: "translateZ(60px)" }} className="w-full mt-8">
+                      <Button variant="outline" className="font-sans w-full group/btn h-14 text-[10px] font-bold uppercase tracking-[0.25em] transition-all duration-500 border-primary/10 hover:bg-primary hover:text-white hover:border-primary shadow-lg hover:shadow-primary/40 rounded-2xl bg-white/5 backdrop-blur-md">
+                        Access Domain
+                        <ArrowRight className="w-4 h-4 ml-3 group-hover/btn:translate-x-2 transition-transform" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
-            </motion.div>
+            </PerspectiveTilt>
           ))}
         </motion.div>
 

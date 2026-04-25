@@ -47,17 +47,22 @@ export function Logo({
       className
     )}>
       <div className={cn(
-        'relative flex-shrink-0',
+        'relative flex-shrink-0 group/logo',
         loading && 'after:absolute after:inset-0 after:bg-linear-to-r after:from-transparent after:via-white/70 after:to-transparent after:translate-x-[-100%] after:animate-shimmer overflow-hidden rounded-full'
       )}>
-        <Image
-          src="/images/logo.png"
-          alt="The Learners Academy Logo"
-          width={imageSize}
-          height={imageSize}
-          className={cn('object-contain transition-all duration-700', loading && 'opacity-50 grayscale contrast-125')}
-          priority
-        />
+        {/* Cinematic Logo Disk */}
+        <div className="absolute inset-[-15%] rounded-full bg-primary/5 blur-2xl opacity-0 group-hover/logo:opacity-100 transition-opacity duration-1000" />
+        <div className="relative p-4 md:p-6 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5">
+            <div className="absolute inset-0 bg-linear-to-tr from-primary/10 via-transparent to-white/5 opacity-40" />
+            <Image
+              src="/images/logo.png"
+              alt="The Learners Academy Logo"
+              width={imageSize}
+              height={imageSize}
+              className={cn('object-contain relative z-10 transition-all duration-700 drop-shadow-2xl', loading && 'opacity-50 grayscale contrast-125')}
+              priority
+            />
+        </div>
       </div>
       {showText && (
         <div className={cn(
