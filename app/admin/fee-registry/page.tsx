@@ -161,6 +161,7 @@ export default function FeeRegistryPage() {
              amountPaid,
              amountRemaining,
              discountGiven,
+             totalAmount,
              courseId: course?.id || 'none'
           }
       }).filter(s => {
@@ -177,7 +178,13 @@ export default function FeeRegistryPage() {
   // Auto-fill target class when a student is selected
   useEffect(() => {
      if (selectedStudentTarget && isCollectOpen && selectedStudentTarget.courseId !== 'none' && feeData.courseId !== selectedStudentTarget.courseId) {
-         setFeeData(prev => ({ ...prev, courseId: selectedStudentTarget.courseId }))
+         setFeeData(prev => ({ 
+             ...prev, 
+             courseId: selectedStudentTarget.courseId,
+             tuitionFee: selectedStudentTarget.totalAmount || 0,
+             discount: selectedStudentTarget.discountGiven || 0,
+             paidAmount: selectedStudentTarget.amountPaid || 0
+         }))
      }
   }, [selectedStudentTarget, isCollectOpen, feeData.courseId])
 
@@ -269,7 +276,13 @@ export default function FeeRegistryPage() {
               size="sm" 
               onClick={() => {
                   setSelectedStudentId(item.id)
-                  setFeeData({ courseId: item.courseId, tuitionFee: 0, admissionFee: 0, discount: 0, paidAmount: 0 })
+                  setFeeData({ 
+                      courseId: item.courseId, 
+                      tuitionFee: item.totalAmount || 0, 
+                      admissionFee: 0, 
+                      discount: item.discountGiven || 0, 
+                      paidAmount: item.amountPaid || 0 
+                  })
                   setIsCollectOpen(true)
               }}
               className="h-8 bg-success/10 text-success hover:bg-success hover:text-white transition-colors"

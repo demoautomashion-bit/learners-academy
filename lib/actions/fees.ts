@@ -50,27 +50,53 @@ export async function recordPayment(paymentId: string, amount: number): Promise<
   }
 }
 
-export async function addFeeAccount(data: { studentId: string, courseId: string, totalAmount: number, discount: number, initialDeposit: number }): Promise<ActionResult> {
+export async function addFeeAccount(data: { studentId: string, courseId: string, totalAmount: number, discount: number, initialDeposit: number, amountPaid?: number }): Promise<ActionResult> {
   try {
     const netDue = data.totalAmount - data.discount
-    const status = data.initialDeposit >= netDue ? 'Paid' : data.initialDeposit > 0 ? 'Partial' : 'Unpaid'
+    const paid = data.amountPaid !== undefined ? data.amountPaid : data.initialDeposit
+    const status = paid >= netDue ? 'Paid' : paid > 0 ? 'Partial' : 'Unpaid'
     
-    const result = await db.feePayment.create({
-      data: {
-        studentId: data.studentId,
-        courseId: data.courseId,
-        totalAmount: data.totalAmount,
-        discount: data.discount,
-        amountPaid: data.initialDeposit,
-        status,
-        paymentDate: data.initialDeposit > 0 ? new Date() : null
+    // Attempt to find existing record for upsert
+    const existing = await db.feePayment.findUnique({
+      where: {
+        studentId_courseId: {
+          studentId: data.studentId,
+          courseId: data.courseId
+        }
       }
     })
+
+    let result;
+    if (existing) {
+      result = await db.feePayment.update({
+        where: { id: existing.id },
+        data: {
+          totalAmount: data.totalAmount,
+          discount: data.discount,
+          amountPaid: paid,
+          status,
+          paymentDate: paid > (existing.amountPaid || 0) ? new Date() : existing.paymentDate
+        }
+      })
+    } else {
+      result = await db.feePayment.create({
+        data: {
+          studentId: data.studentId,
+          courseId: data.courseId,
+          totalAmount: data.totalAmount,
+          discount: data.discount,
+          amountPaid: paid,
+          status,
+          paymentDate: paid > 0 ? new Date() : null
+        }
+      })
+    }
+
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {
     console.error('DATABASE_ERROR [addFeeAccount]:', error)
-    return { success: false, error: 'Failed to initialize student fee account' }
+    return { success: false, error: 'Failed to synchronize student fee account' }
   }
 }
 
