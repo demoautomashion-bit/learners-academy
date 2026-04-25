@@ -1,7 +1,8 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
+import { useReactToPrint } from 'react-to-print'
 import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -52,8 +53,11 @@ import {
   Calendar,
   Wallet,
   Coins,
-  FileText
+  FileText,
+  Printer,
+  Receipt
 } from 'lucide-react'
+import Image from 'next/image'
 import { useData } from '@/contexts/data-context'
 import { cn } from '@/lib/utils'
 import { PageShell } from '@/components/shared/page-shell'
@@ -76,6 +80,12 @@ export default function EconomicsAuditorPage() {
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('monthly')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [logData, setLogData] = useState({ amount: '', category: '', description: '' })
+
+  const printRef = useRef<HTMLDivElement>(null)
+  const handlePrint = useReactToPrint({
+      contentRef: printRef,
+      documentTitle: `Institutional_Economics_Report_${new Date().toISOString().split('T')[0]}`
+  })
 
   const currentTrimester = useMemo(() => getActiveTrimester(), [])
 
@@ -281,6 +291,9 @@ export default function EconomicsAuditorPage() {
                       <SelectItem value="seasonal" className="text-[10px] uppercase tracking-widest font-bold">{currentTrimester.season} Cycle</SelectItem>
                   </SelectContent>
               </Select>
+              <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handlePrint}>
+                 <Printer className="w-4 h-4 mr-2" /> PDF Report
+              </Button>
               <Button variant="outline" className="h-11 px-6 font-normal border-primary/10 rounded-xl glass-2 hover:bg-primary/5" onClick={handleExport}>
                  <FileText className="w-4 h-4 mr-2" /> Audit Export
               </Button>
@@ -504,6 +517,100 @@ export default function EconomicsAuditorPage() {
             </div>
           }
         />
+      </div>
+      {/* HIDDEN BRANDED PDF REPORT COMPONENT */}
+      <div className="hidden">
+          <div ref={printRef} className="p-12 bg-white text-black font-sans w-[210mm]">
+              {/* Header: Institutional Branding */}
+              <div className="flex items-center gap-6 border-b-4 border-primary pb-8 mb-8">
+                  <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0 overflow-hidden">
+                     {/* Using a styled typography logo as placeholder or real asset if available */}
+                     <span className="text-3xl font-black">TLA</span>
+                  </div>
+                  <div className="flex flex-col">
+                      <h1 className="text-3xl font-serif font-black tracking-tighter text-primary">THE LEARNERS ACADEMY</h1>
+                      <p className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-60 mt-1">Institutional Financial Audit Registry</p>
+                      <div className="flex flex-col gap-0.5 mt-3 text-[10px] opacity-70 font-medium">
+                          <span>Address: Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.</span>
+                          <span>Contact: +92-3003583286 / +92-3115455533</span>
+                      </div>
+                  </div>
+                  <div className="ml-auto text-right self-start pt-2">
+                      <span className="text-[10px] uppercase tracking-widest font-black opacity-30 italic">Confidential Audit</span>
+                  </div>
+              </div>
+
+              {/* Report Metadata */}
+              <div className="grid grid-cols-2 gap-8 mb-10">
+                  <div className="p-5 rounded-2xl bg-muted/5 border border-primary/5">
+                      <span className="text-[9px] uppercase tracking-widest font-bold opacity-40">Audit Context</span>
+                      <p className="text-sm font-medium mt-1">{temporalFilter === 'seasonal' ? currentTrimester.season : temporalFilter} Cycle Performance</p>
+                  </div>
+                  <div className="p-5 rounded-2xl bg-muted/5 border border-primary/5 text-right">
+                      <span className="text-[9px] uppercase tracking-widest font-bold opacity-40">Generation Date</span>
+                      <p className="text-sm font-medium mt-1">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                  </div>
+              </div>
+
+              {/* Fiscal Summary Matrix */}
+              <div className="grid grid-cols-4 gap-4 mb-10">
+                  {[
+                      { label: 'Total Inflow', value: `PKR ${financialMetrics.totalEarnings.toLocaleString()}`, color: 'text-success' },
+                      { label: 'Total Outflow', value: `PKR ${financialMetrics.totalExpenses.toLocaleString()}`, color: 'text-destructive' },
+                      { label: 'Net Surplus', value: `PKR ${financialMetrics.margin.toLocaleString()}`, color: 'text-primary' },
+                      { label: 'Fiscal Volume', value: `PKR ${financialMetrics.volume.toLocaleString()}`, color: 'text-black' },
+                  ].map((stat, i) => (
+                      <div key={i} className="p-4 border border-black/10 rounded-xl">
+                          <span className="text-[8px] uppercase tracking-widest font-bold opacity-50">{stat.label}</span>
+                          <p className={cn("text-sm font-bold mt-1", stat.color)}>{stat.value}</p>
+                      </div>
+                  ))}
+              </div>
+
+              {/* The Ledger Table */}
+              <table className="w-full border-collapse">
+                  <thead>
+                      <tr className="bg-primary text-white">
+                          <th className="px-4 py-3 text-left text-[9px] uppercase tracking-widest font-bold">Transaction Description</th>
+                          <th className="px-4 py-3 text-left text-[9px] uppercase tracking-widest font-bold">Category</th>
+                          <th className="px-4 py-3 text-left text-[9px] uppercase tracking-widest font-bold">Date</th>
+                          <th className="px-4 py-3 text-right text-[9px] uppercase tracking-widest font-bold">Amount (PKR)</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {(economics?.transactions || []).map((log: any, i: number) => (
+                          <tr key={i} className={cn(
+                              "border-b border-black/5",
+                              i % 2 === 0 ? "bg-white" : "bg-black/[0.02]"
+                          )}>
+                              <td className="px-4 py-3 text-[11px] font-medium">{log.description}</td>
+                              <td className="px-4 py-3 text-[10px] uppercase tracking-wider font-bold opacity-60">{log.category || 'Institutional'}</td>
+                              <td className="px-4 py-3 text-[11px] opacity-70">
+                                  {new Date(log.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </td>
+                              <td className={cn(
+                                  "px-4 py-3 text-right text-[11px] font-bold",
+                                  log.type === 'credit' ? "text-success" : "text-destructive"
+                              )}>
+                                  {log.type === 'credit' ? '+' : '-'} {log.amount.toLocaleString()}
+                              </td>
+                          </tr>
+                      ))}
+                  </tbody>
+              </table>
+
+              {/* Audit Footer */}
+              <div className="mt-12 pt-8 border-t border-dashed border-black/20 flex justify-between items-end">
+                  <div className="flex flex-col gap-1">
+                      <span className="text-[8px] uppercase tracking-widest font-bold opacity-30">Software Verified</span>
+                      <span className="text-[9px] font-serif italic font-bold">Nexilumina Solutions Audit Engine</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                      <div className="w-32 border-b border-black h-8" />
+                      <span className="text-[9px] uppercase tracking-widest font-bold opacity-40">Institutional Registrar Stamp</span>
+                  </div>
+              </div>
+          </div>
       </div>
     </PageShell>
   )
