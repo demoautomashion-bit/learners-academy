@@ -51,7 +51,7 @@ export async function getEconomicStats(): Promise<ActionResult> {
       ...expenditures.map(e => ({
         id: e.id,
         amount: e.amount,
-        type: 'Debit' as const,
+        type: 'debit' as const,
         category: e.category,
         description: e.description,
         date: e.date,
@@ -62,7 +62,7 @@ export async function getEconomicStats(): Promise<ActionResult> {
         .map(pay => ({
           id: pay.id,
           amount: pay.amountPaid,
-          type: 'Credit' as const,
+          type: 'credit' as const,
           category: 'Tuition Fee',
           description: `Fee Payment for ${pay.course?.title || 'Unknown Class'}`,
           date: pay.paymentDate || pay.updatedAt,

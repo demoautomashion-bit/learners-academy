@@ -84,8 +84,8 @@ export default function EconomicsAuditorPage() {
     // Return early if data isn't ready, but keep the hook execution consistent
     if (!isInitialized) return { totalEarnings: 0, totalExpenses: 0, margin: 0, volume: 0 }
 
-    const expensesList = (economics?.logs || [])
-    const earningsList = (feePayments || [])
+    const expensesList = (economics?.transactions || []).filter((t: any) => t.type === 'debit')
+    const earningsList = (economics?.transactions || []).filter((t: any) => t.type === 'credit')
 
     const expenses = expensesList.filter((log: any) => {
         const rawDate = log.date || log.createdAt
@@ -106,7 +106,7 @@ export default function EconomicsAuditorPage() {
     })
 
     const totalExpenses = expenses.reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0)
-    const totalEarnings = earnings.reduce((acc: number, curr: any) => acc + (Number(curr.amountPaid) || 0), 0)
+    const totalEarnings = earnings.reduce((acc: number, curr: any) => acc + (Number(curr.amount) || Number(curr.amountPaid) || 0), 0)
     
     return {
         totalEarnings,
@@ -114,7 +114,7 @@ export default function EconomicsAuditorPage() {
         margin: totalEarnings - totalExpenses,
         volume: totalEarnings + totalExpenses
     }
-  }, [economics, feePayments, temporalFilter, currentTrimester, isInitialized])
+  }, [economics, temporalFilter, currentTrimester, isInitialized])
 
   // --- END OF HOOKS BLOCK ---
 
@@ -122,7 +122,7 @@ export default function EconomicsAuditorPage() {
   if (!isInitialized) return <DashboardSkeleton />
 
   const handleExport = () => {
-    const data = economics?.recentTransactions || []
+    const data = economics?.transactions || []
     if (data.length === 0) {
         toast.error("No transaction data available for export.")
         return
@@ -414,7 +414,7 @@ export default function EconomicsAuditorPage() {
                         />
                         <Area 
                             type="monotone" 
-                            dataKey="expenses" 
+                            dataKey="expenditure" 
                             stroke="hsl(var(--destructive))" 
                             strokeWidth={3} 
                             fillOpacity={1} 
@@ -479,7 +479,7 @@ export default function EconomicsAuditorPage() {
         <EntityDataGrid 
           title="Institutional Ledger"
           description={`Granular history of all transactional records for the current ${temporalFilter === 'seasonal' ? 'trimester' : temporalFilter} cycle.`}
-          data={economics?.logs || []}
+          data={economics?.transactions || []}
           columns={columns}
           actions={
             <div className="relative w-full lg:w-96 group">
