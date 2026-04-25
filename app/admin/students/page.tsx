@@ -331,9 +331,9 @@ export default function StudentsPage() {
       </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={(open) => !open && setIsEditDialogOpen(false)}>
-        <DialogContent className="sm:max-w-[500px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
+        <DialogContent className="sm:max-w-[500px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl max-h-[90dvh]">
             {editingStudent && (
-                <div className="flex flex-col max-h-[85vh]">
+                <div className="flex flex-col max-h-[90dvh]">
                     <div className="p-8 pb-4">
                         <DialogHeader className="space-y-3">
                             <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-2">
@@ -344,7 +344,7 @@ export default function StudentsPage() {
                         </DialogHeader>
                     </div>
 
-                    <ScrollArea className="flex-1 px-8">
+                    <ScrollArea className="flex-1 px-8 min-h-0">
                         <form id="edit-student-form" onSubmit={(e) => {
                             e.preventDefault()
                             const formData = new FormData(e.currentTarget)
@@ -381,7 +381,7 @@ export default function StudentsPage() {
                                         <Input name="phone" defaultValue={editingStudent.phone} required className="h-11 bg-muted/5 border-primary/5 rounded-xl text-sm" />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 pb-4">
                                     <div className="space-y-2">
                                         <Label className="text-[10px] uppercase tracking-widest font-bold opacity-40 ml-1">Academic Tier</Label>
                                         <Select name="grade" defaultValue={editingStudent.grade}>
