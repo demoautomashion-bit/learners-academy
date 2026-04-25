@@ -16,6 +16,13 @@ import {
   Bar,
   Cell
 } from 'recharts'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { 
   TrendingUp, 
   ArrowUpRight, 
@@ -49,16 +56,16 @@ import {
     eachDayOfInterval, 
     isSameDay 
 } from 'date-fns'
-import { getActiveTrimester, isWithinTrimester, SEASON_ORDER } from '@/lib/trimesters'
+import { getActiveTrimester, isWithinTrimester, SEASON_ORDER, buildTrimester, TrimesterSeason } from '@/lib/trimesters'
 import { motion, AnimatePresence } from 'framer-motion'
 
 type TemporalFilter = 'Daily' | 'Weekly' | 'Monthly' | 'Seasonal'
 
-const SEASON_THEMES = {
-    Spring: { icon: Flower2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', gradient: 'from-emerald-500/20 to-transparent' },
-    Summer: { icon: Sun, color: 'text-amber-400', bg: 'bg-amber-500/10', gradient: 'from-amber-500/20 to-transparent' },
-    Autumn: { icon: Leaf, color: 'text-orange-400', bg: 'bg-orange-500/10', gradient: 'from-orange-500/20 to-transparent' },
-    Winter: { icon: CloudSnow, color: 'text-indigo-400', bg: 'bg-indigo-500/10', gradient: 'from-indigo-500/20 to-transparent' }
+const SEASON_THEMES: Record<TrimesterSeason, any> = {
+    Spring: { icon: Flower2, color: 'text-emerald-400', hex: '#34d399', bg: 'bg-emerald-500/10', gradient: 'from-emerald-500/20 to-transparent' },
+    Summer: { icon: Sun, color: 'text-amber-400', hex: '#fbbf24', bg: 'bg-amber-500/10', gradient: 'from-amber-500/20 to-transparent' },
+    Autumn: { icon: Leaf, color: 'text-orange-400', hex: '#fb923c', bg: 'bg-orange-500/10', gradient: 'from-orange-500/20 to-transparent' },
+    Winter: { icon: CloudSnow, color: 'text-indigo-400', hex: '#818cf8', bg: 'bg-indigo-500/10', gradient: 'from-indigo-500/20 to-transparent' }
 }
 
 export default function EnrollmentTrendPage() {
@@ -89,20 +96,79 @@ export default function EnrollmentTrendPage() {
 
   // Mocked trend data based on filter
   const chartData = useMemo(() => {
-    const intervals = filter === 'Daily' ? 7 : filter === 'Weekly' ? 4 : filter === 'Monthly' ? 6 : 4
-    const labels = filter === 'Daily' 
-        ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        : filter === 'Weekly' 
-        ? ['Week 1', 'Week 2', 'Week 3', 'Week 4']
-        : filter === 'Monthly' 
-        ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-        : ['Spring', 'Summer', 'Autumn', 'Winter']
+    if (!students || !Array.isArray(students)) return []
+    
+    const now = new Date()
+    
+    if (filter === 'Daily') {
+      return eachDayOfInterval({
+        start: subDays(startOfDay(now), 6),
+        end: startOfDay(now)
+      }).map(day => ({
+        name: format(day, 'EEE'),
+        count: students.filter(s => {
+          const d = s.enrolledAt ? parseISO(s.enrolledAt as string) : null
+          return d && isSameDay(d, day)
+        }).length
+      }))
+    }
+    
+    if (filter === 'Weekly') {
+      return [3, 2, 1, 0].map(weeksAgo => {
+        const start = subDays(now, (weeksAgo + 1) * 7)
+        const end = subDays(now, weeksAgo * 7)
+        return {
+          name: weeksAgo === 0 ? 'This Week' : `${weeksAgo}w Ago`,
+          count: students.filter(s => {
+            const d = s.enrolledAt ? parseISO(s.enrolledAt as string) : null
+            return d && d >= start && d < end
+          }).length
+        }
+      })
+    }
+    
+    if (filter === 'Monthly') {
+      return [5, 4, 3, 2, 1, 0].map(monthsAgo => {
+        const date = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1)
+        return {
+          name: format(date, 'MMM'),
+          count: students.filter(s => {
+            const d = s.enrolledAt ? parseISO(s.enrolledAt as string) : null
+            return d && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear()
+          }).length
+        }
+      })
+    }
+    
+    if (filter === 'Seasonal') {
+      return SEASON_ORDER.map(season => {
+        const trimester = buildTrimester(season, now.getFullYear())
+        return {
+          name: season,
+          count: students.filter(s => {
+            const d = s.enrolledAt ? parseISO(s.enrolledAt as string) : null
+            return d && isWithinTrimester(d, trimester)
+          }).length
+        }
+      })
+    }
 
-    return labels.map(label => ({
-        name: label,
-        count: Math.floor(20 + Math.random() * 80)
-    }))
-  }, [filter])
+    return []
+  }, [students, filter])
+
+  const comparisonData = useMemo(() => {
+    const now = new Date()
+    return SEASON_ORDER.map(season => {
+        const trimester = buildTrimester(season, now.getFullYear())
+        return {
+            name: season,
+            value: (students || []).filter(s => {
+                const d = s.enrolledAt ? parseISO(s.enrolledAt as string) : null
+                return d && isWithinTrimester(d, trimester)
+            }).length
+        }
+    })
+  }, [students])
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -119,31 +185,29 @@ export default function EnrollmentTrendPage() {
         title="Enrollment Trends"
         description="Monitor student registrations and analyze enrollment growth over time."
         actions={
-            <Button variant="outline" className="h-11 px-6 rounded-xl glass-2 border-primary/10 hover:bg-primary/5" onClick={() => router.back()}>
-                <ChevronLeft className="w-4 h-4 mr-2" /> Back to Registry
-            </Button>
+            <div className="flex items-center gap-3">
+                <Select value={filter} onValueChange={(v) => setFilter(v as TemporalFilter)}>
+                    <SelectTrigger className="h-11 w-40 glass-2 border-primary/10 rounded-xl px-4 text-[10px] uppercase font-bold tracking-widest">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="w-3.5 h-3.5 opacity-40" />
+                            <SelectValue placeholder="Select period" />
+                        </div>
+                    </SelectTrigger>
+                    <SelectContent className="glass-2 border-white/5">
+                        {['Daily', 'Weekly', 'Monthly', 'Seasonal'].map((f) => (
+                            <SelectItem key={f} value={f} className="text-[10px] uppercase font-bold tracking-widest">
+                                {f}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button variant="outline" className="h-11 px-6 rounded-xl glass-2 border-primary/10 hover:bg-primary/5" onClick={() => router.back()}>
+                    <ChevronLeft className="w-4 h-4 mr-2" /> Back to Registry
+                </Button>
+            </div>
         }
       />
 
-      {/* Advanced Filter Control */}
-      <div className="mt-12 flex justify-center">
-        <div className="flex items-center gap-1 p-1 bg-muted/10 border border-primary/5 rounded-2xl glass-1 shadow-2xl">
-            {(['Daily', 'Weekly', 'Monthly', 'Seasonal'] as TemporalFilter[]).map((f) => (
-                <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className={cn(
-                        "px-6 py-2.5 rounded-xl text-[10px] uppercase font-bold tracking-widest transition-all",
-                        filter === f 
-                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                            : "text-muted-foreground opacity-40 hover:opacity-100 hover:bg-primary/5"
-                    )}
-                >
-                    {f}
-                </button>
-            ))}
-        </div>
-      </div>
 
       {/* "Chronos" Metric Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
@@ -219,7 +283,7 @@ export default function EnrollmentTrendPage() {
             <CardContent className="p-10 flex-1 flex flex-col">
                 <div className="h-[300px] w-full mb-12">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={SEASON_ORDER.map(s => ({ name: s, value: Math.floor(100 + Math.random() * 200), color: SEASON_THEMES[s].color }))}>
+                        <BarChart data={comparisonData}>
                             <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="hsl(var(--primary))" opacity={0.03} />
                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, opacity: 0.3 }} />
                             <Tooltip 
@@ -230,10 +294,11 @@ export default function EnrollmentTrendPage() {
                                 }}
                             />
                             <Bar dataKey="value" radius={[12, 12, 6, 6]} barSize={32}>
-                                {SEASON_ORDER.map((s, index) => (
+                                {comparisonData.map((entry, index) => (
                                     <Cell 
                                         key={`cell-${index}`} 
-                                        fill={s === activeTrimester.season ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.2)"} 
+                                        fill={SEASON_THEMES[entry.name as TrimesterSeason].hex} 
+                                        fillOpacity={entry.name === activeTrimester.season ? 1 : 0.4}
                                     />
                                 ))}
                             </Bar>
@@ -255,12 +320,14 @@ export default function EnrollmentTrendPage() {
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-[10px] uppercase tracking-widest font-black">{s}</span>
-                                        <span className="text-[9px] opacity-60 font-medium">Epoch Analytics</span>
+                                        <span className="text-[9px] opacity-60 font-medium">Term Summary</span>
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-end">
-                                    <span className="text-sm font-serif font-medium">{Math.floor(150 + Math.random() * 50)}</span>
-                                    <span className="text-[9px] opacity-40 italic">New Entries</span>
+                                    <span className="text-sm font-serif font-medium">
+                                        {comparisonData.find(d => d.name === s)?.value || 0}
+                                    </span>
+                                    <span className="text-[9px] opacity-40 italic">Total Learners</span>
                                 </div>
                             </div>
                         )
