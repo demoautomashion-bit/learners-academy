@@ -2,7 +2,7 @@
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState, useMemo } from 'react'
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -83,24 +83,27 @@ export default function EconomicsAuditorPage() {
   const [logData, setLogData] = useState({ amount: '', category: '', description: '' })
 
   const handleDownloadPDF = async () => {
-      const doc = new jsPDF()
-      const pageWidth = doc.internal.pageSize.getWidth()
-      
       // Toast notification for generation
       const loadingToast = toast.loading("Generating Branded PDF Report...")
 
       try {
-          // 1. Add Branding Logo
+          const doc = new jsPDF()
+          const pageWidth = doc.internal.pageSize.getWidth()
+          
+          // 1. Add Branding Logo with timeout protection
           const img = new Image()
           img.src = '/images/logo.png'
           
-          await new Promise((resolve, reject) => {
-              img.onload = resolve
-              img.onerror = () => {
-                  console.warn("Logo failed to load, falling back to text branding")
-                  resolve(null)
-              }
-          })
+          await Promise.race([
+              new Promise((resolve) => {
+                  img.onload = resolve
+                  img.onerror = () => {
+                      console.warn("Logo failed to load, falling back to text branding")
+                      resolve(null)
+                  }
+              }),
+              new Promise((resolve) => setTimeout(() => resolve(null), 2000)) // 2s timeout
+          ])
 
           // Header Background / Accent
           doc.setFillColor(31, 41, 55) // Dark Charcoal / Brand Primary
@@ -135,7 +138,7 @@ export default function EconomicsAuditorPage() {
           doc.setTextColor(31, 41, 55)
           doc.setFontSize(10)
           doc.setFont('helvetica', 'bold')
-          doc.text(`${temporalFilter.toUpperCase()} PERFORMANCE AUDIT`, 15, 55)
+          doc.text(`${(temporalFilter || 'MONTHLY').toUpperCase()} PERFORMANCE AUDIT`, 15, 55)
           
           doc.setFont('helvetica', 'normal')
           doc.setFontSize(8)
@@ -148,6 +151,10 @@ export default function EconomicsAuditorPage() {
           const cardWidth = (pageWidth - 40) / 3
           const cardY = 65
           
+          const inflow = financialMetrics?.totalEarnings || 0
+          const outflow = financialMetrics?.totalExpenses || 0
+          const margin = financialMetrics?.margin || 0
+
           // Inflow Card
           doc.rect(15, cardY, cardWidth, 20, 'FD')
           doc.setTextColor(100, 100, 100)
@@ -155,7 +162,7 @@ export default function EconomicsAuditorPage() {
           doc.text('TOTAL INFLOW', 20, cardY + 7)
           doc.setTextColor(34, 197, 94) // Success Green
           doc.setFontSize(10)
-          doc.text(`PKR ${financialMetrics.totalEarnings.toLocaleString()}`, 20, cardY + 15)
+          doc.text(`PKR ${inflow.toLocaleString()}`, 20, cardY + 15)
 
           // Outflow Card
           doc.rect(15 + cardWidth + 5, cardY, cardWidth, 20, 'FD')
@@ -164,7 +171,7 @@ export default function EconomicsAuditorPage() {
           doc.text('TOTAL OUTFLOW', 20 + cardWidth + 5, cardY + 7)
           doc.setTextColor(239, 68, 68) // Destructive Red
           doc.setFontSize(10)
-          doc.text(`PKR ${financialMetrics.totalExpenses.toLocaleString()}`, 20 + cardWidth + 5, cardY + 15)
+          doc.text(`PKR ${outflow.toLocaleString()}`, 20 + cardWidth + 5, cardY + 15)
 
           // Margin Card
           doc.rect(15 + (cardWidth + 5) * 2, cardY, cardWidth, 20, 'FD')
@@ -173,18 +180,34 @@ export default function EconomicsAuditorPage() {
           doc.text('NET MARGIN', 20 + (cardWidth + 5) * 2, cardY + 7)
           doc.setTextColor(31, 41, 55)
           doc.setFontSize(10)
-          doc.text(`PKR ${financialMetrics.margin.toLocaleString()}`, 20 + (cardWidth + 5) * 2, cardY + 15)
+          doc.text(`PKR ${margin.toLocaleString()}`, 20 + (cardWidth + 5) * 2, cardY + 15)
 
-          // Transactions Table
-          const tableData = (economics?.transactions || []).map((t: any) => [
-              t.description,
-              t.category || 'Institutional',
-              new Date(t.date || t.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-              { 
-                  content: `${t.type === 'credit' ? '+' : '-'} ${t.amount.toLocaleString()}`,
-                  styles: { textColor: t.type === 'credit' ? [34, 197, 94] : [239, 68, 68], fontStyle: 'bold' }
-              }
-          ])
+          // Transactions Table with Defensive Mapping
+          const transactions = economics?.transactions || []
+          const tableData = transactions.map((t: any) => {
+              const amount = t?.amount || 0
+              const description = t?.description || "Institutional Transaction"
+              const category = t?.category || "General"
+              const type = t?.type || "debit"
+              
+              let dateStr = "N/A"
+              try {
+                  const dateObj = new Date(t?.date || t?.createdAt)
+                  if (!isNaN(dateObj.getTime())) {
+                      dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                  }
+              } catch (e) { /* Fallback to N/A */ }
+
+              return [
+                  description,
+                  category,
+                  dateStr,
+                  { 
+                      content: `${type === 'credit' ? '+' : '-'} ${amount.toLocaleString()}`,
+                      styles: { textColor: type === 'credit' ? [34, 197, 94] : [239, 68, 68], fontStyle: 'bold' }
+                  }
+              ]
+          })
 
           autoTable(doc, {
               startY: 95,
@@ -210,8 +233,8 @@ export default function EconomicsAuditorPage() {
               margin: { left: 15, right: 15 }
           })
 
-          // Footer
-          const finalY = (doc as any).lastAutoTable.finalY || 150
+          // Footer with Safety Checks
+          const finalY = (doc as any).lastAutoTable?.finalY || 150
           doc.setDrawColor(200, 200, 200)
           doc.line(15, finalY + 10, pageWidth - 15, finalY + 10)
           
@@ -225,9 +248,11 @@ export default function EconomicsAuditorPage() {
           toast.success("Audit Downloaded Successfully")
 
       } catch (error) {
-          console.error("PDF Generation Error:", error)
+          console.error("PDF Generation Error Details:", error)
           toast.dismiss(loadingToast)
-          toast.error("Failed to generate PDF")
+          toast.error("Failed to generate PDF", {
+              description: "There was an error formatting the transaction data."
+          })
       }
   }
 
