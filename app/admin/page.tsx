@@ -76,21 +76,29 @@ export default function AdminDashboard() {
   ]
 
   // Calculate dynamic pie data from real student distributions
-  const pieData = [
-    { name: 'Foundation', value: 0, color: 'var(--color-primary)' },
-    { name: 'Core', value: 0, color: 'var(--color-success)' },
-    { name: 'Advanced', value: 0, color: 'var(--color-warning)' },
-  ]
-
-  students.forEach(s => {
-    const level = s.level || 'Foundation'
-    const segment = pieData.find(p => p.name === level)
-    if (segment) segment.value += 1
-  })
-
-  // Convert to percentages for display
-  const total = students.length || 1
-  pieData.forEach(p => p.value = Math.round((p.value / total) * 100))
+  const pieData = useMemo(() => {
+    const levelsMap: Record<string, number> = {}
+    students.forEach(s => {
+      const level = s.level || 'Unassigned'
+      levelsMap[level] = (levelsMap[level] || 0) + 1
+    })
+    
+    const totalCount = students.length || 1
+    const brandColors = [
+      'var(--color-primary)', 
+      'var(--color-success)', 
+      'var(--color-warning)', 
+      'var(--color-accent)',
+      'var(--color-destructive)',
+      '#6366f1' // Indigo fallback
+    ]
+    
+    return Object.entries(levelsMap).map(([name, count], index) => ({
+      name,
+      value: Math.round((count / totalCount) * 100),
+      color: brandColors[index % brandColors.length]
+    }))
+  }, [students])
 
   return (
     <PageShell>
