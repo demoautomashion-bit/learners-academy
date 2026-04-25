@@ -176,10 +176,10 @@ export default function FeeRegistryPage() {
 
   // Auto-fill target class when a student is selected
   useEffect(() => {
-     if (selectedStudentTarget && isCollectOpen && selectedStudentTarget.courseId !== 'none') {
+     if (selectedStudentTarget && isCollectOpen && selectedStudentTarget.courseId !== 'none' && feeData.courseId !== selectedStudentTarget.courseId) {
          setFeeData(prev => ({ ...prev, courseId: selectedStudentTarget.courseId }))
      }
-  }, [selectedStudentTarget, isCollectOpen])
+  }, [selectedStudentTarget, isCollectOpen, feeData.courseId])
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
