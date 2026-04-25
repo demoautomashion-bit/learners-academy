@@ -2,7 +2,7 @@
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useState, useMemo } from 'react'
-import { jsPDF } from 'jspdf'
+import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -87,10 +87,11 @@ export default function EconomicsAuditorPage() {
       const loadingToast = toast.loading("Generating Branded PDF Report...")
 
       try {
+          // Initialize jsPDF with default constructor for maximum compatibility
           const doc = new jsPDF()
           const pageWidth = doc.internal.pageSize.getWidth()
           
-          // 1. Add Branding Logo with timeout protection
+          // 1. Add Branding Logo with timeout and rendering isolation
           const img = new Image()
           img.src = '/images/logo.png'
           
@@ -102,16 +103,21 @@ export default function EconomicsAuditorPage() {
                       resolve(null)
                   }
               }),
-              new Promise((resolve) => setTimeout(() => resolve(null), 2000)) // 2s timeout
+              new Promise((resolve) => setTimeout(() => resolve(null), 1500)) // 1.5s timeout
           ])
 
           // Header Background / Accent
           doc.setFillColor(31, 41, 55) // Dark Charcoal / Brand Primary
           doc.rect(0, 0, pageWidth, 40, 'F')
 
-          if (img.complete && img.naturalWidth > 0) {
-              doc.addImage(img, 'PNG', 15, 8, 24, 24)
-          } else {
+          try {
+              if (img.complete && img.naturalWidth > 0) {
+                  doc.addImage(img, 'PNG', 15, 8, 24, 24)
+              } else {
+                  throw new Error("No image")
+              }
+          } catch (e) {
+              // Fallback to text logo if image rendering fails
               doc.setTextColor(255, 255, 255)
               doc.setFontSize(22)
               doc.setFont('helvetica', 'bold')
@@ -151,9 +157,9 @@ export default function EconomicsAuditorPage() {
           const cardWidth = (pageWidth - 40) / 3
           const cardY = 65
           
-          const inflow = financialMetrics?.totalEarnings || 0
-          const outflow = financialMetrics?.totalExpenses || 0
-          const margin = financialMetrics?.margin || 0
+          const inflow = Number(financialMetrics?.totalEarnings) || 0
+          const outflow = Number(financialMetrics?.totalExpenses) || 0
+          const margin = Number(financialMetrics?.margin) || 0
 
           // Inflow Card
           doc.rect(15, cardY, cardWidth, 20, 'FD')
@@ -182,28 +188,31 @@ export default function EconomicsAuditorPage() {
           doc.setFontSize(10)
           doc.text(`PKR ${margin.toLocaleString()}`, 20 + (cardWidth + 5) * 2, cardY + 15)
 
-          // Transactions Table with Defensive Mapping
+          // Transactions Table with Robust Data Handling
           const transactions = economics?.transactions || []
           const tableData = transactions.map((t: any) => {
-              const amount = t?.amount || 0
-              const description = t?.description || "Institutional Transaction"
-              const category = t?.category || "General"
+              const amountVal = Number(t?.amount) || 0
+              const description = String(t?.description || "Institutional Transaction")
+              const category = String(t?.category || "General")
               const type = t?.type || "debit"
               
               let dateStr = "N/A"
               try {
-                  const dateObj = new Date(t?.date || t?.createdAt)
-                  if (!isNaN(dateObj.getTime())) {
-                      dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                  const dateSrc = t?.date || t?.createdAt
+                  if (dateSrc) {
+                      const dateObj = new Date(dateSrc)
+                      if (!isNaN(dateObj.getTime())) {
+                          dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                      }
                   }
-              } catch (e) { /* Fallback to N/A */ }
+              } catch (e) { /* Fail silently to N/A */ }
 
               return [
                   description,
                   category,
                   dateStr,
                   { 
-                      content: `${type === 'credit' ? '+' : '-'} ${amount.toLocaleString()}`,
+                      content: `${type === 'credit' ? '+' : '-'} ${amountVal.toLocaleString()}`,
                       styles: { textColor: type === 'credit' ? [34, 197, 94] : [239, 68, 68], fontStyle: 'bold' }
                   }
               ]
@@ -233,8 +242,10 @@ export default function EconomicsAuditorPage() {
               margin: { left: 15, right: 15 }
           })
 
-          // Footer with Safety Checks
-          const finalY = (doc as any).lastAutoTable?.finalY || 150
+          // Footer with Property Safety
+          const lastTable = (doc as any).lastAutoTable
+          const finalY = (lastTable && lastTable.finalY) ? lastTable.finalY : 150
+          
           doc.setDrawColor(200, 200, 200)
           doc.line(15, finalY + 10, pageWidth - 15, finalY + 10)
           
@@ -248,10 +259,10 @@ export default function EconomicsAuditorPage() {
           toast.success("Audit Downloaded Successfully")
 
       } catch (error) {
-          console.error("PDF Generation Error Details:", error)
+          console.error("PDF Generation Critical Failure:", error)
           toast.dismiss(loadingToast)
           toast.error("Failed to generate PDF", {
-              description: "There was an error formatting the transaction data."
+              description: "Initialization or data formatting failed. Please try again."
           })
       }
   }
