@@ -101,8 +101,6 @@ export default function AdminDashboard() {
     },
   ]
 
-  ]
-
   return (
     <PageShell>
       <div className="flex flex-col gap-1 mb-8 mt-2">
