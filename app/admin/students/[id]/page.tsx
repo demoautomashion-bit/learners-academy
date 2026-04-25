@@ -83,7 +83,7 @@ export default function StudentDossierPage() {
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] uppercase tracking-widest opacity-40 font-bold">Registry Email</span>
-                            <span className="text-xs font-normal truncate max-w-[180px]">{student.email}</span>
+                            <span className="text-xs font-normal truncate max-w-[180px]">{student.email || 'No Email'}</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-4 group">

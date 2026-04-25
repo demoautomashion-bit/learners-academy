@@ -197,7 +197,7 @@ export default function StudentsPage() {
           <div className="flex flex-col gap-1">
              <div className="flex items-center gap-2.5 group/email cursor-pointer">
                 <Mail className="w-3.5 h-3.5 text-primary opacity-30 group-hover/email:opacity-100 transition-opacity" />
-                <span className="text-[10px] text-muted-foreground opacity-60 group-hover/email:opacity-100 transition-opacity whitespace-nowrap">{student.email}</span>
+                <span className="text-[10px] text-muted-foreground opacity-60 group-hover/email:opacity-100 transition-opacity whitespace-nowrap">{student.email || 'No Email'}</span>
              </div>
              <div className="flex items-center gap-2.5 group/phone cursor-pointer">
                 <Phone className="w-3.5 h-3.5 text-primary opacity-30 group-hover/phone:opacity-100 transition-opacity" />
