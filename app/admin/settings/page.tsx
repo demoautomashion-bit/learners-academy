@@ -36,12 +36,12 @@ import { cn } from '@/lib/utils'
 
 export default function SettingsPage() {
   const hasMounted = useHasMounted()
-  const { user, updateUser, isInitialized: authInitialized } = useAuth()
+  const { user, updateUser, isAuthenticated, isLoading: authLoading } = useAuth()
   const { isInitialized: dataInitialized } = useData()
   const [isLoading, setIsLoading] = useState(false)
 
   if (!hasMounted) return null
-  if (!authInitialized || !dataInitialized || !user?.id) return <DashboardSkeleton />
+  if (authLoading || !dataInitialized || !isAuthenticated || !user?.id) return <DashboardSkeleton />
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
