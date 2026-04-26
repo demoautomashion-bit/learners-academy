@@ -25,7 +25,7 @@ import { cn, getInitials } from '@/lib/utils'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 import { useHasMounted } from '@/hooks/use-has-mounted'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -260,8 +260,7 @@ function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher 
     })
     const [isSaving, setIsSaving] = useState(false)
 
-    // Using layout effect or just standard state init via useEffect
-    useState(() => {
+    useEffect(() => {
         if (teacher) {
             setFormData({
                 name: teacher.name || '',
@@ -271,7 +270,7 @@ function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher 
                 employeePassword: teacher.employeePassword || ''
             })
         }
-    })
+    }, [teacher])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
