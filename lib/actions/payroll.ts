@@ -6,10 +6,12 @@ import { ActionResult } from '../types'
 
 export async function getPayrollStats(month: string, year: number): Promise<ActionResult> {
     try {
+        console.time('db-stats-query')
         const teachers = await db.teacher.findMany({ where: { status: 'active' } })
         const records = await db.payrollRecord.findMany({
             where: { month, year }
         })
+        console.timeEnd('db-stats-query')
 
         const totalLiability = teachers.reduce((acc, t) => acc + (t.salary || 0), 0)
         const distributed = records.filter(r => r.status === 'Paid').reduce((acc, r) => acc + r.amount, 0)
@@ -32,6 +34,7 @@ export async function getPayrollStats(month: string, year: number): Promise<Acti
 
 export async function getMonthlyPayrollList(month: string, year: number): Promise<ActionResult> {
     try {
+        console.time('db-staff-list-query')
         const teachers = await db.teacher.findMany({ 
             where: { status: 'active' },
             include: {
@@ -51,6 +54,7 @@ export async function getMonthlyPayrollList(month: string, year: number): Promis
                 }
             }
         })
+        console.timeEnd('db-staff-list-query')
 
         return {
             success: true,

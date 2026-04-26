@@ -23,8 +23,10 @@ import {
     Wallet,
     History,
     Banknote,
-    FileText
+    FileText,
+    RefreshCw
 } from 'lucide-react'
+import { useHasMounted } from '@/hooks/use-has-mounted'
 import {
     Dialog,
     DialogContent,
@@ -56,6 +58,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 const YEARS = [2024, 2026, 2027, 2028, 2029] // Excluding 2025 as requested
 
 export default function PayrollManagementPage() {
+    const hasMounted = useHasMounted()
     const [isLoading, setIsLoading] = useState(true)
     const [stats, setStats] = useState<any>(null)
     const [staffList, setStaffList] = useState<any[]>([])
@@ -76,13 +79,32 @@ export default function PayrollManagementPage() {
         }
     }, [payingTeacher])
 
+    useEffect(() => {
+        if (hasMounted) {
+            loadData()
+        }
+    }, [selectedMonth, selectedYear, hasMounted])
+
     const loadData = async () => {
         setIsLoading(true)
+        
+        // Safety Timeout: Force clear loading after 8 seconds if server hangs
+        const timeout = setTimeout(() => {
+            if (isLoading) {
+                setIsLoading(false)
+                toast.error("Institutional Link Unstable", {
+                    description: "The database is taking too long to respond. Please try refreshing."
+                })
+            }
+        }, 8000)
+
         try {
+            console.time('payroll-data-fetch')
             const [statsRes, listRes] = await Promise.all([
                 getPayrollStats(selectedMonth, selectedYear),
                 getMonthlyPayrollList(selectedMonth, selectedYear)
             ])
+            console.timeEnd('payroll-data-fetch')
 
             if (statsRes.success) setStats(statsRes.data)
             if (listRes.success) {
@@ -98,6 +120,7 @@ export default function PayrollManagementPage() {
             console.error("PAYROLL_LOAD_CRITICAL:", err)
             toast.error("Institutional Data Layer Timeout")
         } finally {
+            clearTimeout(timeout)
             setIsLoading(false)
         }
     }
@@ -199,6 +222,7 @@ export default function PayrollManagementPage() {
         )
     }, [staffList, searchQuery])
 
+    if (!hasMounted) return null
     if (isLoading && !stats) return <DashboardSkeleton />
 
     const kpis = [
@@ -327,6 +351,9 @@ export default function PayrollManagementPage() {
                          </Select>
                          <Button onClick={exportPayrollPDF} variant="outline" className="h-12 px-6 rounded-2xl border-primary/10 glass-1 font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all">
                             <Download className="w-4 h-4 mr-2" /> PDF
+                         </Button>
+                         <Button onClick={loadData} variant="outline" className="h-12 w-12 rounded-2xl border-primary/10 glass-1 p-0 flex items-center justify-center hover:bg-primary/5">
+                            <RefreshCw className={cn("w-4 h-4 opacity-40", isLoading && "animate-spin opacity-100")} />
                          </Button>
                     </div>
                 }
