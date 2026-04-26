@@ -37,8 +37,19 @@ import {
   Download,
   BarChart3,
   TrendingUp,
-  ListChecks
+  ListChecks,
+  MoreVertical,
+  CalendarDays,
+  FileDown
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import { useRouter } from 'next/navigation'
 import { cn, getInitials } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
@@ -197,45 +208,117 @@ export default function AttendanceRegistryPage() {
     }
   }
 
-  const exportMonthlyPDF = () => {
-    const doc = new jsPDF()
-    const monthYear = format(selectedDate, 'MMMM yyyy')
-    
-    doc.setFontSize(22)
-    doc.setTextColor(40)
-    doc.text("Institutional Attendance Registry", 14, 22)
-    
-    doc.setFontSize(12)
-    doc.setTextColor(100)
-    doc.text(`Academic Period: ${monthYear}`, 14, 30)
-    doc.text(`Generated on: ${format(new Date(), 'PPP p')}`, 14, 37)
-    
-    const tableData = filteredTeachers.map(teacher => {
-        const stats = monthlyStats[teacher.id] || { present: 0, absent: 0, late: 0, leave: 0, substitutions: 0 }
-        return [
-            teacher.employeeId,
-            teacher.name,
-            stats.present,
-            stats.absent,
-            stats.late,
-            stats.leave,
-            stats.substitutions
-        ]
-    })
+  const exportAttendancePDF = (mode: 'weekly' | 'monthly' | 'trimester') => {
+    try {
+        const doc = new jsPDF()
+        const pageWidth = doc.internal.pageSize.getWidth()
+        
+        // 1. Institutional Branding (Premium Design)
+        doc.setFillColor(31, 41, 55)
+        doc.rect(0, 0, pageWidth, 40, 'F')
+        
+        doc.setFillColor(255, 255, 255)
+        doc.circle(23, 20, 11, 'F')
+        
+        try {
+            doc.addImage('/images/logo.png', 'PNG', 15, 12, 16, 16)
+        } catch (e) {}
 
-    autoTable(doc, {
-        startY: 50,
-        head: [['ID', 'Personnel Name', 'Present', 'Absent', 'Late', 'Leave', 'Extra Load']],
-        body: tableData,
-        theme: 'striped',
-        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
-        styles: { fontSize: 10, cellPadding: 5 }
-    })
+        doc.setTextColor(255, 255, 255)
+        doc.setFontSize(18)
+        doc.setFont('helvetica', 'bold')
+        doc.text("THE LEARNERS ACADEMY", 42, 18)
+        
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.text("Institutional Personnel Registry & Attendance Audit", 42, 24)
+        doc.text("Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.", 42, 28)
+        doc.text("Contact: +92-3003583286 / +92-3115455533", 42, 31)
 
-    doc.save(`Attendance_Registry_${monthYear.replace(' ', '_')}.pdf`)
-    toast.success("Registry Exported Successfully", {
-        description: `Personnel summary for ${monthYear} is ready for filing.`
-    })
+        // 2. Determine Date Range & Header
+        let startDate: Date, endDate: Date, label: string
+        if (mode === 'weekly') {
+            startDate = startOfWeek(selectedDate, { weekStartsOn: 1 })
+            endDate = endOfWeek(selectedDate, { weekStartsOn: 1 })
+            label = `WEEKLY AUDIT: ${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`
+        } else if (mode === 'trimester') {
+            const term = getDatesForTerm(selectedTerm)
+            startDate = term.start
+            endDate = term.end
+            label = `TRIMESTER AUDIT: ${selectedTerm.toUpperCase().replace('-', ' ')}`
+        } else {
+            startDate = startOfMonth(selectedDate)
+            endDate = endOfMonth(selectedDate)
+            label = `MONTHLY AUDIT: ${format(selectedDate, 'MMMM yyyy').toUpperCase()}`
+        }
+
+        doc.setTextColor(40)
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+        doc.text(label, 15, 55)
+        
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Report Generated: ${new Date().toLocaleString()}`, 15, 61)
+
+        // 3. Data Aggregation
+        const tableData = filteredTeachers.map(teacher => {
+            const recs = attendance.filter(a => {
+                const date = new Date(a.date)
+                return a.teacherId === teacher.id && date >= startDate && date <= endDate
+            })
+            
+            return [
+                teacher.employeeId,
+                teacher.name,
+                recs.filter(a => a.status === 'Present').length,
+                recs.filter(a => a.status === 'Absent').length,
+                recs.filter(a => a.status === 'Leave').length,
+                recs.filter(a => a.status === 'Late').length,
+                recs.reduce((acc, curr) => acc + (curr.substituteCount || 0), 0)
+            ]
+        })
+
+        // 4. Render Table
+        autoTable(doc, {
+            startY: 70,
+            head: [['ID', 'Personnel Name', 'Present', 'Absent', 'Leave', 'Late', 'Substitution']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [31, 41, 55], textColor: 255, fontSize: 8.5 },
+            styles: { fontSize: 8, cellPadding: 5, valign: 'middle' },
+            columnStyles: { 
+                2: { halign: 'center' },
+                3: { halign: 'center' },
+                4: { halign: 'center' },
+                5: { halign: 'center' },
+                6: { halign: 'center' }
+            },
+            margin: { left: 15, right: 15 }
+        })
+
+        // 5. Footer
+        const finalY = (doc as any).lastAutoTable?.finalY || 150
+        const footerY = Math.max(finalY + 30, 260)
+
+        doc.setDrawColor(200)
+        doc.line(15, footerY, 70, footerY)
+        doc.line(pageWidth - 70, footerY, pageWidth - 15, footerY)
+        
+        doc.setTextColor(150)
+        doc.setFontSize(8)
+        doc.text("HR Department", 15, footerY + 6)
+        doc.text("Administrative Seal", pageWidth - 15, footerY + 6, { align: 'right' })
+        
+        doc.setFontSize(6.5)
+        doc.text("© THE LEARNERS ACADEMY - Institutional Resource Management", 15, footerY + 18)
+        doc.text(`TR-${mode.toUpperCase()}-${new Date().getTime().toString().slice(-6)}`, pageWidth - 15, footerY + 18, { align: 'right' })
+
+        doc.save(`Attendance_${mode}_${format(selectedDate, 'yyyy_MM')}.pdf`)
+        toast.success("Audit Exported Successfully")
+    } catch (err) {
+        toast.error("Export Protocol Interrupted")
+    }
   }
 
   return (
@@ -251,13 +334,32 @@ export default function AttendanceRegistryPage() {
         description="Monitor staff presence and session load with high-precision registry tools."
         actions={
           <div className="flex items-center gap-3">
-             <Button 
-                variant="outline" 
-                onClick={exportMonthlyPDF}
-                className="font-bold text-[10px] tracking-widest uppercase border-primary/10 hover:bg-primary/5 h-12 px-6 rounded-2xl glass-1"
-             >
-                <Download className="w-4 h-4 mr-2" /> Export PDF
-             </Button>
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button 
+                        variant="outline" 
+                        className="font-bold text-[10px] tracking-widest uppercase border-primary/10 hover:bg-primary/5 h-12 px-6 rounded-2xl glass-1"
+                    >
+                        <Download className="w-4 h-4 mr-2" /> Export PDF
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="glass-3 border-primary/10 rounded-xl min-w-[200px]">
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-widest font-black opacity-40">Report Scope</DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-primary/5" />
+                    <DropdownMenuItem onClick={() => exportAttendancePDF('weekly')} className="flex items-center gap-3 py-3 cursor-pointer">
+                        <CalendarDays className="w-4 h-4 text-primary" />
+                        <span className="text-[10px] uppercase font-bold tracking-widest">Weekly Audit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => exportAttendancePDF('monthly')} className="flex items-center gap-3 py-3 cursor-pointer">
+                        <CalendarIcon className="w-4 h-4 text-primary" />
+                        <span className="text-[10px] uppercase font-bold tracking-widest">Monthly Audit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => exportAttendancePDF('trimester')} className="flex items-center gap-3 py-3 cursor-pointer">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <span className="text-[10px] uppercase font-bold tracking-widest">Trimester Audit</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+             </DropdownMenu>
              <Button className="font-bold text-[10px] tracking-widest uppercase bg-primary shadow-xl shadow-primary/20 h-12 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
                 Finalize Logs
              </Button>
@@ -267,26 +369,18 @@ export default function AttendanceRegistryPage() {
 
       {/* Mode Toggle & Temporal Navigator */}
       <div className="mt-12 flex flex-col md:flex-row md:items-center justify-between gap-6 px-4 relative z-10">
-        <div className="flex bg-muted/5 border border-primary/5 p-1 rounded-2xl glass-1 w-fit">
-            <button 
-                onClick={() => setViewMode('daily')}
-                className={cn(
-                    "px-6 py-2.5 rounded-xl text-[10px] uppercase tracking-widest font-black transition-all",
-                    viewMode === 'daily' ? "bg-background shadow-lg text-primary" : "text-muted-foreground opacity-40 hover:opacity-100"
-                )}
-            >
-                Mark Attendance
-            </button>
-            <button 
-                onClick={() => setViewMode('monthly')}
-                className={cn(
-                    "px-6 py-2.5 rounded-xl text-[10px] uppercase tracking-widest font-black transition-all",
-                    viewMode === 'monthly' ? "bg-background shadow-lg text-primary" : "text-muted-foreground opacity-40 hover:opacity-100"
-                )}
-            >
-                Staff Summary
-            </button>
-        </div>
+        <Select value={viewMode} onValueChange={(val: any) => setViewMode(val)}>
+            <SelectTrigger className="w-[220px] h-12 rounded-2xl bg-muted/5 border-primary/5 glass-1 font-black text-[10px] uppercase tracking-widest">
+                <div className="flex items-center gap-2">
+                    <ListChecks className="w-4 h-4 text-primary" />
+                    <SelectValue placeholder="Select View Mode" />
+                </div>
+            </SelectTrigger>
+            <SelectContent className="glass-3 border-primary/10 rounded-2xl">
+                <SelectItem value="daily" className="text-[10px] uppercase font-bold tracking-widest">Mark Attendance</SelectItem>
+                <SelectItem value="monthly" className="text-[10px] uppercase font-bold tracking-widest">Staff Summary</SelectItem>
+            </SelectContent>
+        </Select>
 
         <div className="flex items-center gap-4 bg-muted/5 border border-primary/5 p-2 rounded-2xl glass-1">
             <Button 
@@ -569,15 +663,17 @@ export default function AttendanceRegistryPage() {
                                 <CalendarIcon className="w-3.5 h-3.5 mr-2 opacity-40" />
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="glass-3 border-primary/10 rounded-xl">
-                                {[0, 1, 2, 3, 4, 5].map(i => {
-                                    const d = subDays(new Date(), i * 30)
+                            <SelectContent className="glass-3 border-primary/10 rounded-xl max-h-[300px]">
+                                {Array.from({ length: 60 }).map((_, i) => {
+                                    // Generate months for next 5 years starting from a year ago
+                                    const d = new Date(new Date().getFullYear() - 1, new Date().getMonth() + i, 1)
+                                    if (d.getFullYear() === 2025) return null
                                     return (
                                         <SelectItem key={i} value={format(d, 'yyyy-MM')} className="text-[10px] font-bold uppercase tracking-widest">
                                             {format(d, 'MMMM yyyy')}
                                         </SelectItem>
                                     )
-                                })}
+                                }).filter(Boolean)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -642,28 +738,28 @@ export default function AttendanceRegistryPage() {
 
       {/* Staff Dossier Sheet */}
       <Sheet open={!!selectedTeacher} onOpenChange={(open) => !open && setSelectedTeacher(null)}>
-        <SheetContent className="w-[400px] md:w-[650px] sm:max-w-2xl glass-2 border-l border-white/5 p-0 overflow-hidden flex flex-col">
-            <div className="absolute top-0 right-0 w-full h-[40%] bg-gradient-to-b from-primary/[0.03] to-transparent pointer-events-none" />
+        <SheetContent className="w-full sm:max-w-xl bg-background/98 border-l border-white/5 p-0 overflow-hidden flex flex-col shadow-2xl">
+            <div className="absolute top-0 right-0 w-full h-[40%] bg-gradient-to-b from-primary/[0.05] to-transparent pointer-events-none" />
             
-            <div className="p-10 md:p-14 pb-8 shrink-0 relative z-10 z-[60]">
+            <div className="p-10 md:p-14 pb-8 shrink-0 relative z-10">
                 <div className="flex items-center justify-between mb-8">
-                    <div className="px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-[10px] uppercase tracking-[0.2em] font-bold text-primary">
+                    <div className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/10 text-[10px] uppercase tracking-[0.2em] font-black text-primary">
                         Personnel Intelligence Trace
                     </div>
                 </div>
 
                 <div className="flex items-center gap-10">
-                    <Avatar className="h-32 w-32 border border-primary/10 shadow-2xl relative">
+                    <Avatar className="h-28 w-28 border-2 border-primary/10 shadow-2xl relative">
                         <AvatarImage src={selectedTeacher?.avatar} />
                         <AvatarFallback className="text-4xl bg-primary/5 text-primary font-serif">{getInitials(selectedTeacher?.name || '')}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                        <SheetTitle className="text-4xl font-serif font-medium tracking-tight mb-3">{selectedTeacher?.name}</SheetTitle>
+                        <SheetTitle className="text-3xl font-serif font-medium tracking-tight mb-3">{selectedTeacher?.name}</SheetTitle>
                         <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground opacity-50">
-                           <div className="flex items-center gap-2 px-3 py-1 bg-muted/20 border border-primary/5 rounded-lg">
+                           <div className="flex items-center gap-2 px-3 py-1 bg-muted/40 border border-primary/5 rounded-lg">
                                 <Hash className="w-3.5 h-3.5" /> {selectedTeacher?.employeeId}
                            </div>
-                           <div className="flex items-center gap-2 px-3 py-1 bg-success/5 border border-success/10 rounded-lg text-success/80 border-dashed">
+                           <div className="flex items-center gap-2 px-3 py-1 bg-success/10 border border-success/10 rounded-lg text-success/80 border-dashed">
                                 <CheckCircle2 className="w-3.5 h-3.5" /> Active Protocol
                            </div>
                         </div>
@@ -671,11 +767,17 @@ export default function AttendanceRegistryPage() {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-10 md:px-14 pb-14 space-y-10 custom-scrollbar z-[60]">
+            <div className="flex-1 overflow-y-auto px-10 md:px-14 pb-14 space-y-10 custom-scrollbar relative z-10">
                 <div className="grid grid-cols-2 gap-6">
                     <Card className="p-8 rounded-[2.5rem] bg-muted/20 border border-primary/5 shadow-inner">
                         <p className="text-[10px] uppercase tracking-widest font-black opacity-20 mb-3">Institutional Rate (M)</p>
-                        <p className="text-4xl font-serif text-success">{(monthlyStats[selectedTeacher?.id || '']?.present || 0) * 4}%</p>
+                        <p className="text-4xl font-serif text-success">
+                            {selectedTeacher ? (() => {
+                                const stats = monthlyStats[selectedTeacher.id] || { present: 0, absent: 0 }
+                                const total = stats.present + stats.absent
+                                return total > 0 ? Math.round((stats.present / total) * 100) : 0
+                            })() : 0}%
+                        </p>
                     </Card>
                     <Card className="p-8 rounded-[2.5rem] bg-indigo-500/[0.04] border-indigo-500/10 shadow-inner">
                         <p className="text-[10px] uppercase tracking-widest font-black text-indigo-400 opacity-40 mb-3">Extra Session Load</p>
@@ -686,18 +788,33 @@ export default function AttendanceRegistryPage() {
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
                         <h4 className="text-[10px] uppercase tracking-widest font-black opacity-30">Temporal Audit Matrix</h4>
-                        <span className="text-[10px] opacity-40 font-mono">Past 72 Hrs</span>
+                        <span className="text-[10px] opacity-40 font-mono italic">Dynamic History</span>
                     </div>
                     <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="flex items-center justify-between p-6 rounded-[2.5rem] bg-muted/5 border border-primary/5 border-dashed hover:bg-muted/10 transition-colors">
-                                <div className="space-y-1">
-                                    <p className="text-base font-medium">{format(subDays(selectedDate, i), 'PPP')}</p>
-                                    <p className="text-[9px] text-muted-foreground uppercase tracking-widest opacity-40 italic">Registry Entry #AUD-00{i}</p>
-                                </div>
-                                <Badge className="bg-success/5 text-success border-success/10 py-2 px-5 font-bold tracking-widest text-[10px] rounded-xl uppercase">PRESENT</Badge>
+                        {selectedTeacher && attendance
+                            .filter(a => a.teacherId === selectedTeacher.id)
+                            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                            .slice(0, 5)
+                            .map((record, i) => {
+                                const config = STATUS_CONFIG[record.status as AttendanceStatus] || STATUS_CONFIG['Present']
+                                return (
+                                    <div key={i} className="flex items-center justify-between p-6 rounded-[2.5rem] bg-muted/5 border border-primary/5 border-dashed hover:bg-muted/10 transition-colors">
+                                        <div className="space-y-1">
+                                            <p className="text-base font-medium">{format(new Date(record.date), 'PPP')}</p>
+                                            <p className="text-[9px] text-muted-foreground uppercase tracking-widest opacity-40 italic">Registry Entry #AUD-{record.id.slice(0, 4).toUpperCase()}</p>
+                                        </div>
+                                        <Badge className={cn("py-2 px-5 font-bold tracking-widest text-[10px] rounded-xl uppercase", config.bg, config.color, "border-none")}>
+                                            {record.status}
+                                        </Badge>
+                                    </div>
+                                )
+                            })
+                        }
+                        {selectedTeacher && attendance.filter(a => a.teacherId === selectedTeacher.id).length === 0 && (
+                            <div className="py-12 text-center opacity-20 border-2 border-dashed border-primary/10 rounded-[2.5rem]">
+                                <span className="text-[10px] uppercase font-black tracking-widest">No Temporal Trace Found</span>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             </div>

@@ -45,22 +45,32 @@ export function getTermFromDate(date: Date): Term {
     }
 }
 
-export function getTermList(count: number = 4): Term[] {
+export function getTermList(): Term[] {
     const terms: Term[] = []
     const now = new Date()
     
-    // Start from current term and go back
-    let current = now
-    for (let i = 0; i < count; i++) {
+    // Generate terms for the next 5 years (approx 20 terms)
+    // Starting from 1 year ago to catch current and recent past, up to 4 years ahead
+    let current = new Date(now.getFullYear() - 1, now.getMonth(), 1)
+    
+    for (let i = 0; i < 24; i++) {
         const term = getTermFromDate(current)
-        if (!terms.find(t => t.id === term.id)) {
+        
+        // Strictly exclude 2025 as requested
+        if (term.year !== 2025 && !terms.find(t => t.id === term.id)) {
             terms.push(term)
         }
-        // Go back 3 months to get previous term
-        current = new Date(current.getFullYear(), current.getMonth() - 3, 1)
+        
+        // Advance 3 months
+        current = new Date(current.getFullYear(), current.getMonth() + 3, 1)
     }
     
-    return terms
+    // Sort terms by year and season
+    return terms.sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year
+        const seasons: Season[] = ['Winter', 'Spring', 'Summer', 'Autumn']
+        return seasons.indexOf(a.season) - seasons.indexOf(b.season)
+    })
 }
 
 export function getDatesForTerm(termId: string): { start: Date, end: Date } {
