@@ -23,6 +23,7 @@ model Teacher {
   assignedClass    String?
   employeePassword String?
   salary           Float               @default(0)
+  commissionRate   Float               @default(0.2)
   requiresReview   Boolean             @default(false)
   assignments      Assignment[]
   courses          Course[]

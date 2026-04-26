@@ -38,6 +38,9 @@ export async function getMonthlyPayrollList(month: string, year: number): Promis
                 payrollRecords: {
                     where: { month, year }
                 },
+                courses: {
+                    where: { status: 'active' }
+                },
                 attendance: {
                     where: {
                         date: {
@@ -51,15 +54,24 @@ export async function getMonthlyPayrollList(month: string, year: number): Promis
 
         return {
             success: true,
-            data: teachers.map(t => ({
-                id: t.id,
-                name: t.name,
-                employeeId: t.employeeId,
-                avatar: t.avatar,
-                baseSalary: t.salary || 0,
-                record: t.payrollRecords[0] || null,
-                absentCount: t.attendance.filter(a => a.status === 'Absent').length
-            }))
+            data: teachers.map(t => {
+                const totalStudents = t.courses.reduce((acc, c) => acc + (c.enrolled || 0), 0)
+                const totalRevenue = t.courses.reduce((acc, c) => acc + ((c.enrolled || 0) * (c.feeAmount || 0)), 0)
+                
+                return {
+                    id: t.id,
+                    name: t.name,
+                    employeeId: t.employeeId,
+                    avatar: t.avatar,
+                    baseSalary: t.salary || 0,
+                    commissionRate: t.commissionRate || 0.2,
+                    totalStudents,
+                    totalRevenue,
+                    courses: t.courses.map(c => ({ title: c.title, enrolled: c.enrolled })),
+                    record: t.payrollRecords[0] || null,
+                    absentCount: t.attendance.filter(a => a.status === 'Absent').length
+                }
+            })
         }
     } catch (error) {
         console.error('PAYROLL_LIST_ERROR:', error)

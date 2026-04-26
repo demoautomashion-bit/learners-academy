@@ -43,11 +43,14 @@ import {
 import { Label } from '@/components/ui/label'
 import { getPayrollStats, getMonthlyPayrollList, processPayroll } from '@/lib/actions/payroll'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { cn, getInitials } from '@/lib/utils'
 import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
+import { motion, AnimatePresence } from 'framer-motion'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const YEARS = [2024, 2026, 2027, 2028, 2029] // Excluding 2025 as requested
@@ -62,13 +65,16 @@ export default function PayrollManagementPage() {
     
     // Payment Dialog State
     const [payingTeacher, setPayingTeacher] = useState<any>(null)
+    const [commissionRate, setCommissionRate] = useState('20')
     const [bonus, setBonus] = useState('0')
     const [deduction, setDeduction] = useState('0')
     const [isProcessing, setIsProcessing] = useState(false)
 
     useEffect(() => {
-        loadData()
-    }, [selectedMonth, selectedYear])
+        if (payingTeacher) {
+            setCommissionRate((payingTeacher.commissionRate * 100).toString())
+        }
+    }, [payingTeacher])
 
     const loadData = async () => {
         setIsLoading(true)
@@ -86,23 +92,90 @@ export default function PayrollManagementPage() {
         if (!payingTeacher) return
         
         setIsProcessing(true)
+        const rate = Number(commissionRate) / 100
+        const baseAmount = payingTeacher.totalRevenue * rate
+
         const res = await processPayroll({
             teacherId: payingTeacher.id,
             month: selectedMonth,
             year: selectedYear,
-            amount: payingTeacher.baseSalary,
+            amount: baseAmount,
             bonus: Number(bonus),
             deductions: Number(deduction)
         })
 
         if (res.success) {
-            toast.success(`Disbursement complete for ${payingTeacher.name}`)
+            toast.success(`Salary paid to ${payingTeacher.name}`)
             setPayingTeacher(null)
             loadData()
         } else {
-            toast.error(res.error || "Payment protocol failed")
+            toast.error(res.error || "Payment failed")
         }
         setIsProcessing(false)
+    }
+
+    const exportPayrollPDF = () => {
+        try {
+            const doc = new jsPDF()
+            const pageWidth = doc.internal.pageSize.getWidth()
+            
+            // 1. Institutional Branding
+            doc.setFillColor(31, 41, 55)
+            doc.rect(0, 0, pageWidth, 40, 'F')
+            
+            doc.setFillColor(255, 255, 255)
+            doc.circle(23, 20, 11, 'F')
+            
+            try {
+                doc.addImage('/images/logo.png', 'PNG', 15, 12, 16, 16)
+            } catch (e) {}
+
+            doc.setTextColor(255, 255, 255)
+            doc.setFontSize(18)
+            doc.setFont('helvetica', 'bold')
+            doc.text("THE LEARNERS ACADEMY", 42, 18)
+            
+            doc.setFontSize(8)
+            doc.setFont('helvetica', 'normal')
+            doc.text("Institutional Payroll Registry & Salary Audit", 42, 24)
+            doc.text("Suzuki Stop, Sara-Kharbar, Mominabad, Alamdar Road.", 42, 28)
+
+            doc.setTextColor(40)
+            doc.setFontSize(14)
+            doc.setFont('helvetica', 'bold')
+            doc.text(`PAYROLL SUMMARY: ${selectedMonth.toUpperCase()} ${selectedYear}`, 15, 55)
+            
+            doc.setFontSize(8)
+            doc.setFont('helvetica', 'normal')
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 61)
+
+            const tableData = staffList.map(t => {
+                const net = t.record ? (t.record.amount + t.record.bonus - t.record.deductions) : 0
+                return [
+                    t.employeeId,
+                    t.name,
+                    t.totalStudents,
+                    `PKR ${t.totalRevenue.toLocaleString()}`,
+                    t.record ? `${(t.record.amount / t.totalRevenue * 100).toFixed(0)}%` : `${(t.commissionRate * 100)}%`,
+                    t.record ? `PKR ${net.toLocaleString()}` : 'PENDING',
+                    t.record ? 'PAID' : 'AWAITING'
+                ]
+            })
+
+            autoTable(doc, {
+                startY: 70,
+                head: [['ID', 'Personnel Name', 'Students', 'Revenue', 'Rate', 'Net Salary', 'Status']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [31, 41, 55], textColor: 255, fontSize: 8 },
+                styles: { fontSize: 7.5, cellPadding: 5 }
+            })
+
+            doc.save(`Payroll_${selectedMonth}_${selectedYear}.pdf`)
+            toast.success("Payroll Audit Exported")
+        } catch (err) {
+            toast.error("Export Failed")
+        }
     }
 
     const filteredStaff = useMemo(() => {
@@ -115,15 +188,15 @@ export default function PayrollManagementPage() {
     if (isLoading && !stats) return <DashboardSkeleton />
 
     const kpis = [
-        { label: 'Institutional Liability', value: `PKR ${stats?.totalLiability?.toLocaleString() || 0}`, sub: 'Monthly Commitment', icon: Wallet, color: 'text-primary' },
-        { label: 'Distributed Funds', value: `PKR ${stats?.distributed?.toLocaleString() || 0}`, sub: 'Verified Payouts', icon: Banknote, color: 'text-success' },
-        { label: 'Pending Protocols', value: stats?.pendingCount || 0, sub: 'Awaiting Authorization', icon: AlertCircle, color: 'text-warning' },
-        { label: 'Staff Capacity', value: stats?.totalStaff || 0, sub: 'Active Personnel', icon: TrendingUp, color: 'text-indigo-400' },
+        { label: 'Monthly Payroll', value: `PKR ${stats?.totalLiability?.toLocaleString() || 0}`, sub: 'Total Commitment', icon: Wallet, color: 'text-indigo-400', gradient: 'from-indigo-500/10 to-transparent' },
+        { label: 'Paid Amount', value: `PKR ${stats?.distributed?.toLocaleString() || 0}`, sub: 'Funds Released', icon: CheckCircle2, color: 'text-success', gradient: 'from-success/10 to-transparent' },
+        { label: 'Pending Payments', value: stats?.pendingCount || 0, sub: 'Awaiting Action', icon: AlertCircle, color: 'text-warning', gradient: 'from-warning/10 to-transparent' },
+        { label: 'Staff Count', value: stats?.totalStaff || 0, sub: 'Active Teachers', icon: TrendingUp, color: 'text-primary', gradient: 'from-primary/10 to-transparent' },
     ]
 
     const columns: Column<any>[] = [
         {
-            label: 'Personnel Profile',
+            label: 'Teacher',
             render: (teacher) => (
                 <div className="flex items-center gap-4 group">
                     <Avatar className="h-10 w-10 border border-primary/10 shadow-sm transition-transform group-hover:scale-105">
@@ -139,11 +212,20 @@ export default function PayrollManagementPage() {
             width: '300px'
         },
         {
-            label: 'Base Salary',
+            label: 'Student Load',
             render: (teacher) => (
                 <div className="flex flex-col">
-                    <span className="text-sm font-semibold">PKR {teacher.baseSalary.toLocaleString()}</span>
-                    <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-widest">Standard Rate</span>
+                    <span className="text-sm font-semibold">{teacher.totalStudents} Students</span>
+                    <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-widest">Across {teacher.courses.length} Classes</span>
+                </div>
+            )
+        },
+        {
+            label: 'Potential Revenue',
+            render: (teacher) => (
+                <div className="flex flex-col">
+                    <span className="text-sm font-semibold">PKR {teacher.totalRevenue.toLocaleString()}</span>
+                    <span className="text-[10px] text-muted-foreground opacity-40 uppercase tracking-widest">Total Fees</span>
                 </div>
             )
         },
@@ -204,12 +286,12 @@ export default function PayrollManagementPage() {
     return (
         <PageShell>
             <PageHeader 
-                title="Personnel Payroll Portal"
-                description="Managing institutional disbursements, staff salary audit, and fiscal resource allocation."
+                title="Staff Payroll"
+                description="Manage teacher salaries based on student enrollment and commission rates."
                 actions={
                     <div className="flex items-center gap-3">
                          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                            <SelectTrigger className="h-12 w-40 bg-muted/5 border-primary/10 rounded-2xl glass-1 px-4 text-[10px] font-black uppercase tracking-widest">
+                            <SelectTrigger className="h-12 w-40 bg-muted/5 border-primary/10 rounded-2xl glass-1 px-4 text-[10px] font-black uppercase tracking-widest outline-none">
                                 <Calendar className="w-4 h-4 mr-2 opacity-40" />
                                 <SelectValue />
                             </SelectTrigger>
@@ -220,7 +302,7 @@ export default function PayrollManagementPage() {
                             </SelectContent>
                          </Select>
                          <Select value={selectedYear.toString()} onValueChange={v => setSelectedYear(parseInt(v))}>
-                            <SelectTrigger className="h-12 w-32 bg-muted/5 border-primary/10 rounded-2xl glass-1 px-4 text-[10px] font-black uppercase tracking-widest">
+                            <SelectTrigger className="h-12 w-32 bg-muted/5 border-primary/10 rounded-2xl glass-1 px-4 text-[10px] font-black uppercase tracking-widest outline-none">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="glass-3 border-primary/10 rounded-2xl">
@@ -229,8 +311,8 @@ export default function PayrollManagementPage() {
                                 ))}
                             </SelectContent>
                          </Select>
-                         <Button variant="outline" className="h-12 px-6 rounded-2xl border-primary/10 glass-1 font-black text-[10px] uppercase tracking-widest hover:bg-primary/5">
-                            <Download className="w-4 h-4 mr-2" /> Export
+                         <Button onClick={exportPayrollPDF} variant="outline" className="h-12 px-6 rounded-2xl border-primary/10 glass-1 font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all">
+                            <Download className="w-4 h-4 mr-2" /> PDF
                          </Button>
                     </div>
                 }
@@ -240,23 +322,33 @@ export default function PayrollManagementPage() {
                 <EntityCardGrid 
                     data={kpis}
                     renderItem={(item, i) => (
-                        <Card key={i} className="hover-lift transition-premium h-full flex flex-col overflow-hidden relative">
-                            <div className="absolute top-0 right-0 p-6 opacity-[0.03]">
-                                <item.icon className="w-16 h-16" />
-                            </div>
-                            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-6 px-8">
-                                <CardTitle className="text-muted-foreground opacity-60 text-lg font-serif font-medium uppercase tracking-wider">
-                                    {item.label}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="px-8 pb-8 flex-1">
-                                <div className="text-4xl font-serif font-normal">{item.value}</div>
-                                <div className="flex items-center gap-2 mt-3 opacity-40">
-                                    <div className={cn("h-1.5 w-1.5 rounded-full", item.color.replace('text-', 'bg-'))} />
-                                    <span className="text-[11px] text-muted-foreground font-medium tracking-wide">{item.sub}</span>
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            whileHover={{ y: -5 }}
+                            className="group"
+                        >
+                            <Card className="hover-lift transition-premium h-full flex flex-col overflow-hidden relative border-primary/5 glass-1">
+                                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500", item.gradient)} />
+                                <div className="absolute top-0 right-0 p-6 opacity-[0.05] group-hover:scale-110 transition-transform duration-500">
+                                    <item.icon className={cn("w-16 h-16", item.color)} />
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <CardHeader className="flex flex-row items-center justify-between pb-1 pt-8 px-8 relative z-10">
+                                    <CardTitle className="text-muted-foreground opacity-40 text-[10px] font-black uppercase tracking-[0.2em]">
+                                        {item.label}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="px-8 pb-8 flex-1 relative z-10">
+                                    <div className="text-4xl font-serif font-normal group-hover:tracking-tight transition-all duration-300">{item.value}</div>
+                                    <div className="flex items-center gap-2 mt-4">
+                                        <div className={cn("h-1 w-4 rounded-full group-hover:w-8 transition-all duration-500", item.color.replace('text-', 'bg-'))} />
+                                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">{item.sub}</span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
                     )}
                     columns={4}
                 />
@@ -284,73 +376,85 @@ export default function PayrollManagementPage() {
 
             {/* Payment Dialog */}
             <Dialog open={!!payingTeacher} onOpenChange={(o) => !o && setPayingTeacher(null)}>
-                <DialogContent className="sm:max-w-[480px] glass-3 border-white/10 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
-                    <div className="p-10 space-y-10">
+                <DialogContent className="sm:max-w-md glass-3 border-white/10 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
+                    <div className="p-8 space-y-8">
                         <DialogHeader className="space-y-4">
                             <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-2">
                                 <CreditCard className="w-6 h-6" />
                             </div>
-                            <DialogTitle className="font-serif text-3xl font-medium tracking-tight">Authorize Disbursement</DialogTitle>
-                            <DialogDescription className="text-sm opacity-60 leading-relaxed font-normal">
-                                Finalize salary distribution for <span className="font-bold text-foreground opacity-100">{payingTeacher?.name}</span> for the month of {selectedMonth}.
+                            <DialogTitle className="font-serif text-2xl font-medium tracking-tight">Pay Teacher</DialogTitle>
+                            <DialogDescription className="text-xs opacity-60 leading-relaxed font-normal">
+                                Authorized salary disbursement for <span className="font-bold text-foreground opacity-100">{payingTeacher?.name}</span>.
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="space-y-8 bg-muted/10 p-8 rounded-[2rem] border border-primary/5">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] uppercase tracking-widest font-black opacity-30">Base Salary</span>
-                                <span className="text-xl font-serif">PKR {payingTeacher?.baseSalary?.toLocaleString()}</span>
+                        <div className="space-y-6 bg-muted/20 p-8 rounded-[2rem] border border-primary/5">
+                            <div className="space-y-4 border-b border-primary/5 pb-4">
+                                <div className="flex justify-between items-center text-[10px] uppercase font-black tracking-widest opacity-30">
+                                    <span>Student Load</span>
+                                    <span>{payingTeacher?.totalStudents} Students</span>
+                                </div>
+                                <div className="flex justify-between items-center text-[10px] uppercase font-black tracking-widest opacity-30">
+                                    <span>Generated Revenue</span>
+                                    <span>PKR {payingTeacher?.totalRevenue?.toLocaleString()}</span>
+                                </div>
                             </div>
+                            
                             <div className="space-y-6">
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Incentive / Bonus</Label>
+                                <div className="space-y-2.5">
+                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Commission Rate (%)</Label>
                                     <Input 
                                         type="number" 
-                                        value={bonus}
-                                        onChange={(e) => setBonus(e.target.value)}
-                                        className="h-12 px-5 bg-background border-primary/10 rounded-xl focus:ring-primary/20"
+                                        value={commissionRate}
+                                        onChange={(e) => setCommissionRate(e.target.value)}
+                                        className="h-12 px-5 bg-background/50 border-primary/10 rounded-xl focus:ring-primary/20 text-sm font-bold"
                                     />
                                 </div>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between">
-                                        <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Deductions</Label>
-                                        <span className="text-[9px] text-warning font-bold uppercase tracking-widest opacity-60">
-                                            {payingTeacher?.absentCount} Absents Detected
-                                        </span>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2.5">
+                                        <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Bonus</Label>
+                                        <Input 
+                                            type="number" 
+                                            value={bonus}
+                                            onChange={(e) => setBonus(e.target.value)}
+                                            className="h-12 px-5 bg-background/50 border-primary/10 rounded-xl focus:ring-primary/20 text-sm"
+                                        />
                                     </div>
-                                    <Input 
-                                        type="number" 
-                                        value={deduction}
-                                        onChange={(e) => setDeduction(e.target.value)}
-                                        className="h-12 px-5 bg-background border-primary/10 rounded-xl focus:ring-primary/20"
-                                    />
+                                    <div className="space-y-2.5">
+                                        <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Deductions</Label>
+                                        <Input 
+                                            type="number" 
+                                            value={deduction}
+                                            onChange={(e) => setDeduction(e.target.value)}
+                                            className="h-12 px-5 bg-background/50 border-primary/10 rounded-xl focus:ring-primary/20 text-sm"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
-                                <span className="text-xs font-black uppercase tracking-widest text-primary">Net Distribution</span>
-                                <span className="text-2xl font-serif text-primary">
-                                    PKR {( (payingTeacher?.baseSalary || 0) + Number(bonus) - Number(deduction) ).toLocaleString()}
+                            
+                            <div className="pt-4 border-t border-primary/10 flex justify-between items-end">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-primary opacity-60">Net Salary</span>
+                                <span className="text-3xl font-serif text-primary">
+                                    PKR {( (payingTeacher?.totalRevenue * (Number(commissionRate) / 100)) + Number(bonus) - Number(deduction) ).toLocaleString()}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-3">
                             <Button 
                                 onClick={handleProcessPayment}
                                 disabled={isProcessing}
-                                className="w-full h-16 bg-primary hover:bg-primary/95 rounded-[1.75rem] shadow-2xl shadow-primary/20 transition-all font-black text-[11px] uppercase tracking-[0.2em] group/btn overflow-hidden relative"
+                                className="w-full h-14 bg-primary hover:bg-primary/95 rounded-[1.5rem] shadow-xl shadow-primary/20 transition-all font-bold text-[10px] uppercase tracking-widest group/btn"
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-3">
-                                    {isProcessing ? "Synchronizing..." : "Execute Protocol"}
-                                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />
-                                </span>
+                                {isProcessing ? "Processing..." : "Confirm Payment"}
+                                <ArrowRight className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                             </Button>
                             <Button 
                                 variant="ghost" 
                                 onClick={() => setPayingTeacher(null)} 
-                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground"
+                                className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
                             >
-                                Abort Protocol
+                                Cancel
                             </Button>
                         </div>
                     </div>
