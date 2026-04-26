@@ -73,9 +73,9 @@ export async function getMonthlyPayrollList(month: string, year: number): Promis
                 }
             })
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('PAYROLL_LIST_ERROR:', error)
-        return { success: false, error: 'Failed to synchronize staff payroll ledger' }
+        return { success: false, error: `Staff registry sync failed: ${error?.message || 'Internal DB Error'}` }
     }
 }
 
@@ -141,6 +141,7 @@ export async function processPayroll(data: {
 }
 
 function getMonthIndex(month: string): number {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    return months.indexOf(month)
+    const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+    const index = months.indexOf(month.toLowerCase())
+    return index === -1 ? 0 : index // Fallback to January if invalid
 }

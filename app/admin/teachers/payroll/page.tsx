@@ -78,14 +78,28 @@ export default function PayrollManagementPage() {
 
     const loadData = async () => {
         setIsLoading(true)
-        const [statsRes, listRes] = await Promise.all([
-            getPayrollStats(selectedMonth, selectedYear),
-            getMonthlyPayrollList(selectedMonth, selectedYear)
-        ])
+        try {
+            const [statsRes, listRes] = await Promise.all([
+                getPayrollStats(selectedMonth, selectedYear),
+                getMonthlyPayrollList(selectedMonth, selectedYear)
+            ])
 
-        if (statsRes.success) setStats(statsRes.data)
-        if (listRes.success) setStaffList(listRes.data)
-        setIsLoading(false)
+            if (statsRes.success) setStats(statsRes.data)
+            if (listRes.success) {
+                setStaffList(listRes.data)
+            } else {
+                toast.error(listRes.error || "Failed to load staff list")
+            }
+            
+            if (!statsRes.success && !listRes.success) {
+                toast.error("Payroll intelligence offline")
+            }
+        } catch (err) {
+            console.error("PAYROLL_LOAD_CRITICAL:", err)
+            toast.error("Institutional Data Layer Timeout")
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     const handleProcessPayment = async () => {
