@@ -284,6 +284,7 @@ function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher 
         employeePassword: ''
     })
     const [isSaving, setIsSaving] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
 
     useEffect(() => {
         if (teacher) {
@@ -374,13 +375,24 @@ function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher 
                             </div>
                             <div className="space-y-1.5">
                                 <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Portal Password</Label>
-                                <Input 
-                                    type="password"
-                                    value={formData.employeePassword}
-                                    onChange={(e) => setFormData({...formData, employeePassword: e.target.value})}
-                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
-                                    placeholder="••••••••"
-                                />
+                                <div className="relative">
+                                    <Input 
+                                        type={showPassword ? "text" : "password"}
+                                        value={formData.employeePassword}
+                                        onChange={(e) => setFormData({...formData, employeePassword: e.target.value})}
+                                        className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm pr-10"
+                                        placeholder="••••••••"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-0 top-0 h-10 w-10 text-muted-foreground hover:bg-transparent hover:text-foreground"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -53,6 +53,7 @@ model Admin {
   password  String
   name      String
   role      String   @default("admin")
+  avatar    String?
   createdAt DateTime @default(now())
 }
 

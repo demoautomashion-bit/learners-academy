@@ -66,3 +66,17 @@ export async function updateAdminPassword(adminId: string, currentPass: string, 
     return { success: false, error: 'Security protocol violation' }
   }
 }
+
+export async function updateAdminProfile(adminId: string, data: { email?: string, avatar?: string }) {
+  try {
+    const admin = await db.admin.update({
+      where: { id: adminId },
+      data
+    })
+    
+    return { success: true, data: { email: admin.email, avatar: admin.avatar } }
+  } catch (error) {
+    console.error('FAILED_TO_UPDATE_ADMIN_PROFILE:', error)
+    return { success: false, error: 'Failed to update admin profile' }
+  }
+}
