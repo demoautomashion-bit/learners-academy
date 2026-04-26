@@ -58,11 +58,14 @@ import {
     subDays,
     eachDayOfInterval,
     endOfWeek,
-    isWeekend
+    isWeekend,
+    startOfMonth,
+    endOfMonth
 } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { getTermFromDate, getTermList, getDatesForTerm } from '@/lib/utils/term-utils'
 
 type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'Leave' | 'Substitution'
 
@@ -82,6 +85,9 @@ export default function AttendanceRegistryPage() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   const [viewMode, setViewMode] = useState<'daily' | 'monthly'>('daily')
+  const [selectedTerm, setSelectedTerm] = useState(getTermFromDate(new Date()).id)
+  
+  const terms = useMemo(() => getTermList(), [])
   
   // Derive attendance status from global attendance data for the selected date
   const attendanceRecords = useMemo(() => {
@@ -100,12 +106,16 @@ export default function AttendanceRegistryPage() {
     return records
   }, [attendance, selectedDate])
   
-  // Monthly Data derived from real participation records
+  // Monthly/Term Data derived from real participation records
   const monthlyStats = useMemo(() => {
     const stats: Record<string, { present: number; absent: number; late: number; leave: number; substitutions: number }> = {}
+    const { start, end } = getDatesForTerm(selectedTerm)
     
     teachers.forEach(teacher => {
-        const teacherRecs = attendance.filter(a => a.teacherId === teacher.id)
+        const teacherRecs = attendance.filter(a => {
+            const date = new Date(a.date)
+            return a.teacherId === teacher.id && date >= start && date <= end
+        })
         stats[teacher.id] = {
             present: teacherRecs.filter(a => a.status === 'Present').length,
             absent: teacherRecs.filter(a => a.status === 'Absent').length,
@@ -115,12 +125,34 @@ export default function AttendanceRegistryPage() {
         }
     })
     return stats
-  }, [teachers, attendance])
+  }, [teachers, attendance, selectedTerm])
 
-  // Weekly Horizon logic
-  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
-  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 })
-  const horizonDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
+  // Global Insights based on selected term
+  const globalInsights = useMemo(() => {
+    const activeTeachersCount = teachers.filter(t => t.status === 'active').length || 1
+    const totalPresent = Object.values(monthlyStats).reduce((acc, curr) => acc + curr.present, 0)
+    const totalAbsent = Object.values(monthlyStats).reduce((acc, curr) => acc + curr.absent, 0)
+    const totalLate = Object.values(monthlyStats).reduce((acc, curr) => acc + curr.late, 0)
+    const totalSubs = Object.values(monthlyStats).reduce((acc, curr) => acc + curr.substitutions, 0)
+    
+    const totalPossible = totalPresent + totalAbsent + totalLate
+    const institutionalRate = totalPossible > 0 ? (totalPresent / totalPossible) * 100 : 0
+    const latencyRate = totalPossible > 0 ? (totalLate / totalPossible) * 100 : 0
+    
+    return {
+        institutionalRate: institutionalRate.toFixed(1) + '%',
+        sessionVelocity: (totalPresent + totalAbsent + totalLate).toLocaleString(),
+        extraLoadFactor: totalSubs.toLocaleString(),
+        latencyRate: latencyRate.toFixed(1) + '%'
+    }
+  }, [monthlyStats, teachers])
+
+  // Calendar logic - showing the full month
+  const monthStart = startOfMonth(selectedDate)
+  const monthEnd = endOfMonth(selectedDate)
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 })
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
+  const horizonDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd })
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -294,14 +326,31 @@ export default function AttendanceRegistryPage() {
             {/* Visual Absolute & Weekly Horizon */}
             <div className="mt-8">
                 <div className="px-4 mb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
                             <span className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">Action Registry Protocol Active</span>
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
-                            Marking Registry for: <br className="md:hidden" /><span className="text-primary">{format(selectedDate, 'EEEE, MMMM do')}</span>
-                        </h2>
+                        <div className="flex flex-col gap-4">
+                            <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
+                                Marking Registry for: <br className="md:hidden" /><span className="text-primary">{format(selectedDate, 'EEEE, MMMM do')}</span>
+                            </h2>
+                            <div className="flex items-center gap-3">
+                                <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">Filter by Term:</span>
+                                <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                                    <SelectTrigger className="w-[180px] h-10 rounded-xl bg-muted/5 border-primary/10 glass-1 text-xs font-bold uppercase tracking-widest">
+                                        <SelectValue placeholder="Select Term" />
+                                    </SelectTrigger>
+                                    <SelectContent className="glass-3 border-primary/10 rounded-xl">
+                                        {terms.map(term => (
+                                            <SelectItem key={term.id} value={term.id} className="text-xs font-bold uppercase tracking-widest">
+                                                {term.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
                     </div>
 
                     <Button 
@@ -313,30 +362,33 @@ export default function AttendanceRegistryPage() {
                     </Button>
                 </div>
 
-                <div className="grid grid-cols-7 gap-3 px-4">
+                <div className="grid grid-cols-7 gap-1.5 px-4">
                     {horizonDays.map((day, i) => {
                         const isSelected = isSameDay(day, selectedDate)
                         const isToday = isSameDay(day, new Date())
                         const weekend = isWeekend(day)
+                        const isCurrentMonth = getMonth(day) === getMonth(selectedDate)
+                        
                         return (
                             <motion.button
                                 key={i}
-                                whileHover={{ y: -2 }}
+                                whileHover={{ y: -1 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setSelectedDate(day)}
                                 className={cn(
-                                    "relative h-16 md:h-20 rounded-[1.5rem] border transition-all flex flex-col items-center justify-center isolate group overflow-hidden cursor-pointer",
+                                    "relative h-12 md:h-14 rounded-xl border transition-all flex flex-col items-center justify-center isolate group overflow-hidden cursor-pointer",
                                     isSelected 
-                                        ? "bg-primary text-white border-primary shadow-2xl shadow-primary/30 z-10" 
+                                        ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 z-10" 
                                         : "bg-muted/5 text-muted-foreground border-primary/5 hover:border-primary/20",
-                                    isToday && !isSelected && "ring-2 ring-primary/20",
-                                    weekend && !isSelected && "bg-muted/[0.02]"
+                                    isToday && !isSelected && "ring-1 ring-primary/40",
+                                    weekend && !isSelected && "bg-muted/[0.02] opacity-60",
+                                    !isCurrentMonth && !isSelected && "opacity-20"
                                 )}
                             >
-                                <span className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">{format(day, 'EEE')}</span>
-                                <span className="text-xl font-serif font-medium leading-none">{format(day, 'd')}</span>
+                                <span className="text-[8px] uppercase font-bold tracking-widest opacity-40 mb-0.5">{format(day, 'EEE')}</span>
+                                <span className="text-base font-serif font-medium leading-none">{format(day, 'd')}</span>
                                 {isToday && !isSelected && (
-                                    <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full" />
+                                    <div className="absolute top-1.5 right-1.5 w-1 h-1 bg-primary rounded-full" />
                                 )}
                             </motion.button>
                         )
@@ -472,20 +524,32 @@ export default function AttendanceRegistryPage() {
             {/* Monthly Insights Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 px-4 md:px-0">
                 {[
-                    { label: 'Institutional Rate', value: '96.2%', sub: 'Global Presence', icon: BarChart3, color: 'text-success' },
-                    { label: 'Session Velocity', value: '1,420', sub: 'Calculated Markings', icon: TrendingUp, color: 'text-primary' },
-                    { label: 'Extra Load Factor', value: '248', sub: 'Total Substitution Hrs', icon: Sparkles, color: 'text-indigo-400' },
-                    { label: 'Latency Rate', value: '1.4%', sub: 'Late Protocols', icon: Clock, color: 'text-warning' },
+                    { label: 'Institutional Rate', value: globalInsights.institutionalRate, sub: 'Term Presence', icon: BarChart3, color: 'text-success', glow: 'shadow-success/20' },
+                    { label: 'Session Velocity', value: globalInsights.sessionVelocity, sub: 'Term Markings', icon: TrendingUp, color: 'text-primary', glow: 'shadow-primary/20' },
+                    { label: 'Extra Load Factor', value: globalInsights.extraLoadFactor, sub: 'Total Substitution Hrs', icon: Sparkles, color: 'text-indigo-400', glow: 'shadow-indigo-500/20' },
+                    { label: 'Latency Rate', value: globalInsights.latencyRate, sub: 'Late Protocols', icon: Clock, color: 'text-warning', glow: 'shadow-warning/20' },
                 ].map((stat, i) => (
-                    <Card key={i} className="glass-1 p-8 rounded-[2rem] border-primary/5 shadow-premium group overflow-hidden relative isolate">
-                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/[0.03] blur-3xl -z-10 group-hover:scale-125 transition-transform" />
-                        <div className="flex items-center justify-between mb-6">
-                            <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">{stat.label}</span>
-                            <stat.icon className={cn("w-5 h-5 opacity-40 group-hover:opacity-100 transition-opacity", stat.color)} />
-                        </div>
-                        <p className={cn("text-3xl font-serif font-medium", stat.color)}>{stat.value}</p>
-                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-40 mt-3">{stat.sub}</p>
-                    </Card>
+                    <motion.div
+                        key={i}
+                        whileHover={{ scale: 1.02, translateY: -5 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                    >
+                        <Card className={cn(
+                            "glass-1 p-8 rounded-[2rem] border-primary/5 group overflow-hidden relative isolate transition-all duration-500 hover:shadow-2xl",
+                            stat.glow
+                        )}>
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/[0.03] blur-3xl -z-10 group-hover:scale-125 transition-transform" />
+                            <div className="flex items-center justify-between mb-6">
+                                <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">{stat.label}</span>
+                                <stat.icon className={cn("w-5 h-5 opacity-40 group-hover:opacity-100 transition-opacity", stat.color)} />
+                            </div>
+                            <p className={cn("text-3xl font-serif font-medium", stat.color)}>{stat.value}</p>
+                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground opacity-40 mt-3">{stat.sub}</p>
+                            
+                            {/* Premium Glow Effect */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        </Card>
+                    </motion.div>
                 ))}
             </div>
 
@@ -494,10 +558,28 @@ export default function AttendanceRegistryPage() {
                 <div className="flex items-center justify-between px-4 md:px-0">
                     <h3 className="font-serif text-3xl font-medium tracking-tight">Institutional Summary Grid</h3>
                     <div className="flex items-center gap-3">
-                         <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-muted/5 border border-primary/5 rounded-xl">
-                            <CalendarIcon className="w-4 h-4 opacity-40" />
-                            <span className="text-[10px] uppercase font-bold tracking-widest opacity-60">{format(selectedDate, 'MMM yyyy')}</span>
-                         </div>
+                        <Select 
+                            value={format(selectedDate, 'yyyy-MM')} 
+                            onValueChange={(val) => {
+                                const [y, m] = val.split('-')
+                                setSelectedDate(new Date(parseInt(y), parseInt(m) - 1, 1))
+                            }}
+                        >
+                            <SelectTrigger className="w-[160px] h-10 rounded-xl bg-muted/5 border-primary/10 glass-1 text-[10px] font-bold uppercase tracking-widest">
+                                <CalendarIcon className="w-3.5 h-3.5 mr-2 opacity-40" />
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="glass-3 border-primary/10 rounded-xl">
+                                {[0, 1, 2, 3, 4, 5].map(i => {
+                                    const d = subDays(new Date(), i * 30)
+                                    return (
+                                        <SelectItem key={i} value={format(d, 'yyyy-MM')} className="text-[10px] font-bold uppercase tracking-widest">
+                                            {format(d, 'MMMM yyyy')}
+                                        </SelectItem>
+                                    )
+                                })}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 
