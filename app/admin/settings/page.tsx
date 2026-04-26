@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { Field, FieldGroup, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/auth-context'
 import {
@@ -33,7 +34,7 @@ import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { useData } from '@/contexts/data-context'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
-import { cn } from '@/lib/utils'
+import { cn, getInitials } from '@/lib/utils'
 
 export default function SettingsPage() {
   const hasMounted = useHasMounted()
