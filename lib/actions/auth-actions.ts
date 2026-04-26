@@ -58,6 +58,8 @@ export async function loginAction(credentials: LoginCredentials): Promise<AuthSe
       name: dbUser.name,
       role: detectedRole as any,
       avatar: dbUser.avatar || undefined,
+      employeeId: dbUser.employeeId || undefined,
+      phone: dbUser.phone || undefined,
       createdAt: dbUser.createdAt ? dbUser.createdAt.toISOString() : new Date().toISOString(),
     }
 
@@ -65,7 +67,9 @@ export async function loginAction(credentials: LoginCredentials): Promise<AuthSe
       sub: user.id, 
       email: user.email, 
       role: user.role,
-      name: user.name 
+      name: user.name,
+      employeeId: user.employeeId,
+      phone: user.phone
     })
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 

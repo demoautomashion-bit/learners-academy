@@ -32,13 +32,13 @@ export default function TeacherSettingsPage() {
     },
     {
       label: 'Employee ID',
-      value: user?.id ? `EMP-${user.id.toUpperCase().split('-').pop()}` : 'Not Assigned',
+      value: user?.employeeId || 'Not Assigned',
       icon: Hash,
       description: 'Institutional identification number'
     },
     {
       label: 'Phone Number',
-      value: 'Not Provided in Registry',
+      value: user?.phone || 'Not Provided in Registry',
       icon: Phone,
       description: 'Contact number for administrative purposes'
     }

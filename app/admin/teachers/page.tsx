@@ -14,6 +14,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import {
@@ -46,8 +54,9 @@ import { Teacher } from '@/lib/types'
 export default function TeachersPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { teachers, removeTeacher, updateTeacherStatus, updateTeacherReviewFlag, isInitialized } = useData()
+  const { teachers, removeTeacher, updateTeacher, updateTeacherStatus, updateTeacherReviewFlag, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -139,6 +148,12 @@ export default function TeachersPage() {
                 className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal"
             >
               <ExternalLink className="w-4 h-4 opacity-60" /> <span className="text-xs">View Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+                onClick={() => setEditingTeacher(teacher)}
+                className="gap-3 cursor-pointer py-3 focus:bg-primary/5 transition-all font-normal"
+            >
+              <Edit className="w-4 h-4 opacity-60" /> <span className="text-xs">Modify Profile</span>
             </DropdownMenuItem>
             <DropdownMenuItem 
                 onSelect={(e) => e.preventDefault()}
@@ -250,6 +265,145 @@ export default function TeachersPage() {
           }
         />
       </div>
+
+      <ModifyTeacherDialog 
+        teacher={editingTeacher} 
+        onClose={() => setEditingTeacher(null)} 
+        onUpdate={updateTeacher}
+      />
     </PageShell>
   )
+}
+
+function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher | null, onClose: () => void, onUpdate: any }) {
+    const [formData, setFormData] = useState({
+        name: '',
+        employeeId: '',
+        email: '',
+        phone: '',
+        employeePassword: ''
+    })
+    const [isSaving, setIsSaving] = useState(false)
+
+    useEffect(() => {
+        if (teacher) {
+            setFormData({
+                name: teacher.name || '',
+                employeeId: teacher.employeeId || '',
+                email: teacher.email || '',
+                phone: teacher.phone || '',
+                employeePassword: teacher.employeePassword || ''
+            })
+        }
+    }, [teacher])
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!teacher) return
+        
+        setIsSaving(true)
+        try {
+            await onUpdate(teacher.id, formData)
+            toast.success("Profile Updated", { description: "Institutional records have been synchronized." })
+            onClose()
+        } catch (err) {
+            toast.error("Update Failed")
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    return (
+        <Dialog open={!!teacher} onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="sm:max-w-md glass-3 border-white/10 p-0 overflow-hidden rounded-[2rem] shadow-2xl">
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                    <DialogHeader className="space-y-2">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1">
+                            <Edit className="w-5 h-5" />
+                        </div>
+                        <DialogTitle className="font-serif text-xl font-medium tracking-tight">Modify Profile</DialogTitle>
+                        <DialogDescription className="text-[11px] opacity-60 leading-relaxed font-normal">
+                            Update faculty credentials and institutional identifiers.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Full Name</Label>
+                            <Input 
+                                value={formData.name}
+                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                placeholder="Teacher Name"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Employee ID</Label>
+                            <Input 
+                                value={formData.employeeId}
+                                onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
+                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                placeholder="EMP-001"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Official Email</Label>
+                            <Input 
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                placeholder="email@academy.com"
+                                required
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Phone Number</Label>
+                                <Input 
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                    placeholder="+1 234..."
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Portal Password</Label>
+                                <Input 
+                                    type="password"
+                                    value={formData.employeePassword}
+                                    onChange={(e) => setFormData({...formData, employeePassword: e.target.value})}
+                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pt-2">
+                        <Button 
+                            type="submit"
+                            disabled={isSaving}
+                            className="w-full h-12 bg-primary hover:bg-primary/95 rounded-xl shadow-lg shadow-primary/20 transition-all font-bold text-[10px] uppercase tracking-widest"
+                        >
+                            {isSaving ? "Synchronizing..." : "Update Record"}
+                        </Button>
+                        <Button 
+                            type="button"
+                            variant="ghost" 
+                            onClick={onClose} 
+                            className="h-10 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
 }

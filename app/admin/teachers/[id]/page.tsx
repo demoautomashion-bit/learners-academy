@@ -25,12 +25,25 @@ import { cn, getInitials } from '@/lib/utils'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
 import { useHasMounted } from '@/hooks/use-has-mounted'
+import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
+import { Teacher } from '@/lib/types'
 
 export default function FacultyProfilePage() {
   const hasMounted = useHasMounted()
   const params = useParams()
   const router = useRouter()
-  const { teachers, isInitialized } = useData()
+  const { teachers, attendance, updateTeacher, isInitialized } = useData()
+  const [isEditing, setIsEditing] = useState(false)
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -48,6 +61,11 @@ export default function FacultyProfilePage() {
       </div>
     )
   }
+
+  const teacherAttendance = attendance.filter(a => a.teacherId === teacher.id)
+  const presentDays = teacherAttendance.filter(a => a.status === 'Present').length
+  const totalDays = teacherAttendance.length
+  const efficiency = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 100
 
   return (
     <PageShell>
@@ -110,13 +128,16 @@ export default function FacultyProfilePage() {
                             <MapPin className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[9px] uppercase tracking-widest opacity-40 font-bold">Residential Geometry</span>
+                            <span className="text-[9px] uppercase tracking-widest opacity-40 font-bold">Physical Address</span>
                             <span className="text-xs font-normal leading-relaxed">{teacher.address || 'Not Registered'}</span>
                         </div>
                     </div>
                 </div>
 
-                <Button className="w-full mt-10 font-normal h-12 shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all">
+                <Button 
+                  onClick={() => setIsEditing(true)}
+                  className="w-full mt-10 font-normal h-12 shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all"
+                >
                     <Edit className="w-4 h-4 mr-2" /> Modify Profile
                 </Button>
             </CardContent>
@@ -141,7 +162,7 @@ export default function FacultyProfilePage() {
                         </div>
                         <div className="flex justify-between items-center text-xs">
                             <span className="opacity-40">Years of Experience</span>
-                            <span className="font-serif font-medium">{teacher.experience} Years</span>
+                            <span className="font-serif font-medium">{teacher.experience || 0} Years</span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
                             <span className="opacity-40">Join Date</span>
@@ -160,15 +181,17 @@ export default function FacultyProfilePage() {
                     <div className="space-y-4">
                         <div className="flex justify-between items-center text-xs">
                             <span className="opacity-40">Active Batches</span>
-                            <span className="font-serif font-medium">04 Classes</span>
+                            <span className="font-serif font-medium">{String(teacher.coursesCount || 0).padStart(2, '0')} Classes</span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
-                            <span className="opacity-40">Efficiency Rating</span>
-                            <span className="font-serif font-medium text-success">98.2%</span>
+                            <span className="opacity-40">Attendance Efficiency</span>
+                            <span className={cn("font-serif font-medium", efficiency >= 90 ? "text-success" : efficiency >= 75 ? "text-warning" : "text-destructive")}>
+                                {efficiency}%
+                            </span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
-                            <span className="opacity-40">Last Performance Audit</span>
-                            <span className="font-serif font-medium">May 2026</span>
+                            <span className="opacity-40">Total Work Days</span>
+                            <span className="font-serif font-medium">{totalDays} Recorded</span>
                         </div>
                     </div>
                 </Card>
@@ -199,26 +222,164 @@ export default function FacultyProfilePage() {
                 </CardHeader>
                 <CardContent className="p-0">
                     <div className="divide-y divide-primary/5">
-                        {[
-                            { event: 'Payroll Protocol Executed', date: 'June 01, 2026', time: '11:32 AM', status: 'verified' },
-                            { event: 'Profile Metadata Modified', date: 'May 14, 2026', time: '09:15 AM', status: 'verified' },
-                            { event: 'Identity Initialized', date: 'Jan 12, 2026', time: '04:45 PM', status: 'verified' },
-                        ].map((log, i) => (
-                            <div key={i} className="flex items-center justify-between p-6 px-8 hover:bg-primary/[0.02] transition-colors">
-                                <div className="flex flex-col">
-                                    <span className="text-xs font-medium">{log.event}</span>
-                                    <span className="text-[10px] text-muted-foreground opacity-40 mt-1">{log.date} at {log.time}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-bold text-success/60">
-                                    <ShieldCheck className="w-3 h-3" /> {log.status}
-                                </div>
+                        <div className="flex items-center justify-between p-6 px-8 hover:bg-primary/[0.02] transition-colors">
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium">Identity Initialized</span>
+                                <span className="text-[10px] text-muted-foreground opacity-40 mt-1">
+                                    {new Date(teacher.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' })} at {new Date(teacher.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
                             </div>
-                        ))}
+                            <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-bold text-success/60">
+                                <ShieldCheck className="w-3 h-3" /> verified
+                            </div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
         </div>
       </div>
+
+      {isEditing && (
+        <ModifyTeacherDialog 
+          teacher={teacher} 
+          onClose={() => setIsEditing(false)} 
+          onUpdate={updateTeacher}
+        />
+      )}
     </PageShell>
   )
+}
+
+function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher | null, onClose: () => void, onUpdate: any }) {
+    const [formData, setFormData] = useState({
+        name: '',
+        employeeId: '',
+        email: '',
+        phone: '',
+        employeePassword: ''
+    })
+    const [isSaving, setIsSaving] = useState(false)
+
+    // Using layout effect or just standard state init via useEffect
+    useState(() => {
+        if (teacher) {
+            setFormData({
+                name: teacher.name || '',
+                employeeId: teacher.employeeId || '',
+                email: teacher.email || '',
+                phone: teacher.phone || '',
+                employeePassword: teacher.employeePassword || ''
+            })
+        }
+    })
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!teacher) return
+        
+        setIsSaving(true)
+        try {
+            await onUpdate(teacher.id, formData)
+            toast.success("Profile Updated", { description: "Institutional records have been synchronized." })
+            onClose()
+        } catch (err) {
+            toast.error("Update Failed")
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    return (
+        <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="sm:max-w-md glass-3 border-white/10 p-0 overflow-hidden rounded-[2rem] shadow-2xl">
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                    <DialogHeader className="space-y-2">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1">
+                            <Edit className="w-5 h-5" />
+                        </div>
+                        <DialogTitle className="font-serif text-xl font-medium tracking-tight">Modify Profile</DialogTitle>
+                        <DialogDescription className="text-[11px] opacity-60 leading-relaxed font-normal">
+                            Update faculty credentials and institutional identifiers.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Full Name</Label>
+                            <Input 
+                                value={formData.name}
+                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                placeholder="Teacher Name"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Employee ID</Label>
+                            <Input 
+                                value={formData.employeeId}
+                                onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
+                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                placeholder="EMP-001"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Official Email</Label>
+                            <Input 
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                placeholder="email@academy.com"
+                                required
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Phone Number</Label>
+                                <Input 
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                    placeholder="+1 234..."
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Portal Password</Label>
+                                <Input 
+                                    type="password"
+                                    value={formData.employeePassword}
+                                    onChange={(e) => setFormData({...formData, employeePassword: e.target.value})}
+                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pt-2">
+                        <Button 
+                            type="submit"
+                            disabled={isSaving}
+                            className="w-full h-12 bg-primary hover:bg-primary/95 rounded-xl shadow-lg shadow-primary/20 transition-all font-bold text-[10px] uppercase tracking-widest"
+                        >
+                            {isSaving ? "Synchronizing..." : "Update Record"}
+                        </Button>
+                        <Button 
+                            type="button"
+                            variant="ghost" 
+                            onClick={onClose} 
+                            className="h-10 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
 }

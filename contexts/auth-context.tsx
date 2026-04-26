@@ -20,6 +20,8 @@ function validateToken(token: string): User | null {
       email: payload.email || '',
       role: payload.role as UserRole,
       name: payload.name || 'User',
+      employeeId: payload.employeeId,
+      phone: payload.phone,
       createdAt: payload.createdAt || new Date().toISOString(),
     }
   } catch (err) {
