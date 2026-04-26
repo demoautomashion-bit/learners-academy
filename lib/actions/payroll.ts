@@ -35,32 +35,44 @@ export async function getPayrollStats(month: string, year: number): Promise<Acti
 export async function getMonthlyPayrollList(month: string, year: number): Promise<ActionResult> {
     try {
         console.time('db-staff-list-query')
-        const teachers = await db.teacher.findMany({ 
-            where: { status: 'active' },
-            include: {
-                payrollRecords: {
-                    where: { month, year }
-                },
-                courses: {
-                    where: { status: 'active' }
-                },
-                attendance: {
-                    where: {
-                        date: {
-                            gte: new Date(year, getMonthIndex(month), 1),
-                            lt: new Date(year, getMonthIndex(month) + 1, 1)
+        const [teachers, students] = await Promise.all([
+            db.teacher.findMany({ 
+                where: { status: 'active' },
+                include: {
+                    payrollRecords: {
+                        where: { month, year }
+                    },
+                    courses: {
+                        where: { status: 'active' }
+                    },
+                    attendance: {
+                        where: {
+                            date: {
+                                gte: new Date(year, getMonthIndex(month), 1),
+                                lt: new Date(year, getMonthIndex(month) + 1, 1)
+                            }
                         }
                     }
                 }
-            }
-        })
+            }),
+            db.student.findMany({ where: { status: 'active' } })
+        ])
         console.timeEnd('db-staff-list-query')
 
         return {
             success: true,
             data: teachers.map(t => {
-                const totalStudents = t.courses.reduce((acc, c) => acc + (c.enrolled || 0), 0)
-                const totalRevenue = t.courses.reduce((acc, c) => acc + ((c.enrolled || 0) * (c.feeAmount || 0)), 0)
+                const teacherCourseIds = t.courses.map(c => c.id)
+                // Count students who have any of this teacher's courses in their enrolledCourses list
+                const enrolledStudents = students.filter(s => 
+                    s.enrolledCourses.some(id => teacherCourseIds.includes(id))
+                )
+                
+                const totalStudents = enrolledStudents.length
+                const totalRevenue = t.courses.reduce((acc, c) => {
+                    const studentCountInCourse = enrolledStudents.filter(s => s.enrolledCourses.includes(c.id)).length
+                    return acc + (studentCountInCourse * (c.feeAmount || 0))
+                }, 0)
                 
                 return {
                     id: t.id,
@@ -71,7 +83,10 @@ export async function getMonthlyPayrollList(month: string, year: number): Promis
                     commissionRate: t.commissionRate || 0.2,
                     totalStudents,
                     totalRevenue,
-                    courses: t.courses.map(c => ({ title: c.title, enrolled: c.enrolled })),
+                    courses: t.courses.map(c => ({ 
+                        title: c.title, 
+                        enrolled: enrolledStudents.filter(s => s.enrolledCourses.includes(c.id)).length 
+                    })),
                     record: t.payrollRecords[0] || null,
                     absentCount: t.attendance.filter(a => a.status === 'Absent').length
                 }

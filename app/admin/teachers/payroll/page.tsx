@@ -55,7 +55,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-const YEARS = [2024, 2026, 2027, 2028, 2029] // Excluding 2025 as requested
+const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 2 + i).filter(y => y !== 2025)
 
 export default function PayrollManagementPage() {
     const hasMounted = useHasMounted()
@@ -226,10 +226,10 @@ export default function PayrollManagementPage() {
     if (isLoading && !stats) return <DashboardSkeleton />
 
     const kpis = [
-        { label: 'Monthly Payroll', value: `PKR ${stats?.totalLiability?.toLocaleString() || 0}`, sub: 'Total Commitment', icon: Wallet, color: 'text-indigo-400', gradient: 'from-indigo-500/10 to-transparent' },
-        { label: 'Paid Amount', value: `PKR ${stats?.distributed?.toLocaleString() || 0}`, sub: 'Funds Released', icon: CheckCircle2, color: 'text-success', gradient: 'from-success/10 to-transparent' },
-        { label: 'Pending Payments', value: stats?.pendingCount || 0, sub: 'Awaiting Action', icon: AlertCircle, color: 'text-warning', gradient: 'from-warning/10 to-transparent' },
-        { label: 'Staff Count', value: stats?.totalStaff || 0, sub: 'Active Teachers', icon: TrendingUp, color: 'text-primary', gradient: 'from-primary/10 to-transparent' },
+        { label: 'Monthly Payroll', value: `PKR ${stats?.totalLiability?.toLocaleString() || 0}`, sub: 'Budgeted Salary', icon: Wallet, color: 'text-indigo-400', gradient: 'from-indigo-500/10 to-transparent' },
+        { label: 'Paid Amount', value: `PKR ${stats?.distributed?.toLocaleString() || 0}`, sub: 'Funds Disbursed', icon: CheckCircle2, color: 'text-success', gradient: 'from-success/10 to-transparent' },
+        { label: 'Pending Payments', value: stats?.pendingCount || 0, sub: 'Due This Month', icon: AlertCircle, color: 'text-warning', gradient: 'from-warning/10 to-transparent' },
+        { label: 'Staff Count', value: stats?.totalStaff || 0, sub: 'Active Personnel', icon: TrendingUp, color: 'text-primary', gradient: 'from-primary/10 to-transparent' },
     ]
 
     const columns: Column<any>[] = [
@@ -417,83 +417,83 @@ export default function PayrollManagementPage() {
 
             {/* Payment Dialog */}
             <Dialog open={!!payingTeacher} onOpenChange={(o) => !o && setPayingTeacher(null)}>
-                <DialogContent className="sm:max-w-md glass-3 border-white/10 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
-                    <div className="p-8 space-y-8">
-                        <DialogHeader className="space-y-4">
-                            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-2">
-                                <CreditCard className="w-6 h-6" />
+                <DialogContent className="sm:max-w-md glass-3 border-white/10 p-0 overflow-hidden rounded-[2rem] shadow-2xl">
+                    <div className="p-6 space-y-6">
+                        <DialogHeader className="space-y-2">
+                            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1">
+                                <CreditCard className="w-5 h-5" />
                             </div>
-                            <DialogTitle className="font-serif text-2xl font-medium tracking-tight">Pay Teacher</DialogTitle>
-                            <DialogDescription className="text-xs opacity-60 leading-relaxed font-normal">
-                                Authorized salary disbursement for <span className="font-bold text-foreground opacity-100">{payingTeacher?.name}</span>.
+                            <DialogTitle className="font-serif text-xl font-medium tracking-tight">Pay Teacher</DialogTitle>
+                            <DialogDescription className="text-[11px] opacity-60 leading-relaxed font-normal">
+                                Finalizing salary for <span className="font-bold text-foreground opacity-100">{payingTeacher?.name}</span>.
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="space-y-6 bg-muted/20 p-8 rounded-[2rem] border border-primary/5">
-                            <div className="space-y-4 border-b border-primary/5 pb-4">
-                                <div className="flex justify-between items-center text-[10px] uppercase font-black tracking-widest opacity-30">
-                                    <span>Student Load</span>
-                                    <span>{payingTeacher?.totalStudents} Students</span>
+                        <div className="space-y-4 bg-muted/20 p-6 rounded-[1.5rem] border border-primary/5">
+                            <div className="grid grid-cols-2 gap-4 border-b border-primary/5 pb-4">
+                                <div className="space-y-1">
+                                    <span className="text-[9px] uppercase font-black tracking-widest opacity-30 block">Students</span>
+                                    <span className="text-sm font-bold">{payingTeacher?.totalStudents} Load</span>
                                 </div>
-                                <div className="flex justify-between items-center text-[10px] uppercase font-black tracking-widest opacity-30">
-                                    <span>Generated Revenue</span>
-                                    <span>PKR {payingTeacher?.totalRevenue?.toLocaleString()}</span>
+                                <div className="space-y-1 text-right">
+                                    <span className="text-[9px] uppercase font-black tracking-widest opacity-30 block">Revenue</span>
+                                    <span className="text-sm font-bold text-success">PKR {payingTeacher?.totalRevenue?.toLocaleString()}</span>
                                 </div>
                             </div>
                             
-                            <div className="space-y-6">
-                                <div className="space-y-2.5">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Commission Rate (%)</Label>
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Commission Rate (%)</Label>
                                     <Input 
                                         type="number" 
                                         value={commissionRate}
                                         onChange={(e) => setCommissionRate(e.target.value)}
-                                        className="h-12 px-5 bg-background/50 border-primary/10 rounded-xl focus:ring-primary/20 text-sm font-bold"
+                                        className="h-10 px-4 bg-background/50 border-primary/10 rounded-lg focus:ring-primary/20 text-sm font-bold"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2.5">
-                                        <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Bonus</Label>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Bonus</Label>
                                         <Input 
                                             type="number" 
                                             value={bonus}
                                             onChange={(e) => setBonus(e.target.value)}
-                                            className="h-12 px-5 bg-background/50 border-primary/10 rounded-xl focus:ring-primary/20 text-sm"
+                                            className="h-10 px-4 bg-background/50 border-primary/10 rounded-lg focus:ring-primary/20 text-sm"
                                         />
                                     </div>
-                                    <div className="space-y-2.5">
-                                        <Label className="text-[10px] uppercase tracking-widest font-black opacity-30 ml-1">Deductions</Label>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Deductions</Label>
                                         <Input 
                                             type="number" 
                                             value={deduction}
                                             onChange={(e) => setDeduction(e.target.value)}
-                                            className="h-12 px-5 bg-background/50 border-primary/10 rounded-xl focus:ring-primary/20 text-sm"
+                                            className="h-10 px-4 bg-background/50 border-primary/10 rounded-lg focus:ring-primary/20 text-sm"
                                         />
                                     </div>
                                 </div>
                             </div>
                             
-                            <div className="pt-4 border-t border-primary/10 flex justify-between items-end">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-primary opacity-60">Net Salary</span>
-                                <span className="text-3xl font-serif text-primary">
+                            <div className="pt-3 border-t border-primary/10 flex justify-between items-end">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-primary opacity-60 mb-1">Final Salary</span>
+                                <span className="text-2xl font-serif text-primary">
                                     PKR {( (payingTeacher?.totalRevenue * (Number(commissionRate) / 100)) + Number(bonus) - Number(deduction) ).toLocaleString()}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-2">
                             <Button 
                                 onClick={handleProcessPayment}
                                 disabled={isProcessing}
-                                className="w-full h-14 bg-primary hover:bg-primary/95 rounded-[1.5rem] shadow-xl shadow-primary/20 transition-all font-bold text-[10px] uppercase tracking-widest group/btn"
+                                className="w-full h-12 bg-primary hover:bg-primary/95 rounded-xl shadow-lg shadow-primary/20 transition-all font-bold text-[10px] uppercase tracking-widest group/btn"
                             >
                                 {isProcessing ? "Processing..." : "Confirm Payment"}
-                                <ArrowRight className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                <ArrowRight className="ml-2 w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
                             </Button>
                             <Button 
                                 variant="ghost" 
                                 onClick={() => setPayingTeacher(null)} 
-                                className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+                                className="h-10 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
                             >
                                 Cancel
                             </Button>
