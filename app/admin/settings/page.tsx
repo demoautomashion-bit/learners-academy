@@ -265,17 +265,14 @@ export default function SettingsPage() {
                         
                         <div className="flex flex-col items-center gap-4 pt-2">
                             <div className="relative group cursor-pointer">
-                                <div className="w-32 h-32 rounded-full border-4 border-background shadow-xl flex items-center justify-center bg-primary/[0.02] overflow-hidden transition-all group-hover:border-primary/20">
-                                    {adminProfile.avatar ? (
-                                        <img src={adminProfile.avatar} alt="Admin Avatar" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <AvatarFallback className="w-full h-full text-2xl font-bold bg-primary/5 text-primary">
-                                            {getInitials(user?.name || 'Admin', 'A')}
-                                        </AvatarFallback>
-                                    )}
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
-                                        <Upload className="w-6 h-6 text-white" />
-                                    </div>
+                                <Avatar className="w-32 h-32 rounded-full border-4 border-background shadow-xl">
+                                    <AvatarImage src={adminProfile.avatar || undefined} alt="Admin Avatar" className="object-cover" />
+                                    <AvatarFallback className="text-2xl font-bold bg-primary/5 text-primary">
+                                        {getInitials(user?.name || 'Admin', 'A')}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px] rounded-full pointer-events-none">
+                                    <Upload className="w-6 h-6 text-white" />
                                 </div>
                                 <input 
                                     type="file" 
