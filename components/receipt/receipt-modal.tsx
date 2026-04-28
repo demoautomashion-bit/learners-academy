@@ -149,12 +149,13 @@ export function ReceiptModal({ open, onOpenChange, student, course }: ReceiptMod
           [role="dialog"] {
             position: absolute !important;
             transform: none !important;
-            width: ${paperSize} !important;
-            max-width: ${paperSize} !important;
+            /* Use a 4mm safe margin on each side (8mm total reduction) */
+            width: calc(${paperSize} - 8mm) !important;
+            max-width: calc(${paperSize} - 8mm) !important;
             height: auto !important;
             max-height: none !important;
             padding: 0 !important;
-            margin: 0 !important;
+            margin: 0 4mm !important; /* Center the content within the page */
             box-shadow: none !important;
             border: none !important;
             background: white !important;
@@ -165,7 +166,7 @@ export function ReceiptModal({ open, onOpenChange, student, course }: ReceiptMod
 
           /* 6. Enforce hard constraints on the actual print root */
           #thermal-receipt-printable {
-            width: ${paperSize} !important;
+            width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
             border: none !important;

@@ -45,7 +45,7 @@ export default function ReceiptPrintPage() {
       </div>
 
       {/* Main Receipt Shell */}
-      <div className="max-w-2xl mx-auto border-2 border-black/5 p-16 relative overflow-hidden bg-white shadow-2xl print:shadow-none print:border-none print:max-w-none">
+      <div className="max-w-2xl mx-auto border-2 border-black/5 p-16 relative overflow-hidden bg-white shadow-2xl print:shadow-none print:border-none print:max-w-[190mm]">
         {/* Anti-Forgery Hologram Pattern (Faded) */}
         <div className="absolute top-0 right-0 opacity-[0.03] rotate-45 translate-x-12 -translate-y-12">
             <Logo size="xl" variant="dark" showText={false} />

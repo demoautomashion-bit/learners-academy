@@ -60,7 +60,7 @@ export function ReceiptContent({
 
   return (
     <div 
-      className="bg-white text-black font-mono leading-tight selection:bg-transparent print:p-0 mx-auto overflow-hidden break-words text-[10.5px]"
+      className="bg-white text-black font-mono leading-tight selection:bg-transparent print:p-0 mx-auto overflow-hidden break-words text-[10.5px] px-[4mm]"
       style={{ width: paperSize, minWidth: 0 }}
     >
       {/* HEADER SECTION */}
