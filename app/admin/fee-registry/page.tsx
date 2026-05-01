@@ -52,7 +52,8 @@ import {
     parseISO, 
     isSameDay,
     isSameWeek,
-    isSameMonth
+    isSameMonth,
+    addDays
 } from 'date-fns'
 import Image from 'next/image'
 
@@ -476,6 +477,8 @@ export default function FeeRegistryPage() {
       const tPaid = feeData.paidAmount || 0
       const tDues = Math.max(0, tTotal - tPaid)
       const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+      const isSpecialClass = ["Speaking", "IELTS"].some(keyword => tClass.toLowerCase().includes(keyword.toLowerCase()))
+      const dueDateStr = addDays(new Date(), 30).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
       
       return (
           <div className="w-[300px] flex flex-col font-mono text-[11px] text-black bg-white leading-tight mx-auto print:mx-0">
@@ -491,11 +494,18 @@ export default function FeeRegistryPage() {
              </div>
              
              {/* Identity Body */}
-             <div className="flex justify-between mb-1.5">
-                 <span className="font-bold">Student's ID:</span>
-                 <span className="ml-2 font-bold w-[190px]">{tId}</span>
-                 <div className="flex flex-col items-end">
-                     <span>Date:{dateStr}</span>
+             <div className="flex justify-between mb-1.5 gap-2">
+                 <div className="flex flex-col">
+                    <div className="flex items-start">
+                        <span className="font-bold shrink-0">Student's ID:</span>
+                        <span className="ml-2 font-bold break-all">{tId}</span>
+                    </div>
+                 </div>
+                 <div className="flex flex-col items-end shrink-0 text-right min-w-[100px]">
+                     <span className="whitespace-nowrap">Date: {dateStr}</span>
+                     {isSpecialClass && (
+                        <span className="whitespace-nowrap font-bold">Due Date: {dueDateStr}</span>
+                     )}
                  </div>
              </div>
              <div className="flex mb-1.5"><span className="font-bold w-[90px]">Name:</span><span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[190px]">{tName}</span></div>
