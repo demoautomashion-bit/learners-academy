@@ -1,7 +1,7 @@
 'use client'
 
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -46,7 +46,12 @@ import {
   MoreVertical,
   CalendarDays,
   FileDown,
-  Plus
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  UserPlus,
+  Check,
+  X
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -104,6 +109,7 @@ export default function AttendanceRegistryPage() {
   const [viewMode, setViewMode] = useState<'daily' | 'monthly'>('daily')
   const [selectedTerm, setSelectedTerm] = useState(getTermFromDate(new Date()).id)
   const [openSubTeacherId, setOpenSubTeacherId] = useState<string | null>(null)
+  const [expandedTeacherId, setExpandedTeacherId] = useState<string | null>(null)
   
   const terms = useMemo(() => getTermList(), [])
   
@@ -226,7 +232,48 @@ export default function AttendanceRegistryPage() {
         logActivity(`Bulk Attendance Finalized for ${format(selectedDate, 'MMM d')}`, 'Attendance')
         toast.success("Bulk Protocol Applied")
     } catch (err) {
-        toast.error("Bulk Registry Sync Failed")
+      toast.error("Registry Sync Failed")
+    }
+  }
+
+  const handleClassStatusUpdate = async (teacherId: string, course: any, status: 'Present' | 'Absent' | 'Substituted', substituteId?: string) => {
+    const dateStr = selectedDate.toISOString()
+    const courseTitle = course.title || course.name
+    
+    try {
+      if (status === 'Substituted' && substituteId) {
+        // 1. Mark current teacher as Absent for this class
+        await addAttendanceEvent(teacherId, dateStr, {
+          type: 'Missed',
+          label: courseTitle,
+          info: `Covered by ${teachers.find(t => t.id === substituteId)?.name || 'Substitute'}`
+        })
+        
+        // 2. Mark substitute teacher with Extra Load
+        await addAttendanceEvent(substituteId, dateStr, {
+          type: 'Substitution',
+          label: courseTitle,
+          info: `Substituted for ${teachers.find(t => t.id === teacherId)?.name || 'Colleague'}`
+        })
+        
+        toast.success(`Substitution linked: ${courseTitle}`)
+      } else if (status === 'Absent') {
+        await addAttendanceEvent(teacherId, dateStr, {
+          type: 'Missed',
+          label: courseTitle,
+          info: 'No substitute'
+        })
+        toast.info(`Marked as Missed: ${courseTitle}`)
+      } else {
+        await addAttendanceEvent(teacherId, dateStr, {
+          type: 'Present',
+          label: courseTitle,
+          info: 'Handled by self'
+        })
+        toast.success(`Marked as Present: ${courseTitle}`)
+      }
+    } catch (err) {
+      toast.error("Audit Protocol Failed")
     }
   }
 
@@ -541,9 +588,19 @@ export default function AttendanceRegistryPage() {
                                     const stats = monthlyStats[teacher.id] || { present: 0, absent: 0, late: 0, leave: 0, substitutions: 0 }
 
                                     return (
-                                        <tr key={teacher.id} className="group hover:bg-primary/[0.02] transition-colors">
+                                        <React.Fragment key={teacher.id}>
+                                        <tr className={cn(
+                                            "group transition-colors relative",
+                                            expandedTeacherId === teacher.id ? "bg-primary/[0.04]" : "hover:bg-primary/[0.02]"
+                                        )}>
                                             <td className="px-10 py-6">
                                                 <div className="flex items-center gap-5">
+                                                    <button 
+                                                        onClick={() => setExpandedTeacherId(expandedTeacherId === teacher.id ? null : teacher.id)}
+                                                        className="p-2 rounded-lg hover:bg-primary/10 transition-colors"
+                                                    >
+                                                        {expandedTeacherId === teacher.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                                    </button>
                                                     <Avatar className="h-12 w-12 border border-primary/10 shadow-lg group-hover:scale-110 transition-transform duration-500">
                                                         <AvatarImage src={teacher.avatar} />
                                                         <AvatarFallback className="text-sm bg-primary/5 text-primary font-bold">{getInitials(teacher.name)}</AvatarFallback>
@@ -651,11 +708,91 @@ export default function AttendanceRegistryPage() {
                                                                     </button>
                                                                 </div>
                                                             </PopoverContent>
-                                                         </Popover>
+                                                        </Popover>
                                                     </div>
                                                 </div>
                                             </td>
                                         </tr>
+                                        
+                                        <AnimatePresence>
+                                            {expandedTeacherId === teacher.id && (
+                                                <tr>
+                                                    <td colSpan={2} className="px-10 py-0 overflow-hidden">
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            className="pb-10 pt-4"
+                                                        >
+                                                            <div className="p-8 rounded-[2rem] bg-background border border-primary/5 shadow-inner space-y-6">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <h4 className="text-[10px] uppercase tracking-widest font-black opacity-30">Granular Schedule Audit</h4>
+                                                                        <span className="text-sm font-serif">Audit each assigned session for today.</span>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                                    {courses.filter(c => c.teacherId === teacher.id).map((course) => (
+                                                                        <div key={course.id} className="p-5 rounded-2xl bg-muted/5 border border-primary/5 flex flex-col gap-4">
+                                                                            <div className="flex justify-between items-start">
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="text-sm font-bold leading-tight">{course.title || course.name}</span>
+                                                                                    <span className="text-[10px] font-mono opacity-40 uppercase tracking-widest mt-1">{course.timing}</span>
+                                                                                </div>
+                                                                                <Badge variant="outline" className="text-[8px] bg-primary/5 border-primary/10">Active Session</Badge>
+                                                                            </div>
+                                                                            
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Button 
+                                                                                    size="sm" 
+                                                                                    variant="ghost" 
+                                                                                    onClick={() => handleClassStatusUpdate(teacher.id, course, 'Present')}
+                                                                                    className="flex-1 h-9 bg-success/5 text-success hover:bg-success hover:text-white rounded-lg gap-2 text-[10px] font-bold uppercase tracking-widest"
+                                                                                >
+                                                                                    <Check className="w-3.5 h-3.5" /> PRS
+                                                                                </Button>
+                                                                                <Button 
+                                                                                    size="sm" 
+                                                                                    variant="ghost" 
+                                                                                    onClick={() => handleClassStatusUpdate(teacher.id, course, 'Absent')}
+                                                                                    className="flex-1 h-9 bg-destructive/5 text-destructive hover:bg-destructive hover:text-white rounded-lg gap-2 text-[10px] font-bold uppercase tracking-widest"
+                                                                                >
+                                                                                    <X className="w-3.5 h-3.5" /> ABS
+                                                                                </Button>
+                                                                                
+                                                                                <Select onValueChange={(subId) => handleClassStatusUpdate(teacher.id, course, 'Substituted', subId)}>
+                                                                                    <SelectTrigger className="flex-1 h-9 bg-primary/5 text-primary hover:bg-primary hover:text-white rounded-lg px-2 text-[10px] font-bold uppercase tracking-widest border-none">
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <UserPlus className="w-3.5 h-3.5" /> SUB
+                                                                                        </div>
+                                                                                    </SelectTrigger>
+                                                                                    <SelectContent className="glass-3 border-primary/10 rounded-xl">
+                                                                                        <DropdownMenuLabel className="text-[10px] uppercase tracking-widest font-black opacity-30">Select Substitute</DropdownMenuLabel>
+                                                                                        {teachers.filter(t => t.id !== teacher.id && t.status === 'active').map(t => (
+                                                                                            <SelectItem key={t.id} value={t.id} className="text-[10px] font-bold uppercase tracking-widest">
+                                                                                                {t.name}
+                                                                                            </SelectItem>
+                                                                                        ))}
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                    {courses.filter(c => c.teacherId === teacher.id).length === 0 && (
+                                                                        <div className="col-span-full py-10 flex flex-col items-center justify-center opacity-30 border-2 border-dashed border-primary/5 rounded-2xl">
+                                                                            <ListChecks className="w-8 h-8 mb-2" />
+                                                                            <span className="text-[10px] uppercase font-bold tracking-widest">No Scheduled Classes for Today</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </AnimatePresence>
+                                        </React.Fragment>
                                     )
                                 })}
                             </tbody>
@@ -854,19 +991,47 @@ export default function AttendanceRegistryPage() {
                             .slice(0, 5)
                             .map((record, i) => {
                                 const config = STATUS_CONFIG[record.status as AttendanceStatus] || STATUS_CONFIG['Present']
+                                const details = Array.isArray(record.details) ? record.details : []
+                                
                                 return (
-                                    <div key={i} className="flex items-center justify-between p-6 rounded-[2.5rem] bg-muted/5 border border-primary/5 border-dashed hover:bg-muted/10 transition-colors">
-                                        <div className="space-y-1">
-                                            <p className="text-base font-medium">{format(new Date(record.date), 'PPP')}</p>
-                                            <p className="text-[9px] text-muted-foreground uppercase tracking-widest opacity-40 italic">Registry Entry #AUD-{record.id.slice(0, 4).toUpperCase()}</p>
+                                    <div key={i} className="space-y-3">
+                                        <div className="flex items-center justify-between p-5 rounded-2xl bg-muted/20 border border-primary/5 group/row hover:bg-primary/[0.02] transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <div className={cn("p-2 rounded-lg", config.bg)}>
+                                                    <config.icon className={cn("w-4 h-4", config.color)} />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold">{format(new Date(record.date), 'EEEE, MMM do')}</span>
+                                                    <span className={cn("text-[9px] uppercase tracking-widest font-black opacity-40", config.color)}>{config.label}</span>
+                                                </div>
+                                            </div>
+                                            {record.substituteCount > 0 && (
+                                                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 text-[8px] font-bold">
+                                                    {record.substituteCount} SESSIONS
+                                                </Badge>
+                                            )}
                                         </div>
-                                        <Badge className={cn("py-2 px-5 font-bold tracking-widest text-[10px] rounded-xl uppercase", config.bg, config.color, "border-none")}>
-                                            {record.status}
-                                        </Badge>
+                                        
+                                        {/* Granular Logs */}
+                                        {details.length > 0 && (
+                                            <div className="ml-8 space-y-2 border-l border-primary/5 pl-4">
+                                                {details.map((event: any, idx: number) => (
+                                                    <div key={idx} className="flex items-center justify-between py-1.5 opacity-60 hover:opacity-100 transition-opacity">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-primary/20" />
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[10px] font-bold">{event.label}</span>
+                                                                <span className="text-[8px] opacity-50 uppercase tracking-tighter">{event.type} &bull; {event.info}</span>
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-[8px] font-mono opacity-30">{event.time}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )
-                            })
-                        }
+                            })}
                         {selectedTeacher && attendance.filter(a => a.teacherId === selectedTeacher.id).length === 0 && (
                             <div className="py-12 text-center opacity-20 border-2 border-dashed border-primary/10 rounded-[2.5rem]">
                                 <span className="text-[10px] uppercase font-black tracking-widest">No Temporal Trace Found</span>
