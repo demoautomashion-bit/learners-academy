@@ -18,6 +18,53 @@ import { EntityDataGrid, Column } from '@/components/shared/entity-data-grid'
 import { cn } from '@/lib/utils'
 import { isStudentInCourse } from '@/lib/utils/student-matching'
 
+// Tier Configuration Registry
+const TIER_CONFIGS = {
+  STANDARD: {
+    total: 300,
+    fields: [
+      { key: 'midterm', label: 'Midterm Test', max: 100 },
+      { key: 'final', label: 'Final Test', max: 100 },
+      { key: 'attendance', label: 'Attendance', max: 60 },
+      { key: 'participation', label: 'Participation', max: 20 },
+      { key: 'discipline', label: 'Discipline', max: 10 },
+      { key: 'extra', label: 'Curricular Activities', max: 10 },
+    ]
+  },
+  ADVANCED: {
+    total: 600,
+    fields: [
+      { key: 'listening', label: 'Listening', max: 100 },
+      { key: 'speaking', label: 'Speaking', max: 100 },
+      { key: 'reading', label: 'Reading', max: 100 },
+      { key: 'writing', label: 'Writing', max: 100 },
+      { key: 'grammar', label: 'Grammar', max: 100 },
+      { key: 'attendance', label: 'Attendance', max: 60 },
+      { key: 'participation', label: 'Participation', max: 30 },
+      { key: 'discipline', label: 'Discipline', max: 10 },
+    ]
+  },
+  PROFESSIONAL: {
+    total: 1000,
+    fields: [
+      { key: 'listening', label: 'Listening', max: 100 },
+      { key: 'speaking', label: 'Speaking', max: 100 },
+      { key: 'reading', label: 'Reading', max: 100 },
+      { key: 'writing', label: 'Writing', max: 100 },
+      { key: 'grammar', label: 'Grammar', max: 100 },
+      { key: 'spelling', label: 'Spelling', max: 100 },
+      { key: 'vocabulary', label: 'Vocabulary', max: 100 },
+      { key: 'pronunciation', label: 'Pronunciation', max: 100 },
+      { key: 'teachingMethodology', label: 'Teaching Methodology', max: 100 },
+      { key: 'attendance', label: 'Attendance', max: 20 },
+      { key: 'participation', label: 'Participation', max: 20 },
+      { key: 'assignment', label: 'Assignment', max: 20 },
+      { key: 'discipline', label: 'Discipline', max: 20 },
+      { key: 'attitudeAndMotivation', label: 'Attitude & Motivation', max: 20 },
+    ]
+  }
+}
+
 export default function ClassWorkspacePage() {
   const params = useParams()
   const router = useRouter()
@@ -26,11 +73,18 @@ export default function ClassWorkspacePage() {
   const { courses, students, evaluations, saveEvaluations, isInitialized } = useData()
 
   // Local State for Interactive Spreadsheet
-  const [grades, setGrades] = useState<Record<string, { 
-    midterm: string, final: string, attendance: string, 
-    participation: string, discipline: string, extra: string 
-  }>>({})
+  const [grades, setGrades] = useState<Record<string, Record<string, string>>>({})
   const [isSaving, setIsSaving] = useState(false)
+
+  const course = courses?.find(c => c.id === courseId)
+
+  // Determine Tier Configuration
+  const tierConfig = useMemo(() => {
+    if (!course) return TIER_CONFIGS.STANDARD
+    if (course.level === 'Level Six' || course.level === 'Level Advanced') return TIER_CONFIGS.ADVANCED
+    if (course.level === 'Professional Advanced') return TIER_CONFIGS.PROFESSIONAL
+    return TIER_CONFIGS.STANDARD
+  }, [course])
 
   // Hydrate local state from global evaluations context
   useMemo(() => {
@@ -38,13 +92,17 @@ export default function ClassWorkspacePage() {
     
     const initialGrades: Record<string, any> = {};
     evaluations.filter((e: any) => e.courseId === courseId).forEach((e: any) => {
+      // Merge standard fields with scores JSON fields
       initialGrades[e.studentId] = {
         midterm: String(e.midterm || ''),
         final: String(e.final || ''),
         attendance: String(e.attendance || ''),
         participation: String(e.participation || ''),
         discipline: String(e.discipline || ''),
-        extra: String(e.extra || '')
+        extra: String(e.extra || ''),
+        ...(typeof e.scores === 'object' ? Object.fromEntries(
+          Object.entries(e.scores || {}).map(([k, v]) => [k, String(v || '')])
+        ) : {})
       };
     });
     setGrades(initialGrades);
@@ -52,8 +110,6 @@ export default function ClassWorkspacePage() {
 
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
-
-  const course = courses?.find(c => c.id === courseId)
   
   if (!course) {
     return (
@@ -70,14 +126,14 @@ export default function ClassWorkspacePage() {
 
   // Initialize empty grades if unset
   const getStudentMarks = (id: string) => {
-    return grades[id] || { midterm: '', final: '', attendance: '', participation: '', discipline: '', extra: '' }
+    return grades[id] || {}
   }
 
   const handleScoreChange = (studentId: string, field: string, value: string) => {
     setGrades(prev => ({
       ...prev,
       [studentId]: {
-        ...(prev[studentId] || { midterm: '', final: '', attendance: '', participation: '', discipline: '', extra: '' }),
+        ...(prev[studentId] || {}),
         [field]: value
       }
     }))
@@ -85,15 +141,17 @@ export default function ClassWorkspacePage() {
 
   const computeMetrics = (id: string) => {
     const marks = getStudentMarks(id)
-    const m = Number(marks.midterm) || 0
-    const f = Number(marks.final) || 0
-    const a = Number(marks.attendance) || 0
-    const p = Number(marks.participation) || 0
-    const d = Number(marks.discipline) || 0
-    const e = Number(marks.extra) || 0
+    
+    let total = 0
+    let isBlank = true
+    
+    tierConfig.fields.forEach(field => {
+      const val = marks[field.key]
+      if (val) isBlank = false
+      total += Number(val) || 0
+    })
 
-    const total = m + f + a + p + d + e
-    const percentage = Math.round((total / 300) * 100)
+    const percentage = Math.round((total / tierConfig.total) * 100)
     
     let grade = 'F'
     if (percentage >= 90) grade = 'A+'
@@ -104,10 +162,12 @@ export default function ClassWorkspacePage() {
 
     let eligibility = 'P' // Pass
     if (percentage < 50) eligibility = 'X' // Fail
-    if (a < 30) eligibility = 'V' // Void due to attendance
-
-    // Don't show grades if literally nothing is filled yet
-    const isBlank = !marks.midterm && !marks.final && !marks.attendance && !marks.participation && !marks.discipline && !marks.extra
+    
+    // Tier-specific attendance rules
+    const attendanceMark = Number(marks.attendance) || 0
+    if (tierConfig === TIER_CONFIGS.STANDARD && attendanceMark < 30) eligibility = 'V'
+    if (tierConfig === TIER_CONFIGS.ADVANCED && attendanceMark < 30) eligibility = 'V'
+    if (tierConfig === TIER_CONFIGS.PROFESSIONAL && attendanceMark < 10) eligibility = 'V'
 
     return { 
       total: isBlank ? '--' : total, 
@@ -121,11 +181,22 @@ export default function ClassWorkspacePage() {
     setIsSaving(true)
     
     try {
-      const payload = Object.entries(grades).map(([studentId, marks]) => ({
-        studentId,
-        ...marks,
-        term: "Term 1" // Standardized for this batch
-      }));
+      const payload = Object.entries(grades).map(([studentId, marks]) => {
+        // Split marks into standard fields vs scores JSON
+        const standardFields = ['midterm', 'final', 'attendance', 'participation', 'discipline', 'extra'];
+        const scores: Record<string, number> = {};
+        const base: Record<string, any> = { studentId, term: "Term 1" };
+
+        Object.entries(marks).forEach(([key, value]) => {
+          if (standardFields.includes(key)) {
+            base[key] = Number(value) || 0;
+          } else {
+            scores[key] = Number(value) || 0;
+          }
+        });
+
+        return { ...base, scores };
+      });
 
       await saveEvaluations(courseId, payload);
     } catch (error) {
@@ -252,32 +323,31 @@ export default function ClassWorkspacePage() {
              <div className="rounded-2xl border bg-card shadow-sm overflow-hidden overflow-x-auto print:shadow-none print:border-none relative z-0">
                <table className="w-full text-sm text-left border-collapse isolate min-w-[1200px]">
                   <thead>
-                    {/* Header Row 1: Academy branding imitating the sheet */}
                     <tr className="bg-muted/30">
-                       <th colSpan={13} className="p-4 border-b text-center font-normal">
+                       <th colSpan={tierConfig.fields.length + 7} className="p-4 border-b text-center font-normal">
                           <p className="font-serif font-black text-xl tracking-tight uppercase">The Learners Academy</p>
                           <p className="text-xs tracking-widest opacity-60 uppercase mb-2">{course.title}</p>
                           <p className="font-sans font-bold text-sm tracking-widest bg-background w-fit px-6 py-1 rounded-full border shadow-sm mx-auto">ASSESSMENT SHEET</p>
                        </th>
                     </tr>
-                    {/* Header Row 2: Sub-meta columns */}
                     <tr className="bg-background">
                        <th colSpan={3} className="p-3 border-b border-r text-xs uppercase tracking-wider font-normal">Class: <span className="font-bold underline underline-offset-4 decoration-primary/30 ml-2">{course.title}</span></th>
-                       <th colSpan={10} className="p-3 border-b text-xs uppercase tracking-wider text-right font-normal">Evaluating Teacher: <span className="font-bold ml-2 underline underline-offset-4 decoration-primary/30">{user.name}</span></th>
+                       <th colSpan={tierConfig.fields.length + 4} className="p-3 border-b text-xs uppercase tracking-wider text-right font-normal">Evaluating Teacher: <span className="font-bold ml-2 underline underline-offset-4 decoration-primary/30">{user.name}</span></th>
                     </tr>
-                    {/* Header Row 3: Actual Column Headers */}
                     <tr className="bg-muted/10 divide-x text-[10px] sm:text-xs">
                        <th className="p-3 font-semibold w-12 text-center align-bottom border-b">S.No.</th>
                        <th className="p-3 font-semibold min-w-[180px] align-bottom border-b">Student's Name</th>
                        <th className="p-3 font-semibold min-w-[150px] align-bottom border-b bg-muted/5">Father's Name</th>
-                       <th className="p-2 font-semibold w-[75px] text-center align-bottom border-b"><p>Midterm Test</p><p className="opacity-50 text-[10px] mt-1 font-bold">100</p></th>
-                       <th className="p-2 font-semibold w-[75px] text-center align-bottom border-b"><p>Final Test</p><p className="opacity-50 text-[10px] mt-1 font-bold">100</p></th>
-                       <th className="p-2 font-semibold w-[85px] text-center align-bottom border-b bg-muted/5"><p>Attendance</p><p className="opacity-50 text-[10px] mt-1 font-bold">60</p></th>
-                       <th className="p-2 font-semibold w-[95px] text-center align-bottom border-b bg-muted/5"><p>Participation</p><p className="opacity-50 text-[10px] mt-1 font-bold">20</p></th>
-                       <th className="p-2 font-semibold w-[85px] text-center align-bottom border-b bg-muted/5"><p>Discipline</p><p className="opacity-50 text-[10px] mt-1 font-bold">10</p></th>
-                       <th className="p-2 font-semibold w-[95px] text-center align-bottom border-b bg-muted/5"><p>Curricular Activities</p><p className="opacity-50 text-[10px] mt-1 font-bold">10</p></th>
                        
-                       <th className="p-2 font-black w-[85px] text-center align-bottom border-b bg-primary/5 text-primary"><p>Grand Total</p><p className="opacity-50 text-[10px] mt-1 font-bold">300</p></th>
+                       {/* Dynamic Field Headers */}
+                       {tierConfig.fields.map(field => (
+                         <th key={field.key} className="p-2 font-semibold w-[85px] text-center align-bottom border-b">
+                            <p className="line-clamp-2 h-8 flex items-center justify-center">{field.label}</p>
+                            <p className="opacity-50 text-[10px] mt-1 font-bold">{field.max}</p>
+                         </th>
+                       ))}
+                       
+                       <th className="p-2 font-black w-[85px] text-center align-bottom border-b bg-primary/5 text-primary"><p>Grand Total</p><p className="opacity-50 text-[10px] mt-1 font-bold">{tierConfig.total}</p></th>
                        <th className="p-2 font-bold w-[85px] text-center align-bottom border-b"><p>Percentage</p><p className="opacity-50 text-[10px] mt-1 font-black">%</p></th>
                        <th className="p-2 font-bold w-[75px] text-center align-bottom border-b"><p>Grade</p><p className="opacity-50 text-[10px] mt-1 font-black">A-F</p></th>
                        <th className="p-2 font-bold w-[85px] text-center align-bottom border-b"><p>Eligibility</p><p className="opacity-50 text-[10px] mt-1 font-black tracking-widest">P V X</p></th>
@@ -293,13 +363,19 @@ export default function ClassWorkspacePage() {
                               <td className="p-2 font-medium">{student.name}</td>
                               <td className="p-2 text-muted-foreground opacity-80 bg-muted/5">{student.guardianName || ''}</td>
                               
-                              {/* Editable Cells */}
-                              <td className="p-0.5"><Input type="number" min="0" max="100" value={marks.midterm} onChange={e => handleScoreChange(student.id, 'midterm', e.target.value)} className="h-full min-h-[40px] border-0 rounded-none bg-transparent text-center focus-visible:ring-1 focus-visible:ring-primary focus-visible:z-10 focus-visible:bg-background" /></td>
-                              <td className="p-0.5"><Input type="number" min="0" max="100" value={marks.final} onChange={e => handleScoreChange(student.id, 'final', e.target.value)} className="h-full min-h-[40px] border-0 rounded-none bg-transparent text-center focus-visible:ring-1 focus-visible:ring-primary focus-visible:z-10 focus-visible:bg-background" /></td>
-                              <td className="p-0.5 bg-muted/5"><Input type="number" min="0" max="60" value={marks.attendance} onChange={e => handleScoreChange(student.id, 'attendance', e.target.value)} className="h-full min-h-[40px] border-0 rounded-none bg-transparent text-center focus-visible:ring-1 focus-visible:ring-primary focus-visible:z-10 focus-visible:bg-background" /></td>
-                              <td className="p-0.5 bg-muted/5"><Input type="number" min="0" max="20" value={marks.participation} onChange={e => handleScoreChange(student.id, 'participation', e.target.value)} className="h-full min-h-[40px] border-0 rounded-none bg-transparent text-center focus-visible:ring-1 focus-visible:ring-primary focus-visible:z-10 focus-visible:bg-background" /></td>
-                              <td className="p-0.5 bg-muted/5"><Input type="number" min="0" max="10" value={marks.discipline} onChange={e => handleScoreChange(student.id, 'discipline', e.target.value)} className="h-full min-h-[40px] border-0 rounded-none bg-transparent text-center focus-visible:ring-1 focus-visible:ring-primary focus-visible:z-10 focus-visible:bg-background" /></td>
-                              <td className="p-0.5 bg-muted/5"><Input type="number" min="0" max="10" value={marks.extra} onChange={e => handleScoreChange(student.id, 'extra', e.target.value)} className="h-full min-h-[40px] border-0 rounded-none bg-transparent text-center focus-visible:ring-1 focus-visible:ring-primary focus-visible:z-10 focus-visible:bg-background" /></td>
+                              {/* Dynamic Editable Cells */}
+                              {tierConfig.fields.map(field => (
+                                <td key={field.key} className="p-0.5">
+                                  <Input 
+                                    type="number" 
+                                    min="0" 
+                                    max={field.max} 
+                                    value={marks[field.key] || ''} 
+                                    onChange={e => handleScoreChange(student.id, field.key, e.target.value)} 
+                                    className="h-full min-h-[40px] border-0 rounded-none bg-transparent text-center focus-visible:ring-1 focus-visible:ring-primary focus-visible:z-10 focus-visible:bg-background" 
+                                  />
+                                </td>
+                              ))}
                               
                               {/* Computed Cells */}
                               <td className="p-2 text-center font-bold font-sans bg-primary/5 text-primary">{metrics.total}</td>
@@ -326,7 +402,7 @@ export default function ClassWorkspacePage() {
                      })}
                      {classStudents.length === 0 && (
                         <tr>
-                           <td colSpan={13} className="p-12 text-center text-muted-foreground font-medium">No students officially enrolled under this academic block.</td>
+                           <td colSpan={tierConfig.fields.length + 7} className="p-12 text-center text-muted-foreground font-medium">No students officially enrolled under this academic block.</td>
                         </tr>
                      )}
                   </tbody>

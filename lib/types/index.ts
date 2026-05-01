@@ -215,3 +215,19 @@ export interface FeePayment {
   updatedAt: Date | string
   createdAt: Date | string
 }
+
+export interface Evaluation {
+  id: string
+  studentId: string
+  courseId: string
+  midterm?: number
+  final?: number
+  attendance?: number
+  participation?: number
+  discipline?: number
+  extra?: number
+  scores?: Record<string, number>
+  term: string
+  updatedAt: Date | string
+  createdAt: Date | string
+}

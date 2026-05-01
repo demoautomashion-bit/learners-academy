@@ -31,7 +31,7 @@ export async function saveEvaluations(courseId: string, evaluations: any[]): Pro
     // For this prototype, we iterate through the evaluation objects
     
     const results = await Promise.all(evaluations.map(async (evalData) => {
-      const { studentId, midterm, final, attendance, participation, discipline, extra, term } = evalData
+      const { studentId, midterm, final, attendance, participation, discipline, extra, scores, term } = evalData
       
       return db.evaluation.upsert({
         where: {
@@ -47,7 +47,8 @@ export async function saveEvaluations(courseId: string, evaluations: any[]): Pro
           attendance: Number(attendance) || 0,
           participation: Number(participation) || 0,
           discipline: Number(discipline) || 0,
-          extra: Number(extra) || 0
+          extra: Number(extra) || 0,
+          scores: scores || null
         },
         create: {
           studentId,
@@ -58,7 +59,8 @@ export async function saveEvaluations(courseId: string, evaluations: any[]): Pro
           attendance: Number(attendance) || 0,
           participation: Number(participation) || 0,
           discipline: Number(discipline) || 0,
-          extra: Number(extra) || 0
+          extra: Number(extra) || 0,
+          scores: scores || null
         }
       })
     }))

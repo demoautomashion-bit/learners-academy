@@ -122,6 +122,7 @@ model Evaluation {
   participation Float?   @default(0)
   discipline    Float?   @default(0)
   extra         Float?   @default(0)
+  scores        Json?    // For dynamic categories based on class level
   term          String   @default("Term 1")
   updatedAt     DateTime @updatedAt
   createdAt     DateTime @default(now())
