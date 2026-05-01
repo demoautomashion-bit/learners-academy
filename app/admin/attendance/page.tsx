@@ -20,6 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { toast } from 'sonner'
 import {
   Search,
@@ -40,7 +45,8 @@ import {
   ListChecks,
   MoreVertical,
   CalendarDays,
-  FileDown
+  FileDown,
+  Plus
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -91,12 +97,13 @@ const STATUS_CONFIG: Record<AttendanceStatus, { icon: any; color: string; bg: st
 export default function AttendanceRegistryPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { teachers, attendance, markAttendance, addAttendanceEvent, logActivity, isInitialized } = useData()
+  const { teachers, attendance, courses, markAttendance, addAttendanceEvent, logActivity, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   const [viewMode, setViewMode] = useState<'daily' | 'monthly'>('daily')
   const [selectedTerm, setSelectedTerm] = useState(getTermFromDate(new Date()).id)
+  const [openSubTeacherId, setOpenSubTeacherId] = useState<string | null>(null)
   
   const terms = useMemo(() => getTermList(), [])
   
@@ -192,6 +199,21 @@ export default function AttendanceRegistryPage() {
         }
     } catch (err) {
         toast.error("Registry Sync Failed")
+    }
+  }
+
+  const handleGranularSubstitution = async (teacherId: string, courseTitle: string) => {
+    const dateStr = selectedDate.toISOString()
+    try {
+      await addAttendanceEvent(teacherId, dateStr, {
+        type: 'Substitution',
+        label: courseTitle,
+        info: 'Granular Entry'
+      })
+      toast("Substitution Logged", { description: `${courseTitle} load recorded.` })
+      setOpenSubTeacherId(null)
+    } catch (err) {
+      toast.error("Registry Sync Failed")
     }
   }
 
@@ -516,7 +538,7 @@ export default function AttendanceRegistryPage() {
                             <tbody className="divide-y divide-primary/5">
                                 {filteredTeachers.map((teacher) => {
                                     const record = attendanceRecords[teacher.id] || { status: 'Present', subCount: 0 }
-                                    const stats = monthlyStats[teacher.id] || { present: 0, absent: 0, substitutions: 0 }
+                                    const stats = monthlyStats[teacher.id] || { present: 0, absent: 0, late: 0, leave: 0, substitutions: 0 }
 
                                     return (
                                         <tr key={teacher.id} className="group hover:bg-primary/[0.02] transition-colors">
@@ -541,7 +563,11 @@ export default function AttendanceRegistryPage() {
                                                                 <div className="w-px h-2 bg-primary/10" />
                                                                 <span className="text-[9px] uppercase font-bold tracking-widest text-destructive/80">{stats.absent}A</span>
                                                                 <div className="w-px h-2 bg-primary/10" />
-                                                                <span className="text-[9px] uppercase font-bold tracking-widest text-indigo-400">{stats.substitutions}S</span>
+                                                                <span className="text-[9px] uppercase font-bold tracking-widest text-warning">{stats.late}L</span>
+                                                                <div className="w-px h-2 bg-primary/10" />
+                                                                <span className="text-[9px] uppercase font-bold tracking-widest text-indigo-400">{stats.leave}V</span>
+                                                                <div className="w-px h-2 bg-primary/10" />
+                                                                <span className="text-[9px] uppercase font-bold tracking-widest text-primary">{stats.substitutions}S</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -575,26 +601,57 @@ export default function AttendanceRegistryPage() {
                                                         
                                                         <div className="w-px h-8 bg-primary/10 mx-2" />
                                                         
-                                                        {/* Substitution Incrementer */}
-                                                        <button
-                                                            onClick={() => handleActionClick(teacher.id, 'Substitution')}
-                                                            className={cn(
-                                                                "h-12 px-5 rounded-xl flex items-center gap-3 transition-all relative font-medium overflow-hidden group/subbed",
-                                                                record.subCount > 0
-                                                                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                                                                    : "hover:bg-primary/5 text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            <span className="text-xs uppercase tracking-widest font-bold z-10">{STATUS_CONFIG['Substitution'].code}</span>
-                                                            {record.subCount > 0 && (
-                                                                <Badge variant="secondary" className="bg-background text-foreground shrink-0 w-6 h-6 flex items-center justify-center p-0 rounded-full font-mono shadow-sm">
-                                                                    {record.subCount}
-                                                                </Badge>
-                                                            )}
-                                                            {record.subCount > 0 && (
-                                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/subbed:animate-shimmer pointer-events-none" />
-                                                            )}
-                                                        </button>
+                                                        {/* Substitution Incrementer - Granular Dropdown */}
+                                                        <Popover open={openSubTeacherId === teacher.id} onOpenChange={(open) => setOpenSubTeacherId(open ? teacher.id : null)}>
+                                                            <PopoverTrigger asChild>
+                                                                <button
+                                                                    className={cn(
+                                                                        "h-12 px-5 rounded-xl flex items-center gap-3 transition-all relative font-medium overflow-hidden group/subbed",
+                                                                        record.subCount > 0
+                                                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                                                            : "hover:bg-primary/5 text-muted-foreground"
+                                                                    )}
+                                                                >
+                                                                    <span className="text-xs uppercase tracking-widest font-bold z-10">{STATUS_CONFIG['Substitution'].code}</span>
+                                                                    {record.subCount > 0 && (
+                                                                        <Badge variant="secondary" className="bg-background text-foreground shrink-0 w-6 h-6 flex items-center justify-center p-0 rounded-full font-mono shadow-sm">
+                                                                            {record.subCount}
+                                                                        </Badge>
+                                                                    )}
+                                                                    {record.subCount > 0 && (
+                                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/subbed:animate-shimmer pointer-events-none" />
+                                                                    )}
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="glass-3 border-primary/10 rounded-2xl w-64 p-4 space-y-4">
+                                                                <div className="flex flex-col gap-1">
+                                                                    <span className="text-[10px] uppercase tracking-widest font-black opacity-30">Assign Substitution</span>
+                                                                    <span className="text-[9px] text-muted-foreground opacity-60">Record extra class load for this personnel.</span>
+                                                                </div>
+                                                                <div className="flex flex-col gap-1.5">
+                                                                    {courses.filter(c => c.teacherId === teacher.id).map(course => (
+                                                                        <button
+                                                                            key={course.id}
+                                                                            onClick={() => handleGranularSubstitution(teacher.id, course.title || course.name)}
+                                                                            className="flex items-center justify-between p-2 rounded-xl bg-primary/5 hover:bg-primary/10 border border-primary/5 transition-all group/item"
+                                                                        >
+                                                                            <div className="flex flex-col items-start">
+                                                                                <span className="text-[10px] font-bold text-left">{course.title || course.name}</span>
+                                                                                <span className="text-[8px] opacity-40 font-mono">{course.timing}</span>
+                                                                            </div>
+                                                                            <Plus className="w-3 h-3 text-primary opacity-40 group-hover/item:opacity-100" />
+                                                                        </button>
+                                                                    ))}
+                                                                    <button
+                                                                        onClick={() => handleActionClick(teacher.id, 'Substitution')}
+                                                                        className="flex items-center justify-center gap-2 p-2 rounded-xl bg-muted/20 hover:bg-muted/30 border border-dashed border-primary/10 transition-all"
+                                                                    >
+                                                                        <Sparkles className="w-3 h-3 text-primary" />
+                                                                        <span className="text-[9px] font-bold uppercase tracking-widest">Manual Entry</span>
+                                                                    </button>
+                                                                </div>
+                                                            </PopoverContent>
+                                                         </Popover>
                                                     </div>
                                                 </div>
                                             </td>
