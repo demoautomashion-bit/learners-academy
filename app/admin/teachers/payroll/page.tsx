@@ -130,7 +130,7 @@ export default function PayrollManagementPage() {
         
         setIsProcessing(true)
         const rate = Number(commissionRate) / 100
-        const baseAmount = payingTeacher.totalRevenue * rate
+        const baseAmount = payingTeacher.payableRevenue * rate
 
         const res = await processPayroll({
             teacherId: payingTeacher.id,
@@ -272,7 +272,11 @@ export default function PayrollManagementPage() {
             render: (teacher) => (
                 teacher.record ? (
                     <Badge className="bg-success/5 text-success border-success/10 py-1.5 px-4 font-bold tracking-widest text-[9px] rounded-full uppercase">
-                        <CheckCircle2 className="w-3 h-3 mr-2" /> Verified Paid
+                        <CheckCircle2 className="w-3 h-3 mr-2" /> 
+                        {teacher.courses.some((c: any) => c.title.toLowerCase().includes('speaking') || c.title.toLowerCase().includes('ielts')) 
+                            ? 'Verified Paid' 
+                            : 'Portion Verified'
+                        }
                     </Badge>
                 ) : (
                     <Badge variant="outline" className="text-warning border-warning/20 bg-warning/5 py-1.5 px-4 font-bold tracking-widest text-[9px] rounded-full uppercase">
@@ -436,8 +440,13 @@ export default function PayrollManagementPage() {
                                     <span className="text-sm font-bold">{payingTeacher?.totalStudents} Load</span>
                                 </div>
                                 <div className="space-y-1 text-right">
-                                    <span className="text-[9px] uppercase font-black tracking-widest opacity-30 block">Revenue</span>
-                                    <span className="text-sm font-bold text-success">PKR {payingTeacher?.totalRevenue?.toLocaleString()}</span>
+                                    <span className="text-[9px] uppercase font-black tracking-widest opacity-30 block">Payable Revenue</span>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-sm font-bold text-success">PKR {payingTeacher?.payableRevenue?.toLocaleString()}</span>
+                                        {payingTeacher?.payableRevenue !== payingTeacher?.totalRevenue && (
+                                            <span className="text-[8px] opacity-40 font-medium italic">1/3 Semester Portion</span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             
@@ -476,7 +485,7 @@ export default function PayrollManagementPage() {
                             <div className="pt-3 border-t border-primary/10 flex justify-between items-end">
                                 <span className="text-[8px] font-black uppercase tracking-widest text-primary opacity-60 mb-1">Final Salary</span>
                                 <span className="text-2xl font-serif text-primary">
-                                    PKR {( (payingTeacher?.totalRevenue * (Number(commissionRate) / 100)) + Number(bonus) - Number(deduction) ).toLocaleString()}
+                                    PKR {( (payingTeacher?.payableRevenue * (Number(commissionRate) / 100)) + Number(bonus) - Number(deduction) ).toLocaleString()}
                                 </span>
                             </div>
                         </div>

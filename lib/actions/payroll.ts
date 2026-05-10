@@ -3,6 +3,7 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { ActionResult } from '../types'
+import { isSpecialLevel } from '../registry'
 
 export async function getPayrollStats(month: string, year: number): Promise<ActionResult> {
     try {
@@ -73,6 +74,20 @@ export async function getMonthlyPayrollList(month: string, year: number): Promis
                     const studentCountInCourse = enrolledStudents.filter(s => s.enrolledCourses.includes(c.id)).length
                     return acc + (studentCountInCourse * (c.feeAmount || 0))
                 }, 0)
+
+                // Split revenue for normal classes (Semester-based)
+                // Special classes (Speaking, IELTS) pay in full monthly
+                const payableRevenue = t.courses.reduce((acc, c) => {
+                    const studentCountInCourse = enrolledStudents.filter(s => s.enrolledCourses.includes(c.id)).length
+                    const fullCourseRevenue = studentCountInCourse * (c.feeAmount || 0)
+                    
+                    if (isSpecialLevel(c.level || '')) {
+                        return acc + fullCourseRevenue
+                    } else {
+                        // Normal classes are split into 3 months
+                        return acc + (fullCourseRevenue / 3)
+                    }
+                }, 0)
                 
                 return {
                     id: t.id,
@@ -83,6 +98,7 @@ export async function getMonthlyPayrollList(month: string, year: number): Promis
                     commissionRate: t.commissionRate || 0.2,
                     totalStudents,
                     totalRevenue,
+                    payableRevenue,
                     courses: t.courses.map(c => ({ 
                         title: c.title, 
                         enrolled: enrolledStudents.filter(s => s.enrolledCourses.includes(c.id)).length 

@@ -60,3 +60,13 @@ export const EXPENDITURE_CATEGORIES = [
 
 export type AcademyLevel = typeof ACADEMY_LEVELS[number]
 export type SessionTiming = typeof SESSION_TIMINGS[number]
+
+/**
+ * Determines if a class level is considered "Special" (paid monthly)
+ * or "Normal" (paid as a 3-month split).
+ */
+export function isSpecialLevel(level: string): boolean {
+  const specialKeywords = ['speaking', 'ielts', 'grammar']
+  const normalizedLevel = level.toLowerCase()
+  return specialKeywords.some(keyword => normalizedLevel.includes(keyword))
+}
