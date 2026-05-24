@@ -313,7 +313,28 @@ export default function StudentAssessmentsPage() {
 
     // 1. Auto-graded questions evaluation
     const autoGraded = randomizedQuestions.filter(q => (AUTO_GRADED_TYPES as readonly string[]).includes(q.type))
-    const aiGraded   = randomizedQuestions.filter(q => (AI_GRADED_TYPES as readonly string[]).includes(q.type))
+
+    // Separate AI-typed questions into their grading strategies:
+    // a) Always-AI: Subjective and Writing — correctAnswer is a rubric, NOT an exact-match key
+    // b) Cloze AI-type: Reading/Listening with blanks (____) — grade as multi-blank fill-in
+    // c) Open AI-type: Reading/Listening without blanks — send to AI evaluator
+    // d) MCQ-style AI-type: any AI-type with correctAnswer and NO blanks (legacy exact match for Listening MCQ style)
+    const aiTyped = randomizedQuestions.filter(q => (AI_GRADED_TYPES as readonly string[]).includes(q.type))
+
+    const alwaysAI = aiTyped.filter(q => q.type === 'Subjective' || q.type === 'Writing')
+    const clozeAIType = aiTyped.filter(q =>
+      (q.type === 'Reading' || q.type === 'Listening') && q.content.includes('____')
+    )
+    const openAIType = aiTyped.filter(q =>
+      (q.type === 'Reading' || q.type === 'Listening') &&
+      !q.content.includes('____') &&
+      (!q.correctAnswer || q.correctAnswer.trim() === '')
+    )
+    const locallyGradable = aiTyped.filter(q =>
+      (q.type === 'Reading' || q.type === 'Listening') &&
+      !q.content.includes('____') &&
+      q.correctAnswer && q.correctAnswer.trim() !== ''
+    )
 
     const getPointsForQuestion = (qType: string) => {
       const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
@@ -327,6 +348,7 @@ export default function StudentAssessmentsPage() {
       return totalScorable > 0 ? (activeTest?.totalMarks || 100) / totalScorable : 0
     }
 
+    // Grade auto-graded questions
     autoGraded.forEach(q => {
       const points = getPointsForQuestion(q.type)
       if (q.type === 'Matching') {
@@ -345,19 +367,23 @@ export default function StudentAssessmentsPage() {
       }
     })
 
-    // 2. AI-graded questions evaluation
-    // Layer 3 Fix: If a question has a correctAnswer (e.g. Listening MCQ-style), grade it locally.
-    // Only send to AI evaluator if no correctAnswer exists (true subjective/writing).
-    const locallyGradable = aiGraded.filter(q => q.correctAnswer && q.correctAnswer.trim() !== '')
-    const trueSubjective  = aiGraded.filter(q => !q.correctAnswer || q.correctAnswer.trim() === '')
+    // Grade Cloze-style Reading/Listening (same logic as Fill in the Blanks)
+    clozeAIType.forEach(q => {
+      const points = getPointsForQuestion(q.type)
+      const parts = q.content.split(/_{3,}/)
+      const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
+      const correctAnswer = (q.correctAnswer || '').trim().toLowerCase()
+      if (correctAnswer && studentAnswer === correctAnswer) totalScore += points
+    })
 
-    // Grade locally-gradable AI-type questions (Listening, Reading with correctAnswer)
+    // Grade locally-gradable MCQ-style Listening/Reading (exact match, no blanks, has correctAnswer)
     locallyGradable.forEach(q => {
       const points = getPointsForQuestion(q.type)
       if (answers[q.id] === q.correctAnswer) totalScore += points
     })
 
-    // Send true subjective questions to the AI auditor
+    // Send Subjective, Writing, and open-ended Reading/Listening to AI evaluator
+    const trueSubjective = [...alwaysAI, ...openAIType]
     const auditPromises = trueSubjective.map(q => evaluateSubjective(q, answers[q.id] || ""))
     const audits = await Promise.all(auditPromises)
 
@@ -412,7 +438,7 @@ export default function StudentAssessmentsPage() {
         randomizedQuestions,
         answers,
         score: finalCalculatedScore,
-        feedback: aiFeedbackChain,
+        feedback: scoreFeedback,
         evaluationCategory: activeTest.evaluationCategory,
       }).then(() => {
         // Task: Prevent retake loophole by clearing session immediately
@@ -428,8 +454,12 @@ export default function StudentAssessmentsPage() {
      const answer = answers[q.id] || ""
      let score = 0
      
-     const isAuto = (AUTO_GRADED_TYPES as readonly string[]).includes(q.type)
-     if (isAuto) {
+     const isAutoType = (AUTO_GRADED_TYPES as readonly string[]).includes(q.type)
+     const isAlwaysAI = q.type === 'Subjective' || q.type === 'Writing'
+     const isClozeAI = (q.type === 'Reading' || q.type === 'Listening') && q.content.includes('____')
+     const isLocalMCQStyle = (q.type === 'Reading' || q.type === 'Listening') && !q.content.includes('____') && q.correctAnswer && q.correctAnswer.trim() !== ''
+
+     if (isAutoType) {
         if (q.type === 'Matching') {
            try {
              const studentPairs = JSON.parse(answer || '{}')
@@ -443,7 +473,17 @@ export default function StudentAssessmentsPage() {
         } else {
            if (answer === q.correctAnswer) score = 1
         }
+     } else if (isClozeAI) {
+        // Cloze-style Reading/Listening — use multi-blank extraction
+        const parts = q.content.split(/_{3,}/)
+        const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
+        const correctAnswer = (q.correctAnswer || '').trim().toLowerCase()
+        if (correctAnswer && studentAnswer === correctAnswer) score = 1
+     } else if (isLocalMCQStyle) {
+        // MCQ-style Reading/Listening with exactAnswer — exact match
+        if (answer === q.correctAnswer) score = 1
      } else {
+        // Subjective, Writing, open-ended Reading/Listening — always use AI evaluator
         const audit = await evaluateSubjective(q, answer)
         score = audit.score
         setAiAuditResults(prev => ({ 

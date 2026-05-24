@@ -35,6 +35,10 @@ export async function POST(req: Request) {
     }
 
     // Define the prompt for the OpenAI Model
+    const referenceAnswerSection = question.correctAnswer && question.correctAnswer.trim()
+      ? `\nReference / Expected Answer Key (AI Rubric):\n"${question.correctAnswer}"\n\nIMPORTANT: Use the Reference Answer Key as your primary rubric. Award full or near-full marks if the student's answer is semantically equivalent, covers the same key concepts and facts, or is contextually correct — even if the wording, phrasing, or sentence structure is different. Only deduct marks for genuinely missing concepts or factual inaccuracies.\n`
+      : `\nNo reference answer was provided. Evaluate based on academic accuracy, relevance to the question, and depth of explanation.\n`
+
     const prompt = `
 You are an expert academic evaluator. Your task is to evaluate a student's answer to a given subjective test question.
 Provide a strictly structured JSON response with the following keys:
@@ -46,7 +50,7 @@ Question details:
 - Category: ${question.category}
 - Type: ${question.type}
 - Question Content: "${question.content}"
-
+${referenceAnswerSection}
 Student's Answer:
 "${answer}"
 

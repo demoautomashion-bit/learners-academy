@@ -479,6 +479,30 @@ export default function QuestionLibraryPage() {
                       )}
                     </Field>
                   )}
+
+                  {(selectedType === 'Subjective' || selectedType === 'Writing' || selectedType === 'Reading' || selectedType === 'Listening') && (
+                    <Field>
+                      <FieldLabel className="text-xs flex items-center gap-1.5">
+                        Reference / Expected Answer Key
+                        <span className="text-[10px] text-primary/50 font-normal normal-case">(AI Rubric — used to guide marking)</span>
+                      </FieldLabel>
+                      <Textarea
+                        {...register('correctAnswer')}
+                        rows={3}
+                        className="text-xs resize-none"
+                        placeholder={
+                          selectedType === 'Writing'
+                            ? 'Describe the key points, arguments, and structure expected in a full mark answer...'
+                            : selectedType === 'Reading' || selectedType === 'Listening'
+                            ? 'Describe the key information from the passage/audio students should reference...'
+                            : 'Describe the key concepts, facts, and terminology expected in a correct answer...'
+                        }
+                      />
+                      <p className="text-[10px] text-muted-foreground opacity-50 mt-0.5">
+                        The AI evaluator uses this as a rubric. Semantically similar answers — even with different wording — will receive full marks.
+                      </p>
+                    </Field>
+                  )}
                 </FieldGroup>
               </div>
 
