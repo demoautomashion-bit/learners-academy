@@ -97,6 +97,7 @@ export default function QuestionLibraryPage() {
   const [matchPairs, setMatchPairs] = useState<{ left: string; right: string }[]>([
     { left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' },
   ])
+  const [blankAnswers, setBlankAnswers] = useState<string[]>([])
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } =
     useForm<QuestionFormValues>({
@@ -154,6 +155,7 @@ export default function QuestionLibraryPage() {
       classLevel: undefined
     })
     setMatchPairs([{ left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' }])
+    setBlankAnswers([])
   }
 
   const handleEdit = (q: Question) => {
@@ -174,6 +176,17 @@ export default function QuestionLibraryPage() {
       setMatchPairs(q.matchPairs as any)
     }
     
+    let parsedBlankAnswers: string[] = []
+    if (q.type === 'Fill in the Blanks' || ((q.type === 'Reading' || q.type === 'Listening') && q.content?.includes('____'))) {
+      try {
+        parsedBlankAnswers = JSON.parse(q.correctAnswer || '[]')
+        if (!Array.isArray(parsedBlankAnswers)) parsedBlankAnswers = [q.correctAnswer || '']
+      } catch {
+        parsedBlankAnswers = [q.correctAnswer || '']
+      }
+    }
+    setBlankAnswers(parsedBlankAnswers)
+    
     setIsOpen(true)
   }
 
@@ -185,6 +198,16 @@ export default function QuestionLibraryPage() {
     if (data.type === 'Matching' && validPairs.length < 2) {
       toast.error('Add at least 2 complete pairs for a Matching question.')
       return
+    }
+
+    const contentValue = data.content || ''
+    const isCloze = contentValue.includes('____')
+    const isMultiBlankType = data.type === 'Fill in the Blanks' || ((data.type === 'Reading' || data.type === 'Listening') && isCloze)
+    
+    let finalCorrectAnswer = data.correctAnswer || ''
+    if (isMultiBlankType) {
+      const blankCount = Math.max(1, (contentValue.match(/_{3,}/g) || []).length)
+      finalCorrectAnswer = JSON.stringify(blankAnswers.slice(0, blankCount))
     }
 
     const questionData: Question = {
@@ -199,7 +222,7 @@ export default function QuestionLibraryPage() {
           : data.type === 'True/False'
           ? ['True', 'False']
           : undefined,
-      correctAnswer: data.correctAnswer || '',
+      correctAnswer: finalCorrectAnswer,
       imageUrl: data.imageUrl || undefined,
       passageText: data.passageText || undefined,
       audioUrl: data.audioUrl || undefined,
@@ -462,7 +485,7 @@ export default function QuestionLibraryPage() {
                     </Field>
                   )}
 
-                  {(selectedType === 'MCQ' || selectedType === 'True/False' || selectedType === 'Fill in the Blanks') && (
+                  {(selectedType === 'MCQ' || selectedType === 'True/False' || selectedType === 'Fill in the Blanks' || ((selectedType === 'Reading' || selectedType === 'Listening') && (watch('content') || '').includes('____'))) && (
                     <Field>
                       <FieldLabel className="text-xs">Correct Answer</FieldLabel>
                       {selectedType === 'True/False' ? (
@@ -474,13 +497,31 @@ export default function QuestionLibraryPage() {
                             </button>
                           ))}
                         </div>
+                      ) : selectedType === 'Fill in the Blanks' || ((selectedType === 'Reading' || selectedType === 'Listening') && (watch('content') || '').includes('____')) ? (
+                        <div className="space-y-2">
+                          {Array.from({ length: Math.max(1, (watch('content') || '').match(/_{3,}/g)?.length || 1) }).map((_, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <span className="text-xs font-medium w-16 text-muted-foreground">Blank {i + 1}</span>
+                              <Input 
+                                value={blankAnswers[i] || ''} 
+                                onChange={e => {
+                                  const newAnswers = [...blankAnswers]
+                                  newAnswers[i] = e.target.value
+                                  setBlankAnswers(newAnswers)
+                                }} 
+                                className="h-8 text-xs flex-1" 
+                                placeholder={`Exact answer for blank ${i + 1}`} 
+                              />
+                            </div>
+                          ))}
+                        </div>
                       ) : (
                         <Input {...register('correctAnswer')} className="h-8 text-xs" placeholder="Exact correct answer" />
                       )}
                     </Field>
                   )}
 
-                  {(selectedType === 'Subjective' || selectedType === 'Writing' || selectedType === 'Reading' || selectedType === 'Listening') && (
+                  {(selectedType === 'Subjective' || selectedType === 'Writing' || ((selectedType === 'Reading' || selectedType === 'Listening') && !(watch('content') || '').includes('____'))) && (
                     <Field>
                       <FieldLabel className="text-xs flex items-center gap-1.5">
                         Reference / Expected Answer Key

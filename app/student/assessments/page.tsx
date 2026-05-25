@@ -64,6 +64,35 @@ function BlankInput({
   );
 }
 
+function scoreMultiBlank(q: Question, answers: Record<string, string>, points: number): number {
+  const parts = q.content.split(/_{3,}/)
+  const numBlanks = Math.max(1, parts.length - 1)
+  let correctBlanks = 0
+  let parsedCorrect: string[] = []
+  try {
+    parsedCorrect = JSON.parse(q.correctAnswer || '[]')
+    if (!Array.isArray(parsedCorrect)) parsedCorrect = [q.correctAnswer || '']
+  } catch {
+    parsedCorrect = [q.correctAnswer || '']
+  }
+  for (let i = 0; i < numBlanks; i++) {
+    const studentAns = (answers[`${q.id}-${i}`] || '').trim().toLowerCase()
+    let correctAns = ''
+    if (parsedCorrect.length >= numBlanks) {
+      correctAns = (parsedCorrect[i] || '').trim().toLowerCase()
+    } else if (parsedCorrect.length === 1) {
+      const legacySplit = (parsedCorrect[0] || '').trim().toLowerCase().split(' ')
+      correctAns = legacySplit[i] || legacySplit[0] || ''
+    } else {
+      correctAns = (parsedCorrect[i] || '').trim().toLowerCase()
+    }
+    if (studentAns && studentAns === correctAns) {
+      correctBlanks++
+    }
+  }
+  return points * (correctBlanks / numBlanks)
+}
+
 export default function StudentAssessmentsPage() {
   const router = useRouter()
   const { user } = useAuth()
@@ -99,6 +128,7 @@ export default function StudentAssessmentsPage() {
   const [showResult, setShowResult] = useState(false)
   const [finalScore, setFinalScore] = useState(0)
   const [isEvaluating, setIsEvaluating] = useState(false)
+  const [testTotalMarks, setTestTotalMarks] = useState(100)
   const [aiAuditResults, setAiAuditResults] = useState<{ feedback: string; justification: string }>({ feedback: "", justification: "" })
   const [isAdaptiveMode, setIsAdaptiveMode] = useState(false)
   const [adaptivePools, setAdaptivePools] = useState<Record<string, Question[]>>({ Easy: [], Medium: [], Hard: [] })
@@ -270,16 +300,18 @@ export default function StudentAssessmentsPage() {
          const getPointsForQuestion = (qType: string) => {
             const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
             if (allocationMap) {
-               const categoryTotalMarks = Number(allocationMap[qType]) || 0
-               const categoryQuestionsCount = randomizedQuestions.filter(rq => rq.type === qType).length
-               return categoryQuestionsCount > 0 ? categoryTotalMarks / categoryQuestionsCount : 0
+               return Number(allocationMap[qType]) || 0
             }
-            const totalScorable = randomizedQuestions.length
-            return totalScorable > 0 ? (activeTest?.totalMarks || 100) / totalScorable : 0
+            return 1 // Fallback
          }
          const points = getPointsForQuestion(q.type)
          totalScore += (h?.score || 0) * points
       })
+      const actualTotalMarks = randomizedQuestions.reduce((sum, q) => {
+        const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
+        return sum + (allocationMap ? (Number(allocationMap[q.type]) || 0) : 1)
+      }, 0)
+      setTestTotalMarks(actualTotalMarks > 0 ? actualTotalMarks : (activeTest?.totalMarks || 100))
       const finalCalculatedScore = Math.round(totalScore)
       setFinalScore(finalCalculatedScore)
       setIsEvaluating(false)
@@ -339,13 +371,9 @@ export default function StudentAssessmentsPage() {
     const getPointsForQuestion = (qType: string) => {
       const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
       if (allocationMap) {
-        const categoryTotalMarks = Number(allocationMap[qType]) || 0
-        const categoryQuestionsCount = randomizedQuestions.filter(rq => rq.type === qType).length
-        return categoryQuestionsCount > 0 ? categoryTotalMarks / categoryQuestionsCount : 0
+        return Number(allocationMap[qType]) || 0
       }
-      // Fallback
-      const totalScorable = randomizedQuestions.length
-      return totalScorable > 0 ? (activeTest?.totalMarks || 100) / totalScorable : 0
+      return 1 // Fallback
     }
 
     // Grade auto-graded questions
@@ -358,10 +386,7 @@ export default function StudentAssessmentsPage() {
           if (allCorrect) totalScore += points
         } catch {}
       } else if (q.type === 'Fill in the Blanks') {
-        const parts = q.content.split(/_{3,}/)
-        const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
-        const correctAnswer = (q.correctAnswer || '').trim().toLowerCase()
-        if (studentAnswer === correctAnswer) totalScore += points
+        totalScore += scoreMultiBlank(q, answers, points)
       } else {
         if (answers[q.id] === q.correctAnswer) totalScore += points
       }
@@ -370,10 +395,7 @@ export default function StudentAssessmentsPage() {
     // Grade Cloze-style Reading/Listening (same logic as Fill in the Blanks)
     clozeAIType.forEach(q => {
       const points = getPointsForQuestion(q.type)
-      const parts = q.content.split(/_{3,}/)
-      const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
-      const correctAnswer = (q.correctAnswer || '').trim().toLowerCase()
-      if (correctAnswer && studentAnswer === correctAnswer) totalScore += points
+      totalScore += scoreMultiBlank(q, answers, points)
     })
 
     // Grade locally-gradable MCQ-style Listening/Reading (exact match, no blanks, has correctAnswer)
@@ -399,7 +421,9 @@ export default function StudentAssessmentsPage() {
     })
 
     const finalCalculatedScore = Math.round(totalScore)
-    const totalMarks = activeTest?.totalMarks || 100
+    const actualTotalMarks = randomizedQuestions.reduce((sum, q) => sum + getPointsForQuestion(q.type), 0)
+    const totalMarks = actualTotalMarks > 0 ? actualTotalMarks : (activeTest?.totalMarks || 100)
+    setTestTotalMarks(totalMarks)
     const percentage = Math.round((finalCalculatedScore / totalMarks) * 100)
 
     // Layer 2 Fix: Score-aware fallback feedback (always meaningful, never blank)
@@ -467,18 +491,13 @@ export default function StudentAssessmentsPage() {
              if (allCorrect) score = 1
            } catch {}
         } else if (q.type === 'Fill in the Blanks') {
-           const parts = q.content.split(/_{3,}/)
-           const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
-           if (studentAnswer === q.correctAnswer?.toLowerCase().trim()) score = 1
+           score = scoreMultiBlank(q, answers, 1)
         } else {
            if (answer === q.correctAnswer) score = 1
         }
      } else if (isClozeAI) {
         // Cloze-style Reading/Listening — use multi-blank extraction
-        const parts = q.content.split(/_{3,}/)
-        const studentAnswer = parts.slice(0, -1).map((_, i) => (answers[`${q.id}-${i}`] || '').trim().toLowerCase()).join(' ')
-        const correctAnswer = (q.correctAnswer || '').trim().toLowerCase()
-        if (correctAnswer && studentAnswer === correctAnswer) score = 1
+        score = scoreMultiBlank(q, answers, 1)
      } else if (isLocalMCQStyle) {
         // MCQ-style Reading/Listening with exactAnswer — exact match
         if (answer === q.correctAnswer) score = 1
@@ -974,10 +993,10 @@ export default function StudentAssessmentsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-left">
                     {[
-                      { label: 'Final Score', value: `${finalScore} / ${activeTest?.totalMarks || 100}`, color: 'text-success' },
-                      { label: 'Percentage', value: `${Math.round((finalScore / (activeTest?.totalMarks || 100)) * 100)}%`, color: finalScore / (activeTest?.totalMarks || 100) >= 0.5 ? 'text-success' : 'text-destructive' },
+                      { label: 'Final Score', value: `${finalScore} / ${testTotalMarks}`, color: 'text-success' },
+                      { label: 'Percentage', value: `${Math.round((finalScore / testTotalMarks) * 100)}%`, color: finalScore / testTotalMarks >= 0.5 ? 'text-success' : 'text-destructive' },
                       { label: 'Questions', value: `${randomizedQuestions.length} Blocks`, color: 'text-primary' },
-                      { label: 'Status', value: finalScore / (activeTest?.totalMarks || 100) >= 0.5 ? 'Pass ✓' : 'Review ⚠', color: finalScore / (activeTest?.totalMarks || 100) >= 0.5 ? 'text-success' : 'text-amber-500' },
+                      { label: 'Status', value: finalScore / testTotalMarks >= 0.5 ? 'Pass ✓' : 'Review ⚠', color: finalScore / testTotalMarks >= 0.5 ? 'text-success' : 'text-amber-500' },
                     ].map(stat => (
                       <div key={stat.label} className="rounded-xl bg-muted/30 p-3">
                         <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/60 mb-1">{stat.label}</p>

@@ -136,14 +136,18 @@ export default function AssessmentGeneratorPage() {
     return stats
   }, [availableBlocks])
 
+  const watchQuestionCount = watch('questionCount') || 10
   const totalCalculatedMarks = useMemo(() => {
     if (!watchAlloc) return 0;
     if (watchNature === 'Mixed') {
-      return Object.values(watchAlloc).reduce((a, b) => (Number(a) || 0) + (Number(b) || 0), 0);
+      const vals = Object.values(watchAlloc).map(v => Number(v) || 0)
+      const validVals = vals.filter(v => v > 0)
+      const avgMark = validVals.length > 0 ? vals.reduce((a, b) => a + b, 0) / validVals.length : 0
+      return Math.round(avgMark * watchQuestionCount)
     } else {
-      return Number(watchAlloc[watchNature as keyof typeof watchAlloc]) || 0;
+      return (Number(watchAlloc[watchNature as keyof typeof watchAlloc]) || 0) * watchQuestionCount;
     }
-  }, [watchAlloc, watchNature])
+  }, [watchAlloc, watchNature, watchQuestionCount])
 
   const onSubmit = async (data: AssessmentFormValues) => {
     if (availableBlocks.length === 0) {
@@ -336,12 +340,17 @@ export default function AssessmentGeneratorPage() {
                         <div className="flex flex-col gap-2">
                            <div className="flex items-center gap-3 text-primary/60">
                               <Boxes className="w-5 h-5" />
-                              <h3 className="font-serif text-xl font-medium text-foreground/80">Mark Distribution</h3>
+                              <h3 className="font-serif text-xl font-medium text-foreground/80">Marks Per Question</h3>
+                              {watchNature === 'Mixed' && (
+                                <span className="text-[10px] text-muted-foreground opacity-60 ml-2">(Estimated Total: ~{totalCalculatedMarks} based on average draw)</span>
+                              )}
                            </div>
                            <div className="flex h-2 w-full rounded-full overflow-hidden bg-muted/10 border border-primary/5">
                               {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening'].map((type, i) => {
                                  const val = Number(watchAlloc?.[type as keyof typeof watchAlloc]) || 0
-                                 const width = totalCalculatedMarks > 0 ? (val / totalCalculatedMarks) * 100 : 0
+                                 const expectedTypeQuestions = watchNature === 'Mixed' ? watchQuestionCount / 8 : watchQuestionCount
+                                 const totalTypeMarks = val * expectedTypeQuestions
+                                 const width = totalCalculatedMarks > 0 ? (totalTypeMarks / totalCalculatedMarks) * 100 : 0
                                  const colors = ['bg-primary', 'bg-indigo-400', 'bg-success', 'bg-amber-400', 'bg-destructive', 'bg-purple-400', 'bg-cyan-400', 'bg-pink-400']
                                  return (
                                     <motion.div 
