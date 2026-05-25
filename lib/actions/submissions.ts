@@ -37,49 +37,59 @@ export async function submitTestResult(result: StudentTest, assignmentTitle: str
     })
 
     // 2. Automated Sync with Evaluation Sheet (Enhanced with Logical Affinity)
+    // NOTE: Wrapped in its own try-catch so that if the evaluation sync fails,
+    // the primary submission record (created above) is always preserved.
     if (evaluationCategory === 'Midterm' || evaluationCategory === 'Final') {
-      const assessment = await db.assessmentTemplate.findUnique({
-        where: { id: result.templateId },
-        select: { courseIds: true, id: true }
-      })
-
-      const student = await db.student.findUnique({
-        where: { id: result.studentId }
-      })
-
-      if (assessment && student) {
-        // Fetch all courses that are linked to this assessment
-        const courses = await db.course.findMany({
-          where: { id: { in: assessment.courseIds } }
+      try {
+        const assessment = await db.assessmentTemplate.findUnique({
+          where: { id: result.templateId },
+          select: { courseIds: true, id: true }
         })
 
-        // Identify target courses where the student belongs (Formal OR Logical)
-        const targetCourses = courses
-          .filter(course => isStudentInCourse(student, course))
-          .map(c => c.id)
+        const student = await db.student.findUnique({
+          where: { id: result.studentId }
+        })
 
-        const field = evaluationCategory === 'Midterm' ? 'midterm' : 'final'
-        const score = result.score || 0
+        if (assessment && student) {
+          // Fetch all courses that are linked to this assessment
+          const courses = await db.course.findMany({
+            where: { id: { in: assessment.courseIds } }
+          })
 
-        // Update Evaluations for all matching courses
-        await Promise.all(targetCourses.map(courseId => 
-          db.evaluation.upsert({
-            where: {
-              studentId_courseId_term: {
+          // Identify target courses where the student belongs (Formal OR Logical)
+          const targetCourses = courses
+            .filter(course => isStudentInCourse(student, course))
+            .map(c => c.id)
+
+          const field = evaluationCategory === 'Midterm' ? 'midterm' : 'final'
+          const score = result.score || 0
+
+          // Sequential upserts to avoid concurrent transaction deadlocks.
+          // Under high load (300-600 students), parallel Promise.all can exhaust
+          // the DB connection pool and cause lock conflicts on the evaluation table.
+          for (const courseId of targetCourses) {
+            await db.evaluation.upsert({
+              where: {
+                studentId_courseId_term: {
+                  studentId: result.studentId,
+                  courseId: courseId,
+                  term: "Term 1" // Standardized default
+                }
+              },
+              update: { [field]: score },
+              create: {
                 studentId: result.studentId,
                 courseId: courseId,
-                term: "Term 1" // Standardized default
+                term: "Term 1",
+                [field]: score
               }
-            },
-            update: { [field]: score },
-            create: {
-              studentId: result.studentId,
-              courseId: courseId,
-              term: "Term 1",
-              [field]: score
-            }
-          })
-        ))
+            })
+          }
+        }
+      } catch (syncError) {
+        // Log but do not rethrow — the submission record is already committed.
+        // The evaluation sheet sync can be retried independently if needed.
+        console.error('SYNC_ERROR [submitTestResult] Evaluation sheet sync failed (submission saved):', syncError)
       }
     }
 
@@ -101,44 +111,49 @@ export async function gradeSubmission(id: string, grade: number, feedback: strin
 
     // Automated Sync with Evaluation Sheet for manual grading
     if (res.evaluationCategory === 'Midterm' || res.evaluationCategory === 'Final') {
-      const assessment = await db.assessmentTemplate.findUnique({
-        where: { id: res.assignmentId },
-        select: { courseIds: true }
-      })
-
-      const student = await db.student.findUnique({
-        where: { id: res.studentId }
-      })
-
-      if (assessment && student) {
-        const courses = await db.course.findMany({
-          where: { id: { in: assessment.courseIds } }
+      try {
+        const assessment = await db.assessmentTemplate.findUnique({
+          where: { id: res.assignmentId },
+          select: { courseIds: true }
         })
 
-        const targetCourses = courses
-          .filter(course => isStudentInCourse(student, course))
-          .map(c => c.id)
+        const student = await db.student.findUnique({
+          where: { id: res.studentId }
+        })
 
-        const field = res.evaluationCategory === 'Midterm' ? 'midterm' : 'final'
-        
-        await Promise.all(targetCourses.map(courseId => 
-          db.evaluation.upsert({
-            where: {
-              studentId_courseId_term: {
+        if (assessment && student) {
+          const courses = await db.course.findMany({
+            where: { id: { in: assessment.courseIds } }
+          })
+
+          const targetCourses = courses
+            .filter(course => isStudentInCourse(student, course))
+            .map(c => c.id)
+
+          const field = res.evaluationCategory === 'Midterm' ? 'midterm' : 'final'
+
+          // Sequential upserts — same deadlock prevention as submitTestResult
+          for (const courseId of targetCourses) {
+            await db.evaluation.upsert({
+              where: {
+                studentId_courseId_term: {
+                  studentId: res.studentId,
+                  courseId: courseId,
+                  term: "Term 1"
+                }
+              },
+              update: { [field]: grade },
+              create: {
                 studentId: res.studentId,
                 courseId: courseId,
-                term: "Term 1"
+                term: "Term 1",
+                [field]: grade
               }
-            },
-            update: { [field]: grade },
-            create: {
-              studentId: res.studentId,
-              courseId: courseId,
-              term: "Term 1",
-              [field]: grade
-            }
-          })
-        ))
+            })
+          }
+        }
+      } catch (syncError) {
+        console.error('SYNC_ERROR [gradeSubmission] Evaluation sheet sync failed (grade saved):', syncError)
       }
     }
 

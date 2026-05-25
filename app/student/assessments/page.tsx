@@ -128,6 +128,8 @@ export default function StudentAssessmentsPage() {
   const [showResult, setShowResult] = useState(false)
   const [finalScore, setFinalScore] = useState(0)
   const [isEvaluating, setIsEvaluating] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [testTotalMarks, setTestTotalMarks] = useState(100)
   const [aiAuditResults, setAiAuditResults] = useState<{ feedback: string; justification: string }>({ feedback: "", justification: "" })
   const [isAdaptiveMode, setIsAdaptiveMode] = useState(false)
@@ -295,6 +297,29 @@ export default function StudentAssessmentsPage() {
     }
   }, [timeLeft, isTestEngineOpen, isPaused, showResult])
 
+  // ── Submission Retry Helper ─────────────────────────────────────────────────
+  // Retries the submission up to maxRetries times with exponential backoff.
+  // This gracefully handles temporary DB connection-pool exhaustion under high load.
+  const submitWithRetry = async (
+    fn: () => Promise<{ success?: boolean } | void>,
+    maxRetries = 4
+  ): Promise<boolean> => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await fn()
+        // Treat as success if the server returns anything other than explicit failure
+        if (!result || (result as any).success !== false) return true
+      } catch (err) {
+        console.error(`[submitWithRetry] Attempt ${attempt} failed:`, err)
+      }
+      if (attempt < maxRetries) {
+        // Exponential backoff: 800ms, 1600ms, 2400ms…
+        await new Promise(r => setTimeout(r, attempt * 800))
+      }
+    }
+    return false
+  }
+
   // ── Score & Submit ─────────────────────────────────────────────────────────
   const finishTest = async (isAuto = false) => {
     setIsEvaluating(true)
@@ -331,7 +356,9 @@ export default function StudentAssessmentsPage() {
          style: { backgroundColor: 'oklch(0.577 0.245 27.325)', color: 'white' },
       })
       if (activeTest && user) {
-          submitTestResult({
+          setIsSubmitting(true)
+          setSubmitError(null)
+          const adaptivePayload = {
              id: `test-res-${Date.now()}`,
              templateId: activeTest.id,
              studentId: user.id,
@@ -344,11 +371,16 @@ export default function StudentAssessmentsPage() {
              score: finalCalculatedScore,
              feedback: aiAuditResults.feedback || "Adaptive assessment complete.",
              evaluationCategory: activeTest.evaluationCategory,
-          }).then(() => {
-             // Task: Prevent retake loophole by clearing session immediately
+          }
+          const saved = await submitWithRetry(() => submitTestResult(adaptivePayload))
+          if (saved) {
+             // Only clear the session after the DB confirms success
              sessionStorage.removeItem('current_assessment_code')
              sessionStorage.removeItem('current_assessment_data')
-          }).catch(console.error)
+          } else {
+             setSubmitError("The server is under heavy load. Your score is displayed below — please inform your teacher to check the registry, or try refreshing this page.")
+          }
+          setIsSubmitting(false)
       }
       return
     }
@@ -467,7 +499,9 @@ export default function StudentAssessmentsPage() {
     })
 
     if (activeTest && user) {
-      submitTestResult({
+      setIsSubmitting(true)
+      setSubmitError(null)
+      const submissionPayload = {
         id: `test-res-${Date.now()}`,
         templateId: activeTest.id,
         studentId: user.id,
@@ -480,11 +514,16 @@ export default function StudentAssessmentsPage() {
         score: finalCalculatedScore,
         feedback: scoreFeedback,
         evaluationCategory: activeTest.evaluationCategory,
-      }).then(() => {
-        // Task: Prevent retake loophole by clearing session immediately
+      }
+      const saved = await submitWithRetry(() => submitTestResult(submissionPayload))
+      if (saved) {
+        // Only clear session after confirmed DB success — prevents silent data loss
         sessionStorage.removeItem('current_assessment_code')
         sessionStorage.removeItem('current_assessment_data')
-      }).catch(console.error)
+      } else {
+        setSubmitError("The server is under heavy load. Your score is displayed below — please inform your teacher to check the registry, or try refreshing this page.")
+      }
+      setIsSubmitting(false)
     }
   }
 
@@ -1002,12 +1041,31 @@ export default function StudentAssessmentsPage() {
                 >
                   <div className="h-1.5 bg-success/50 w-full shrink-0 rounded-t-full" />
                   <div className="p-8 sm:p-10 text-center space-y-8">
+                    {/* Submitting spinner overlay */}
+                    {isSubmitting && (
+                      <div className="flex flex-col items-center gap-3 py-2">
+                        <div className="relative w-10 h-10">
+                          <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                          <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                        </div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest animate-pulse">Securing your submission…</p>
+                      </div>
+                    )}
+                    {/* Error banner — only shown if all retries failed */}
+                    {submitError && !isSubmitting && (
+                      <div className="flex items-start gap-3 bg-destructive/10 border border-destructive/20 rounded-2xl p-4 text-left">
+                        <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                        <p className="text-destructive text-xs leading-relaxed">{submitError}</p>
+                      </div>
+                    )}
                     <div className="mx-auto w-20 h-20 rounded-full bg-success/10 flex items-center justify-center text-success ring-8 ring-success/5 shadow-inner">
                       <Award className="w-10 h-10" />
                     </div>
                     <div>
                       <h2 className="font-serif text-3xl font-bold text-foreground">Assessment Complete</h2>
-                      <p className="text-muted-foreground text-sm mt-1 opacity-60">Your submission has been recorded.</p>
+                      <p className="text-muted-foreground text-sm mt-1 opacity-60">
+                        {isSubmitting ? "Saving your results, please wait…" : submitError ? "Score recorded locally — see note above." : "Your submission has been recorded."}
+                      </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-left">
                       {[
@@ -1039,12 +1097,19 @@ export default function StudentAssessmentsPage() {
                           setIsTestEngineOpen(false)
                           router.push('/student')
                         }} 
+                        disabled={isSubmitting}
                         size="lg"
-                        className="w-full h-14 font-bold gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                        className="w-full h-14 font-bold gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
                       >
-                        Return to Credentials <ArrowRight className="w-5 h-5" />
+                        {isSubmitting ? (
+                          <><Clock className="w-5 h-5 animate-spin" /> Please wait…</>
+                        ) : (
+                          <>Return to Credentials <ArrowRight className="w-5 h-5" /></>
+                        )}
                       </Button>
-                      <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 mt-4">Secure Session Termination</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 mt-4">
+                        {isSubmitting ? "Do not close this tab" : "Secure Session Termination"}
+                      </p>
                     </div>
                   </div>
                 </motion.div>
