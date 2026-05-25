@@ -318,8 +318,11 @@ export default function StudentAssessmentsPage() {
         const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
         return sum + (allocationMap ? (Number(allocationMap[q.type]) || 0) : 1)
       }, 0)
-      setTestTotalMarks(actualTotalMarks > 0 ? actualTotalMarks : (activeTest?.totalMarks || 100))
-      const finalCalculatedScore = Math.round(totalScore)
+      const rawTotalMarks = actualTotalMarks > 0 ? actualTotalMarks : (activeTest?.totalMarks || 100)
+      
+      // Scale out of 100
+      const finalCalculatedScore = Math.round((totalScore / rawTotalMarks) * 100)
+      setTestTotalMarks(100)
       setFinalScore(finalCalculatedScore)
       setIsEvaluating(false)
       setShowResult(true)
@@ -423,15 +426,21 @@ export default function StudentAssessmentsPage() {
       const q = trueSubjective[index]
       const points = getPointsForQuestion(q.type)
       totalScore += (audit.score * points)
-      aiFeedbackChain += audit.feedback + " "
-      aiJustificationChain += audit.justification + " "
+      
+      const qNumber = randomizedQuestions.findIndex(rq => rq.id === q.id) + 1
+      if (audit.feedback.trim()) aiFeedbackChain += `**Q${qNumber}:** ${audit.feedback.trim()}\n\n`
+      if (audit.justification.trim()) aiJustificationChain += `**Q${qNumber}:** ${audit.justification.trim()}\n\n`
     })
 
-    const finalCalculatedScore = Math.round(totalScore)
+    const rawScore = Math.round(totalScore)
     const actualTotalMarks = randomizedQuestions.reduce((sum, q) => sum + getPointsForQuestion(q.type), 0)
-    const totalMarks = actualTotalMarks > 0 ? actualTotalMarks : (activeTest?.totalMarks || 100)
+    const rawTotalMarks = actualTotalMarks > 0 ? actualTotalMarks : (activeTest?.totalMarks || 100)
+    
+    // Scale out of 100
+    const finalCalculatedScore = Math.round((rawScore / rawTotalMarks) * 100)
+    const totalMarks = 100
     setTestTotalMarks(totalMarks)
-    const percentage = Math.round((finalCalculatedScore / totalMarks) * 100)
+    const percentage = finalCalculatedScore
 
     // Layer 2 Fix: Score-aware fallback feedback (always meaningful, never blank)
     const scoreFeedback = aiFeedbackChain.trim() || (
@@ -512,9 +521,10 @@ export default function StudentAssessmentsPage() {
         // Subjective, Writing, open-ended Reading/Listening — always use AI evaluator
         const audit = await evaluateSubjective(q, answer)
         score = audit.score
+        const qNumber = currentQuestionIndex + 1;
         setAiAuditResults(prev => ({ 
-           feedback: prev.feedback + audit.feedback + " ", 
-           justification: prev.justification + audit.justification + " " 
+            feedback: prev.feedback + (audit.feedback.trim() ? `**Q${qNumber}:** ${audit.feedback.trim()}\n\n` : ""), 
+            justification: prev.justification + (audit.justification.trim() ? `**Q${qNumber}:** ${audit.justification.trim()}\n\n` : "") 
         }))
      }
 
@@ -1017,7 +1027,7 @@ export default function StudentAssessmentsPage() {
                         <h4 className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest mb-3 sticky top-0 bg-background/5 backdrop-blur-sm pb-1">
                           <TrendingUp className="w-4 h-4" /> AI Academic Audit
                         </h4>
-                        <p className="text-muted-foreground text-sm leading-relaxed italic">"{aiAuditResults.feedback}"</p>
+                        <p className="text-muted-foreground text-sm leading-relaxed italic whitespace-pre-wrap">"{aiAuditResults.feedback}"</p>
                       </div>
                     )}
                     
