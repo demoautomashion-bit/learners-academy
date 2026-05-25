@@ -40,11 +40,18 @@ export async function POST(req: Request) {
       : `\nNo reference answer was provided. Evaluate based on academic accuracy, relevance to the question, and depth of explanation.\n`
 
     const prompt = `
-You are an expert academic evaluator. Your task is to evaluate a student's answer to a given subjective test question.
+You are an encouraging, fair, and supportive academic auditor. Your goal is to evaluate a student's answer based on conceptual correctness and semantic understanding of the rubric, rather than rigid grammatical or word-for-word matching.
+
+Evaluation Rules:
+1. Ignore minor spelling mistakes, typos, and grammatical errors. Do not deduct points for them.
+2. Focus on whether the student's answer demonstrates a correct understanding of the core concept.
+3. Be lenient and encouraging. If the student clearly understands the concept but expresses it in a different way or in simpler phrasing, award full or near-full marks.
+4. Provide constructive, warm, and encouraging feedback to the student that highlights what they got right, while gently pointing out any gaps (max 2-3 sentences).
+
 Provide a strictly structured JSON response with the following keys:
 - "score": A number between 0.0 and 1.0 representing the accuracy and completeness of the answer. (0.0 is completely wrong/empty, 1.0 is perfect).
-- "feedback": Constructive, student-facing feedback addressing the strengths and weaknesses of the response (max 2-3 sentences).
-- "justification": Teacher-facing justification for the score, pointing out specific terminology or concepts that were successfully or unsuccessfully applied.
+- "feedback": Constructive, encouraging, student-facing feedback (max 2-3 sentences).
+- "justification": Teacher-facing justification for the score, explaining why the marks were awarded.
 
 Question details:
 - Category: ${question.category}
@@ -60,7 +67,7 @@ Evaluate the answer. Only return valid JSON matching {"score": number, "feedback
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a strict academic auditing tool that responds exclusively in JSON format." },
+        { role: "system", content: "You are an encouraging and fair academic auditor that evaluates conceptual correctness, ignoring minor typos and grammar, and responds exclusively in JSON format." },
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" },

@@ -244,8 +244,11 @@ export default function StudentAssessmentsPage() {
         handleViolation("Tab Switch Detected")
       }
     }
-    const onBlur = () => handleViolation("App De-focus Detected")
-    const onFullscreen = () => { if (!document.fullscreenElement) handleViolation("Fullscreen Exit Detected") }
+    const onFullscreen = () => { 
+      const isIOS = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+      if (isIOS || !document.fullscreenEnabled) return;
+      if (!document.fullscreenElement) handleViolation("Fullscreen Exit Detected") 
+    }
     const preventKeys = (e: KeyboardEvent) => {
       if (e.key === 'PrintScreen') {
         e.preventDefault()
@@ -263,15 +266,19 @@ export default function StudentAssessmentsPage() {
     }
 
     window.addEventListener('visibilitychange', onVisibility)
-    window.addEventListener('blur', onBlur)
-    document.addEventListener('fullscreenchange', onFullscreen)
+    // Removed fragile window blur listener to prevent false positives (e.g. keyboard dismissals/interactions on iOS Safari)
+    const isIOS = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+    if (!isIOS && document.fullscreenEnabled) {
+      document.addEventListener('fullscreenchange', onFullscreen)
+    }
     window.addEventListener('keydown', preventKeys)
     window.addEventListener('contextmenu', preventRightClick)
     window.addEventListener('copy', preventCopy)
     return () => {
       window.removeEventListener('visibilitychange', onVisibility)
-      window.removeEventListener('blur', onBlur)
-      document.removeEventListener('fullscreenchange', onFullscreen)
+      if (!isIOS && document.fullscreenEnabled) {
+        document.removeEventListener('fullscreenchange', onFullscreen)
+      }
       window.removeEventListener('keydown', preventKeys)
       window.removeEventListener('contextmenu', preventRightClick)
       window.removeEventListener('copy', preventCopy)
@@ -978,58 +985,60 @@ export default function StudentAssessmentsPage() {
             {/* Header */}
             {/* Result screen */}
             {showResult ? (
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                className="w-full max-w-lg bg-card border-primary/10 shadow-massive rounded-[3rem] h-fit mb-24"
-              >
-                <div className="h-1.5 bg-success/50 w-full rounded-t-full" />
-                <div className="p-8 sm:p-10 text-center space-y-8">
-                  <div className="mx-auto w-20 h-20 rounded-full bg-success/10 flex items-center justify-center text-success ring-8 ring-success/5 shadow-inner">
-                    <Award className="w-10 h-10" />
-                  </div>
-                  <div>
-                    <h2 className="font-serif text-3xl font-bold text-foreground">Assessment Complete</h2>
-                    <p className="text-muted-foreground text-sm mt-1 opacity-60">Your submission has been recorded.</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-left">
-                    {[
-                      { label: 'Final Score', value: `${finalScore} / ${testTotalMarks}`, color: 'text-success' },
-                      { label: 'Percentage', value: `${Math.round((finalScore / testTotalMarks) * 100)}%`, color: finalScore / testTotalMarks >= 0.5 ? 'text-success' : 'text-destructive' },
-                      { label: 'Questions', value: `${randomizedQuestions.length} Blocks`, color: 'text-primary' },
-                      { label: 'Status', value: finalScore / testTotalMarks >= 0.5 ? 'Pass ✓' : 'Review ⚠', color: finalScore / testTotalMarks >= 0.5 ? 'text-success' : 'text-amber-500' },
-                    ].map(stat => (
-                      <div key={stat.label} className="rounded-xl bg-muted/30 p-3">
-                        <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/60 mb-1">{stat.label}</p>
-                        <p className={`text-xl font-serif font-semibold ${stat.color}`}>{stat.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {aiAuditResults.feedback && (
-                    <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10 text-left">
-                      <h4 className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest mb-3">
-                        <TrendingUp className="w-4 h-4" /> AI Academic Audit
-                      </h4>
-                      <p className="text-muted-foreground text-sm leading-relaxed italic">"{aiAuditResults.feedback}"</p>
+              <div className="flex-1 w-full overflow-y-auto flex items-center justify-center p-4 sm:p-6 md:p-8 touch-auto select-text premium-scrollbar">
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                  className="w-full max-w-lg bg-card border-primary/10 shadow-massive rounded-[3rem] h-fit my-auto overflow-hidden border flex flex-col"
+                >
+                  <div className="h-1.5 bg-success/50 w-full shrink-0 rounded-t-full" />
+                  <div className="p-8 sm:p-10 text-center space-y-8">
+                    <div className="mx-auto w-20 h-20 rounded-full bg-success/10 flex items-center justify-center text-success ring-8 ring-success/5 shadow-inner">
+                      <Award className="w-10 h-10" />
                     </div>
-                  )}
-                  
-                  <div className="pt-4 border-t border-primary/5">
-                    <Button 
-                      onClick={() => {
-                        sessionStorage.removeItem('current_assessment_code')
-                        sessionStorage.removeItem('current_assessment_data')
-                        setIsTestEngineOpen(false)
-                        router.push('/student')
-                      }} 
-                      size="lg"
-                      className="w-full h-14 font-bold gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
-                    >
-                      Return to Credentials <ArrowRight className="w-5 h-5" />
-                    </Button>
-                    <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 mt-4">Secure Session Termination</p>
+                    <div>
+                      <h2 className="font-serif text-3xl font-bold text-foreground">Assessment Complete</h2>
+                      <p className="text-muted-foreground text-sm mt-1 opacity-60">Your submission has been recorded.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-left">
+                      {[
+                        { label: 'Final Score', value: `${finalScore} / ${testTotalMarks}`, color: 'text-success' },
+                        { label: 'Percentage', value: `${Math.round((finalScore / testTotalMarks) * 100)}%`, color: finalScore / testTotalMarks >= 0.5 ? 'text-success' : 'text-destructive' },
+                        { label: 'Questions', value: `${randomizedQuestions.length} Blocks`, color: 'text-primary' },
+                        { label: 'Status', value: finalScore / testTotalMarks >= 0.5 ? 'Pass ✓' : 'Review ⚠', color: finalScore / testTotalMarks >= 0.5 ? 'text-success' : 'text-amber-500' },
+                      ].map(stat => (
+                        <div key={stat.label} className="rounded-xl bg-muted/30 p-3">
+                          <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/60 mb-1">{stat.label}</p>
+                          <p className={`text-xl font-serif font-semibold ${stat.color}`}>{stat.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {aiAuditResults.feedback && (
+                      <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10 text-left max-h-48 overflow-y-auto premium-scrollbar">
+                        <h4 className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest mb-3 sticky top-0 bg-background/5 backdrop-blur-sm pb-1">
+                          <TrendingUp className="w-4 h-4" /> AI Academic Audit
+                        </h4>
+                        <p className="text-muted-foreground text-sm leading-relaxed italic">"{aiAuditResults.feedback}"</p>
+                      </div>
+                    )}
+                    
+                    <div className="pt-4 border-t border-primary/5">
+                      <Button 
+                        onClick={() => {
+                          sessionStorage.removeItem('current_assessment_code')
+                          sessionStorage.removeItem('current_assessment_data')
+                          setIsTestEngineOpen(false)
+                          router.push('/student')
+                        }} 
+                        size="lg"
+                        className="w-full h-14 font-bold gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                      >
+                        Return to Credentials <ArrowRight className="w-5 h-5" />
+                      </Button>
+                      <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 mt-4">Secure Session Termination</p>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </div>
             ) : (
               /* Active test */
               <div className="w-full h-full max-w-5xl flex flex-col bg-card/60 backdrop-blur-sm lg:rounded-3xl border shadow-2xl relative overflow-hidden">

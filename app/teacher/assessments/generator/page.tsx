@@ -338,12 +338,27 @@ export default function AssessmentGeneratorPage() {
 
                        <div className="space-y-8 pt-10 border-t border-primary/5">
                         <div className="flex flex-col gap-2">
-                           <div className="flex items-center gap-3 text-primary/60">
-                              <Boxes className="w-5 h-5" />
-                              <h3 className="font-serif text-xl font-medium text-foreground/80">Marks Per Question</h3>
-                              {watchNature === 'Mixed' && (
-                                <span className="text-[10px] text-muted-foreground opacity-60 ml-2">(Estimated Total: ~{totalCalculatedMarks} based on average draw)</span>
-                              )}
+                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-primary/60">
+                              <div className="flex items-center gap-3">
+                                 <Boxes className="w-5 h-5" />
+                                 <h3 className="font-serif text-xl font-medium text-foreground/80">Marks Per Question</h3>
+                                 {watchNature === 'Mixed' && (
+                                   <span className="text-[10px] text-muted-foreground opacity-60 ml-2">(Estimated Total: ~{totalCalculatedMarks} based on average draw)</span>
+                                 )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                 <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Total Calculated Marks:</span>
+                                 <Badge 
+                                   className={cn(
+                                     "px-3 py-1 font-mono text-xs font-semibold rounded-full transition-all border",
+                                     totalCalculatedMarks === 100 
+                                       ? "bg-success/10 text-success border-success/30 shadow-[0_0_10px_rgba(34,197,94,0.1)] animate-pulse" 
+                                       : "bg-warning/10 text-warning border-warning/30"
+                                   )}
+                                 >
+                                   {totalCalculatedMarks} / 100
+                                 </Badge>
+                              </div>
                            </div>
                            <div className="flex h-2 w-full rounded-full overflow-hidden bg-muted/10 border border-primary/5">
                               {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening'].map((type, i) => {
