@@ -113,3 +113,26 @@ export async function approveAllExistingQuestions(): Promise<ActionResult> {
     return { success: false, error: 'Failed to approve block library' }
   }
 }
+
+export async function deleteQuestionsByPhase(
+  teacherId: string,
+  phase: 'First Test' | 'Last Test' | 'Both'
+): Promise<ActionResult> {
+  try {
+    if (!teacherId) {
+      return { success: false, error: 'Authorization failure: No teacher identity provided.' }
+    }
+
+    const whereClause =
+      phase === 'Both'
+        ? { teacherId }
+        : { teacherId, phase }
+
+    const result = await db.question.deleteMany({ where: whereClause })
+    revalidatePath('/')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [deleteQuestionsByPhase]:', error)
+    return { success: false, error: 'Bulk purge operation failed' }
+  }
+}
