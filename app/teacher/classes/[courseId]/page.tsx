@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Save, Users, FileSpreadsheet, BarChart3, ArrowLeft, RefreshCw, User, ShieldCheck } from 'lucide-react'
+import { Save, Users, FileSpreadsheet, BarChart3, ArrowLeft, RefreshCw, User, ShieldCheck, TrendingUp, Trophy, AlertTriangle } from 'lucide-react'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
@@ -261,6 +261,55 @@ export default function ClassWorkspacePage() {
     }
   ]
 
+  // Analytics computations derived from existing grade data
+  const analyticsData = useMemo(() => {
+    const allMetrics = classStudents.map(s => ({
+      student: s,
+      ...computeMetrics(s.id)
+    }))
+
+    const gradedMetrics = allMetrics.filter(m => m.total !== '--')
+
+    const avgPercentage = gradedMetrics.length > 0
+      ? Math.round(gradedMetrics.reduce((sum, m) => sum + (m.percentage as number), 0) / gradedMetrics.length)
+      : null
+
+    const passCount = gradedMetrics.filter(m => m.eligibility === 'P').length
+    const passRate = gradedMetrics.length > 0
+      ? Math.round((passCount / gradedMetrics.length) * 100)
+      : null
+
+    const topScore = gradedMetrics.length > 0
+      ? Math.max(...gradedMetrics.map(m => m.total as number))
+      : null
+
+    const atRiskCount = gradedMetrics.filter(m => m.eligibility === 'X' || m.eligibility === 'V').length
+
+    const gradeCounts: Record<string, number> = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 }
+    gradedMetrics.forEach(m => {
+      if (typeof m.grade === 'string' && m.grade in gradeCounts) gradeCounts[m.grade]++
+    })
+
+    const rankedStudents = [...allMetrics].sort((a, b) => {
+      if (a.total === '--') return 1
+      if (b.total === '--') return -1
+      return (b.total as number) - (a.total as number)
+    })
+
+    return {
+      totalStudents: classStudents.length,
+      gradedCount: gradedMetrics.length,
+      avgPercentage,
+      passRate,
+      topScore,
+      atRiskCount,
+      gradeCounts,
+      rankedStudents,
+      hasData: gradedMetrics.length > 0
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classStudents, grades, tierConfig])
+
   return (
     <div className="flex flex-col h-full bg-background relative z-0">
       {/* Workspace Header */}
@@ -411,15 +460,193 @@ export default function ClassWorkspacePage() {
           </TabsContent>
 
           <TabsContent value="analytics" className="m-0 mt-2 fade-in zoom-in duration-300">
-             <Card className="border-dashed bg-muted/5 py-24 text-center rounded-[2rem]">
+            {!analyticsData.hasData ? (
+              <Card className="border-dashed bg-muted/5 py-24 text-center rounded-[2rem]">
                 <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-6">
                   <BarChart3 className="w-8 h-8 text-primary/40" />
                 </div>
-                <h3 className="text-xl font-serif font-bold">Analytics Engine Initializing</h3>
+                <h3 className="text-xl font-serif font-bold">No Evaluation Data Yet</h3>
                 <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-2 leading-relaxed">
-                  Class performance dashboards and individual growth metrics will auto-generate here once sufficient evaluations are logged in the Assessment Sheet.
+                  Enter student scores in the Assessment Sheet to generate class performance analytics.
                 </p>
-             </Card>
+              </Card>
+            ) : (
+              <div className="space-y-8">
+
+                {/* Section 1 — KPI Cards */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-black opacity-30 mb-4">Class Overview</p>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+                    {/* Class Average */}
+                    <Card className="rounded-2xl border bg-card shadow-sm p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                          <TrendingUp className="w-4 h-4 text-primary" />
+                        </div>
+                        <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary">
+                          {analyticsData.gradedCount}/{analyticsData.totalStudents} graded
+                        </Badge>
+                      </div>
+                      <p className="text-4xl font-black font-sans text-foreground leading-none">{analyticsData.avgPercentage ?? '—'}<span className="text-xl opacity-40">%</span></p>
+                      <p className="text-xs text-muted-foreground mt-2 opacity-60 uppercase tracking-widest">Class Average</p>
+                    </Card>
+
+                    {/* Pass Rate */}
+                    <Card className="rounded-2xl border bg-card shadow-sm p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-success/10 rounded-xl">
+                          <ShieldCheck className="w-4 h-4 text-success" />
+                        </div>
+                        <span className="text-[10px] text-muted-foreground opacity-40 font-mono">{analyticsData.passRate !== null ? `${analyticsData.gradedCount - analyticsData.atRiskCount}/${analyticsData.gradedCount}` : ''}</span>
+                      </div>
+                      <p className="text-4xl font-black font-sans text-success leading-none">{analyticsData.passRate ?? '—'}<span className="text-xl opacity-40">%</span></p>
+                      <p className="text-xs text-muted-foreground mt-2 opacity-60 uppercase tracking-widest">Pass Rate</p>
+                    </Card>
+
+                    {/* Top Score */}
+                    <Card className="rounded-2xl border bg-card shadow-sm p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-warning/10 rounded-xl">
+                          <Trophy className="w-4 h-4 text-warning" />
+                        </div>
+                        <span className="text-[10px] text-muted-foreground opacity-40 font-mono">/ {tierConfig.total}</span>
+                      </div>
+                      <p className="text-4xl font-black font-sans text-foreground leading-none">{analyticsData.topScore ?? '—'}</p>
+                      <p className="text-xs text-muted-foreground mt-2 opacity-60 uppercase tracking-widest">Top Score</p>
+                    </Card>
+
+                    {/* At Risk */}
+                    <Card className={cn("rounded-2xl border bg-card shadow-sm p-6", analyticsData.atRiskCount > 0 && "border-destructive/20 bg-destructive/5")}>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-destructive/10 rounded-xl">
+                          <AlertTriangle className="w-4 h-4 text-destructive" />
+                        </div>
+                      </div>
+                      <p className={cn("text-4xl font-black font-sans leading-none", analyticsData.atRiskCount > 0 ? "text-destructive" : "text-foreground")}>{analyticsData.atRiskCount}</p>
+                      <p className="text-xs text-muted-foreground mt-2 opacity-60 uppercase tracking-widest">Students At Risk</p>
+                    </Card>
+
+                  </div>
+                </div>
+
+                {/* Section 2 — Grade Distribution */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-black opacity-30 mb-4">Grade Distribution</p>
+                  <Card className="rounded-2xl border bg-card shadow-sm p-6">
+                    <div className="space-y-3">
+                      {(['A+', 'A', 'B', 'C', 'D', 'F'] as const).map(grade => {
+                        const count = analyticsData.gradeCounts[grade] || 0
+                        const pct = analyticsData.gradedCount > 0 ? (count / analyticsData.gradedCount) * 100 : 0
+                        const barColor = grade.includes('A') ? 'bg-success' : grade === 'F' ? 'bg-destructive' : grade === 'D' ? 'bg-orange-400' : 'bg-warning'
+                        const textColor = grade.includes('A') ? 'text-success' : grade === 'F' ? 'text-destructive' : grade === 'D' ? 'text-orange-400' : 'text-warning'
+                        return (
+                          <div key={grade} className="flex items-center gap-4">
+                            <span className={cn("text-xs font-black w-6 text-right shrink-0", count > 0 ? textColor : 'text-muted-foreground/30')}>{grade}</span>
+                            <div className="flex-1 h-7 bg-muted/20 rounded-full overflow-hidden">
+                              <div
+                                className={cn("h-full rounded-full flex items-center px-3 transition-all duration-700", count > 0 ? barColor : '')}
+                                style={{ width: `${Math.max(pct, count > 0 ? 5 : 0)}%` }}
+                              >
+                                {count > 0 && (
+                                  <span className="text-[10px] text-white font-bold whitespace-nowrap">
+                                    {count} {count === 1 ? 'student' : 'students'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-mono text-muted-foreground opacity-40 w-8 text-right shrink-0">{count > 0 ? `${Math.round(pct)}%` : '—'}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Section 3 — Student Ranking Table */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-black opacity-30 mb-4">Student Performance Ranking</p>
+                  <Card className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-muted/20 border-b">
+                            <th className="p-4 text-left text-[10px] uppercase tracking-widest font-black opacity-40 w-16">Rank</th>
+                            <th className="p-4 text-left text-[10px] uppercase tracking-widest font-black opacity-40">Student</th>
+                            <th className="p-4 text-center text-[10px] uppercase tracking-widest font-black opacity-40">Total</th>
+                            <th className="p-4 text-center text-[10px] uppercase tracking-widest font-black opacity-40">Percentage</th>
+                            <th className="p-4 text-center text-[10px] uppercase tracking-widest font-black opacity-40">Grade</th>
+                            <th className="p-4 text-center text-[10px] uppercase tracking-widest font-black opacity-40">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {analyticsData.rankedStudents.map((m, idx) => (
+                            <tr key={m.student.id} className="hover:bg-muted/10 transition-colors">
+                              <td className="p-4 text-center">
+                                {m.total !== '--' ? (
+                                  <span className={cn(
+                                    "font-mono font-black text-sm",
+                                    idx === 0 ? 'text-warning' :
+                                    idx === 1 ? 'text-muted-foreground' :
+                                    idx === 2 ? 'text-orange-400' : 'text-muted-foreground/40'
+                                  )}>#{idx + 1}</span>
+                                ) : (
+                                  <span className="text-muted-foreground/20 text-xs">—</span>
+                                )}
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                                    <span className="text-[10px] font-black text-primary">
+                                      {m.student.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                                    </span>
+                                  </div>
+                                  <span className="font-medium text-sm font-serif">{m.student.name}</span>
+                                </div>
+                              </td>
+                              <td className="p-4 text-center font-bold font-mono text-primary">
+                                {m.total !== '--' ? (
+                                  <span>{m.total as number} <span className="text-muted-foreground/30 font-normal text-[10px]">/ {tierConfig.total}</span></span>
+                                ) : (
+                                  <span className="text-muted-foreground/30 text-xs">Not graded</span>
+                                )}
+                              </td>
+                              <td className="p-4 text-center font-bold">
+                                {m.percentage !== '--' ? `${m.percentage}%` : <span className="text-muted-foreground/30">—</span>}
+                              </td>
+                              <td className="p-4 text-center">
+                                <span className={cn(
+                                  "font-black text-base",
+                                  typeof m.grade === 'string' && m.grade.includes('A') ? 'text-success' :
+                                  m.grade === 'F' ? 'text-destructive' :
+                                  m.grade !== '-' ? 'text-warning' : 'text-muted-foreground/30'
+                                )}>{m.grade}</span>
+                              </td>
+                              <td className="p-4 text-center">
+                                {m.eligibility !== '-' ? (
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      "text-[10px] font-black uppercase tracking-widest px-3 border-0",
+                                      m.eligibility === 'P' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+                                    )}
+                                  >
+                                    {m.eligibility === 'P' ? 'Pass' : m.eligibility === 'V' ? 'Absent' : 'Fail'}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground/20 text-xs">—</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </Card>
+                </div>
+
+              </div>
+            )}
           </TabsContent>
 
         </div>

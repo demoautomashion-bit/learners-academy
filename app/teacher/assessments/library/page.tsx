@@ -238,11 +238,11 @@ export default function AssessmentLibraryPage() {
           <Dialog open={isClearOpen} onOpenChange={(open) => { setIsClearOpen(open); if (!open) setClearPhase(null) }}>
             <DialogTrigger asChild>
               <Button
-                variant="outline"
-                className="border-destructive/20 text-destructive hover:bg-destructive/5 hover:border-destructive/40 transition-all gap-2"
+                variant="destructive"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-sm shadow-destructive/20 transition-all gap-2"
               >
-                <Flame className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">Clear Bank</span>
+                <Trash2 className="w-4 h-4" />
+                <span className="text-xs font-bold uppercase tracking-widest">Delete Questions</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -602,7 +602,7 @@ export default function AssessmentLibraryPage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="w-8 h-8 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 transition-all"
+                          className="w-8 h-8 hover:bg-destructive/10 transition-all"
                           onClick={() => {
                             deleteQuestion(q.id)
                             toast.success("Institutional block removed")
