@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -86,8 +86,11 @@ export default function ClassWorkspacePage() {
     return TIER_CONFIGS.STANDARD
   }, [course])
 
-  // Hydrate local state from global evaluations context
-  useMemo(() => {
+  // Hydrate local state from global evaluations context.
+  // useEffect is correct here — useMemo must not have side effects (setState).
+  // On refresh, this resets grades to the last saved DB state, discarding any
+  // unsaved edits instead of crashing with React Error #310.
+  useEffect(() => {
     if (!evaluations || !courseId) return;
     
     const initialGrades: Record<string, any> = {};

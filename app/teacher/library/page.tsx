@@ -23,6 +23,8 @@ import {
 } from '@/components/ui/select'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
@@ -72,7 +74,7 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
 
 export default function QuestionLibraryPage() {
   const { user } = useAuth()
-  const { questions, addQuestion, updateQuestion, deleteQuestion, isInitialized, teachers, approveQuestion, audioFiles, courses } = useData()
+  const { questions, addQuestion, updateQuestion, deleteQuestion, deleteQuestionsByPhase, isInitialized, teachers, approveQuestion, audioFiles, courses } = useData()
   
   const currentTeacher = teachers.find(t => t.id === user?.id)
   const requiresReview = currentTeacher?.requiresReview ?? true
@@ -94,6 +96,7 @@ export default function QuestionLibraryPage() {
   }, [teacherLevels, levelFilter])
   const [isOpen, setIsOpen] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
+  const [deletePhase, setDeletePhase] = useState<'First Test' | 'Last Test' | 'Both' | null>(null)
   const [matchPairs, setMatchPairs] = useState<{ left: string; right: string }[]>([
     { left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' },
   ])
@@ -246,6 +249,18 @@ export default function QuestionLibraryPage() {
       console.error('Failed to save question:', error)
     }
   };
+
+  const handleBulkDelete = async () => {
+    if (!deletePhase) return;
+    try {
+      await deleteQuestionsByPhase(deletePhase, levelFilter || undefined)
+      toast.success(`${deletePhase === 'Both' ? 'All' : deletePhase} blocks deleted successfully for this class`)
+    } catch (error) {
+      toast.error('Failed to clear bank')
+    } finally {
+      setDeletePhase(null)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -587,7 +602,45 @@ export default function QuestionLibraryPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-12 border-destructive/20 text-destructive hover:bg-destructive/10 shrink-0 shadow-sm rounded-xl">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Bank
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => setDeletePhase('First Test')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                    Delete First Test blocks
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDeletePhase('Last Test')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                    Delete Last Test blocks
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDeletePhase('Both')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                    Delete All blocks
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
+
+            <AlertDialog open={!!deletePhase} onOpenChange={(open) => !open && setDeletePhase(null)}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="font-serif">Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete 
+                    {deletePhase === 'Both' ? ' all blocks ' : ` all ${deletePhase} blocks `} 
+                    for the currently selected class <strong>{levelFilter || 'All Classes'}</strong>.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive hover:bg-destructive/90 text-white">
+                    Yes, clear bank
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
             <motion.div 
               className="grid gap-4 mt-6"

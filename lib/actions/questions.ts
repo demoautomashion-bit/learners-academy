@@ -116,17 +116,22 @@ export async function approveAllExistingQuestions(): Promise<ActionResult> {
 
 export async function deleteQuestionsByPhase(
   teacherId: string,
-  phase: 'First Test' | 'Last Test' | 'Both'
+  phase: 'First Test' | 'Last Test' | 'Both',
+  classLevel?: string
 ): Promise<ActionResult> {
   try {
     if (!teacherId) {
       return { success: false, error: 'Authorization failure: No teacher identity provided.' }
     }
 
-    const whereClause =
+    const whereClause: any =
       phase === 'Both'
         ? { teacherId }
         : { teacherId, phase }
+
+    if (classLevel) {
+      whereClause.classLevel = classLevel
+    }
 
     const result = await db.question.deleteMany({ where: whereClause })
     revalidatePath('/')

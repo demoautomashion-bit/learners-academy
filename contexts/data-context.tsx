@@ -13,7 +13,7 @@ import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeach
 import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics } from '@/lib/actions/students'
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse } from '@/lib/actions/courses'
 import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion, deleteQuestionsByPhase as dbDeleteQuestionsByPhase } from '@/lib/actions/questions'
-import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction, updateAssessmentStatus as dbUpdateAssessmentStatus } from '@/lib/actions/assessments'
+import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction, updateAssessmentStatus as dbUpdateAssessmentStatus, deleteAssessmentsByPhase as dbDeleteAssessmentsByPhase } from '@/lib/actions/assessments'
 import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
 import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount } from '@/lib/actions/fees'
 import { getEconomicStats, addExpenditure as dbAddExpenditure } from '@/lib/actions/economics'
@@ -56,12 +56,13 @@ interface DataContextType {
   publishAssessment: (assessment: AssessmentTemplate) => Promise<void>
   updateAssessmentStatus: (id: string, status: AssessmentTemplate['status']) => Promise<void>
   removeAssessment: (id: string) => Promise<void>
+  deleteAssessmentsByPhase: (phase: 'First Test' | 'Last Test' | 'Both') => Promise<void>
   submitTestResult: (result: StudentTest) => Promise<void>
   gradeSubmission: (id: string, grade: number, feedback: string) => Promise<void>
   updateCourseProgress: (courseId: string, progress: number) => void
   addQuestion: (question: Question) => Promise<void>
   deleteQuestion: (id: string) => Promise<void>
-  deleteQuestionsByPhase: (phase: 'First Test' | 'Last Test' | 'Both') => Promise<void>
+  deleteQuestionsByPhase: (phase: 'First Test' | 'Last Test' | 'Both', classLevel?: string) => Promise<void>
   updateQuestion: (id: string, question: Partial<Question>) => Promise<void>
   addTeacher: (teacher: Teacher) => Promise<void>
   updateTeacherStatus: (id: string, status: Teacher['status']) => Promise<void>
@@ -300,11 +301,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateCourseProgress = useCallback((id: string, p: number) => setCourses(prev => prev.map(c => c.id === id ? { ...c, enrolled: p } : c)), [])
   const addQuestion = useCallback((q: Question) => executeAction(() => dbAddQuestion(q), "Block added"), [executeAction])
   const deleteQuestion = useCallback((id: string) => executeAction(() => dbDeleteQuestion(id, user?.role === 'teacher' ? user?.id : undefined), "Block removed"), [executeAction, user?.id, user?.role])
-  const deleteQuestionsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both') => executeAction(() => dbDeleteQuestionsByPhase(user?.id || '', phase), "Bank cleared"), [executeAction, user?.id])
+  const deleteQuestionsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both', classLevel?: string) => executeAction(() => dbDeleteQuestionsByPhase(user?.id || '', phase, classLevel), "Bank cleared"), [executeAction, user?.id])
   const updateQuestion = useCallback((id: string, d: any) => executeAction(() => dbUpdateQuestion(id, d, user?.role === 'teacher' ? user?.id : undefined), "Block updated"), [executeAction, user?.id, user?.role])
   const publishAssessment = useCallback((a: any) => executeAction(() => dbPublishAssessment(a), "Assessment published"), [executeAction])
   const updateAssessmentStatus = useCallback((id: string, s: any) => executeAction(() => dbUpdateAssessmentStatus(id, s, user?.role === 'teacher' ? user?.id : undefined), "Status updated"), [executeAction, user?.id, user?.role])
   const removeAssessment = useCallback((id: string) => executeAction(() => dbRemoveAssessment(id, user?.role === 'teacher' ? user?.id : undefined), "Permanently deleted"), [executeAction, user?.id, user?.role])
+  const deleteAssessmentsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both') => executeAction(() => dbDeleteAssessmentsByPhase(user?.id || '', phase), "Tests deleted"), [executeAction, user?.id])
   const updateTeacherReviewFlag = useCallback((id: string, f: boolean) => executeAction(() => dbUpdateTeacherReviewFlag(id, f)), [executeAction])
   const approveQuestion = useCallback((id: string, f: boolean) => executeAction(() => dbApproveQuestion(id, f)), [executeAction])
   const approveAssessment = useCallback((id: string) => executeAction(() => updateAssessmentReviewAction(id, 'active'), "Approved"), [executeAction])
@@ -367,7 +369,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   return (
     <DataContext.Provider value={{
       teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, isInitialized, isLoading, errorMsg,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, resetToDefaults: () => {}, refresh, retryConnection,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, resetToDefaults: () => {}, refresh, retryConnection,
     }}>
       {children}
     </DataContext.Provider>

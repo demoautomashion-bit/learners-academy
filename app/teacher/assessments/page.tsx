@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import {
   Search,
   Calendar,
@@ -35,10 +37,12 @@ export default function AssessmentsPage() {
     assessments, 
     updateAssessmentStatus,
     removeAssessment,
+    deleteAssessmentsByPhase,
     isInitialized
   } = useData()
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [deletePhase, setDeletePhase] = useState<'First Test' | 'Last Test' | 'Both' | null>(null)
 
   if (!user?.id) return null
   if (!isInitialized) return <AssessmentSkeleton />
@@ -52,6 +56,18 @@ export default function AssessmentsPage() {
     toast.success('Assessment deleted')
   }
 
+  const handleBulkDelete = async () => {
+    if (!deletePhase) return;
+    try {
+      await deleteAssessmentsByPhase(deletePhase)
+      toast.success(`${deletePhase === 'Both' ? 'All' : deletePhase} assessments deleted successfully`)
+    } catch (error) {
+      toast.error('Failed to delete assessments')
+    } finally {
+      setDeletePhase(null)
+    }
+  }
+
   return (
     <PageShell>
       <PageHeader 
@@ -59,6 +75,25 @@ export default function AssessmentsPage() {
         description="Manage the tests you've created for your classes."
         actions={
           <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="hover-lift font-normal border-destructive/20 text-destructive hover:bg-destructive/10">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Bulk Delete
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setDeletePhase('First Test')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                  Delete First Tests
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDeletePhase('Last Test')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                  Delete Last Tests
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDeletePhase('Both')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                  Delete All Tests
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="outline" asChild className="hover-lift font-normal">
               <Link href="/teacher/library" className="flex items-center text-xs">
                 <Plus className="w-4 h-4 mr-2" />
@@ -73,6 +108,25 @@ export default function AssessmentsPage() {
           </div>
         }
       />
+
+      <AlertDialog open={!!deletePhase} onOpenChange={(open) => !open && setDeletePhase(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-serif">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete 
+              {deletePhase === 'Both' ? ' all tests ' : ` all ${deletePhase} tests `} 
+              you have created.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive hover:bg-destructive/90 text-white">
+              Yes, delete tests
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="flex flex-col gap-6">
         <div className="relative">

@@ -288,3 +288,26 @@ export async function generateRandomizedQuestions(studentId: string, assessmentI
     }
   }
 }
+
+export async function deleteAssessmentsByPhase(
+  teacherId: string,
+  phase: 'First Test' | 'Last Test' | 'Both'
+): Promise<ActionResult> {
+  try {
+    if (!teacherId) {
+      return { success: false, error: 'Authorization failure: No teacher identity provided.' }
+    }
+
+    const whereClause =
+      phase === 'Both'
+        ? { submittedByTeacherId: teacherId }
+        : { submittedByTeacherId: teacherId, phase }
+
+    const result = await db.assessmentTemplate.deleteMany({ where: whereClause })
+    revalidatePath('/')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('DATABASE_ERROR [deleteAssessmentsByPhase]:', error)
+    return { success: false, error: 'Bulk purge operation failed' }
+  }
+}
