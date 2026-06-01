@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, Suspense, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
@@ -44,7 +44,7 @@ function ReportCardGeneratorContent() {
   const [isSaving, setIsSaving] = useState(false)
 
   // Filter courses taught by this teacher
-  const teacherCourses = courses?.filter(c => c.teacherId === user?.id) || []
+  const teacherCourses = useMemo(() => courses?.filter(c => c.teacherId === user?.id) || [], [courses, user?.id])
   
   // Filter students based on selected course
   const teacherStudents = students?.filter(student => {
