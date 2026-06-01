@@ -9,7 +9,7 @@ import type {
 } from '@/lib/types'
 
 // Server Actions & Validations
-import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus, updateTeacherReviewFlag as dbUpdateTeacherReviewFlag, updateTeacher as dbUpdateTeacher } from '@/lib/actions/teachers'
+import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus, updateTeacherReviewFlag as dbUpdateTeacherReviewFlag, updateTeacher as dbUpdateTeacher, deleteAllTeachers as dbDeleteAllTeachers } from '@/lib/actions/teachers'
 import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics, deleteAllStudents as dbDeleteAllStudents } from '@/lib/actions/students'
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse, deleteAllCourses as dbDeleteAllCourses } from '@/lib/actions/courses'
 import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion, deleteQuestionsByPhase as dbDeleteQuestionsByPhase } from '@/lib/actions/questions'
@@ -98,6 +98,7 @@ interface DataContextType {
   deleteAllTimeSlots: () => Promise<void>
   deleteAllFeePayments: (season?: string) => Promise<void>
   deleteAllEconomicsLogs: (temporalFilter?: string) => Promise<void>
+  deleteAllTeachers: () => Promise<void>
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
@@ -322,6 +323,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteAllTimeSlots = useCallback(() => executeAction(() => dbDeleteAllTimeSlots(), "Schedule matrix cleared"), [executeAction])
   const deleteAllFeePayments = useCallback((season?: string) => executeAction(() => dbDeleteAllFeePayments(season), "Fee logs cleared"), [executeAction])
   const deleteAllEconomicsLogs = useCallback((temporalFilter?: string) => executeAction(() => dbDeleteAllEconomicsLogs(temporalFilter), "Economics ledger cleared"), [executeAction])
+  const deleteAllTeachers = useCallback(() => executeAction(() => dbDeleteAllTeachers(), "All staff cleared"), [executeAction])
 
   const submitTestResult = useCallback((r: StudentTest) => executeAction(() => dbSubmitTestResult(r, assessments.find(a => a.id === r.templateId)?.title || 'Test'), "Results stored"), [assessments, executeAction])
   const gradeSubmission = useCallback((id: string, g: number, f: string) => executeAction(() => dbGradeSubmission(id, g, f), "Score recorded"), [executeAction])
@@ -382,6 +384,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     <DataContext.Provider value={{
       teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, isInitialized, isLoading, errorMsg,
       enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, resetToDefaults: () => {}, refresh, retryConnection,
+      deleteAllStudents, deleteAllCourses, deleteAllTimeSlots, deleteAllFeePayments, deleteAllEconomicsLogs, deleteAllTeachers,
     }}>
       {children}
     </DataContext.Provider>

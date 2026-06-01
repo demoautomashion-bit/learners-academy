@@ -21,6 +21,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
@@ -54,9 +65,11 @@ import { Teacher } from '@/lib/types'
 export default function TeachersPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { teachers, removeTeacher, updateTeacher, updateTeacherStatus, updateTeacherReviewFlag, isInitialized } = useData()
+  const { teachers, removeTeacher, updateTeacher, updateTeacherStatus, updateTeacherReviewFlag, deleteAllTeachers, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
+  const [confirmText, setConfirmText] = useState('')
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -85,6 +98,17 @@ export default function TeachersPage() {
       } catch (error) {
         toast.error("Error deleting record")
       }
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (confirmText !== 'CLEAR STAFF') return
+    try {
+      await deleteAllTeachers()
+      setIsBulkDeleteDialogOpen(false)
+      setConfirmText('')
+    } catch (error) {
+      toast.error("Failed to clear staff registry")
     }
   }
 
@@ -213,12 +237,59 @@ export default function TeachersPage() {
         title="Staff List"
         description="View and manage all teachers and administrative staff members."
         actions={
-          <Button 
-            className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-            onClick={() => router.push('/admin/teachers/registration')}
-          >
-            <Plus className="w-4 h-4 mr-2" /> Add Staff
-          </Button>
+          <div className="flex items-center gap-4">
+            <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="font-normal border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl h-11 px-4">
+                    <Trash2 className="w-4 h-4 mr-2" /> Clear Staff
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass-2">
+                  <DropdownMenuItem asChild>
+                    <AlertDialogTrigger className="w-full cursor-pointer text-destructive focus:bg-destructive/10">
+                      Proceed to Wipe
+                    </AlertDialogTrigger>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent className="glass-2 border-white/5 rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete ALL staff members from the registry. Their accounts will be disabled and courses will be detached. This action cannot be undone.
+                    <br /><br />
+                    Type <strong>CLEAR STAFF</strong> below to confirm.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                  <Input
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder="CLEAR STAFF"
+                    className="border-destructive/20 focus-visible:ring-destructive/30"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setConfirmText('')} className="rounded-xl border-none">Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    disabled={confirmText !== 'CLEAR STAFF'}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl disabled:opacity-50"
+                  >
+                    Confirm Wipe
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Button 
+              className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              onClick={() => router.push('/admin/teachers/registration')}
+            >
+              <Plus className="w-4 h-4 mr-2" /> Add Staff
+            </Button>
+          </div>
         }
       />
 

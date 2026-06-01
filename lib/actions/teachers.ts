@@ -80,3 +80,18 @@ export async function updateTeacher(id: string, data: Partial<Teacher>): Promise
     return { success: false, error: 'Failed to update institutional record' }
   }
 }
+
+export async function deleteAllTeachers(): Promise<ActionResult> {
+  try {
+    await db.$transaction([
+      // Detach teachers from courses first to prevent foreign key violations
+      db.course.updateMany({ data: { teacherId: null } }),
+      db.teacher.deleteMany({})
+    ])
+    revalidatePath('/')
+    return { success: true }
+  } catch (error) {
+    console.error('DATABASE_ERROR [deleteAllTeachers]:', error)
+    return { success: false, error: handleDatabaseError(error, 'Failed to clear staff registry') }
+  }
+}
