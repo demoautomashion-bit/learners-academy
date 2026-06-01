@@ -86,6 +86,7 @@ export default function StudentsPage() {
   const searchParams = useSearchParams()
   const initialLevel = searchParams.get('level') || 'all'
   const [levelFilter, setLevelFilter] = useState<string>(initialLevel)
+  const [timingFilter, setTimingFilter] = useState<string>('all')
   const [editingStudent, setEditingStudent] = useState<Student | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [confirmText, setConfirmText] = useState('')
@@ -102,9 +103,13 @@ export default function StudentsPage() {
       
       const matchesLevel = levelFilter === 'all' || 
                            (student.grade || '').toLowerCase().includes(levelFilter.toLowerCase())
-      return matchesSearch && matchesLevel
+      
+      const matchesTiming = timingFilter === 'all' || 
+                            (student.classTiming || '').toLowerCase() === timingFilter.toLowerCase()
+
+      return matchesSearch && matchesLevel && matchesTiming
     })
-  }, [students, searchQuery, levelFilter])
+  }, [students, searchQuery, levelFilter, timingFilter])
 
   const dailyAdmissions = useMemo(() => {
     return (Array.isArray(students) ? students : []).filter(s => {
@@ -378,14 +383,36 @@ export default function StudentsPage() {
           data={filteredStudents}
           columns={columns}
           actions={
-            <div className="relative w-full md:w-80 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30 group-focus-within:opacity-100 transition-opacity" />
-              <Input
-                placeholder="Search students..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-11 h-12 bg-muted/10 focus:bg-background transition-all font-normal text-sm border-none shadow-none w-full"
-              />
+            <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger className="h-12 w-full md:w-40 bg-muted/10 border-none rounded-2xl px-4 text-sm focus:ring-primary/20">
+                  <SelectValue placeholder="All Levels" />
+                </SelectTrigger>
+                <SelectContent className="glass-2">
+                  <SelectItem value="all">All Levels</SelectItem>
+                  {ACADEMY_LEVELS.map(lvl => <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <Select value={timingFilter} onValueChange={setTimingFilter}>
+                <SelectTrigger className="h-12 w-full md:w-40 bg-muted/10 border-none rounded-2xl px-4 text-sm focus:ring-primary/20">
+                  <SelectValue placeholder="All Timings" />
+                </SelectTrigger>
+                <SelectContent className="glass-2">
+                  <SelectItem value="all">All Timings</SelectItem>
+                  {SESSION_TIMINGS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <div className="relative w-full md:w-80 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-30 group-focus-within:opacity-100 transition-opacity" />
+                <Input
+                  placeholder="Search students..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-11 h-12 bg-muted/10 focus:bg-background transition-all font-normal text-sm border-none shadow-none w-full rounded-2xl placeholder:opacity-40"
+                />
+              </div>
             </div>
           }
           emptyState={
