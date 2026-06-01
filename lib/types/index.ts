@@ -16,6 +16,10 @@ export interface Teacher {
   assignedClass?: string
   employeePassword?: string
   requiresReview?: boolean
+  address?: string
+  salary?: number
+  experience?: number
+  bio?: string
 }
 
 export interface Student {

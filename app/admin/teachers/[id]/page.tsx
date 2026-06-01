@@ -93,7 +93,7 @@ export default function FacultyProfilePage() {
                     </AvatarFallback>
                 </Avatar>
                 <h2 className="text-2xl font-serif font-medium tracking-tight">{teacher.name}</h2>
-                <p className="text-sm text-primary/70 font-normal mt-1">{teacher.subject}</p>
+                <p className="text-sm text-primary/70 font-normal mt-1">{teacher.subjects?.join(', ') || 'No subjects assigned'}</p>
                 
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                     <Badge className={cn(
@@ -160,7 +160,7 @@ export default function FacultyProfilePage() {
                         <div className="flex justify-between items-center text-xs">
                             <span className="opacity-40">Contractual Salary</span>
                             <span className="font-serif font-medium flex items-center gap-1">
-                                <DollarSign className="w-3 h-3 opacity-30" /> {teacher.salary?.toLocaleString()}
+                                Rs. {teacher.salary?.toLocaleString() || '0'}
                             </span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
@@ -169,7 +169,7 @@ export default function FacultyProfilePage() {
                         </div>
                         <div className="flex justify-between items-center text-xs">
                             <span className="opacity-40">Join Date</span>
-                            <span className="font-serif font-medium">{new Date(teacher.joinDate || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                            <span className="font-serif font-medium">{new Date(teacher.joinedAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                         </div>
                     </div>
                 </Card>
@@ -259,7 +259,11 @@ function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher 
         employeeId: '',
         email: '',
         phone: '',
-        employeePassword: ''
+        employeePassword: '',
+        address: '',
+        salary: 0,
+        experience: 0,
+        bio: ''
     })
     const [isSaving, setIsSaving] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
@@ -271,7 +275,11 @@ function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher 
                 employeeId: teacher.employeeId || '',
                 email: teacher.email || '',
                 phone: teacher.phone || '',
-                employeePassword: teacher.employeePassword || ''
+                employeePassword: teacher.employeePassword || '',
+                address: teacher.address || '',
+                salary: teacher.salary || 0,
+                experience: teacher.experience || 0,
+                bio: teacher.bio || ''
             })
         }
     }, [teacher])
@@ -294,9 +302,9 @@ function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher 
 
     return (
         <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
-            <DialogContent className="sm:max-w-md glass-3 border-white/10 p-0 overflow-hidden rounded-[2rem] shadow-2xl">
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                    <DialogHeader className="space-y-2">
+            <DialogContent className="sm:max-w-lg glass-3 border-white/10 p-0 overflow-hidden rounded-[2rem] shadow-2xl max-h-[90dvh] flex flex-col">
+                <form onSubmit={handleSubmit} className="p-8 space-y-6 flex flex-col min-h-0">
+                    <DialogHeader className="space-y-2 shrink-0">
                         <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1">
                             <Edit className="w-5 h-5" />
                         </div>
@@ -306,76 +314,121 @@ function ModifyTeacherDialog({ teacher, onClose, onUpdate }: { teacher: Teacher 
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Full Name</Label>
-                            <Input 
-                                value={formData.name}
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
-                                placeholder="Teacher Name"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Employee ID</Label>
-                            <Input 
-                                value={formData.employeeId}
-                                onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
-                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
-                                placeholder="EMP-001"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="space-y-1.5">
-                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Official Email</Label>
-                            <Input 
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
-                                placeholder="email@academy.com"
-                                required
-                            />
-                        </div>
+                    <div className="overflow-y-auto pr-2 space-y-4 max-h-[50dvh] min-h-0">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Phone Number</Label>
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Full Name</Label>
                                 <Input 
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                                     className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
-                                    placeholder="+1 234..."
+                                    placeholder="Teacher Name"
+                                    required
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Portal Password</Label>
-                                <div className="relative">
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Employee ID</Label>
+                                <Input 
+                                    value={formData.employeeId}
+                                    onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
+                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                    placeholder="EMP-001"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Official Email</Label>
+                                <Input 
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                    placeholder="email@academy.com"
+                                    required
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Phone Number</Label>
                                     <Input 
-                                        type={showPassword ? "text" : "password"}
-                                        value={formData.employeePassword}
-                                        onChange={(e) => setFormData({...formData, employeePassword: e.target.value})}
-                                        className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm pr-10"
-                                        placeholder="••••••••"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                        placeholder="+1 234..."
                                     />
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute right-0 top-0 h-10 w-10 text-muted-foreground hover:bg-transparent hover:text-foreground"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                    >
-                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                    </Button>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Portal Password</Label>
+                                    <div className="relative">
+                                        <Input 
+                                            type={showPassword ? "text" : "password"}
+                                            value={formData.employeePassword}
+                                            onChange={(e) => setFormData({...formData, employeePassword: e.target.value})}
+                                            className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm pr-10"
+                                            placeholder="••••••••"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute right-0 top-0 h-10 w-10 text-muted-foreground hover:bg-transparent hover:text-foreground"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Contractual Salary (PKR)</Label>
+                                <Input 
+                                    type="number"
+                                    value={formData.salary}
+                                    onChange={(e) => setFormData({...formData, salary: parseInt(e.target.value) || 0})}
+                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                    placeholder="50000"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Experience (Years)</Label>
+                                <Input 
+                                    type="number"
+                                    value={formData.experience}
+                                    onChange={(e) => setFormData({...formData, experience: parseInt(e.target.value) || 0})}
+                                    className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                    placeholder="5"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Physical Address</Label>
+                            <Input 
+                                value={formData.address}
+                                onChange={(e) => setFormData({...formData, address: e.target.value})}
+                                className="h-10 bg-background/50 border-primary/10 rounded-lg text-sm"
+                                placeholder="123 Street..."
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase tracking-widest font-black opacity-30 ml-1">Professional Biography</Label>
+                            <textarea 
+                                value={formData.bio}
+                                onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                                className="w-full bg-background/50 border border-primary/10 rounded-lg text-sm p-3 min-h-[80px] focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                placeholder="Write a short bio..."
+                            />
+                        </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 pt-2">
+                    <div className="flex flex-col gap-2 pt-2 shrink-0">
                         <Button 
                             type="submit"
                             disabled={isSaving}

@@ -719,9 +719,10 @@ export default function AttendanceRegistryPage() {
                                                 <tr>
                                                     <td colSpan={2} className="px-10 py-0 overflow-hidden">
                                                         <motion.div
-                                                            initial={{ height: 0, opacity: 0 }}
-                                                            animate={{ height: 'auto', opacity: 1 }}
-                                                            exit={{ height: 0, opacity: 0 }}
+                                                            initial={{ opacity: 0, y: -8 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -8 }}
+                                                            transition={{ duration: 0.15, ease: "easeOut" }}
                                                             className="pb-10 pt-4"
                                                         >
                                                             <div className="p-8 rounded-[2rem] bg-background border border-primary/5 shadow-inner space-y-6">
