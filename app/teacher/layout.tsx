@@ -91,6 +91,7 @@ const teacherNavItems = [
     icon: FileCheck,
     items: [
         { title: 'Term Records', href: '/teacher/results', icon: FileCheck },
+        { title: 'Term Report Cards', href: '/teacher/results/report-card', icon: Award },
         { title: 'Institutional Analytics', href: '/teacher/results/analytics', icon: BarChart3 },
     ]
   },

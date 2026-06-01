@@ -135,7 +135,15 @@ export default function StudentProfileDossierPage() {
           </div>
 
           <div className="flex gap-4">
-             <Button className=" bg-primary  hover:bg-primary/90 transition-premium">
+             <Button 
+                variant="outline"
+                className="border-primary/10 hover:bg-primary/5 text-primary transition-premium font-normal h-10"
+                onClick={() => router.push(`/teacher/results/report-card?studentId=${student.id}`)}
+             >
+                <Award className="w-4 h-4 mr-2" />
+                <span className="text-xs">Generate Report Card</span>
+             </Button>
+             <Button className=" bg-primary  hover:bg-primary/90 transition-premium h-10">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 <span className="text-xs   font-normal">Contact Guardian</span>
              </Button>
