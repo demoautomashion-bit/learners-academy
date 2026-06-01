@@ -74,3 +74,17 @@ export async function removeCourseFromSlot(courseId: string) {
     return { success: false, error: 'Could not remove course from slot' }
   }
 }
+
+export async function deleteAllTimeSlots() {
+  try {
+    await db.$transaction([
+      db.course.updateMany({ data: { timeSlotId: null } }),
+      db.timeSlot.deleteMany({})
+    ])
+    revalidatePath('/admin')
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to delete all time slots:', error)
+    return { success: false, error: 'Could not delete all time slots' }
+  }
+}

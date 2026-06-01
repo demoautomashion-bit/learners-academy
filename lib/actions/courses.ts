@@ -77,3 +77,32 @@ export async function updateCourse(id: string, data: Partial<Course>): Promise<A
     return { success: false, error: 'Failed to modify course parameters' }
   }
 }
+
+export async function deleteAllCourses(levelFilter?: string, timingFilter?: string): Promise<ActionResult> {
+  try {
+    const whereClause: any = {}
+    if (levelFilter && levelFilter !== 'all') {
+      whereClause.level = levelFilter
+    }
+    if (timingFilter && timingFilter !== 'all') {
+      whereClause.timing = timingFilter
+    }
+
+    const coursesToDelete = await db.course.findMany({ where: whereClause })
+    const courseIds = coursesToDelete.map(c => c.id)
+
+    if (courseIds.length > 0) {
+      await db.$transaction([
+        db.evaluation.deleteMany({ where: { courseId: { in: courseIds } } }),
+        db.feePayment.deleteMany({ where: { courseId: { in: courseIds } } }),
+        db.assignment.deleteMany({ where: { courseId: { in: courseIds } } }),
+        db.course.deleteMany({ where: { id: { in: courseIds } } })
+      ])
+    }
+
+    revalidatePath('/')
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: handleDatabaseError(error, 'Failed to clear class registry') }
+  }
+}

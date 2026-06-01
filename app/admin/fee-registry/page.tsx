@@ -22,6 +22,23 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from '@/components/ui/label'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   DollarSign,
   Search,
   CheckCircle2,
@@ -33,7 +50,8 @@ import {
   Users,
   Printer,
   Receipt,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -60,7 +78,7 @@ import Image from 'next/image'
 export default function FeeRegistryPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { students, courses, feePayments, addFeeAccount, isInitialized } = useData()
+  const { students, courses, feePayments, addFeeAccount, deleteAllFeePayments, isInitialized } = useData()
 
   // Print Ref wrapper for Grid Export
   const printGridRef = useRef<HTMLDivElement>(null)
@@ -89,6 +107,8 @@ export default function FeeRegistryPage() {
   const [isCollectOpen, setIsCollectOpen] = useState(false)
   const [isReceiptOpen, setIsReceiptOpen] = useState(false)
   const [selectedStudentId, setSelectedStudentId] = useState<string>('')
+  const [confirmText, setConfirmText] = useState('')
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   
   const [feeData, setFeeData] = useState({
     courseId: '',
@@ -97,6 +117,18 @@ export default function FeeRegistryPage() {
     discount: 0,
     paidAmount: 0
   })
+
+  const handleBulkDelete = async () => {
+    if (confirmText !== 'DELETE') return
+    try {
+      await deleteAllFeePayments(activeSeason)
+      toast.success("Fee logs cleared")
+      setIsBulkDeleteDialogOpen(false)
+      setConfirmText('')
+    } catch (error) {
+      toast.error("Failed to clear fee logs")
+    }
+  }
 
   const currentTrimester = useMemo(() => getActiveTrimester(), [])
 
@@ -443,8 +475,6 @@ export default function FeeRegistryPage() {
               variant="ghost"
               onClick={() => {
                   setSelectedStudentId(item.id)
-                  // Use existing logic just to view receipt
-                  // We simulate loading the receipt data
                   setFeeData({ courseId: item.courseId, tuitionFee: item.totalAmount || 0, admissionFee: 0, discount: item.discountGiven || 0, paidAmount: item.amountPaid || 0 })
                   setIsReceiptOpen(true)
               }}
@@ -556,9 +586,56 @@ export default function FeeRegistryPage() {
         title="Fee Overview"
         description="Monitor student payments, class revenue, and outstanding dues."
         actions={
+          <div className="flex items-center gap-4">
+            <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-14 md:h-11 px-4 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-4 h-4 mr-2" /> Clear Fee Logs
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass-2">
+                  <DropdownMenuItem asChild>
+                     <AlertDialogTrigger className="w-full cursor-pointer text-destructive focus:bg-destructive/10">
+                       Proceed to Wipe
+                     </AlertDialogTrigger>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent className="glass-2 border-white/5 rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete ALL fee payment logs and reset outstanding dues for the selected term. This action cannot be undone and will destroy historical financial data.
+                    <br /><br />
+                    Type <strong>DELETE</strong> below to confirm.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                  <Input 
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder="DELETE"
+                    className="border-destructive/20 focus-visible:ring-destructive/30"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setConfirmText('')} className="rounded-xl border-none">Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    disabled={confirmText !== 'DELETE'}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl disabled:opacity-50"
+                  >
+                    Confirm Wipe
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <Button onClick={() => setIsCollectOpen(true)} className="font-medium bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-14 md:h-11 px-8 rounded-xl w-full md:w-auto shrink-0">
                <Plus className="w-4 h-4 mr-2" /> Log Transaction
             </Button>
+          </div>
         }
       />
 

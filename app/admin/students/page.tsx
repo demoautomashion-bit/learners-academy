@@ -22,6 +22,17 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -70,13 +81,15 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 export default function StudentsPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { students, removeStudent, updateStudent, isInitialized } = useData()
+  const { students, removeStudent, updateStudent, deleteAllStudents, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const searchParams = useSearchParams()
   const initialLevel = searchParams.get('level') || 'all'
   const [levelFilter, setLevelFilter] = useState<string>(initialLevel)
   const [editingStudent, setEditingStudent] = useState<Student | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
 
   const TIER_FILTERS = ['all', 'Pre-Foundation', 'Foundation', 'Level', 'Advanced', 'Professional']
 
@@ -119,6 +132,18 @@ export default function StudentsPage() {
   const handleEdit = (student: Student) => {
     setEditingStudent(student)
     setIsEditDialogOpen(true)
+  }
+
+  const handleBulkDelete = async () => {
+    if (confirmText !== 'DELETE') return
+    try {
+      await deleteAllStudents()
+      toast.success("Student registry cleared")
+      setIsBulkDeleteDialogOpen(false)
+      setConfirmText('')
+    } catch (error) {
+      toast.error("Failed to clear registry")
+    }
   }
 
   const handleUpdateStudent = async (data: Partial<Student>) => {
@@ -268,12 +293,59 @@ export default function StudentsPage() {
         title="Student List"
         description="View and manage all students and their enrollment details."
         actions={
-          <Button 
-            className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-11 px-8 rounded-xl"
-            onClick={() => router.push('/admin/students/registration')}
-          >
-            <Plus className="w-4 h-4 mr-2" /> Add Student
-          </Button>
+          <div className="flex items-center gap-4">
+            <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11 px-4 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-4 h-4 mr-2" /> Clear Registry
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass-2">
+                  <DropdownMenuItem asChild>
+                     <AlertDialogTrigger className="w-full cursor-pointer text-destructive focus:bg-destructive/10">
+                       Proceed to Wipe
+                     </AlertDialogTrigger>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent className="glass-2 border-white/5 rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete ALL students in the registry. This action cannot be undone and will destroy historical student data, financial logs, and class associations.
+                    <br /><br />
+                    Type <strong>DELETE</strong> below to confirm.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                  <Input 
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder="DELETE"
+                    className="border-destructive/20 focus-visible:ring-destructive/30"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setConfirmText('')} className="rounded-xl border-none">Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    disabled={confirmText !== 'DELETE'}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl disabled:opacity-50"
+                  >
+                    Confirm Wipe
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Button 
+              className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-11 px-8 rounded-xl"
+              onClick={() => router.push('/admin/students/registration')}
+            >
+              <Plus className="w-4 h-4 mr-2" /> Add Student
+            </Button>
+          </div>
         }
       />
 

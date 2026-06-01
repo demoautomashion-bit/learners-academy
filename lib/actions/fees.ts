@@ -114,3 +114,16 @@ export async function updateClassFee(courseId: string, feeAmount: number): Promi
     return { success: false, error: 'Failed to update class tuition fee' }
   }
 }
+
+export async function deleteAllFeePayments(season?: string): Promise<ActionResult> {
+  try {
+    // If season filtering is supported by schema in the future, we can add it to where clause.
+    // For now, it clears all.
+    await db.feePayment.deleteMany({})
+    revalidatePath('/')
+    return { success: true }
+  } catch (error) {
+    console.error('DATABASE_ERROR [deleteAllFeePayments]:', error)
+    return { success: false, error: 'Failed to clear fee logs' }
+  }
+}

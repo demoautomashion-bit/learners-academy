@@ -9,6 +9,23 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useData } from '@/contexts/data-context'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
@@ -28,13 +45,15 @@ const TIME_OPTIONS = [
 
 export default function SchedulePage() {
   const hasMounted = useHasMounted()
-  const { courses, timeSlots, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, isInitialized } = useData()
+  const { courses, timeSlots, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, deleteAllTimeSlots, isInitialized } = useData()
 
   const [isSlotDialogOpen, setIsSlotDialogOpen] = useState(false)
   const [slotData, setSlotData] = useState({ label: '', startTime: '', endTime: '' })
 
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState<string | null>(null) // slotId
   const [assignCourseId, setAssignCourseId] = useState('')
+  const [confirmText, setConfirmText] = useState('')
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
 
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -59,19 +78,77 @@ export default function SchedulePage() {
     setAssignCourseId('')
   }
 
+  const handleBulkDelete = async () => {
+    if (confirmText !== 'CLEAR') return
+    try {
+      await deleteAllTimeSlots()
+      toast.success("Schedule matrix cleared")
+      setIsBulkDeleteDialogOpen(false)
+      setConfirmText('')
+    } catch (error) {
+      toast.error("Failed to clear schedule matrix")
+    }
+  }
+
   return (
     <PageShell>
       <PageHeader 
         title="Schedule Matrix" 
         description="Organize your dynamic time slots and map active classes to them."
         actions={
-          <Dialog open={isSlotDialogOpen} onOpenChange={setIsSlotDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="h-11 px-8 rounded-xl bg-primary text-white shadow-lg font-medium tracking-wide">
-                <Plus className="w-4 h-4 mr-2" /> Add Time Slot
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[420px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
+          <div className="flex items-center gap-4">
+            <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11 px-4 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-4 h-4 mr-2" /> Clear Matrix
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass-2">
+                  <DropdownMenuItem asChild>
+                     <AlertDialogTrigger className="w-full cursor-pointer text-destructive focus:bg-destructive/10">
+                       Proceed to Wipe
+                     </AlertDialogTrigger>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent className="glass-2 border-white/5 rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete ALL time slots and detach all currently mapped courses from them. This action cannot be undone.
+                    <br /><br />
+                    Type <strong>CLEAR</strong> below to confirm.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                  <Input 
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder="CLEAR"
+                    className="border-destructive/20 focus-visible:ring-destructive/30"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setConfirmText('')} className="rounded-xl border-none">Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    disabled={confirmText !== 'CLEAR'}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl disabled:opacity-50"
+                  >
+                    Confirm Wipe
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Dialog open={isSlotDialogOpen} onOpenChange={setIsSlotDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="h-11 px-8 rounded-xl bg-primary text-white shadow-lg font-medium tracking-wide">
+                  <Plus className="w-4 h-4 mr-2" /> Add Time Slot
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[420px] glass-2 border-white/5 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
               <div className="p-6 space-y-6">
                 <DialogHeader>
                   <DialogTitle className="font-serif text-2xl font-medium tracking-tight">Create Slot</DialogTitle>
@@ -121,10 +198,11 @@ export default function SchedulePage() {
                   <Button onClick={handleCreateSlot} className="w-full h-14 mt-4 bg-primary rounded-2xl shadow-xl transition-all font-medium flex items-center justify-center gap-2">
                     Save Slot <ArrowRight className="w-4 h-4" />
                   </Button>
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         }
       />
 

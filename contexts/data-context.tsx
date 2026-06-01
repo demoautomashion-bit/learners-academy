@@ -10,17 +10,17 @@ import type {
 
 // Server Actions & Validations
 import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus, updateTeacherReviewFlag as dbUpdateTeacherReviewFlag, updateTeacher as dbUpdateTeacher } from '@/lib/actions/teachers'
-import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics } from '@/lib/actions/students'
-import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse } from '@/lib/actions/courses'
+import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics, deleteAllStudents as dbDeleteAllStudents } from '@/lib/actions/students'
+import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse, deleteAllCourses as dbDeleteAllCourses } from '@/lib/actions/courses'
 import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion, deleteQuestionsByPhase as dbDeleteQuestionsByPhase } from '@/lib/actions/questions'
 import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction, updateAssessmentStatus as dbUpdateAssessmentStatus, deleteAssessmentsByPhase as dbDeleteAssessmentsByPhase } from '@/lib/actions/assessments'
 import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
-import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount } from '@/lib/actions/fees'
-import { getEconomicStats, addExpenditure as dbAddExpenditure } from '@/lib/actions/economics'
+import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount, deleteAllFeePayments as dbDeleteAllFeePayments } from '@/lib/actions/fees'
+import { getEconomicStats, addExpenditure as dbAddExpenditure, deleteAllEconomicsLogs as dbDeleteAllEconomicsLogs } from '@/lib/actions/economics'
 import { markAttendance as dbMarkAttendance, addAttendanceEvent as dbAddAttendanceEvent } from '@/lib/actions/attendance'
 import { logActivity as dbLogActivity } from '@/lib/actions/activities'
 import { saveEvaluations as dbSaveEvaluations } from '@/lib/actions/evaluations'
-import { addTimeSlot as dbAddTimeSlot, removeTimeSlot as dbRemoveTimeSlot, addCourseToSlot as dbAddCourseToSlot, removeCourseFromSlot as dbRemoveCourseFromSlot } from '@/lib/actions/time-slots'
+import { addTimeSlot as dbAddTimeSlot, removeTimeSlot as dbRemoveTimeSlot, addCourseToSlot as dbAddCourseToSlot, removeCourseFromSlot as dbRemoveCourseFromSlot, deleteAllTimeSlots as dbDeleteAllTimeSlots } from '@/lib/actions/time-slots'
 import { getInitialData } from '@/lib/actions/get-data'
 import { getTeacherAudioFiles, saveAudioRecord as dbSaveAudioRecord, deleteAudioFile as dbDeleteAudio, type AudioFile } from '@/lib/actions/audio'
 import { useAuth } from '@/contexts/auth-context'
@@ -93,6 +93,11 @@ interface DataContextType {
   resetToDefaults: () => void
   refresh: () => Promise<void>
   retryConnection: () => Promise<void>
+  deleteAllStudents: () => Promise<void>
+  deleteAllCourses: (levelFilter?: string, timingFilter?: string) => Promise<void>
+  deleteAllTimeSlots: () => Promise<void>
+  deleteAllFeePayments: (season?: string) => Promise<void>
+  deleteAllEconomicsLogs: (temporalFilter?: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
@@ -307,10 +312,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateAssessmentStatus = useCallback((id: string, s: any) => executeAction(() => dbUpdateAssessmentStatus(id, s, user?.role === 'teacher' ? user?.id : undefined), "Status updated"), [executeAction, user?.id, user?.role])
   const removeAssessment = useCallback((id: string) => executeAction(() => dbRemoveAssessment(id, user?.role === 'teacher' ? user?.id : undefined), "Permanently deleted"), [executeAction, user?.id, user?.role])
   const deleteAssessmentsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both') => executeAction(() => dbDeleteAssessmentsByPhase(user?.id || '', phase), "Tests deleted"), [executeAction, user?.id])
-  const updateTeacherReviewFlag = useCallback((id: string, f: boolean) => executeAction(() => dbUpdateTeacherReviewFlag(id, f)), [executeAction])
-  const approveQuestion = useCallback((id: string, f: boolean) => executeAction(() => dbApproveQuestion(id, f)), [executeAction])
-  const approveAssessment = useCallback((id: string) => executeAction(() => updateAssessmentReviewAction(id, 'active'), "Approved"), [executeAction])
-  const rejectAssessment = useCallback((id: string, f: string) => executeAction(() => updateAssessmentReviewAction(id, 'draft', f), "Sent back"), [executeAction])
+  const updateTeacherReviewFlag = useCallback((id: string, flag: boolean) => executeAction(() => dbUpdateTeacherReviewFlag(id, flag)), [executeAction])
+  const approveQuestion = useCallback((id: string, flag: boolean) => executeAction(() => dbApproveQuestion(id, flag)), [executeAction])
+  const approveAssessment = useCallback((id: string) => executeAction(() => updateAssessmentReviewAction(id, 'active', '')), [executeAction])
+  const rejectAssessment = useCallback((id: string, fb: string) => executeAction(() => updateAssessmentReviewAction(id, 'draft', fb)), [executeAction])
+
+  const deleteAllStudents = useCallback(() => executeAction(() => dbDeleteAllStudents(), "All students cleared"), [executeAction])
+  const deleteAllCourses = useCallback((levelFilter?: string, timingFilter?: string) => executeAction(() => dbDeleteAllCourses(levelFilter, timingFilter), "Classes cleared"), [executeAction])
+  const deleteAllTimeSlots = useCallback(() => executeAction(() => dbDeleteAllTimeSlots(), "Schedule matrix cleared"), [executeAction])
+  const deleteAllFeePayments = useCallback((season?: string) => executeAction(() => dbDeleteAllFeePayments(season), "Fee logs cleared"), [executeAction])
+  const deleteAllEconomicsLogs = useCallback((temporalFilter?: string) => executeAction(() => dbDeleteAllEconomicsLogs(temporalFilter), "Economics ledger cleared"), [executeAction])
+
   const submitTestResult = useCallback((r: StudentTest) => executeAction(() => dbSubmitTestResult(r, assessments.find(a => a.id === r.templateId)?.title || 'Test'), "Results stored"), [assessments, executeAction])
   const gradeSubmission = useCallback((id: string, g: number, f: string) => executeAction(() => dbGradeSubmission(id, g, f), "Score recorded"), [executeAction])
   const addExpenditure = useCallback((d: any) => executeAction(() => dbAddExpenditure(d)), [executeAction])

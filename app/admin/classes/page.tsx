@@ -17,11 +17,21 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import {
   Select,
   SelectContent,
@@ -63,8 +73,12 @@ import { formalizeRoster } from '@/lib/actions/enrollments'
 export default function ClassesPage() {
   const hasMounted = useHasMounted()
   const router = useRouter()
-  const { courses, teachers, removeCourse, addCourse, isInitialized } = useData()
+  const { courses, teachers, removeCourse, addCourse, deleteAllCourses, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
+  const [levelFilter, setLevelFilter] = useState('all')
+  const [timingFilter, setTimingFilter] = useState('all')
+  const [confirmText, setConfirmText] = useState('')
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSyncing, setIsSyncing] = useState<string | null>(null)
   
@@ -82,11 +96,26 @@ export default function ClassesPage() {
   if (!hasMounted) return null
   if (!isInitialized) return <DashboardSkeleton />
 
-  const filteredCourses = (Array.isArray(courses) ? courses : []).filter(course =>
-    (course.title || course.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (course.teacherName || course.instructorName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (course.level || '').toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredCourses = (Array.isArray(courses) ? courses : []).filter(course => {
+    const matchesSearch = (course.title || course.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (course.teacherName || course.instructorName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (course.level || '').toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesLevel = levelFilter === 'all' || course.level === levelFilter
+    const matchesTiming = timingFilter === 'all' || course.timing === timingFilter
+    return matchesSearch && matchesLevel && matchesTiming
+  })
+
+  const handleBulkDelete = async () => {
+    if (confirmText !== 'RESET TERM') return
+    try {
+      await deleteAllCourses(levelFilter, timingFilter)
+      toast.success("Classes deleted")
+      setIsBulkDeleteDialogOpen(false)
+      setConfirmText('')
+    } catch (error) {
+      toast.error("Failed to delete classes")
+    }
+  }
 
   const handleInitialize = async () => {
     if (!formData.teacherId || !formData.level || !formData.timing || !formData.roomNumber) {
@@ -263,8 +292,54 @@ export default function ClassesPage() {
         title="Classes"
         description="Manage classes, rooms, and teacher assignments."
         actions={
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
+          <div className="flex items-center gap-4">
+            <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11 px-4 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-4 h-4 mr-2" /> Reset Term
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass-2">
+                  <DropdownMenuItem asChild>
+                     <AlertDialogTrigger className="w-full cursor-pointer text-destructive focus:bg-destructive/10">
+                       Proceed to Reset
+                     </AlertDialogTrigger>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent className="glass-2 border-white/5 rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete {levelFilter === 'all' && timingFilter === 'all' ? 'ALL active classes' : 'the filtered classes'} in the registry. This action cannot be undone and will detach enrolled students.
+                    <br /><br />
+                    Type <strong>RESET TERM</strong> below to confirm.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                  <Input 
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder="RESET TERM"
+                    className="border-destructive/20 focus-visible:ring-destructive/30"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setConfirmText('')} className="rounded-xl border-none">Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    disabled={confirmText !== 'RESET TERM'}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl disabled:opacity-50"
+                  >
+                    Confirm Deletion
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
                 <Button className="font-normal bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all h-11 px-8 rounded-xl">
                     <Plus className="w-4 h-4 mr-2" /> Add Class
                 </Button>
@@ -356,6 +431,7 @@ export default function ClassesPage() {
                 </div>
             </DialogContent>
           </Dialog>
+          </div>
         }
       />
 
@@ -390,14 +466,36 @@ export default function ClassesPage() {
           data={filteredCourses}
           columns={columns}
           actions={
-            <div className="relative w-96 group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20 group-focus-within:opacity-100 transition-opacity" />
-              <Input
-                placeholder="Search classes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-14 h-14 bg-muted/5 focus:bg-background transition-all font-normal text-sm border-none shadow-none rounded-2xl placeholder:opacity-20"
-              />
+            <div className="flex gap-4 items-center">
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger className="h-14 w-40 bg-muted/5 border-none rounded-2xl px-4 text-sm focus:ring-primary/20">
+                  <SelectValue placeholder="All Levels" />
+                </SelectTrigger>
+                <SelectContent className="glass-2">
+                  <SelectItem value="all">All Levels</SelectItem>
+                  {ACADEMY_LEVELS.map(lvl => <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <Select value={timingFilter} onValueChange={setTimingFilter}>
+                <SelectTrigger className="h-14 w-40 bg-muted/5 border-none rounded-2xl px-4 text-sm focus:ring-primary/20">
+                  <SelectValue placeholder="All Timings" />
+                </SelectTrigger>
+                <SelectContent className="glass-2">
+                  <SelectItem value="all">All Timings</SelectItem>
+                  {SESSION_TIMINGS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <div className="relative w-72 group">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-20 group-focus-within:opacity-100 transition-opacity" />
+                <Input
+                  placeholder="Search classes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-14 h-14 bg-muted/5 focus:bg-background transition-all font-normal text-sm border-none shadow-none rounded-2xl placeholder:opacity-20"
+                />
+              </div>
             </div>
           }
           emptyState={

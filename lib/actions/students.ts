@@ -114,6 +114,21 @@ export async function removeStudent(id: string): Promise<ActionResult> {
   }
 }
 
+export async function deleteAllStudents(): Promise<ActionResult> {
+  try {
+    await db.$transaction([
+      db.feePayment.deleteMany({}),
+      db.submission.deleteMany({}),
+      db.evaluation.deleteMany({}),
+      db.student.deleteMany({})
+    ])
+    revalidatePath('/')
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: handleDatabaseError(error, 'Failed to clear student registry') }
+  }
+}
+
 export async function addQuestion(question: Omit<Question, 'id'>): Promise<ActionResult<Question>> {
   try {
     const result = await db.question.create({

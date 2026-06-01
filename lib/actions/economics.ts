@@ -120,3 +120,16 @@ export async function addExpenditure(data: { amount: number, category: string, d
     return { success: false, error: 'Fiscal record creation failed' }
   }
 }
+
+export async function deleteAllEconomicsLogs(temporalFilter?: string): Promise<ActionResult> {
+  try {
+    // Similarly, if temporalFilter logic is needed based on DB schema in future, add where clause.
+    // Right now it wipes all expenditures.
+    await db.expenditure.deleteMany({})
+    revalidatePath('/')
+    return { success: true }
+  } catch (error) {
+    console.error('DATABASE_ERROR [deleteAllEconomicsLogs]:', error)
+    return { success: false, error: 'Failed to clear fiscal ledger' }
+  }
+}

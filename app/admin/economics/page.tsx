@@ -18,6 +18,23 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -56,7 +73,8 @@ import {
   Coins,
   FileText,
   Printer,
-  Receipt
+  Receipt,
+  Trash2
 } from 'lucide-react'
 import Image from 'next/image'
 import { useData } from '@/contexts/data-context'
@@ -76,11 +94,13 @@ type TemporalFilter = 'daily' | 'weekly' | 'monthly' | 'seasonal'
 export default function EconomicsAuditorPage() {
   // --- RULE OF HOOKS: ALL HOOKS MUST BE AT THE TOP ---
   const hasMounted = useHasMounted()
-  const { economics, feePayments, addExpenditure, isInitialized } = useData()
+  const { economics, feePayments, addExpenditure, deleteAllEconomicsLogs, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('monthly')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [logData, setLogData] = useState({ amount: '', category: '', description: '' })
+  const [confirmText, setConfirmText] = useState('')
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
 
   const exportEconomicsPDF = () => {
     try {
@@ -318,6 +338,20 @@ export default function EconomicsAuditorPage() {
     }
   }
 
+  const handleBulkDelete = async () => {
+    if (confirmText !== 'DELETE') return
+    try {
+      await deleteAllEconomicsLogs(temporalFilter)
+      toast.success("Economics ledger cleared")
+      setIsBulkDeleteDialogOpen(false)
+      setConfirmText('')
+    } catch (error) {
+      toast.error("Failed to clear ledger")
+    }
+  }
+
+  const formatCurrency = (val: number) => `PKR ${val.toLocaleString()}`
+
   const stats = [
     { 
         label: 'Income', 
@@ -407,6 +441,51 @@ export default function EconomicsAuditorPage() {
         description="Auditing financial inflows, expenditures, and fiscal growth vectors."
         actions={
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
+            <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11 px-4 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-4 h-4 mr-2" /> Clear Ledger
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass-2">
+                  <DropdownMenuItem asChild>
+                     <AlertDialogTrigger className="w-full cursor-pointer text-destructive focus:bg-destructive/10">
+                       Proceed to Wipe
+                     </AlertDialogTrigger>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent className="glass-2 border-white/5 rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete ALL economics logs (income and expenses) for the selected {temporalFilter} cycle. This action cannot be undone and will destroy historical financial data.
+                    <br /><br />
+                    Type <strong>DELETE</strong> below to confirm.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                  <Input 
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder="DELETE"
+                    className="border-destructive/20 focus-visible:ring-destructive/30"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setConfirmText('')} className="rounded-xl border-none">Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    disabled={confirmText !== 'DELETE'}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl disabled:opacity-50"
+                  >
+                    Confirm Wipe
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
               <Select value={temporalFilter} onValueChange={(v) => setTemporalFilter(v as TemporalFilter)}>
                   <SelectTrigger className="h-11 w-full md:w-48 bg-muted/5 border-primary/10 rounded-xl focus:ring-primary/20 px-4 text-xs font-semibold uppercase tracking-wider shadow-sm md:shadow-none">
                       <div className="flex items-center gap-2">
