@@ -342,23 +342,23 @@ function ReportCardGeneratorContent() {
       // 2. Student name
       draw(v.studentName || '', 10, 29.5, 80, 55, '"Dancing Script", cursive')
       // 3. Level
-      draw(v.level || '', 32, 37.6, 24, 22)
-      // 4. Mark rows — shifted up and left slightly to perfectly center
+      draw(v.level || '', 32, 37.6, 24, 32, '"Dancing Script", cursive')
+      // 4. Mark rows — shifted up and right slightly to perfectly center
       const marksFontSize = 28
-      const marksX = 70.5
+      const marksX = 72.5
       const marksW = 15.5
-      draw(String(v.midtermObtained ?? ''), marksX, 46.5, marksW, marksFontSize)
-      draw(String(v.finalObtained ?? ''), marksX, 50.1, marksW, marksFontSize)
-      draw(String(v.attendanceObtained ?? ''), marksX, 53.8, marksW, marksFontSize)
-      draw(String(v.participationObtained ?? ''), marksX, 57.4, marksW, marksFontSize)
-      draw(String(v.disciplineObtained ?? ''), marksX, 61.0, marksW, marksFontSize)
-      draw(String(v.extraCurricularObtained ?? ''), marksX, 64.6, marksW, marksFontSize)
+      draw(String(v.midtermObtained ?? ''), marksX, 46.1, marksW, marksFontSize)
+      draw(String(v.finalObtained ?? ''), marksX, 49.7, marksW, marksFontSize)
+      draw(String(v.attendanceObtained ?? ''), marksX, 53.4, marksW, marksFontSize)
+      draw(String(v.participationObtained ?? ''), marksX, 57.0, marksW, marksFontSize)
+      draw(String(v.disciplineObtained ?? ''), marksX, 60.6, marksW, marksFontSize)
+      draw(String(v.extraCurricularObtained ?? ''), marksX, 64.2, marksW, marksFontSize)
       // 5. Grand total
       const grand = [
         v.midtermObtained, v.finalObtained, v.attendanceObtained,
         v.participationObtained, v.disciplineObtained, v.extraCurricularObtained
       ].reduce((sum, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
-      if (grand > 0) draw(String(grand), marksX, 68.2, marksW, 30)
+      if (grand > 0) draw(String(grand), marksX, 67.8, marksW, 30)
       // 6. Result & Grade
       draw(v.overallResult || '', 32, 71.8, 14, 26)
       draw(v.grade || '', 67, 71.8, 14, 26)
