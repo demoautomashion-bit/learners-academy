@@ -105,33 +105,29 @@ export function ReportCard({
         
         .rc-input-overlay {
           position: absolute;
-          background: transparent;
-          border: none;
+          background: rgba(59, 130, 246, 0.1); /* Faint blue debug background */
+          border: 1px dashed rgba(59, 130, 246, 0.3); /* Debug border */
           outline: none;
           color: #0f2950;
           font-weight: 700;
           text-align: center;
           transition: background 0.2s;
+          z-index: 50; /* Ensures the input is above all elements and clickable */
         }
         
         .rc-input-overlay:hover:not(:disabled) {
-          background: rgba(0, 0, 0, 0.03);
+          background: rgba(59, 130, 246, 0.15);
         }
         
         .rc-input-overlay:focus:not(:disabled) {
-          background: rgba(0, 0, 0, 0.05);
-        }
-
-        .rc-input-white-bg {
-          background: white;
+          background: rgba(59, 130, 246, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.6);
         }
 
         @media print {
           .rc-input-overlay {
             background: transparent !important;
-          }
-          .rc-input-white-bg {
-            background: white !important;
+            border: none !important;
           }
           .report-card-container {
             box-shadow: none !important;
@@ -151,14 +147,14 @@ export function ReportCard({
 
       {/* ================= EDITABLE INPUT OVERLAYS ================= */}
       
-      {/* Student Name */}
+      {/* Student Name - Moved below the Ms/Mrs/Mr text over the large signature line */}
       <input
         type="text"
         value={values.studentName}
         onChange={(e) => handleValueChange('studentName', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-handwritten"
-        style={{ top: '23.4%', left: '38%', width: '45%', height: '4%', fontSize: '32px' }}
+        style={{ top: '28%', left: '15%', width: '70%', height: '4.5%', fontSize: '38px' }}
       />
 
       {/* Foundation / Level */}
@@ -168,7 +164,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('level', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '37.3%', left: '30%', width: '25%', height: '2.5%', fontSize: '15px', fontWeight: '600' }}
+        style={{ top: '37.8%', left: '32%', width: '23%', height: '2.5%', fontSize: '15px', fontWeight: '600' }}
       />
 
       {/* Table: Obtained Marks Column */}
@@ -178,7 +174,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('midtermObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '45.3%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '45.8%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
       />
       <input
         type="number" min="0" max="100"
@@ -186,7 +182,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('finalObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '48.9%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '49.3%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
       />
       <input
         type="number" min="0" max="60"
@@ -194,7 +190,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('attendanceObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '52.3%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '52.7%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
       />
       <input
         type="number" min="0" max="20"
@@ -202,7 +198,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('participationObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '55.7%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '56.1%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
       />
       <input
         type="number" min="0" max="10"
@@ -210,7 +206,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('disciplineObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '59.2%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '59.6%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
       />
       <input
         type="number" min="0" max="10"
@@ -218,13 +214,13 @@ export function ReportCard({
         onChange={(e) => handleValueChange('extraCurricularObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '62.6%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '63.0%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
       />
       
       {/* Grand Total Calculated Value */}
       <div 
-        className="absolute flex items-center justify-center rc-font-sans font-bold text-[#0f2950]"
-        style={{ top: '66%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '17px' }}
+        className="rc-input-overlay flex items-center justify-center rc-font-sans"
+        style={{ top: '66.5%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '17px', color: '#0f2950' }}
       >
         {grandTotalObtained !== undefined && grandTotalObtained !== null && grandTotalObtained !== 0 ? grandTotalObtained : ''}
       </div>
@@ -236,7 +232,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('overallResult', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '71.5%', left: '33.5%', width: '10.5%', height: '2.5%', fontSize: '16px' }}
+        style={{ top: '71.8%', left: '33.5%', width: '12%', height: '3%', fontSize: '16px' }}
       />
       <input
         type="text"
@@ -244,26 +240,38 @@ export function ReportCard({
         onChange={(e) => handleValueChange('grade', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '71.5%', left: '68%', width: '10.5%', height: '2.5%', fontSize: '16px' }}
+        style={{ top: '71.8%', left: '68%', width: '12%', height: '3%', fontSize: '16px' }}
       />
 
-      {/* Footer Dates (with white backgrounds to cover original baked-in text) */}
-      <input
-        type="text"
-        value={values.dateOfIssue}
-        onChange={(e) => handleValueChange('dateOfIssue', e.target.value)}
-        disabled={readOnly}
-        className="rc-input-overlay rc-input-white-bg rc-font-sans text-[11px]"
-        style={{ bottom: '4.2%', left: '46.5%', width: '15%', height: '1.5%', fontStyle: 'italic', color: '#334155', fontWeight: '500' }}
-      />
-      <input
-        type="text"
-        value={values.courseDuration}
-        onChange={(e) => handleValueChange('courseDuration', e.target.value)}
-        disabled={readOnly}
-        className="rc-input-overlay rc-input-white-bg rc-font-sans text-[11px]"
-        style={{ bottom: '2.8%', left: '46.5%', width: '15%', height: '1.5%', fontStyle: 'italic', color: '#334155', fontWeight: '500' }}
-      />
+      {/* Footer Dates Setup */}
+      {/* Large white box to physically erase the original baked-in text from the image */}
+      <div className="absolute bg-white z-40" style={{ bottom: '1.5%', left: '25%', width: '50%', height: '6%' }} />
+      
+      {/* New Editable Date Layout overlaid on the white blank-out box */}
+      <div className="absolute z-50 flex flex-col items-center justify-center gap-1 w-[50%]" style={{ bottom: '2%', left: '25%' }}>
+        <div className="flex items-center gap-2 justify-center w-full">
+          <span className="rc-font-sans text-[12px] text-[#475569] font-medium">Date of Issue:</span>
+          <input
+            type="text"
+            value={values.dateOfIssue}
+            onChange={(e) => handleValueChange('dateOfIssue', e.target.value)}
+            disabled={readOnly}
+            className="rc-input-overlay bg-transparent text-[12px] text-[#0f2950] font-bold"
+            style={{ position: 'relative', width: '130px', padding: '2px', top: 'auto', left: 'auto' }}
+          />
+        </div>
+        <div className="flex items-center gap-2 justify-center w-full">
+          <span className="rc-font-sans text-[12px] text-[#475569] font-medium">Course Duration:</span>
+          <input
+            type="text"
+            value={values.courseDuration}
+            onChange={(e) => handleValueChange('courseDuration', e.target.value)}
+            disabled={readOnly}
+            className="rc-input-overlay bg-transparent text-[12px] text-[#0f2950] font-bold"
+            style={{ position: 'relative', width: '170px', padding: '2px', top: 'auto', left: 'auto' }}
+          />
+        </div>
+      </div>
 
     </div>
   )
