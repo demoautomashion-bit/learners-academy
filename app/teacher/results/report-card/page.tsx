@@ -114,6 +114,16 @@ function ReportCardGeneratorContent() {
     let newValues: Partial<ReportCardValues> = {}
 
     if (existingEval) {
+      const totalMarks = (existingEval.midterm || 0) + (existingEval.final || 0) + (existingEval.attendance || 0) + (existingEval.participation || 0) + (existingEval.discipline || 0) + (existingEval.extra || 0)
+      let calcGrade = 'B'
+      const pct = (totalMarks / 300) * 100
+      if (pct >= 90) calcGrade = 'A+'
+      else if (pct >= 80) calcGrade = 'A'
+      else if (pct >= 70) calcGrade = 'B+'
+      else if (pct >= 60) calcGrade = 'B'
+      else if (pct >= 50) calcGrade = 'C'
+      else calcGrade = 'F'
+
       newValues = {
         studentName: student.name,
         level: course.title,
@@ -123,8 +133,8 @@ function ReportCardGeneratorContent() {
         participationObtained: existingEval.participation ?? '',
         disciplineObtained: existingEval.discipline ?? '',
         extraCurricularObtained: existingEval.extra ?? '',
-        overallResult: existingEval.midterm + existingEval.final >= 80 ? 'PASS' : 'PASS', // placeholder fallback
-        grade: student.grade || '',
+        overallResult: totalMarks >= 130 ? 'PASS' : 'FAIL',
+        grade: calcGrade,
         dateOfIssue: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
           month: 'long',
           day: 'numeric',
@@ -302,6 +312,10 @@ function ReportCardGeneratorContent() {
         img.src = '/actual-result-card.jpeg'
       })
 
+      // Load fonts explicitly so canvas can use them
+      await document.fonts.load('bold 55px "Dancing Script"')
+      await document.fonts.load('bold 28px "Inter"')
+
       // Helper: draw horizontally centered text within a bounding box
       const draw = (
         text: string,
@@ -326,29 +340,32 @@ function ReportCardGeneratorContent() {
       const v = cardValues
 
       // 2. Student name
-      draw(v.studentName || '', 10, 29.5, 80, 28, 'Georgia, serif')
+      draw(v.studentName || '', 10, 29.5, 80, 55, '"Dancing Script", cursive')
       // 3. Level
-      draw(v.level || '', 32, 37.6, 24, 16)
-      // 4. Mark rows — yPct is the vertical center of each cell
-      draw(String(v.midtermObtained ?? ''), 73, 46.9, 15.5, 16)
-      draw(String(v.finalObtained ?? ''), 73, 50.6, 15.5, 16)
-      draw(String(v.attendanceObtained ?? ''), 73, 54.2, 15.5, 16)
-      draw(String(v.participationObtained ?? ''), 73, 57.8, 15.5, 16)
-      draw(String(v.disciplineObtained ?? ''), 73, 61.4, 15.5, 16)
-      draw(String(v.extraCurricularObtained ?? ''), 73, 65.0, 15.5, 16)
+      draw(v.level || '', 32, 37.6, 24, 22)
+      // 4. Mark rows — shifted up and left slightly to perfectly center
+      const marksFontSize = 28
+      const marksX = 70.5
+      const marksW = 15.5
+      draw(String(v.midtermObtained ?? ''), marksX, 46.5, marksW, marksFontSize)
+      draw(String(v.finalObtained ?? ''), marksX, 50.1, marksW, marksFontSize)
+      draw(String(v.attendanceObtained ?? ''), marksX, 53.8, marksW, marksFontSize)
+      draw(String(v.participationObtained ?? ''), marksX, 57.4, marksW, marksFontSize)
+      draw(String(v.disciplineObtained ?? ''), marksX, 61.0, marksW, marksFontSize)
+      draw(String(v.extraCurricularObtained ?? ''), marksX, 64.6, marksW, marksFontSize)
       // 5. Grand total
       const grand = [
         v.midtermObtained, v.finalObtained, v.attendanceObtained,
         v.participationObtained, v.disciplineObtained, v.extraCurricularObtained
       ].reduce((sum, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
-      if (grand > 0) draw(String(grand), 73, 68.6, 15.5, 16)
+      if (grand > 0) draw(String(grand), marksX, 68.2, marksW, 30)
       // 6. Result & Grade
-      draw(v.overallResult || '', 32, 72.0, 14, 16)
-      draw(v.grade || '', 67, 72.0, 14, 16)
-      // 7. Erase baked-in dates and redraw editable values
+      draw(v.overallResult || '', 32, 71.8, 14, 26)
+      draw(v.grade || '', 67, 71.8, 14, 26)
+      // 7. Erase baked-in dates and redraw editable values (expanded white box)
       ctx.fillStyle = '#ffffff'
-      ctx.fillRect(Math.round(0.22 * W), Math.round(0.934 * H), Math.round(0.56 * W), Math.round(0.066 * H))
-      ctx.font = 'italic 15px Inter, sans-serif'
+      ctx.fillRect(Math.round(0.20 * W), Math.round(0.93 * H), Math.round(0.60 * W), Math.round(0.07 * H))
+      ctx.font = 'italic 20px Inter, sans-serif'
       ctx.fillStyle = '#334155'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
