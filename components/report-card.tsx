@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface ReportCardValues {
@@ -23,13 +23,15 @@ interface ReportCardProps {
   onChange?: (values: ReportCardValues) => void
   readOnly?: boolean
   className?: string
+  cardRef?: React.RefObject<HTMLDivElement>
 }
 
 export function ReportCard({
   initialValues,
   onChange,
   readOnly = false,
-  className
+  className,
+  cardRef
 }: ReportCardProps) {
   const [values, setValues] = useState<ReportCardValues>({
     studentName: '',
@@ -81,7 +83,7 @@ export function ReportCard({
     parseMark(values.extraCurricularObtained)
 
   return (
-    <div className={cn("report-card-container relative bg-white overflow-hidden shadow-2xl mx-auto", className)}
+    <div ref={cardRef} className={cn("report-card-container relative bg-white overflow-hidden shadow-2xl mx-auto", className)}
       style={{
         width: '210mm',
         height: '297mm',
@@ -147,34 +149,34 @@ export function ReportCard({
 
       {/* ================= EDITABLE INPUT OVERLAYS ================= */}
       
-      {/* Student Name - Moved below the Ms/Mrs/Mr text over the large signature line */}
+      {/* Student Name — sits on the big line BELOW Mr./Mrs./Ms. */}
       <input
         type="text"
         value={values.studentName}
         onChange={(e) => handleValueChange('studentName', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-handwritten"
-        style={{ top: '28%', left: '15%', width: '70%', height: '4.5%', fontSize: '38px' }}
+        style={{ top: '27%', left: '10%', width: '80%', height: '5%', fontSize: '36px', display: 'flex', alignItems: 'flex-end' }}
       />
 
-      {/* Foundation / Level */}
+      {/* Foundation / Level — sits ON the underline (shifted lower so text reads above the line) */}
       <input
         type="text"
         value={values.level}
         onChange={(e) => handleValueChange('level', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '37.8%', left: '32%', width: '23%', height: '2.5%', fontSize: '15px', fontWeight: '600' }}
+        style={{ top: '36.5%', left: '32%', width: '24%', height: '2.2%', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center' }}
       />
 
-      {/* Table: Obtained Marks Column */}
+      {/* Table: Obtained Marks Column — each input is sized to match its row height and vertically centered */}
       <input
         type="number" min="0" max="100"
         value={values.midtermObtained}
         onChange={(e) => handleValueChange('midtermObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '45.8%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '44.9%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
       <input
         type="number" min="0" max="100"
@@ -182,7 +184,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('finalObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '49.3%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '48.6%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
       <input
         type="number" min="0" max="60"
@@ -190,7 +192,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('attendanceObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '52.7%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '52.3%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
       <input
         type="number" min="0" max="20"
@@ -198,7 +200,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('participationObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '56.1%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '55.9%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
       <input
         type="number" min="0" max="10"
@@ -206,7 +208,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('disciplineObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '59.6%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '59.5%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
       <input
         type="number" min="0" max="10"
@@ -214,33 +216,34 @@ export function ReportCard({
         onChange={(e) => handleValueChange('extraCurricularObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '63.0%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '16px' }}
+        style={{ top: '63.1%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
       
       {/* Grand Total Calculated Value */}
       <div 
         className="rc-input-overlay flex items-center justify-center rc-font-sans"
-        style={{ top: '66.5%', left: '72.3%', width: '17.3%', height: '3%', fontSize: '17px', color: '#0f2950' }}
+        style={{ top: '66.7%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '16px', fontWeight: '700', color: '#0f2950' }}
       >
         {grandTotalObtained !== undefined && grandTotalObtained !== null && grandTotalObtained !== 0 ? grandTotalObtained : ''}
       </div>
 
-      {/* Overall Result & Grade */}
+      {/* Overall Result — shifted down so text sits ABOVE the line, not through it */}
       <input
         type="text"
         value={values.overallResult}
         onChange={(e) => handleValueChange('overallResult', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '71.8%', left: '33.5%', width: '12%', height: '3%', fontSize: '16px' }}
+        style={{ top: '70.5%', left: '32%', width: '14%', height: '3%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
+      {/* Grade — shifted down to match Overall Result baseline */}
       <input
         type="text"
         value={values.grade}
         onChange={(e) => handleValueChange('grade', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '71.8%', left: '68%', width: '12%', height: '3%', fontSize: '16px' }}
+        style={{ top: '70.5%', left: '67%', width: '14%', height: '3%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
 
       {/* Footer Dates Setup */}

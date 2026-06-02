@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, Suspense, useMemo } from 'react'
+import React, { useState, useEffect, Suspense, useMemo, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
@@ -18,7 +18,7 @@ import {
 import { ReportCard, ReportCardValues } from '@/components/report-card'
 import { isStudentInCourse } from '@/lib/utils/student-matching'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { Award, Printer, Save, Trash2, ArrowLeft } from 'lucide-react'
+import { Award, Printer, Save, Download, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 
 function ReportCardGeneratorContent() {
@@ -42,6 +42,13 @@ function ReportCardGeneratorContent() {
   // The values inside the card
   const [cardValues, setCardValues] = useState<Partial<ReportCardValues>>({})
   const [isSaving, setIsSaving] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  // Ref to the card DOM element for PDF capture
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  // Guard flag — once the teacher edits any field, stop overwriting their changes
+  const isManuallyEdited = useRef(false)
 
   // Filter courses taught by this teacher
   const teacherCourses = useMemo(() => courses?.filter(c => c.teacherId === user?.id) || [], [courses, user?.id])
@@ -72,8 +79,15 @@ function ReportCardGeneratorContent() {
     }
   }, [searchParams, isInitialized, students, teacherCourses])
 
-  // Pull existing records or calculate marks whenever student/course selections change
+  // Reset manual edit flag whenever student or course selection changes
   useEffect(() => {
+    isManuallyEdited.current = false
+  }, [selectedStudentId, selectedCourseId])
+
+  // Pull existing records or calculate marks whenever student/course selections change
+  // Skip recalculation if the teacher has manually edited any field
+  useEffect(() => {
+    if (isManuallyEdited.current) return
     if (!isInitialized || selectedStudentId === 'all') {
       if (Object.keys(cardValues).length !== 0) {
         setCardValues({})
@@ -196,7 +210,10 @@ function ReportCardGeneratorContent() {
       setCardValues(newValues)
     }
 
-  }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations, cardValues])
+  // NOTE: cardValues intentionally removed from deps — adding it caused the infinite loop.
+  // The isManuallyEdited guard above ensures edits are never overwritten.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations])
 
   // Format Course Dates
   const formatDateRange = (start: any, end: any) => {
@@ -257,6 +274,42 @@ function ReportCardGeneratorContent() {
       return
     }
     window.print()
+  }
+
+  // Handle Download PDF via html2canvas + jspdf
+  const handleDownloadPDF = async () => {
+    if (selectedStudentId === 'all') {
+      toast.error('Please select a student before downloading.')
+      return
+    }
+    if (!cardRef.current) {
+      toast.error('Card is not ready for export.')
+      return
+    }
+    setIsDownloading(true)
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      })
+      const imgData = canvas.toDataURL('image/jpeg', 1.0)
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
+      const studentName = cardValues.studentName || 'report-card'
+      pdf.save(`${studentName.replace(/\s+/g, '-').toLowerCase()}-report-card.pdf`)
+      toast.success('PDF downloaded successfully!')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to generate PDF.')
+    } finally {
+      setIsDownloading(false)
+    }
   }
 
   if (!user?.id) return null
@@ -368,12 +421,21 @@ function ReportCardGeneratorContent() {
                 Record Registry
               </Button>
               <Button
-                className="h-11 px-6 font-normal text-xs bg-[#10b981] hover:bg-[#059669] text-white shadow-md shadow-emerald-500/10"
+                variant="outline"
+                className="h-11 px-5 font-normal text-xs"
                 onClick={handlePrint}
                 disabled={selectedStudentId === 'all'}
               >
                 <Printer className="w-4 h-4 mr-2" />
-                Print PDF Card
+                Print
+              </Button>
+              <Button
+                className="h-11 px-6 font-normal text-xs bg-[#10b981] hover:bg-[#059669] text-white shadow-md shadow-emerald-500/10"
+                onClick={handleDownloadPDF}
+                disabled={selectedStudentId === 'all' || isDownloading}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isDownloading ? 'Generating...' : 'Download PDF'}
               </Button>
             </div>
           </CardContent>
@@ -392,8 +454,12 @@ function ReportCardGeneratorContent() {
           <div className="transform scale-95 md:scale-100 origin-center bg-white shadow-xl">
             <ReportCard 
               key={selectedStudentId}
-              initialValues={cardValues} 
-              onChange={(newValues) => setCardValues(newValues)}
+              initialValues={cardValues}
+              cardRef={cardRef}
+              onChange={(newValues) => {
+                isManuallyEdited.current = true
+                setCardValues(newValues)
+              }}
             />
           </div>
         )}
