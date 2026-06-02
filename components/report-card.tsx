@@ -169,14 +169,14 @@ export function ReportCard({
         style={{ top: '36.5%', left: '32%', width: '24%', height: '2.2%', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center' }}
       />
 
-      {/* Table: Obtained Marks Column — each input is sized to match its row height and vertically centered */}
+      {/* Table: Obtained Marks Column — top values position the input squarely inside each cell */}
       <input
         type="number" min="0" max="100"
         value={values.midtermObtained}
         onChange={(e) => handleValueChange('midtermObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '44.9%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '45.2%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="100"
@@ -184,7 +184,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('finalObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '48.6%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '48.8%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="60"
@@ -192,7 +192,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('attendanceObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '52.3%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '52.4%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="20"
@@ -200,7 +200,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('participationObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '55.9%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '56.0%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="10"
@@ -208,7 +208,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('disciplineObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '59.5%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '59.6%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="10"
@@ -216,13 +216,13 @@ export function ReportCard({
         onChange={(e) => handleValueChange('extraCurricularObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '63.1%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '63.2%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       
       {/* Grand Total Calculated Value */}
       <div 
         className="rc-input-overlay flex items-center justify-center rc-font-sans"
-        style={{ top: '66.7%', left: '73%', width: '15.5%', height: '3.5%', fontSize: '16px', fontWeight: '700', color: '#0f2950' }}
+        style={{ top: '66.8%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '16px', fontWeight: '700', color: '#0f2950' }}
       >
         {grandTotalObtained !== undefined && grandTotalObtained !== null && grandTotalObtained !== 0 ? grandTotalObtained : ''}
       </div>

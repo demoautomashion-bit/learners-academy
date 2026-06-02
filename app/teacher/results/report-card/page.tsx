@@ -276,37 +276,98 @@ function ReportCardGeneratorContent() {
     window.print()
   }
 
-  // Handle Download PDF via html2canvas + jspdf
+  // Handle Download — pure Canvas API, no external library needed
   const handleDownloadPDF = async () => {
     if (selectedStudentId === 'all') {
       toast.error('Please select a student before downloading.')
       return
     }
-    if (!cardRef.current) {
-      toast.error('Card is not ready for export.')
-      return
-    }
     setIsDownloading(true)
     try {
-      const html2canvas = (await import('html2canvas')).default
-      const { jsPDF } = await import('jspdf')
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
+      // A4 canvas at 150 DPI
+      const W = 1240
+      const H = 1754
+      const canvas = document.createElement('canvas')
+      canvas.width = W
+      canvas.height = H
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('Canvas 2D not supported')
+
+      // 1. Draw the background image
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => { ctx.drawImage(img, 0, 0, W, H); resolve() }
+        img.onerror = reject
+        img.src = '/actual-result-card.jpeg'
       })
-      const imgData = canvas.toDataURL('image/jpeg', 1.0)
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = pdf.internal.pageSize.getHeight()
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
-      const studentName = cardValues.studentName || 'report-card'
-      pdf.save(`${studentName.replace(/\s+/g, '-').toLowerCase()}-report-card.pdf`)
-      toast.success('PDF downloaded successfully!')
-    } catch (error) {
-      console.error(error)
-      toast.error('Failed to generate PDF.')
+
+      // Helper: draw horizontally centered text within a bounding box
+      const draw = (
+        text: string,
+        xPct: number,
+        yPct: number,
+        wPct: number,
+        fontSize: number,
+        fontFamily = 'Inter, sans-serif'
+      ) => {
+        if (!text) return
+        const cx = ((xPct + wPct / 2) / 100) * W
+        const cy = (yPct / 100) * H
+        ctx.save()
+        ctx.font = `bold ${fontSize}px ${fontFamily}`
+        ctx.fillStyle = '#0f2950'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(text, cx, cy, (wPct / 100) * W)
+        ctx.restore()
+      }
+
+      const v = cardValues
+
+      // 2. Student name
+      draw(v.studentName || '', 10, 29.5, 80, 28, 'Georgia, serif')
+      // 3. Level
+      draw(v.level || '', 32, 37.6, 24, 16)
+      // 4. Mark rows — yPct is the vertical center of each cell
+      draw(String(v.midtermObtained ?? ''), 73, 46.9, 15.5, 16)
+      draw(String(v.finalObtained ?? ''), 73, 50.6, 15.5, 16)
+      draw(String(v.attendanceObtained ?? ''), 73, 54.2, 15.5, 16)
+      draw(String(v.participationObtained ?? ''), 73, 57.8, 15.5, 16)
+      draw(String(v.disciplineObtained ?? ''), 73, 61.4, 15.5, 16)
+      draw(String(v.extraCurricularObtained ?? ''), 73, 65.0, 15.5, 16)
+      // 5. Grand total
+      const grand = [
+        v.midtermObtained, v.finalObtained, v.attendanceObtained,
+        v.participationObtained, v.disciplineObtained, v.extraCurricularObtained
+      ].reduce((sum, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
+      if (grand > 0) draw(String(grand), 73, 68.6, 15.5, 16)
+      // 6. Result & Grade
+      draw(v.overallResult || '', 32, 72.0, 14, 16)
+      draw(v.grade || '', 67, 72.0, 14, 16)
+      // 7. Erase baked-in dates and redraw editable values
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(Math.round(0.22 * W), Math.round(0.934 * H), Math.round(0.56 * W), Math.round(0.066 * H))
+      ctx.font = 'italic 15px Inter, sans-serif'
+      ctx.fillStyle = '#334155'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(`Date of Issue: ${v.dateOfIssue || ''}`, W * 0.5, H * 0.954)
+      ctx.fillText(`Course Duration: ${v.courseDuration || ''}`, W * 0.5, H * 0.969)
+
+      // 8. Trigger download as JPEG
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+      const a = document.createElement('a')
+      const name = (v.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
+      a.href = dataUrl
+      a.download = `${name}-report-card.jpg`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      toast.success('Report card downloaded successfully!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to generate download. Please try again.')
     } finally {
       setIsDownloading(false)
     }
