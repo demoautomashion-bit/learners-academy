@@ -156,7 +156,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('studentName', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-handwritten"
-        style={{ top: '27%', left: '10%', width: '80%', height: '5%', fontSize: '36px', display: 'flex', alignItems: 'flex-end' }}
+        style={{ top: '27.8%', left: '10%', width: '80%', height: '4.2%', fontSize: '36px', display: 'flex', alignItems: 'flex-end' }}
       />
 
       {/* Foundation / Level — sits ON the underline (shifted lower so text reads above the line) */}
@@ -234,7 +234,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('overallResult', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '71.5%', left: '32%', width: '14%', height: '3%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '70.8%', left: '32%', width: '14%', height: '3%', fontSize: '18px', display: 'flex', alignItems: 'center' }}
       />
       {/* Grade — shifted down to match Overall Result baseline */}
       <input
@@ -243,7 +243,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('grade', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '71.5%', left: '67%', width: '14%', height: '3%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '70.8%', left: '67%', width: '14%', height: '3%', fontSize: '18px', display: 'flex', alignItems: 'center' }}
       />
 
       {/* Footer Dates Setup */}

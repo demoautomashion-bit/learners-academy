@@ -341,7 +341,7 @@ function ReportCardGeneratorContent() {
       const v = cardValues
 
       // 2. Student name
-      draw(v.studentName || '', 10, 29.5, 80, 55, '"Dancing Script", cursive')
+      draw(v.studentName || '', 10, 30.2, 80, 55, '"Dancing Script", cursive')
       // 3. Level
       draw(v.level || '', 32, 36.8, 24, 32, '"Dancing Script", cursive')
       
@@ -366,8 +366,8 @@ function ReportCardGeneratorContent() {
       ].reduce((sum, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
       if (grand > 0) draw(String(grand), marksX, startY + gapY * 6, marksW, 30)
       // 6. Result & Grade
-      draw(v.overallResult || '', 32, 72.8, 14, 26)
-      draw(v.grade || '', 67, 72.8, 14, 26)
+      draw(v.overallResult || '', 32, 72.0, 14, 30)
+      draw(v.grade || '', 67, 72.0, 14, 30)
       // 7. Erase baked-in dates and redraw editable values (expanded white box)
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(Math.round(0.20 * W), Math.round(0.93 * H), Math.round(0.60 * W), Math.round(0.07 * H))
