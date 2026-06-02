@@ -1,4 +1,5 @@
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
+export const runtime = 'nodejs';
+
 import { NextResponse } from 'next/server'
 
 /**

@@ -410,7 +410,7 @@ export function ReportCard({
                 <td className="font-bold">Grand Total</td>
                 <td className="text-center select-none">300</td>
                 <td className="text-center select-none">130</td>
-                <td className="text-center font-bold text-blue-900">{grandTotalObtained || ''}</td>
+                <td className="text-center font-bold text-blue-900">{grandTotalObtained !== undefined && grandTotalObtained !== null ? grandTotalObtained : ''}</td>
               </tr>
             </tbody>
           </table>

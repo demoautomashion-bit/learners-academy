@@ -75,7 +75,9 @@ function ReportCardGeneratorContent() {
   // Pull existing records or calculate marks whenever student/course selections change
   useEffect(() => {
     if (!isInitialized || selectedStudentId === 'all') {
-      setCardValues({})
+      if (Object.keys(cardValues).length !== 0) {
+        setCardValues({})
+      }
       return
     }
 
@@ -95,8 +97,10 @@ function ReportCardGeneratorContent() {
       e => e.studentId === student.id && e.courseId === course.id
     )
 
+    let newValues: Partial<ReportCardValues> = {}
+
     if (existingEval) {
-      setCardValues({
+      newValues = {
         studentName: student.name,
         level: course.title,
         midtermObtained: existingEval.midterm ?? '',
@@ -113,7 +117,7 @@ function ReportCardGeneratorContent() {
           year: 'numeric'
         }),
         courseDuration: formatDateRange(course.startDate, course.endDate)
-      })
+      }
     } else {
       // 2. No evaluation found: Auto-populate marks from submissions registry
       const studentSubmissions = submissions?.filter(s => s.studentId === student.id) || []
@@ -168,7 +172,7 @@ function ReportCardGeneratorContent() {
       else if (pct >= 50) calculatedGrade = 'C'
       else calculatedGrade = 'F'
 
-      setCardValues({
+      newValues = {
         studentName: student.name,
         level: course.title,
         midtermObtained: midtermMark,
@@ -185,10 +189,14 @@ function ReportCardGeneratorContent() {
           year: 'numeric'
         }),
         courseDuration: formatDateRange(course.startDate, course.endDate)
-      })
+      }
     }
 
-  }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations])
+    if (JSON.stringify(cardValues) !== JSON.stringify(newValues)) {
+      setCardValues(newValues)
+    }
+
+  }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations, cardValues])
 
   // Format Course Dates
   const formatDateRange = (start: any, end: any) => {
@@ -383,6 +391,7 @@ function ReportCardGeneratorContent() {
         ) : (
           <div className="transform scale-95 md:scale-100 origin-center bg-white shadow-xl">
             <ReportCard 
+              key={selectedStudentId}
               initialValues={cardValues} 
               onChange={(newValues) => setCardValues(newValues)}
             />
