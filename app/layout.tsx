@@ -33,13 +33,13 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
   icons: {
     icon: [
-      { url: '/images/logo.png', sizes: '192x192', type: 'image/png' },
-      { url: '/images/logo.png', sizes: '512x512', type: 'image/png' },
+      { url: '/images/logo-white-bg.png', sizes: '192x192', type: 'image/png' },
+      { url: '/images/logo-white-bg.png', sizes: '512x512', type: 'image/png' },
     ],
-    shortcut: '/images/logo.png',
+    shortcut: '/images/logo-white-bg.png',
     apple: [
       { url: '/apple-icon.png' },
-      { url: '/images/logo.png', sizes: '192x192', type: 'image/png' },
+      { url: '/images/logo-white-bg.png', sizes: '192x192', type: 'image/png' },
     ],
   },
 }
