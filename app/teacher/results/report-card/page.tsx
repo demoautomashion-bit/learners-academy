@@ -20,6 +20,7 @@ import { isStudentInCourse } from '@/lib/utils/student-matching'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { Award, Printer, Save, Download, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import { jsPDF } from 'jspdf'
 
 function ReportCardGeneratorContent() {
   const router = useRouter()
@@ -378,15 +379,16 @@ function ReportCardGeneratorContent() {
       ctx.fillText(`Date of Issue: ${v.dateOfIssue || ''}`, W * 0.5, H * 0.954)
       ctx.fillText(`Course Duration: ${v.courseDuration || ''}`, W * 0.5, H * 0.969)
 
-      // 8. Trigger download as JPEG
+      // 8. Generate PDF and trigger download
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-      const a = document.createElement('a')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
       const name = (v.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
-      a.href = dataUrl
-      a.download = `${name}-report-card.jpg`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      pdf.save(`${name}-report-card.pdf`)
       toast.success('Report card downloaded successfully!')
     } catch (err) {
       console.error(err)
