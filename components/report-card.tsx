@@ -110,7 +110,7 @@ export function ReportCard({
           background: rgba(59, 130, 246, 0.1); /* Faint blue debug background */
           border: 1px dashed rgba(59, 130, 246, 0.3); /* Debug border */
           outline: none;
-          color: #0f2950;
+          color: #000000;
           font-weight: 700;
           text-align: center;
           transition: background 0.2s;
@@ -165,8 +165,8 @@ export function ReportCard({
         value={values.level}
         onChange={(e) => handleValueChange('level', e.target.value)}
         disabled={readOnly}
-        className="rc-input-overlay rc-font-sans"
-        style={{ top: '36.5%', left: '32%', width: '24%', height: '2.2%', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center' }}
+        className="rc-input-overlay rc-font-handwritten"
+        style={{ top: '35.8%', left: '32%', width: '24%', height: '2.5%', fontSize: '24px', fontWeight: '700', display: 'flex', alignItems: 'center' }}
       />
 
       {/* Table: Obtained Marks Column — top values position the input squarely inside each cell */}
@@ -176,7 +176,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('midtermObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '45.2%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ top: '44.4%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="100"
@@ -184,7 +184,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('finalObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '48.8%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ top: '47.9%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="60"
@@ -192,7 +192,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('attendanceObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '52.4%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ top: '51.5%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="20"
@@ -200,7 +200,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('participationObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '56.0%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ top: '55.0%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="10"
@@ -208,7 +208,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('disciplineObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '59.6%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ top: '58.5%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       <input
         type="number" min="0" max="10"
@@ -216,13 +216,13 @@ export function ReportCard({
         onChange={(e) => handleValueChange('extraCurricularObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '63.2%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ top: '62.1%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
       />
       
       {/* Grand Total Calculated Value */}
       <div 
         className="rc-input-overlay flex items-center justify-center rc-font-sans"
-        style={{ top: '66.8%', left: '73%', width: '15.5%', height: '3.4%', fontSize: '16px', fontWeight: '700', color: '#0f2950' }}
+        style={{ top: '65.6%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '16px', fontWeight: '700', color: '#000000' }}
       >
         {grandTotalObtained !== undefined && grandTotalObtained !== null && grandTotalObtained !== 0 ? grandTotalObtained : ''}
       </div>
@@ -234,7 +234,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('overallResult', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '70.5%', left: '32%', width: '14%', height: '3%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '71.5%', left: '32%', width: '14%', height: '3%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
       {/* Grade — shifted down to match Overall Result baseline */}
       <input
@@ -243,7 +243,7 @@ export function ReportCard({
         onChange={(e) => handleValueChange('grade', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '70.5%', left: '67%', width: '14%', height: '3%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
+        style={{ top: '71.5%', left: '67%', width: '14%', height: '3%', fontSize: '15px', display: 'flex', alignItems: 'center' }}
       />
 
       {/* Footer Dates Setup */}
@@ -259,7 +259,7 @@ export function ReportCard({
             value={values.dateOfIssue}
             onChange={(e) => handleValueChange('dateOfIssue', e.target.value)}
             disabled={readOnly}
-            className="rc-input-overlay bg-transparent text-[12px] text-[#0f2950] font-bold"
+            className="rc-input-overlay bg-transparent text-[12px] text-black font-bold"
             style={{ position: 'relative', width: '130px', padding: '2px', top: 'auto', left: 'auto' }}
           />
         </div>
@@ -270,7 +270,7 @@ export function ReportCard({
             value={values.courseDuration}
             onChange={(e) => handleValueChange('courseDuration', e.target.value)}
             disabled={readOnly}
-            className="rc-input-overlay bg-transparent text-[12px] text-[#0f2950] font-bold"
+            className="rc-input-overlay bg-transparent text-[12px] text-black font-bold"
             style={{ position: 'relative', width: '170px', padding: '2px', top: 'auto', left: 'auto' }}
           />
         </div>

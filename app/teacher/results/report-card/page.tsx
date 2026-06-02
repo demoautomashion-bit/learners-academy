@@ -331,7 +331,7 @@ function ReportCardGeneratorContent() {
         const cy = (yPct / 100) * H
         ctx.save()
         ctx.font = `bold ${fontSize}px ${fontFamily}`
-        ctx.fillStyle = '#0f2950'
+        ctx.fillStyle = '#000000'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText(text, cx, cy, (wPct / 100) * W)
@@ -343,7 +343,7 @@ function ReportCardGeneratorContent() {
       // 2. Student name
       draw(v.studentName || '', 10, 29.5, 80, 55, '"Dancing Script", cursive')
       // 3. Level
-      draw(v.level || '', 32, 37.6, 24, 32, '"Dancing Script", cursive')
+      draw(v.level || '', 32, 36.8, 24, 32, '"Dancing Script", cursive')
       
       // 4. Mark rows — Using calculated mathematical loop to prevent downward vertical drift
       const marksFontSize = 28
@@ -366,13 +366,13 @@ function ReportCardGeneratorContent() {
       ].reduce((sum, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
       if (grand > 0) draw(String(grand), marksX, startY + gapY * 6, marksW, 30)
       // 6. Result & Grade
-      draw(v.overallResult || '', 32, 71.8, 14, 26)
-      draw(v.grade || '', 67, 71.8, 14, 26)
+      draw(v.overallResult || '', 32, 72.8, 14, 26)
+      draw(v.grade || '', 67, 72.8, 14, 26)
       // 7. Erase baked-in dates and redraw editable values (expanded white box)
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(Math.round(0.20 * W), Math.round(0.93 * H), Math.round(0.60 * W), Math.round(0.07 * H))
       ctx.font = 'italic 20px Inter, sans-serif'
-      ctx.fillStyle = '#334155'
+      ctx.fillStyle = '#000000'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(`Date of Issue: ${v.dateOfIssue || ''}`, W * 0.5, H * 0.954)
