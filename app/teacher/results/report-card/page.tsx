@@ -314,6 +314,7 @@ function ReportCardGeneratorContent() {
 
       // Load fonts explicitly so canvas can use them
       await document.fonts.load('bold 55px "Dancing Script"')
+      await document.fonts.load('bold 32px "Dancing Script"')
       await document.fonts.load('bold 28px "Inter"')
 
       // Helper: draw horizontally centered text within a bounding box
@@ -343,22 +344,27 @@ function ReportCardGeneratorContent() {
       draw(v.studentName || '', 10, 29.5, 80, 55, '"Dancing Script", cursive')
       // 3. Level
       draw(v.level || '', 32, 37.6, 24, 32, '"Dancing Script", cursive')
-      // 4. Mark rows — shifted up and right slightly to perfectly center
+      
+      // 4. Mark rows — Using calculated mathematical loop to prevent downward vertical drift
       const marksFontSize = 28
       const marksX = 72.5
       const marksW = 15.5
-      draw(String(v.midtermObtained ?? ''), marksX, 46.1, marksW, marksFontSize)
-      draw(String(v.finalObtained ?? ''), marksX, 49.7, marksW, marksFontSize)
-      draw(String(v.attendanceObtained ?? ''), marksX, 53.4, marksW, marksFontSize)
-      draw(String(v.participationObtained ?? ''), marksX, 57.0, marksW, marksFontSize)
-      draw(String(v.disciplineObtained ?? ''), marksX, 60.6, marksW, marksFontSize)
-      draw(String(v.extraCurricularObtained ?? ''), marksX, 64.2, marksW, marksFontSize)
+      const startY = 46.1
+      const gapY = 3.53
+      
+      draw(String(v.midtermObtained ?? ''), marksX, startY, marksW, marksFontSize)
+      draw(String(v.finalObtained ?? ''), marksX, startY + gapY, marksW, marksFontSize)
+      draw(String(v.attendanceObtained ?? ''), marksX, startY + gapY * 2, marksW, marksFontSize)
+      draw(String(v.participationObtained ?? ''), marksX, startY + gapY * 3, marksW, marksFontSize)
+      draw(String(v.disciplineObtained ?? ''), marksX, startY + gapY * 4, marksW, marksFontSize)
+      draw(String(v.extraCurricularObtained ?? ''), marksX, startY + gapY * 5, marksW, marksFontSize)
+      
       // 5. Grand total
       const grand = [
         v.midtermObtained, v.finalObtained, v.attendanceObtained,
         v.participationObtained, v.disciplineObtained, v.extraCurricularObtained
       ].reduce((sum, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
-      if (grand > 0) draw(String(grand), marksX, 67.8, marksW, 30)
+      if (grand > 0) draw(String(grand), marksX, startY + gapY * 6, marksW, 30)
       // 6. Result & Grade
       draw(v.overallResult || '', 32, 71.8, 14, 26)
       draw(v.grade || '', 67, 71.8, 14, 26)
