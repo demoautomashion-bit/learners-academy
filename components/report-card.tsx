@@ -16,6 +16,7 @@ export interface ReportCardValues {
   grade: string
   dateOfIssue: string
   courseDuration: string
+  comments?: string
 }
 
 interface ReportCardProps {
@@ -46,6 +47,7 @@ export function ReportCard({
     grade: '',
     dateOfIssue: 'June 04, 2026',
     courseDuration: 'March 2026 To May 2026',
+    comments: '',
     ...initialValues
   })
 
@@ -244,6 +246,16 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ top: '70.8%', left: '67%', width: '14%', height: '3%', fontSize: '18px', display: 'flex', alignItems: 'center' }}
+      />
+
+      {/* Comments Overlay — aligned below the overall result / grade line */}
+      <input
+        type="text"
+        value={values.comments || ''}
+        onChange={(e) => handleValueChange('comments', e.target.value)}
+        disabled={readOnly}
+        className="rc-input-overlay rc-font-handwritten"
+        style={{ top: '75.8%', left: '10%', width: '80%', height: '2.5%', fontSize: '24px', fontWeight: '700', display: 'flex', alignItems: 'center' }}
       />
 
       {/* Footer Dates Setup */}

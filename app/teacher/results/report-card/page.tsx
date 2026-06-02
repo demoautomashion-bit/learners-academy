@@ -47,6 +47,10 @@ function ReportCardGeneratorContent() {
 
   // Ref to the card DOM element for PDF capture
   const cardRef = useRef<HTMLDivElement>(null)
+  
+  // Container ref and scale state for mobile responsiveness
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
 
   // Guard flag — once the teacher edits any field, stop overwriting their changes
   const isManuallyEdited = useRef(false)
@@ -221,6 +225,32 @@ function ReportCardGeneratorContent() {
       setCardValues(newValues)
     }
 
+  // Handle mobile responsiveness scaling
+  useEffect(() => {
+    if (selectedStudentId === 'all') return
+    const updateScale = () => {
+      if (containerRef.current) {
+        // padding md:p-8 is 64px total, p-4 is 32px. Let's subtract safety padding.
+        const parentWidth = containerRef.current.clientWidth - 48
+        const cardWidth = 794 // 210mm in pixels is approx 794px
+        if (parentWidth < cardWidth) {
+          setScale(parentWidth / cardWidth)
+        } else {
+          setScale(1)
+        }
+      }
+    }
+
+    updateScale()
+    window.addEventListener('resize', updateScale)
+    const timer = setTimeout(updateScale, 150)
+
+    return () => {
+      window.removeEventListener('resize', updateScale)
+      clearTimeout(timer)
+    }
+  }, [selectedStudentId])
+
   // NOTE: cardValues intentionally removed from deps — adding it caused the infinite loop.
   // The isManuallyEdited guard above ensures edits are never overwritten.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -369,6 +399,8 @@ function ReportCardGeneratorContent() {
       // 6. Result & Grade
       draw(v.overallResult || '', 32, 72.0, 14, 30)
       draw(v.grade || '', 67, 72.0, 14, 30)
+      // 6.5. Comments
+      draw(v.comments || '', 10, 77.0, 80, 32, '"Dancing Script", cursive')
       // 7. Erase baked-in dates and redraw editable values (expanded white box)
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(Math.round(0.20 * W), Math.round(0.93 * H), Math.round(0.60 * W), Math.round(0.07 * H))
@@ -529,7 +561,10 @@ function ReportCardGeneratorContent() {
       </div>
 
       {/* Preview Section */}
-      <div className="flex flex-col items-center justify-center p-4 md:p-8 bg-slate-100 rounded-3xl border border-slate-200 overflow-x-auto min-h-[500px]">
+      <div 
+        ref={containerRef}
+        className="flex flex-col items-center justify-center p-4 md:p-8 bg-slate-100 rounded-3xl border border-slate-200 min-h-[500px] w-full overflow-hidden"
+      >
         {selectedStudentId === 'all' ? (
           <div className="text-center py-20 text-slate-400 no-print">
             <Award className="w-16 h-16 mx-auto mb-4 opacity-20 text-[#0f2950]" />
@@ -537,7 +572,15 @@ function ReportCardGeneratorContent() {
             <p className="text-xs mt-1">Grades and name will be fetched and pre-loaded automatically.</p>
           </div>
         ) : (
-          <div className="transform scale-95 md:scale-100 origin-center bg-white shadow-xl">
+          <div 
+            className="origin-top transition-transform duration-200 bg-white shadow-xl"
+            style={{
+              transform: `scale(${scale})`,
+              width: '210mm',
+              height: '297mm',
+              marginBottom: scale < 1 ? `calc(297mm * (${scale} - 1))` : '0px'
+            }}
+          >
             <ReportCard 
               key={selectedStudentId}
               initialValues={cardValues}
