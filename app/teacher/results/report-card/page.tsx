@@ -225,6 +225,11 @@ function ReportCardGeneratorContent() {
       setCardValues(newValues)
     }
 
+  // NOTE: cardValues intentionally removed from deps — adding it caused the infinite loop.
+  // The isManuallyEdited guard above ensures edits are never overwritten.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations])
+
   // Handle mobile responsiveness scaling
   useEffect(() => {
     if (selectedStudentId === 'all') return
@@ -250,11 +255,6 @@ function ReportCardGeneratorContent() {
       clearTimeout(timer)
     }
   }, [selectedStudentId])
-
-  // NOTE: cardValues intentionally removed from deps — adding it caused the infinite loop.
-  // The isManuallyEdited guard above ensures edits are never overwritten.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations])
 
   // Format Course Dates
   const formatDateRange = (start: any, end: any) => {
