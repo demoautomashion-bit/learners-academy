@@ -30,9 +30,17 @@ export const metadata: Metadata = {
   description: 'Premium English Language Institute - Empowering learners with world-class language education',
   keywords: ['English', 'Language', 'Education', 'Academy', 'Learning', 'Institute'],
   authors: [{ name: 'The Learners Academy' }],
+  manifest: '/site.webmanifest',
   icons: {
-    icon: '/images/logo.png',
-    apple: '/images/logo.png',
+    icon: [
+      { url: '/images/logo.png', sizes: '192x192', type: 'image/png' },
+      { url: '/images/logo.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/images/logo.png',
+    apple: [
+      { url: '/apple-icon.png' },
+      { url: '/images/logo.png', sizes: '192x192', type: 'image/png' },
+    ],
   },
 }
 
