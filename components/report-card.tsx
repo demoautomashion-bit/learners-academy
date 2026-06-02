@@ -254,8 +254,8 @@ export function ReportCard({
         value={values.comments || ''}
         onChange={(e) => handleValueChange('comments', e.target.value)}
         disabled={readOnly}
-        className="rc-input-overlay rc-font-handwritten"
-        style={{ top: '75.8%', left: '10%', width: '80%', height: '2.5%', fontSize: '24px', fontWeight: '700', display: 'flex', alignItems: 'center' }}
+        className="rc-input-overlay"
+        style={{ top: '76.4%', left: '10%', width: '80%', height: '2.8%', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '24px', fontWeight: '500', display: 'flex', alignItems: 'flex-end', paddingBottom: '2px' }}
       />
 
       {/* Footer Dates Setup */}

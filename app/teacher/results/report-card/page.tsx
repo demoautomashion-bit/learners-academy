@@ -399,8 +399,18 @@ function ReportCardGeneratorContent() {
       // 6. Result & Grade
       draw(v.overallResult || '', 32, 72.0, 14, 30)
       draw(v.grade || '', 67, 72.0, 14, 30)
-      // 6.5. Comments
-      draw(v.comments || '', 10, 77.0, 80, 32, '"Dancing Script", cursive')
+      // 6.5. Comments (drawn with Georgia Italic, non-bold, aligned to line coordinate)
+      if (v.comments) {
+        const cx = ((10 + 80 / 2) / 100) * W
+        const cy = (77.8 / 100) * H
+        ctx.save()
+        ctx.font = 'italic 32px Georgia, serif'
+        ctx.fillStyle = '#000000'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(v.comments, cx, cy, (80 / 100) * W)
+        ctx.restore()
+      }
       // 7. Erase baked-in dates and redraw editable values (expanded white box)
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(Math.round(0.20 * W), Math.round(0.93 * H), Math.round(0.60 * W), Math.round(0.07 * H))
