@@ -1,11 +1,11 @@
 /**
  * Institutional Trimester Registry
- * Single source of truth for the academy's four-trimester academic year.
+ * Single source of truth for the academy's four-term academic year.
  *
- * Spring  → January 1  – March 31
- * Summer  → April 1    – June 30
- * Autumn  → July 1     – September 30
- * Winter  → October 1  – December 31
+ * Summer → June 5    – September 4
+ * Autumn → September 5 – December 4
+ * Winter → December 5  – March 4  (spans two calendar years)
+ * Spring → March 5   – June 4
  */
 
 export type TrimesterSeason = 'Spring' | 'Summer' | 'Autumn' | 'Winter'
@@ -15,37 +15,48 @@ export interface Trimester {
   year: number
   label: string        // e.g. "Summer 2026"
   shortLabel: string   // e.g. "Summer '26"
-  range: string        // e.g. "Apr 1 – Jun 30"
+  range: string        // e.g. "Jun 5 – Sep 4"
   start: Date
   end: Date
-  filterKey: string    // e.g. "summer" — matches TimePeriod union in pages
+  filterKey: string    // e.g. "summer"
 }
 
-/** Month ranges for each season (0-indexed months) */
-const SEASON_MONTHS: Record<TrimesterSeason, { startMonth: number; endMonth: number }> = {
-  Spring: { startMonth: 0, endMonth: 2 },   // Jan–Mar
-  Summer: { startMonth: 3, endMonth: 5 },   // Apr–Jun
-  Autumn: { startMonth: 6, endMonth: 8 },   // Jul–Sep
-  Winter: { startMonth: 9, endMonth: 11 },  // Oct–Dec
+const RANGE_LABELS: Record<TrimesterSeason, string> = {
+  Spring: 'Mar 5 – Jun 4',
+  Summer: 'Jun 5 – Sep 4',
+  Autumn: 'Sep 5 – Dec 4',
+  Winter: 'Dec 5 – Mar 4',
 }
 
 const SEASON_ORDER: TrimesterSeason[] = ['Spring', 'Summer', 'Autumn', 'Winter']
 
-const RANGE_LABELS: Record<TrimesterSeason, string> = {
-  Spring: 'Jan 1 – Mar 31',
-  Summer: 'Apr 1 – Jun 30',
-  Autumn: 'Jul 1 – Sep 30',
-  Winter: 'Oct 1 – Dec 31',
-}
-
 /**
  * Build a Trimester object for a given season and year.
+ * 'year' is always the year the term STARTS in.
+ * Winter is the only cross-year term: starts Dec 5 of 'year', ends Mar 4 of 'year+1'.
  */
 export function buildTrimester(season: TrimesterSeason, year: number): Trimester {
-  const { startMonth, endMonth } = SEASON_MONTHS[season]
-  const start = new Date(year, startMonth, 1, 0, 0, 0, 0)
-  // Last day of endMonth
-  const end = new Date(year, endMonth + 1, 0, 23, 59, 59, 999)
+  let start: Date
+  let end: Date
+
+  switch (season) {
+    case 'Spring':
+      start = new Date(year, 2, 5, 0, 0, 0, 0)         // Mar 5
+      end   = new Date(year, 5, 4, 23, 59, 59, 999)     // Jun 4
+      break
+    case 'Summer':
+      start = new Date(year, 5, 5, 0, 0, 0, 0)          // Jun 5
+      end   = new Date(year, 8, 4, 23, 59, 59, 999)     // Sep 4
+      break
+    case 'Autumn':
+      start = new Date(year, 8, 5, 0, 0, 0, 0)          // Sep 5
+      end   = new Date(year, 11, 4, 23, 59, 59, 999)    // Dec 4
+      break
+    case 'Winter':
+      start = new Date(year, 11, 5, 0, 0, 0, 0)         // Dec 5 of 'year'
+      end   = new Date(year + 1, 2, 4, 23, 59, 59, 999) // Mar 4 of 'year+1'
+      break
+  }
 
   return {
     season,
@@ -68,24 +79,79 @@ export function getTrimesters(year: number): Trimester[] {
 
 /**
  * Returns the Trimester that contains the given date (defaults to today).
+ * Accounts for the 5th-of-the-month boundaries.
+ *
+ * Boundaries:
+ *   Spring  → Mar 5  to Jun 4
+ *   Summer  → Jun 5  to Sep 4
+ *   Autumn  → Sep 5  to Dec 4
+ *   Winter  → Dec 5  to Mar 4  (year assigned = year Dec starts)
  */
 export function getActiveTrimester(date?: Date): Trimester {
   const d = date ?? new Date()
   const month = d.getMonth() // 0-indexed
-  const year = d.getFullYear()
+  const day   = d.getDate()
+  const year  = d.getFullYear()
 
-  let season: TrimesterSeason
-  if (month <= 2) season = 'Spring'
-  else if (month <= 5) season = 'Summer'
-  else if (month <= 8) season = 'Autumn'
-  else season = 'Winter'
+  // Jan, Feb → Winter that started Dec of previous year
+  if (month === 0 || month === 1) {
+    return buildTrimester('Winter', year - 1)
+  }
 
-  return buildTrimester(season, year)
+  // Mar 1-4 → still Winter (started Dec of previous year)
+  if (month === 2 && day < 5) {
+    return buildTrimester('Winter', year - 1)
+  }
+
+  // Mar 5 – Jun 4 → Spring
+  if (month === 2 || month === 3 || month === 4) {
+    return buildTrimester('Spring', year)
+  }
+  if (month === 5 && day < 5) {
+    return buildTrimester('Spring', year)
+  }
+
+  // Jun 5 – Sep 4 → Summer
+  if (month === 5 || month === 6 || month === 7) {
+    return buildTrimester('Summer', year)
+  }
+  if (month === 8 && day < 5) {
+    return buildTrimester('Summer', year)
+  }
+
+  // Sep 5 – Dec 4 → Autumn
+  if (month === 8 || month === 9 || month === 10) {
+    return buildTrimester('Autumn', year)
+  }
+  if (month === 11 && day < 5) {
+    return buildTrimester('Autumn', year)
+  }
+
+  // Dec 5 – Dec 31 → Winter (starts this year)
+  return buildTrimester('Winter', year)
+}
+
+/**
+ * Returns a sorted list of Trimester objects spanning from one year ago
+ * to two years ahead — useful for populating dropdowns.
+ */
+export function getTrimesterList(): Trimester[] {
+  const now = new Date()
+  const years = [now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1]
+  const list: Trimester[] = []
+
+  years.forEach((year) => {
+    SEASON_ORDER.forEach((season) => {
+      list.push(buildTrimester(season, year))
+    })
+  })
+
+  // Sort by start date ascending
+  return list.sort((a, b) => a.start.getTime() - b.start.getTime())
 }
 
 /**
  * Returns { start, end } Date objects for a given season and year.
- * Convenience wrapper for filter logic.
  */
 export function getTrimesterDateRange(
   season: TrimesterSeason,

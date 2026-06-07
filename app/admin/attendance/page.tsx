@@ -87,7 +87,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { getTermFromDate, getTermList, getDatesForTerm } from '@/lib/utils/term-utils'
+import { getActiveTrimester, getTrimesterList, Trimester } from '@/lib/trimesters'
 
 type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'Leave' | 'Substitution'
 
@@ -107,11 +107,11 @@ export default function AttendanceRegistryPage() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   const [viewMode, setViewMode] = useState<'daily' | 'monthly'>('daily')
-  const [selectedTerm, setSelectedTerm] = useState(getTermFromDate(new Date()).id)
+  const [selectedTerm, setSelectedTerm] = useState<Trimester>(() => getActiveTrimester())
   const [openSubTeacherId, setOpenSubTeacherId] = useState<string | null>(null)
   const [expandedTeacherId, setExpandedTeacherId] = useState<string | null>(null)
   
-  const terms = useMemo(() => getTermList(), [])
+  const terms = useMemo(() => getTrimesterList(), [])
   
   // Derive attendance status from global attendance data for the selected date
   const attendanceRecords = useMemo(() => {
@@ -133,7 +133,7 @@ export default function AttendanceRegistryPage() {
   // Monthly/Term Data derived from real participation records
   const monthlyStats = useMemo(() => {
     const stats: Record<string, { present: number; absent: number; late: number; leave: number; substitutions: number }> = {}
-    const { start, end } = getDatesForTerm(selectedTerm)
+    const { start, end } = selectedTerm
     
     teachers.forEach(teacher => {
         const teacherRecs = attendance.filter(a => {
@@ -311,10 +311,9 @@ export default function AttendanceRegistryPage() {
             endDate = endOfWeek(selectedDate, { weekStartsOn: 1 })
             label = `WEEKLY AUDIT: ${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`
         } else if (mode === 'trimester') {
-            const term = getDatesForTerm(selectedTerm)
-            startDate = term.start
-            endDate = term.end
-            label = `TRIMESTER AUDIT: ${selectedTerm.toUpperCase().replace('-', ' ')}`
+            startDate = selectedTerm.start
+            endDate = selectedTerm.end
+            label = `TRIMESTER AUDIT: ${selectedTerm.label.toUpperCase()}`
         } else {
             startDate = startOfMonth(selectedDate)
             endDate = endOfMonth(selectedDate)
@@ -500,13 +499,16 @@ export default function AttendanceRegistryPage() {
                             </h2>
                             <div className="flex items-center gap-3">
                                 <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">Filter by Term:</span>
-                                <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                                <Select value={`${selectedTerm.season}-${selectedTerm.year}`} onValueChange={(val) => {
+                                    const found = terms.find(t => `${t.season}-${t.year}` === val)
+                                    if (found) setSelectedTerm(found)
+                                }}>
                                     <SelectTrigger className="w-[180px] h-10 rounded-xl bg-muted/5 border-primary/10 glass-1 text-xs font-bold uppercase tracking-widest">
                                         <SelectValue placeholder="Select Term" />
                                     </SelectTrigger>
                                     <SelectContent className="glass-3 border-primary/10 rounded-xl">
                                         {terms.map(term => (
-                                            <SelectItem key={term.id} value={term.id} className="text-xs font-bold uppercase tracking-widest">
+                                            <SelectItem key={`${term.season}-${term.year}`} value={`${term.season}-${term.year}`} className="text-xs font-bold uppercase tracking-widest">
                                                 {term.label}
                                             </SelectItem>
                                         ))}

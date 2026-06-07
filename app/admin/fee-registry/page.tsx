@@ -62,7 +62,7 @@ import { EntityCardGrid } from '@/components/shared/entity-card-grid'
 import { EntityDataGrid } from '@/components/shared/entity-data-grid'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { SCHEDULE_SLOTS } from '@/lib/registry'
-import { getActiveTrimester } from '@/lib/trimesters'
+import { getActiveTrimester, buildTrimester, TrimesterSeason } from '@/lib/trimesters'
 import { useReactToPrint } from 'react-to-print'
 import { toast } from 'sonner'
 import { 
@@ -121,7 +121,7 @@ export default function FeeRegistryPage() {
   const handleBulkDelete = async () => {
     if (confirmText !== 'DELETE') return
     try {
-      await deleteAllFeePayments(activeSeason)
+      await deleteAllFeePayments(activeTermRange.start, activeTermRange.end)
       toast.success("Fee logs cleared")
       setIsBulkDeleteDialogOpen(false)
       setConfirmText('')
@@ -131,6 +131,7 @@ export default function FeeRegistryPage() {
   }
 
   const currentTrimester = useMemo(() => getActiveTrimester(), [])
+  const activeTermRange = useMemo(() => buildTrimester(activeSeason as TrimesterSeason, new Date().getFullYear()), [activeSeason])
 
   // Top 4 Metrics Calculations
   const stats = useMemo(() => {
@@ -147,8 +148,8 @@ export default function FeeRegistryPage() {
          if (isSameWeek(paidDate, now)) weekly += amount
          if (isSameMonth(paidDate, now)) monthly += amount
          
-         // Semester is mapped to total payments for that season (historical aggregate)
-         semester += amount
+         // Semester: only count payments within the active season's date range
+         if (paidDate >= activeTermRange.start && paidDate <= activeTermRange.end) semester += amount
      })
 
      return [
@@ -157,7 +158,7 @@ export default function FeeRegistryPage() {
         { label: 'Monthly Collected', value: `PKR ${monthly.toLocaleString()}`, sub: 'Current Month', icon: CreditCard, color: 'text-indigo-400' },
         { label: 'Semester Collected', value: `PKR ${semester.toLocaleString()}`, sub: `${activeSeason} Volume`, icon: CheckCircle2, color: 'text-amber-500' },
     ]
-  }, [feePayments, activeSeason])
+  }, [feePayments, activeSeason, activeTermRange])
 
   // Process Class Ledger
   const classLedger = useMemo(() => {
@@ -186,7 +187,7 @@ export default function FeeRegistryPage() {
          if (timingFilter !== 'all' && c.timing !== timingFilter) return false;
          return true;
      })
-  }, [courses, feePayments, searchQuery, classFilter, timingFilter])
+  }, [courses, feePayments, searchQuery, classFilter, timingFilter, activeTermRange])
 
   // Process Student Ledger
   const studentLedger = useMemo(() => {
@@ -222,7 +223,7 @@ export default function FeeRegistryPage() {
           if (timingFilter !== 'all' && s.timing !== timingFilter) return false;
           return true;
       })
-  }, [students, feePayments, courses, searchQuery, classFilter, timingFilter])
+  }, [students, feePayments, courses, searchQuery, classFilter, timingFilter, activeTermRange])
 
   // Capture targeted student logic
   const selectedStudentTarget = studentLedger.find(s => s.id === selectedStudentId)

@@ -96,7 +96,7 @@ interface DataContextType {
   deleteAllStudents: () => Promise<void>
   deleteAllCourses: (levelFilter?: string, timingFilter?: string) => Promise<void>
   deleteAllTimeSlots: () => Promise<void>
-  deleteAllFeePayments: (season?: string) => Promise<void>
+  deleteAllFeePayments: (startDate?: Date, endDate?: Date) => Promise<void>
   deleteAllEconomicsLogs: (temporalFilter?: string) => Promise<void>
   deleteAllTeachers: () => Promise<void>
 }
@@ -321,7 +321,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteAllStudents = useCallback(() => executeAction(() => dbDeleteAllStudents(), "All students cleared"), [executeAction])
   const deleteAllCourses = useCallback((levelFilter?: string, timingFilter?: string) => executeAction(() => dbDeleteAllCourses(levelFilter, timingFilter), "Classes cleared"), [executeAction])
   const deleteAllTimeSlots = useCallback(() => executeAction(() => dbDeleteAllTimeSlots(), "Schedule matrix cleared"), [executeAction])
-  const deleteAllFeePayments = useCallback((season?: string) => executeAction(() => dbDeleteAllFeePayments(season), "Fee logs cleared"), [executeAction])
+  const deleteAllFeePayments = useCallback((startDate?: Date, endDate?: Date) => executeAction(() => dbDeleteAllFeePayments(startDate, endDate), "Fee logs cleared"), [executeAction])
   const deleteAllEconomicsLogs = useCallback((temporalFilter?: string) => executeAction(() => dbDeleteAllEconomicsLogs(temporalFilter), "Economics ledger cleared"), [executeAction])
   const deleteAllTeachers = useCallback(() => executeAction(() => dbDeleteAllTeachers(), "All staff cleared"), [executeAction])
 

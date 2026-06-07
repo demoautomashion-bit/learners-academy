@@ -115,11 +115,23 @@ export async function updateClassFee(courseId: string, feeAmount: number): Promi
   }
 }
 
-export async function deleteAllFeePayments(season?: string): Promise<ActionResult> {
+export async function deleteAllFeePayments(startDate?: Date, endDate?: Date): Promise<ActionResult> {
   try {
-    // If season filtering is supported by schema in the future, we can add it to where clause.
-    // For now, it clears all.
-    await db.feePayment.deleteMany({})
+    if (startDate && endDate) {
+      // Delete only payments whose paymentDate falls within the selected term.
+      // Records with paymentDate = null (unpaid, never paid) are intentionally preserved.
+      await db.feePayment.deleteMany({
+        where: {
+          paymentDate: {
+            gte: startDate,
+            lte: endDate,
+          }
+        }
+      })
+    } else {
+      // No range provided — full wipe (used only from system-level reset)
+      await db.feePayment.deleteMany({})
+    }
     revalidatePath('/')
     return { success: true }
   } catch (error) {
