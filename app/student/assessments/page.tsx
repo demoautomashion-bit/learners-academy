@@ -339,11 +339,12 @@ export default function StudentAssessmentsPage() {
          const points = getPointsForQuestion(q.type)
          totalScore += (h?.score || 0) * points
       })
-      const actualTotalMarks = randomizedQuestions.reduce((sum, q) => {
-        const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
-        return sum + (allocationMap ? (Number(allocationMap[q.type]) || 0) : 1)
-      }, 0)
-      const rawTotalMarks = actualTotalMarks > 0 ? actualTotalMarks : (activeTest?.totalMarks || 100)
+      const rawTotalMarks = activeTest?.totalMarks && activeTest.totalMarks > 0
+         ? activeTest.totalMarks
+         : (randomizedQuestions.reduce((sum, q) => {
+             const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
+             return sum + (allocationMap ? (Number(allocationMap[q.type]) || 0) : 1)
+           }, 0) || 100)
       
       // Scale out of 100
       const finalCalculatedScore = Math.round((totalScore / rawTotalMarks) * 100)
@@ -465,8 +466,9 @@ export default function StudentAssessmentsPage() {
     })
 
     const rawScore = Math.round(totalScore)
-    const actualTotalMarks = randomizedQuestions.reduce((sum, q) => sum + getPointsForQuestion(q.type), 0)
-    const rawTotalMarks = actualTotalMarks > 0 ? actualTotalMarks : (activeTest?.totalMarks || 100)
+    const rawTotalMarks = activeTest?.totalMarks && activeTest.totalMarks > 0
+      ? activeTest.totalMarks
+      : (randomizedQuestions.reduce((sum, q) => sum + getPointsForQuestion(q.type), 0) || 100)
     
     // Scale out of 100
     const finalCalculatedScore = Math.round((rawScore / rawTotalMarks) * 100)
