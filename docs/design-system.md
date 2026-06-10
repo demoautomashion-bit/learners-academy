@@ -1,13 +1,13 @@
 # Design System
 
 ## Typography System
-- **Serif (Display & Headings):** Cormorant Garamond (`--font-serif`). Used exclusively for h1-h6, card titles, and dialog headers.
-- **Sans-Serif (Body & UI):** Helvetica Neue (`--font-sans`). Used for all body text, buttons, labels, and standard UI controls.
+- **Display & Headings:** Arial / Helvetica / Sans-Serif (`--font-serif`). Used for h1-h6, card titles, and dialog headers.
+- **Body & UI:** Arial / Helvetica / Sans-Serif (`--font-sans`). Used for all body text, buttons, labels, and standard UI controls.
 
 ## Font Hierarchy
-- **H1:** 3xl-4xl, tight line-height, Serif, medium-semibold.
-- **H2:** 2xl-3xl, tight line-height, Serif, medium-semibold.
-- **H3:** xl-2xl, snug line-height, Serif, medium-semibold.
+- **H1:** 3xl-4xl, tight line-height, Sans-Serif, medium-semibold.
+- **H2:** 2xl-3xl, tight line-height, Sans-Serif, medium-semibold.
+- **H3:** xl-2xl, snug line-height, Sans-Serif, medium-semibold.
 - **Body Base:** text-base, normal line-height, Sans-Serif, medium.
 - **Label / Micro:** 0.75rem (text-xs), uppercase tracking-widest, Semibold, Sans-Serif.
 

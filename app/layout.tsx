@@ -1,6 +1,4 @@
-// Vercel Deployment Test
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/auth-context'
@@ -8,19 +6,6 @@ import { DataProvider } from '@/contexts/data-context'
 import { StabilityBoundary } from '@/components/stability/stability-boundary'
 import { cn } from '@/lib/utils'
 import './globals.css'
-
-const cormorant = Cormorant_Garamond({ 
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-cormorant',
-  display: 'swap',
-})
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: {
@@ -56,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={cn(cormorant.variable, inter.variable)}>
+    <html lang="en">
       <body className="antialiased font-sans">
         <AuthProvider>
           <DataProvider>
