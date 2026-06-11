@@ -119,9 +119,13 @@ const adminNavItems = [
     ]
   },
   {
-    title: 'System Settings',
+    title: 'Settings',
     href: '/admin/settings',
     icon: Settings,
+    items: [
+      { title: 'General & Security', href: '/admin/settings', icon: Settings },
+      { title: 'SMS Broadcasting', href: '/admin/settings/broadcast', icon: FileCheck },
+    ]
   },
 ]
 
