@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GraduationCap, Users, ArrowRight, Shield, Lock, ClipboardList, Calendar, X, Megaphone } from 'lucide-react'
+import { GraduationCap, Users, ArrowRight, Shield, Lock, ClipboardList, Calendar, X, Megaphone, Clock, BookOpen, Award, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -67,8 +67,23 @@ const PORTALS = [
 export default function HomePage() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null)
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 lg:px-8 bg-linear-to-b from-background to-muted/30 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-4 lg:px-8 bg-linear-to-b from-background to-muted/30 relative overflow-hidden">
       <ParticleField />
+
+      {/* Top Countdown Ticker */}
+      <div className="w-full bg-primary/5 border-b border-primary/10 py-3.5 px-4 backdrop-blur-md absolute top-0 left-0 right-0 z-30 flex items-center justify-center gap-2 text-xs font-bold text-primary">
+        <Clock className="w-4 h-4 text-primary animate-pulse" />
+        <span>🔔 Term 2 Registration Open: Deadline closes in 14 days.</span>
+        <button 
+          onClick={() => {
+            const el = document.getElementById('announcements')
+            el?.scrollIntoView({ behavior: 'smooth' })
+          }} 
+          className="underline hover:text-primary/80 transition-colors ml-2"
+        >
+          View Announcement
+        </button>
+      </div>
 
       {/* Background Ornaments */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
@@ -80,15 +95,49 @@ export default function HomePage() {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center mb-10"
+          className="flex flex-col items-center mb-16 text-center max-w-3xl"
         >
-          <PerspectiveTilt intensity={25} glareOpacity={0.2}>
-            <Logo size="2xl" orientation="vertical" />
-          </PerspectiveTilt>
+          <div className="mb-6 scale-90 md:scale-100">
+            <PerspectiveTilt intensity={15} glareOpacity={0.15}>
+              <Logo size="xl" orientation="vertical" />
+            </PerspectiveTilt>
+          </div>
+          
+          <h1 className="font-serif text-4xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1] mb-6">
+            Sculpting Eloquence. <br/>
+            <span className="text-primary/80">Auditing Excellence.</span>
+          </h1>
+
+          <p className="text-base text-muted-foreground leading-relaxed max-w-xl mb-8">
+            Premium English language education powered by specialized faculty, audited digital curricula, and verified progress tracking.
+          </p>
+
+          <div className="flex gap-4">
+            <Button 
+              onClick={() => {
+                const el = document.getElementById('announcements')
+                el?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              variant="outline" 
+              className="rounded-full h-12 px-6 text-xs uppercase tracking-widest font-bold border-primary/20 hover:bg-primary/5"
+            >
+              Explore Term Schedules
+            </Button>
+            <Button 
+              onClick={() => {
+                const el = document.getElementById('portals')
+                el?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="rounded-full h-12 px-6 text-xs uppercase tracking-widest font-bold shadow-lg shadow-primary/10"
+            >
+              Access Portals
+            </Button>
+          </div>
         </motion.div>
 
         {/* Portal Grid */}
         <motion.div 
+          id="portals"
           className="grid gap-6 md:gap-8 md:grid-cols-3 w-full"
           initial="hidden"
           animate="show"
@@ -149,8 +198,72 @@ export default function HomePage() {
           ))}
         </motion.div>
 
+        {/* Institutional Highlights */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="w-full mt-32 grid gap-8 md:grid-cols-3 text-center"
+        >
+          <div className="flex flex-col items-center space-y-3 p-6 rounded-2xl bg-primary/[0.01] border border-primary/5">
+            <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-2">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif text-lg font-bold text-primary">Audited Syllabus</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
+              Linguistic courses mapped to international framework guidelines, verified annually by curriculum audits.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center space-y-3 p-6 rounded-2xl bg-primary/[0.01] border border-primary/5">
+            <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-2">
+              <Shield className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif text-lg font-bold text-primary">Secure Testing Vault</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
+              Proctored assessment environments, automated plagiarism checks, and encrypted academic records.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center space-y-3 p-6 rounded-2xl bg-primary/[0.01] border border-primary/5">
+            <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-2">
+              <Megaphone className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif text-lg font-bold text-primary">Instant SMS Alerts</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
+              Direct notifications on your mobile handset immediately when grades, term reports, or schedules go live.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Quick Stats Bar */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="w-full mt-24 p-8 rounded-[2rem] bg-linear-to-r from-primary/5 via-primary/[0.02] to-primary/5 border border-primary/10 flex flex-col md:flex-row justify-around items-center gap-8 text-center"
+        >
+          <div className="space-y-1">
+            <div className="font-serif text-4xl md:text-5xl font-black text-primary">98%</div>
+            <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Graduation Rate</div>
+          </div>
+          <div className="hidden md:block w-px h-12 bg-primary/10" />
+          <div className="space-y-1">
+            <div className="font-serif text-4xl md:text-5xl font-black text-primary">12+</div>
+            <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Academic Levels</div>
+          </div>
+          <div className="hidden md:block w-px h-12 bg-primary/10" />
+          <div className="space-y-1">
+            <div className="font-serif text-4xl md:text-5xl font-black text-primary">500+</div>
+            <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Active Candidates</div>
+          </div>
+        </motion.div>
+
         {/* Announcements Section */}
         <motion.div
+          id="announcements"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8 }}

@@ -56,6 +56,7 @@ import {
   Calendar,
   FileCheck,
   LayoutGrid,
+  Megaphone,
 } from 'lucide-react'
 import { StabilityBoundary } from '@/components/stability/stability-boundary'
 
@@ -119,13 +120,14 @@ const adminNavItems = [
     ]
   },
   {
-    title: 'Settings',
+    title: 'Broadcasts',
+    href: '/admin/broadcast',
+    icon: Megaphone,
+  },
+  {
+    title: 'System Settings',
     href: '/admin/settings',
     icon: Settings,
-    items: [
-      { title: 'General & Security', href: '/admin/settings', icon: Settings },
-      { title: 'SMS Broadcasting', href: '/admin/settings/broadcast', icon: FileCheck },
-    ]
   },
 ]
 
