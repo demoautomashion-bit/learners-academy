@@ -102,8 +102,8 @@ export default function BroadcastPage() {
   return (
     <PageShell>
       <PageHeader 
-        title="SMS Broadcast Center"
-        description="Design, preview, and dispatch institutional announcements to students' registered phone numbers."
+        title="Send Announcements"
+        description="Write and send SMS messages to students and parents."
       />
 
       <div className="grid gap-8 lg:grid-cols-3 items-start mt-8">
@@ -116,7 +116,7 @@ export default function BroadcastPage() {
                 <Megaphone className="w-5 h-5 text-primary" />
                 Compose Announcement
               </h3>
-              <p className="text-xs text-muted-foreground opacity-40 mt-1">Configure your target segment and draft the SMS body.</p>
+              <p className="text-xs text-muted-foreground opacity-40 mt-1">Choose who receives this and write your message.</p>
             </div>
 
             <div className="space-y-6">
@@ -131,7 +131,7 @@ export default function BroadcastPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Target Term Reference</label>
+                  <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Term Name</label>
                   <Input 
                     value={termName} 
                     onChange={e => setTermName(e.target.value)}
@@ -142,8 +142,8 @@ export default function BroadcastPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Recipient Segmentation</label>
-                <div className="grid grid-cols-3 gap-4">
+                <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Who gets this message?</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
                     { id: 'active', label: 'Active Students', sub: '~120 contacts' },
                     { id: 'alumni', label: 'Alumni / Inactive', sub: '~230 contacts' },
@@ -152,7 +152,7 @@ export default function BroadcastPage() {
                     <button
                       key={group.id}
                       onClick={() => setTargetGroup(group.id)}
-                      className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between h-20 ${
+                      className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between h-auto py-4 ${
                         targetGroup === group.id 
                           ? 'border-primary bg-primary/5 shadow-md shadow-primary/5' 
                           : 'border-primary/5 bg-primary/[0.01] hover:border-primary/20'
@@ -192,8 +192,8 @@ export default function BroadcastPage() {
               {/* Opt-out switch toggle */}
               <div className="flex items-center justify-between p-4 bg-muted/20 border border-dashed rounded-2xl">
                 <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-primary">Append Compliance Unsubscribe Footer</h4>
-                  <p className="text-[10px] text-muted-foreground opacity-60">Adds direct link token to allow student self-serve unsubscribe.</p>
+                  <h4 className="text-xs font-bold text-primary">Include Unsubscribe Link</h4>
+                  <p className="text-[10px] text-muted-foreground opacity-60">Adds a link so students can stop receiving messages.</p>
                 </div>
                 <Switch 
                   checked={appendUnsubscribe} 
@@ -203,28 +203,34 @@ export default function BroadcastPage() {
               </div>
             </div>
 
+            {/* Mobile/Tablet Preview Card */}
+            <div className="block lg:hidden border border-primary/10 bg-primary/5 p-4 rounded-2xl space-y-2">
+              <span className="text-[10px] uppercase tracking-widest opacity-60 font-bold">SMS Preview</span>
+              <p className="text-xs leading-relaxed bg-background/50 p-3 rounded-xl border border-primary/5 text-foreground">{getMergedMessage()}</p>
+            </div>
+
             <div className="flex justify-end pt-4">
               <Button 
                 onClick={handleSendBroadcast} 
                 disabled={isSending} 
-                className="font-normal h-12 px-10 shadow-xl shadow-primary/20 rounded-xl"
+                className="font-normal h-12 px-10 shadow-xl shadow-primary/20 rounded-xl w-full sm:w-auto"
               >
                 <Send className="w-4 h-4 mr-2" />
-                {isSending ? 'Sending Broadcast...' : 'Dispatch SMS Announcement'}
+                {isSending ? 'Sending Message...' : 'Send Text Message'}
               </Button>
             </div>
           </Card>
         </div>
 
         {/* Right Phone Mockup Column */}
-        <div className="space-y-8">
+        <div className="hidden lg:block space-y-8">
           <Card className="glass-1 rounded-[2rem] border-primary/5 shadow-2xl p-8 flex flex-col items-center">
             <div className="text-center mb-6 w-full">
               <h3 className="font-serif text-lg font-medium tracking-tight flex items-center justify-center gap-1.5">
                 <Smartphone className="w-5 h-5 text-primary" />
-                Live Handset Preview
+                SMS Preview
               </h3>
-              <p className="text-xs text-muted-foreground opacity-40 mt-1">Real-time simulation of incoming SMS.</p>
+              <p className="text-xs text-muted-foreground opacity-40 mt-1">See how your message looks on a phone.</p>
             </div>
 
             {/* Handset Mockup Container */}
@@ -302,10 +308,10 @@ export default function BroadcastPage() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-primary/5 text-[10px] uppercase tracking-wider text-muted-foreground opacity-60">
-                  <th className="py-4 font-bold">Campaign / Subject</th>
+                  <th className="py-4 font-bold">Message Title</th>
                   <th className="py-4 font-bold">Date Sent</th>
-                  <th className="py-4 font-bold">Target Segment</th>
-                  <th className="py-4 font-bold">Recipients</th>
+                  <th className="py-4 font-bold hidden sm:table-cell">Sent To</th>
+                  <th className="py-4 font-bold hidden sm:table-cell">Recipients</th>
                   <th className="py-4 font-bold">Status</th>
                 </tr>
               </thead>
@@ -314,8 +320,8 @@ export default function BroadcastPage() {
                   <tr key={log.id} className="hover:bg-primary/[0.01] transition-colors">
                     <td className="py-4 font-bold text-primary">{log.title}</td>
                     <td className="py-4 text-muted-foreground">{log.date}</td>
-                    <td className="py-4 text-muted-foreground">{log.group}</td>
-                    <td className="py-4 text-muted-foreground">{log.count}</td>
+                    <td className="py-4 text-muted-foreground hidden sm:table-cell">{log.group}</td>
+                    <td className="py-4 text-muted-foreground hidden sm:table-cell">{log.count}</td>
                     <td className="py-4">
                       <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-wider font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
                         <CheckCircle className="w-3 h-3" />
