@@ -274,3 +274,13 @@ model SystemSettings {
   logoUrl          String?
   updatedAt        DateTime @updatedAt
 }
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  summary   String
+  content   String
+  category  String
+  date      String
+  createdAt DateTime @default(now())
+}

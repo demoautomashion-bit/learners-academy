@@ -35,7 +35,7 @@ const MOCK_HISTORY = [
 export default function BroadcastPage() {
   const hasMounted = useHasMounted()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  const { isInitialized: dataInitialized } = useData()
+  const { isInitialized: dataInitialized, addAnnouncement } = useData()
 
   // Form states
   const [subject, setSubject] = useState('')
@@ -69,7 +69,7 @@ export default function BroadcastPage() {
     setMessage(prev => prev + ` ${tag}`)
   }
 
-  const handleSendBroadcast = () => {
+  const handleSendBroadcast = async () => {
     if (!subject.trim()) {
       toast.error('Please specify a broadcast subject title.')
       return
@@ -80,6 +80,18 @@ export default function BroadcastPage() {
     }
 
     setIsSending(true)
+    try {
+      await addAnnouncement({
+        title: subject,
+        summary: message.slice(0, 100) + (message.length > 100 ? '...' : ''),
+        content: getMergedMessage(),
+        category: 'SMS Announcement',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+      })
+    } catch (err) {
+      console.warn("Database storage failed, proceeding with local simulation", err)
+    }
+
     setTimeout(() => {
       setIsSending(false)
       const recipientCount = targetGroup === 'active' ? 120 : targetGroup === 'alumni' ? 230 : 350

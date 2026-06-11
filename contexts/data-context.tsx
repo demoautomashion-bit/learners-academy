@@ -23,6 +23,7 @@ import { saveEvaluations as dbSaveEvaluations } from '@/lib/actions/evaluations'
 import { addTimeSlot as dbAddTimeSlot, removeTimeSlot as dbRemoveTimeSlot, addCourseToSlot as dbAddCourseToSlot, removeCourseFromSlot as dbRemoveCourseFromSlot, deleteAllTimeSlots as dbDeleteAllTimeSlots } from '@/lib/actions/time-slots'
 import { getInitialData } from '@/lib/actions/get-data'
 import { getTeacherAudioFiles, saveAudioRecord as dbSaveAudioRecord, deleteAudioFile as dbDeleteAudio, type AudioFile } from '@/lib/actions/audio'
+import { getAnnouncements, createAnnouncement as dbCreateAnnouncement } from '@/lib/actions/announcements'
 import { useAuth } from '@/contexts/auth-context'
 import { calculateStudentOverallProgress } from '@/lib/utils/student-progress'
 
@@ -43,6 +44,7 @@ interface DataContextType {
   attendance: any[]
   evaluations: any[]
   audioFiles: AudioFile[]
+  announcements: any[]
   isInitialized: boolean
   isLoading: boolean
   errorMsg: string | null
@@ -50,6 +52,7 @@ interface DataContextType {
   // Actions
   enrollStudent: (student: any) => Promise<void>
   removeStudent: (id: string) => Promise<void>
+  addAnnouncement: (data: { title: string, summary: string, content: string, category: string, date: string }) => Promise<void>
   updateStudentStatus: (id: string, status: Student['status']) => Promise<void>
   updateStudent: (id: string, data: Partial<Student>) => Promise<void>
   updateStudentSuccessMetrics: (id: string, progress: number, grade?: string) => Promise<void>
@@ -160,6 +163,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [attendance, setAttendance] = useState<any[]>([])
   const [evaluations, setEvaluations] = useState<any[]>([])
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([])
+  const [announcements, setAnnouncements] = useState<any[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -189,10 +193,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // We don't reset hasError here to avoid flickering if it's already set
       // setHasError(false)
       
-      const [initRes, econData, audioRes] = await Promise.all([
+      const [initRes, econData, audioRes, announcementsData] = await Promise.all([
         getInitialData(user?.id, user?.role as any),
         getEconomicStats().catch(() => ({ success: false, data: null })),
-        user?.role === 'teacher' ? getTeacherAudioFiles(user.id) : Promise.resolve({ success: true, data: [] })
+        user?.role === 'teacher' ? getTeacherAudioFiles(user.id) : Promise.resolve({ success: true, data: [] }),
+        getAnnouncements().catch(() => [])
       ])
 
       if (!initRes.success || !initRes.data) {
@@ -227,6 +232,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (user?.role === 'teacher' && audioRes?.success) {
            setAudioFiles(audioRes.data as any)
         }
+
+        setAnnouncements(Array.isArray(announcementsData) ? announcementsData : [])
       })
     } catch (err) {
       console.error('[DataProvider] SYNC_FAILURE:', err)
@@ -349,6 +356,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return executeAction(() => dbSaveAudioRecord(blobUrl, title, filename, user.id), "Institutional asset verified")
   }, [executeAction, user?.id])
   const deleteAudio = useCallback((id: string) => executeAction(() => dbDeleteAudio(id, user?.id || ''), "Asset purged"), [executeAction, user?.id])
+  const addAnnouncement = useCallback((data: { title: string, summary: string, content: string, category: string, date: string }) => executeAction(() => dbCreateAnnouncement(data), "Announcement posted"), [executeAction])
 
   if (errorMsg) {
     return (
@@ -382,8 +390,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, isInitialized, isLoading, errorMsg,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, resetToDefaults: () => {}, refresh, retryConnection,
+      teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, announcements, isInitialized, isLoading, errorMsg,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, addAnnouncement, resetToDefaults: () => {}, refresh, retryConnection,
       deleteAllStudents, deleteAllCourses, deleteAllTimeSlots, deleteAllFeePayments, deleteAllEconomicsLogs, deleteAllTeachers,
     }}>
       {children}
@@ -447,6 +455,7 @@ export function useData() {
     activities: Array.isArray(context.activities) ? context.activities : [],
     attendance: Array.isArray(context.attendance) ? context.attendance : [],
     evaluations: Array.isArray(context.evaluations) ? context.evaluations : [],
+    announcements: Array.isArray(context.announcements) ? context.announcements : [],
     isInitialized: !!context.isInitialized,
   }
 }

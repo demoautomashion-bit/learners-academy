@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/logo'
 import { ParticleField } from '@/components/particle-field'
 import { PerspectiveTilt } from '@/components/shared/perspective-tilt'
+import { useData } from '@/contexts/data-context'
 
 // ─── RAF-based smooth counter ────────────────────────────────────
 function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
@@ -115,10 +116,13 @@ const PORTALS = [
 
 // ─── Main Component ──────────────────────────────────────────────
 export default function HomePage() {
+  const { announcements } = useData()
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null)
 
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, { stiffness: 80, damping: 28, restDelta: 0.001 })
+
+  const displayAnnouncements = announcements.length > 0 ? announcements : MOCK_ANNOUNCEMENTS
 
   return (
     <div className="min-h-screen flex flex-col items-center pt-24 pb-12 px-4 lg:px-8 bg-linear-to-b from-background to-muted/30 relative overflow-hidden">
@@ -386,7 +390,7 @@ export default function HomePage() {
             whileInView="show"
             viewport={{ once: true, margin: '-60px' }}
           >
-            {MOCK_ANNOUNCEMENTS.map((announcement) => (
+            {displayAnnouncements.map((announcement) => (
               <motion.div
                 key={announcement.id}
                 variants={fadeUpItem}
