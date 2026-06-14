@@ -57,6 +57,7 @@ import {
   FileCheck,
   LayoutGrid,
   Megaphone,
+  Palette,
 } from 'lucide-react'
 import { StabilityBoundary } from '@/components/stability/stability-boundary'
 
@@ -102,6 +103,7 @@ const adminNavItems = [
     items: [
       { title: 'Classes', href: '/admin/classes', icon: LayoutGrid },
       { title: 'Schedules', href: '/admin/schedule', icon: Calendar },
+      { title: 'Card Templates', href: '/admin/classes/templates', icon: Palette },
     ]
   },
   {

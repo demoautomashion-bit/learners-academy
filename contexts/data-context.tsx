@@ -24,6 +24,7 @@ import { addTimeSlot as dbAddTimeSlot, removeTimeSlot as dbRemoveTimeSlot, addCo
 import { getInitialData } from '@/lib/actions/get-data'
 import { getTeacherAudioFiles, saveAudioRecord as dbSaveAudioRecord, deleteAudioFile as dbDeleteAudio, type AudioFile } from '@/lib/actions/audio'
 import { getAnnouncements, createAnnouncement as dbCreateAnnouncement } from '@/lib/actions/announcements'
+import { getCardTemplates, saveCardTemplate as dbSaveCardTemplate, deleteCardTemplate as dbDeleteCardTemplate } from '@/lib/actions/card-templates'
 import { useAuth } from '@/contexts/auth-context'
 import { calculateStudentOverallProgress } from '@/lib/utils/student-progress'
 
@@ -45,6 +46,7 @@ interface DataContextType {
   evaluations: any[]
   audioFiles: AudioFile[]
   announcements: any[]
+  cardTemplates: any[]
   isInitialized: boolean
   isLoading: boolean
   errorMsg: string | null
@@ -93,6 +95,8 @@ interface DataContextType {
   saveEvaluations: (courseId: string, data: any[]) => Promise<void>
   uploadAudio: (formData: FormData) => Promise<void>
   deleteAudio: (id: string) => Promise<void>
+  saveCardTemplate: (level: string, backgroundUrl: string, coordinates: any) => Promise<void>
+  deleteCardTemplate: (level: string) => Promise<void>
   resetToDefaults: () => void
   refresh: () => Promise<void>
   retryConnection: () => Promise<void>
@@ -164,6 +168,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [evaluations, setEvaluations] = useState<any[]>([])
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([])
   const [announcements, setAnnouncements] = useState<any[]>([])
+  const [cardTemplates, setCardTemplates] = useState<any[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -193,11 +198,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // We don't reset hasError here to avoid flickering if it's already set
       // setHasError(false)
       
-      const [initRes, econData, audioRes, announcementsData] = await Promise.all([
+      const [initRes, econData, audioRes, announcementsData, templatesRes] = await Promise.all([
         getInitialData(user?.id, user?.role as any),
         getEconomicStats().catch(() => ({ success: false, data: null })),
         user?.role === 'teacher' ? getTeacherAudioFiles(user.id) : Promise.resolve({ success: true, data: [] }),
-        getAnnouncements().catch(() => [])
+        getAnnouncements().catch(() => []),
+        getCardTemplates().catch(() => ({ success: false, data: [] }))
       ])
 
       if (!initRes.success || !initRes.data) {
@@ -234,6 +240,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
 
         setAnnouncements(Array.isArray(announcementsData) ? announcementsData : [])
+        setCardTemplates(templatesRes && templatesRes.success && Array.isArray(templatesRes.data) ? templatesRes.data : [])
       })
     } catch (err) {
       console.error('[DataProvider] SYNC_FAILURE:', err)
@@ -357,6 +364,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [executeAction, user?.id])
   const deleteAudio = useCallback((id: string) => executeAction(() => dbDeleteAudio(id, user?.id || ''), "Asset purged"), [executeAction, user?.id])
   const addAnnouncement = useCallback((data: { title: string, summary: string, content: string, category: string, date: string }) => executeAction(() => dbCreateAnnouncement(data), "Announcement posted"), [executeAction])
+  const saveCardTemplate = useCallback((level: string, backgroundUrl: string, coordinates: any) => executeAction(() => dbSaveCardTemplate(level, backgroundUrl, coordinates), "Card template saved"), [executeAction])
+  const deleteCardTemplate = useCallback((level: string) => executeAction(() => dbDeleteCardTemplate(level), "Card template reset"), [executeAction])
 
   if (errorMsg) {
     return (
@@ -390,8 +399,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, announcements, isInitialized, isLoading, errorMsg,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, addAnnouncement, resetToDefaults: () => {}, refresh, retryConnection,
+      teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, announcements, cardTemplates, isInitialized, isLoading, errorMsg,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, addAnnouncement, saveCardTemplate, deleteCardTemplate, resetToDefaults: () => {}, refresh, retryConnection,
       deleteAllStudents, deleteAllCourses, deleteAllTimeSlots, deleteAllFeePayments, deleteAllEconomicsLogs, deleteAllTeachers,
     }}>
       {children}
@@ -456,6 +465,7 @@ export function useData() {
     attendance: Array.isArray(context.attendance) ? context.attendance : [],
     evaluations: Array.isArray(context.evaluations) ? context.evaluations : [],
     announcements: Array.isArray(context.announcements) ? context.announcements : [],
+    cardTemplates: Array.isArray(context.cardTemplates) ? context.cardTemplates : [],
     isInitialized: !!context.isInitialized,
   }
 }

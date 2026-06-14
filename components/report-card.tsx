@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useData } from '@/contexts/data-context'
 
 export interface ReportCardValues {
   studentName: string
@@ -34,6 +35,8 @@ export function ReportCard({
   className,
   cardRef
 }: ReportCardProps) {
+  const { cardTemplates } = useData()
+
   const [values, setValues] = useState<ReportCardValues>({
     studentName: '',
     level: '',
@@ -84,12 +87,24 @@ export function ReportCard({
     parseMark(values.disciplineObtained) +
     parseMark(values.extraCurricularObtained)
 
+  // Find template mappings
+  const template = (cardTemplates || []).find((t: any) => t.level === values.level)
+  const bgImage = template?.backgroundUrl || "/actual-result-card.jpeg"
+  const c = template?.coordinates || {}
+
+  const getCoord = (field: string, prop: string, defVal: number) => {
+    if (c[field] && c[field][prop] !== undefined) {
+      return c[field][prop]
+    }
+    return defVal
+  }
+
   return (
     <div ref={cardRef} className={cn("report-card-container relative bg-white overflow-hidden shadow-2xl mx-auto", className)}
       style={{
         width: '210mm',
         height: '297mm',
-        backgroundImage: 'url("/actual-result-card.jpeg")',
+        backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -151,34 +166,59 @@ export function ReportCard({
 
       {/* ================= EDITABLE INPUT OVERLAYS ================= */}
       
-      {/* Student Name — sits on the big line BELOW Mr./Mrs./Ms. */}
+      {/* Student Name */}
       <input
         type="text"
         value={values.studentName}
         onChange={(e) => handleValueChange('studentName', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-handwritten"
-        style={{ top: '27.8%', left: '10%', width: '80%', height: '4.2%', fontSize: '36px', display: 'flex', alignItems: 'flex-end' }}
+        style={{ 
+          top: `${getCoord('studentName', 'top', 27.8)}%`, 
+          left: `${getCoord('studentName', 'left', 10)}%`, 
+          width: `${getCoord('studentName', 'width', 80)}%`, 
+          height: '4.2%', 
+          fontSize: `${getCoord('studentName', 'fontSize', 36)}px`, 
+          display: 'flex', 
+          alignItems: 'flex-end' 
+        }}
       />
 
-      {/* Foundation / Level — sits ON the underline (shifted lower so text reads above the line) */}
+      {/* Foundation / Level */}
       <input
         type="text"
         value={values.level}
         onChange={(e) => handleValueChange('level', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-handwritten"
-        style={{ top: '35.8%', left: '32%', width: '24%', height: '2.5%', fontSize: '24px', fontWeight: '700', display: 'flex', alignItems: 'center' }}
+        style={{ 
+          top: `${getCoord('level', 'top', 35.8)}%`, 
+          left: `${getCoord('level', 'left', 32)}%`, 
+          width: `${getCoord('level', 'width', 24)}%`, 
+          height: '2.5%', 
+          fontSize: `${getCoord('level', 'fontSize', 24)}px`, 
+          fontWeight: '700', 
+          display: 'flex', 
+          alignItems: 'center' 
+        }}
       />
 
-      {/* Table: Obtained Marks Column — top values position the input squarely inside each cell */}
+      {/* Table: Obtained Marks Column */}
       <input
         type="number" min="0" max="100"
         value={values.midtermObtained}
         onChange={(e) => handleValueChange('midtermObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '44.4%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ 
+          top: `${getCoord('midtermObtained', 'top', 44.4)}%`, 
+          left: `${getCoord('midtermObtained', 'left', 72.5)}%`, 
+          width: `${getCoord('midtermObtained', 'width', 15.5)}%`, 
+          height: '3.4%', 
+          fontSize: `${getCoord('midtermObtained', 'fontSize', 15)}px`, 
+          padding: '0', 
+          lineHeight: '1' 
+        }}
       />
       <input
         type="number" min="0" max="100"
@@ -186,7 +226,15 @@ export function ReportCard({
         onChange={(e) => handleValueChange('finalObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '47.9%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ 
+          top: `${getCoord('finalObtained', 'top', 47.9)}%`, 
+          left: `${getCoord('finalObtained', 'left', 72.5)}%`, 
+          width: `${getCoord('finalObtained', 'width', 15.5)}%`, 
+          height: '3.4%', 
+          fontSize: `${getCoord('finalObtained', 'fontSize', 15)}px`, 
+          padding: '0', 
+          lineHeight: '1' 
+        }}
       />
       <input
         type="number" min="0" max="60"
@@ -194,7 +242,15 @@ export function ReportCard({
         onChange={(e) => handleValueChange('attendanceObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '51.5%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ 
+          top: `${getCoord('attendanceObtained', 'top', 51.5)}%`, 
+          left: `${getCoord('attendanceObtained', 'left', 72.5)}%`, 
+          width: `${getCoord('attendanceObtained', 'width', 15.5)}%`, 
+          height: '3.4%', 
+          fontSize: `${getCoord('attendanceObtained', 'fontSize', 15)}px`, 
+          padding: '0', 
+          lineHeight: '1' 
+        }}
       />
       <input
         type="number" min="0" max="20"
@@ -202,7 +258,15 @@ export function ReportCard({
         onChange={(e) => handleValueChange('participationObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '55.0%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ 
+          top: `${getCoord('participationObtained', 'top', 55.0)}%`, 
+          left: `${getCoord('participationObtained', 'left', 72.5)}%`, 
+          width: `${getCoord('participationObtained', 'width', 15.5)}%`, 
+          height: '3.4%', 
+          fontSize: `${getCoord('participationObtained', 'fontSize', 15)}px`, 
+          padding: '0', 
+          lineHeight: '1' 
+        }}
       />
       <input
         type="number" min="0" max="10"
@@ -210,7 +274,15 @@ export function ReportCard({
         onChange={(e) => handleValueChange('disciplineObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '58.5%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ 
+          top: `${getCoord('disciplineObtained', 'top', 58.5)}%`, 
+          left: `${getCoord('disciplineObtained', 'left', 72.5)}%`, 
+          width: `${getCoord('disciplineObtained', 'width', 15.5)}%`, 
+          height: '3.4%', 
+          fontSize: `${getCoord('disciplineObtained', 'fontSize', 15)}px`, 
+          padding: '0', 
+          lineHeight: '1' 
+        }}
       />
       <input
         type="number" min="0" max="10"
@@ -218,44 +290,88 @@ export function ReportCard({
         onChange={(e) => handleValueChange('extraCurricularObtained', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '62.1%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '15px', padding: '0', lineHeight: '1' }}
+        style={{ 
+          top: `${getCoord('extraCurricularObtained', 'top', 62.1)}%`, 
+          left: `${getCoord('extraCurricularObtained', 'left', 72.5)}%`, 
+          width: `${getCoord('extraCurricularObtained', 'width', 15.5)}%`, 
+          height: '3.4%', 
+          fontSize: `${getCoord('extraCurricularObtained', 'fontSize', 15)}px`, 
+          padding: '0', 
+          lineHeight: '1' 
+        }}
       />
       
       {/* Grand Total Calculated Value */}
       <div 
         className="rc-input-overlay flex items-center justify-center rc-font-sans"
-        style={{ top: '65.6%', left: '72.5%', width: '15.5%', height: '3.4%', fontSize: '16px', fontWeight: '700', color: '#000000' }}
+        style={{ 
+          top: `${getCoord('grandTotal', 'top', 65.6)}%`, 
+          left: `${getCoord('grandTotal', 'left', 72.5)}%`, 
+          width: `${getCoord('grandTotal', 'width', 15.5)}%`, 
+          height: '3.4%', 
+          fontSize: '16px', 
+          fontWeight: '700', 
+          color: '#000000' 
+        }}
       >
         {grandTotalObtained !== undefined && grandTotalObtained !== null && grandTotalObtained !== 0 ? grandTotalObtained : ''}
       </div>
 
-      {/* Overall Result — shifted down so text sits ABOVE the line, not through it */}
+      {/* Overall Result */}
       <input
         type="text"
         value={values.overallResult}
         onChange={(e) => handleValueChange('overallResult', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '70.8%', left: '32%', width: '14%', height: '3%', fontSize: '18px', display: 'flex', alignItems: 'center' }}
+        style={{ 
+          top: `${getCoord('overallResult', 'top', 70.8)}%`, 
+          left: `${getCoord('overallResult', 'left', 32)}%`, 
+          width: `${getCoord('overallResult', 'width', 14)}%`, 
+          height: '3%', 
+          fontSize: `${getCoord('overallResult', 'fontSize', 18)}px`, 
+          display: 'flex', 
+          alignItems: 'center' 
+        }}
       />
-      {/* Grade — shifted down to match Overall Result baseline */}
+      {/* Grade */}
       <input
         type="text"
         value={values.grade}
         onChange={(e) => handleValueChange('grade', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
-        style={{ top: '70.8%', left: '67%', width: '14%', height: '3%', fontSize: '18px', display: 'flex', alignItems: 'center' }}
+        style={{ 
+          top: `${getCoord('grade', 'top', 70.8)}%`, 
+          left: `${getCoord('grade', 'left', 67)}%`, 
+          width: `${getCoord('grade', 'width', 14)}%`, 
+          height: '3%', 
+          fontSize: `${getCoord('grade', 'fontSize', 18)}px`, 
+          display: 'flex', 
+          alignItems: 'center' 
+        }}
       />
 
-      {/* Comments Overlay — aligned below the overall result / grade line */}
+      {/* Comments Overlay */}
       <input
         type="text"
         value={values.comments || ''}
         onChange={(e) => handleValueChange('comments', e.target.value)}
         disabled={readOnly}
         className="rc-input-overlay"
-        style={{ top: '76.4%', left: '10%', width: '80%', height: '2.8%', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '24px', fontWeight: '500', display: 'flex', alignItems: 'flex-end', paddingBottom: '2px' }}
+        style={{ 
+          top: `${getCoord('comments', 'top', 76.4)}%`, 
+          left: `${getCoord('comments', 'left', 10)}%`, 
+          width: `${getCoord('comments', 'width', 80)}%`, 
+          height: '2.8%', 
+          fontFamily: 'Georgia, serif', 
+          fontStyle: 'italic', 
+          fontSize: `${getCoord('comments', 'fontSize', 24)}px`, 
+          fontWeight: '500', 
+          display: 'flex', 
+          alignItems: 'flex-end', 
+          paddingBottom: '2px' 
+        }}
       />
 
       {/* Footer Dates Setup */}

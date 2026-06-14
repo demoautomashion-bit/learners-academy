@@ -284,3 +284,13 @@ model Announcement {
   date      String
   createdAt DateTime @default(now())
 }
+
+model CardTemplate {
+  id            String   @id @default(cuid())
+  level         String   @unique
+  backgroundUrl String   // Stored as base64 DataURL or URL path
+  coordinates   Json     // Coordinates for placing fields: { studentName: { top, left, width, fontSize }, level: ..., midtermObtained: ... }
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+}
+

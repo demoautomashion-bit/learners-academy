@@ -51,7 +51,8 @@ interface StudentStatus {
 // ─────────────────────────────────────────────
 async function renderStudentCanvas(
   v: Partial<ReportCardValues>,
-  studentName: string
+  studentName: string,
+  cardTemplates: any[] = []
 ): Promise<HTMLCanvasElement> {
   const W = 1240
   const H = 1754
@@ -61,13 +62,25 @@ async function renderStudentCanvas(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas 2D not supported')
 
+  // Find template mappings
+  const template = (cardTemplates || []).find((t: any) => t.level === v.level)
+  const bgImage = template?.backgroundUrl || "/actual-result-card.jpeg"
+  const c = template?.coordinates || {}
+
+  const getCoord = (field: string, prop: string, defVal: number) => {
+    if (c[field] && c[field][prop] !== undefined) {
+      return c[field][prop]
+    }
+    return defVal
+  }
+
   // 1. Draw background image
   await new Promise<void>((resolve, reject) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => { ctx.drawImage(img, 0, 0, W, H); resolve() }
     img.onerror = reject
-    img.src = '/actual-result-card.jpeg'
+    img.src = bgImage
   })
 
   // Load fonts
@@ -97,9 +110,24 @@ async function renderStudentCanvas(
   }
 
   // 2. Student name
-  draw(v.studentName || studentName || '', 10, 30.2, 80, 55, '"Dancing Script", cursive')
+  draw(
+    v.studentName || studentName || '',
+    getCoord('studentName', 'left', 10),
+    getCoord('studentName', 'top', 30.2),
+    getCoord('studentName', 'width', 80),
+    getCoord('studentName', 'fontSize', 55),
+    '"Dancing Script", cursive'
+  )
+  
   // 3. Level
-  draw(v.level || '', 32, 36.8, 24, 32, '"Dancing Script", cursive')
+  draw(
+    v.level || '',
+    getCoord('level', 'left', 32),
+    getCoord('level', 'top', 36.8),
+    getCoord('level', 'width', 24),
+    getCoord('level', 'fontSize', 32),
+    '"Dancing Script", cursive'
+  )
 
   // 4. Mark rows
   const marksFontSize = 28
@@ -108,35 +136,59 @@ async function renderStudentCanvas(
   const startY = 46.1
   const gapY = 3.53
 
-  draw(String(v.midtermObtained ?? ''), marksX, startY, marksW, marksFontSize)
-  draw(String(v.finalObtained ?? ''), marksX, startY + gapY, marksW, marksFontSize)
-  draw(String(v.attendanceObtained ?? ''), marksX, startY + gapY * 2, marksW, marksFontSize)
-  draw(String(v.participationObtained ?? ''), marksX, startY + gapY * 3, marksW, marksFontSize)
-  draw(String(v.disciplineObtained ?? ''), marksX, startY + gapY * 4, marksW, marksFontSize)
-  draw(String(v.extraCurricularObtained ?? ''), marksX, startY + gapY * 5, marksW, marksFontSize)
+  const getMarkX = (field: string) => getCoord(field, 'left', marksX)
+  const getMarkY = (field: string, index: number) => getCoord(field, 'top', startY + gapY * index)
+  const getMarkW = (field: string) => getCoord(field, 'width', marksW)
+  const getMarkSize = (field: string) => getCoord(field, 'fontSize', marksFontSize)
+
+  draw(String(v.midtermObtained ?? ''), getMarkX('midtermObtained'), getMarkY('midtermObtained', 0), getMarkW('midtermObtained'), getMarkSize('midtermObtained'))
+  draw(String(v.finalObtained ?? ''), getMarkX('finalObtained'), getMarkY('finalObtained', 1), getMarkW('finalObtained'), getMarkSize('finalObtained'))
+  draw(String(v.attendanceObtained ?? ''), getMarkX('attendanceObtained'), getMarkY('attendanceObtained', 2), getMarkW('attendanceObtained'), getMarkSize('attendanceObtained'))
+  draw(String(v.participationObtained ?? ''), getMarkX('participationObtained'), getMarkY('participationObtained', 3), getMarkW('participationObtained'), getMarkSize('participationObtained'))
+  draw(String(v.disciplineObtained ?? ''), getMarkX('disciplineObtained'), getMarkY('disciplineObtained', 4), getMarkW('disciplineObtained'), getMarkSize('disciplineObtained'))
+  draw(String(v.extraCurricularObtained ?? ''), getMarkX('extraCurricularObtained'), getMarkY('extraCurricularObtained', 5), getMarkW('extraCurricularObtained'), getMarkSize('extraCurricularObtained'))
 
   // 5. Grand total
   const grand = (
     [v.midtermObtained, v.finalObtained, v.attendanceObtained,
     v.participationObtained, v.disciplineObtained, v.extraCurricularObtained] as (string | number | undefined)[]
   ).reduce((sum: number, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
-  if (grand > 0) draw(String(grand), marksX, startY + gapY * 6, marksW, 30)
+  if (grand > 0) {
+    draw(
+      String(grand),
+      getCoord('grandTotal', 'left', marksX),
+      getCoord('grandTotal', 'top', startY + gapY * 6),
+      getCoord('grandTotal', 'width', marksW),
+      getCoord('grandTotal', 'fontSize', 30)
+    )
+  }
 
   // 6. Result & Grade
-  draw(v.overallResult || '', 32, 72.0, 14, 30)
-  draw(v.grade || '', 67, 72.0, 14, 30)
+  draw(
+    v.overallResult || '',
+    getCoord('overallResult', 'left', 32),
+    getCoord('overallResult', 'top', 72.0),
+    getCoord('overallResult', 'width', 14),
+    getCoord('overallResult', 'fontSize', 30)
+  )
+  draw(
+    v.grade || '',
+    getCoord('grade', 'left', 67),
+    getCoord('grade', 'top', 72.0),
+    getCoord('grade', 'width', 14),
+    getCoord('grade', 'fontSize', 30)
+  )
 
   // 6.5 Comments
   if (v.comments) {
-    const cx = ((10 + 80 / 2) / 100) * W
-    const cy = (77.8 / 100) * H
-    ctx.save()
-    ctx.font = 'italic 32px Georgia, serif'
-    ctx.fillStyle = '#000000'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(v.comments, cx, cy, (80 / 100) * W)
-    ctx.restore()
+    draw(
+      v.comments,
+      getCoord('comments', 'left', 10),
+      getCoord('comments', 'top', 77.8),
+      getCoord('comments', 'width', 80),
+      getCoord('comments', 'fontSize', 32),
+      'Georgia, serif'
+    )
   }
 
   // 7. Erase baked-in dates + redraw editable values
@@ -310,6 +362,7 @@ function ReportCardGeneratorContent() {
     assessments,
     evaluations,
     saveEvaluations,
+    cardTemplates,
     isInitialized
   } = useData()
 
@@ -538,7 +591,7 @@ function ReportCardGeneratorContent() {
     if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
     setActiveDownload('pdf')
     try {
-      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '')
+      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
@@ -560,7 +613,7 @@ function ReportCardGeneratorContent() {
     if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
     setActiveDownload(format)
     try {
-      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '')
+      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
       const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
       const quality = format === 'png' ? undefined : 0.95
       const dataUrl = canvas.toDataURL(mimeType, quality)
@@ -589,7 +642,7 @@ function ReportCardGeneratorContent() {
         const { student, course } = pairs[i]
         setBulkProgress({ current: i + 1, total: pairs.length })
         const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
-        const canvas = await renderStudentCanvas(values, student.name)
+        const canvas = await renderStudentCanvas(values, student.name, cardTemplates)
         const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
         if (i > 0) pdf.addPage()
         pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
@@ -621,7 +674,7 @@ function ReportCardGeneratorContent() {
         const { student, course } = pairs[i]
         setBulkProgress({ current: i + 1, total: pairs.length })
         const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
-        const canvas = await renderStudentCanvas(values, student.name)
+        const canvas = await renderStudentCanvas(values, student.name, cardTemplates)
         const dataUrl = canvas.toDataURL(mimeType, quality)
         const name = student.name.replace(/\s+/g, '-').toLowerCase()
         triggerDownload(dataUrl, `${name}-report-card.${format}`)
@@ -668,7 +721,7 @@ function ReportCardGeneratorContent() {
         const values = bulk
           ? buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
           : cardValues
-        const canvas = await renderStudentCanvas(values, student.name)
+        const canvas = await renderStudentCanvas(values, student.name, cardTemplates)
         // Convert data URL to blob for zip
         const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
         const base64 = dataUrl.split(',')[1]
