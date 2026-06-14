@@ -80,3 +80,40 @@ export async function updateAdminProfile(adminId: string, data: { email?: string
     return { success: false, error: 'Failed to update admin profile' }
   }
 }
+
+export async function getTermSettings() {
+  try {
+    const settings = await db.systemSettings.findUnique({
+      where: { id: 'singleton' },
+      select: { termLabel: true, termEndDate: true }
+    })
+    return settings || { termLabel: null, termEndDate: null }
+  } catch (error) {
+    console.error('FAILED_TO_FETCH_TERM_SETTINGS:', error)
+    return { termLabel: null, termEndDate: null }
+  }
+}
+
+export async function updateTermSettings(data: { termLabel: string, termEndDate: string | null }) {
+  try {
+    const settings = await db.systemSettings.upsert({
+      where: { id: 'singleton' },
+      update: {
+        termLabel: data.termLabel,
+        termEndDate: data.termEndDate ? new Date(data.termEndDate) : null
+      },
+      create: {
+        id: 'singleton',
+        termLabel: data.termLabel,
+        termEndDate: data.termEndDate ? new Date(data.termEndDate) : null
+      }
+    })
+    revalidatePath('/')
+    revalidatePath('/admin/settings')
+    return { success: true, data: settings }
+  } catch (error: any) {
+    console.error('FAILED_TO_UPDATE_TERM_SETTINGS:', error)
+    return { success: false, error: error.message || 'Term sync failed' }
+  }
+}
+

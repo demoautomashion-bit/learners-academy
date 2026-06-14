@@ -267,12 +267,14 @@ model AudioFile {
 }
 
 model SystemSettings {
-  id               String   @id @default("singleton")
-  academyName      String   @default("The Learners Academy")
-  tagline          String   @default("Premium English Language Education")
-  missionStatement String   @default("Empowering learners with world-class language education through specialized faculty and audited curricula.")
+  id               String    @id @default("singleton")
+  academyName      String    @default("The Learners Academy")
+  tagline          String    @default("Premium English Language Education")
+  missionStatement String    @default("Empowering learners with world-class language education through specialized faculty and audited curricula.")
   logoUrl          String?
-  updatedAt        DateTime @updatedAt
+  termLabel        String?   @default("Term 2 Registration")
+  termEndDate      DateTime?
+  updatedAt        DateTime  @updatedAt
 }
 
 model Announcement {
@@ -294,3 +296,11 @@ model CardTemplate {
   createdAt     DateTime @default(now())
 }
 
+model BroadcastLog {
+  id             String   @id @default(cuid())
+  title          String
+  targetGroup    String
+  recipientCount Int
+  status         String   @default("Delivered")
+  createdAt      DateTime @default(now())
+}

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useScroll, useSpring, useInView } from 'framer-motion'
 import {
   GraduationCap, Users, ArrowRight, Shield, Lock,
-  ClipboardList, Calendar, X, Megaphone, Clock, BookOpen
+  ClipboardList, Calendar, Megaphone, Clock, BookOpen
 } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,6 +13,7 @@ import { Logo } from '@/components/logo'
 import { ParticleField } from '@/components/particle-field'
 import { PerspectiveTilt } from '@/components/shared/perspective-tilt'
 import { useData } from '@/contexts/data-context'
+import { getTermSettings } from '@/lib/actions/settings'
 
 // ─── RAF-based smooth counter ────────────────────────────────────
 function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
@@ -116,13 +117,26 @@ const PORTALS = [
 
 // ─── Main Component ──────────────────────────────────────────────
 export default function HomePage() {
-  const { announcements } = useData()
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null)
+  const { announcements, stats } = useData()
+  const [termLabel, setTermLabel] = useState<string | null>(null)
+  const [daysLeft, setDaysLeft] = useState<number | null>(null)
 
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, { stiffness: 80, damping: 28, restDelta: 0.001 })
 
   const displayAnnouncements = announcements.length > 0 ? announcements : MOCK_ANNOUNCEMENTS
+
+  useEffect(() => {
+    const loadTerm = async () => {
+      const res = await getTermSettings()
+      if (res?.termEndDate) {
+        const days = Math.ceil((new Date(res.termEndDate as any).getTime() - Date.now()) / 86400000)
+        setTermLabel(res.termLabel || 'Registration')
+        setDaysLeft(days)
+      }
+    }
+    loadTerm()
+  }, [])
 
   return (
     <div className="min-h-screen flex flex-col items-center pt-24 pb-12 px-4 lg:px-8 bg-linear-to-b from-background to-muted/30 relative overflow-hidden">
@@ -136,23 +150,26 @@ export default function HomePage() {
       <ParticleField />
 
       {/* ── Countdown Ticker ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="w-full bg-primary/5 border-b border-primary/10 py-2.5 px-4 backdrop-blur-md absolute top-0 left-0 right-0 z-30 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs font-bold text-primary text-center"
-      >
-        <span className="flex items-center gap-2">
-          <Clock className="w-3.5 h-3.5 animate-pulse shrink-0" />
-          🔔 Term 2 Registration Open — 14 days left.
-        </span>
-        <button
-          onClick={() => document.getElementById('announcements')?.scrollIntoView({ behavior: 'smooth' })}
-          className="underline hover:text-primary/70 transition-colors text-[11px]"
+      {termLabel && daysLeft !== null && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="w-full bg-primary/5 border-b border-primary/10 py-2.5 px-4 backdrop-blur-md absolute top-0 left-0 right-0 z-30 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs font-bold text-primary text-center"
         >
-          View Details
-        </button>
-      </motion.div>
+          <span className="flex items-center gap-2">
+            <Clock className="w-3.5 h-3.5 animate-pulse shrink-0" />
+            🔔 {termLabel} —{' '}
+            {daysLeft > 0 ? `${daysLeft} days left.` : 'Registration Closed.'}
+          </span>
+          <button
+            onClick={() => document.getElementById('announcements')?.scrollIntoView({ behavior: 'smooth' })}
+            className="underline hover:text-primary/70 transition-colors text-[11px]"
+          >
+            View Details
+          </button>
+        </motion.div>
+      )}
 
       {/* ── Drifting Ambient Orbs ── */}
       <motion.div
@@ -342,8 +359,8 @@ export default function HomePage() {
         >
           {[
             { target: 98, suffix: '%', label: 'Graduation Rate' },
-            { target: 12, suffix: '+', label: 'Course Levels' },
-            { target: 500, suffix: '+', label: 'Active Students' }
+            { target: stats.totalCourses || 12, suffix: '+', label: 'Course Levels' },
+            { target: stats.activeEnrollments || 500, suffix: '+', label: 'Active Students' }
           ].map((stat, i) => (
             <React.Fragment key={stat.label}>
               {i > 0 && (
@@ -412,14 +429,13 @@ export default function HomePage() {
                     </div>
 
                     <div className="mt-5">
-                      <Button
-                        variant="ghost"
-                        onClick={() => setSelectedAnnouncement(announcement)}
-                        className="h-10 w-full sm:w-auto text-[10px] font-bold uppercase tracking-widest text-primary px-0 sm:px-3 hover:bg-primary/5 hover:text-primary/80 flex items-center gap-1.5 justify-start sm:justify-center transition-colors"
+                      <Link
+                        href={`/announcements/${announcement.id}`}
+                        className="inline-flex items-center gap-1.5 h-10 text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
                       >
                         Read Full Article
                         <ArrowRight className="w-3.5 h-3.5" />
-                      </Button>
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>
@@ -458,58 +474,6 @@ export default function HomePage() {
 
       </div>
 
-      {/* ── Announcement Detail Modal ── */}
-      <AnimatePresence>
-        {selectedAnnouncement && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => setSelectedAnnouncement(null)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-md"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 16 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-              className="relative w-full max-w-lg bg-background/95 border border-border p-7 sm:p-8 rounded-[2rem] shadow-2xl z-10 space-y-6 mx-2"
-            >
-              <button
-                onClick={() => setSelectedAnnouncement(null)}
-                className="absolute top-5 right-5 p-2 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[9px] uppercase tracking-wider font-bold text-primary/60 bg-primary/5 px-2.5 py-1 rounded-lg">
-                    {selectedAnnouncement.category}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground opacity-60 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {selectedAnnouncement.date}
-                  </span>
-                </div>
-                <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-tight pr-8">{selectedAnnouncement.title}</h3>
-              </div>
-
-              <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line border-t border-border pt-4">
-                {selectedAnnouncement.content}
-              </div>
-
-              <div className="flex gap-4 pt-4 border-t border-border">
-                <Button onClick={() => setSelectedAnnouncement(null)} className="flex-1 rounded-xl h-11">
-                  Got It
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

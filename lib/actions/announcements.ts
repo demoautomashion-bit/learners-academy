@@ -14,6 +14,15 @@ export async function getAnnouncements() {
   }
 }
 
+export async function getAnnouncementById(id: string) {
+  try {
+    return await db.announcement.findUnique({ where: { id } })
+  } catch (error) {
+    console.error('FAILED_TO_FETCH_ANNOUNCEMENT_BY_ID:', error)
+    return null
+  }
+}
+
 export async function createAnnouncement(data: {
   title: string
   summary: string
