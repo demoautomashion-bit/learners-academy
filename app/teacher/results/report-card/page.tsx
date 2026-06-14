@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, Suspense, useMemo, useRef } from 'react'
+import React, { useState, useEffect, Suspense, useMemo, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
@@ -15,50 +15,332 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { ReportCard, ReportCardValues } from '@/components/report-card'
 import { isStudentInCourse } from '@/lib/utils/student-matching'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { Award, Printer, Save, Download, ArrowLeft } from 'lucide-react'
+import {
+  Award, Printer, Save, Download, ArrowLeft, ChevronDown,
+  FileImage, FileText, Archive, Users, CheckCircle2, AlertCircle, Clock
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { jsPDF } from 'jspdf'
+import JSZip from 'jszip'
 
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+type DownloadFormat = 'pdf' | 'jpg' | 'png' | 'bulk-pdf' | 'bulk-jpg' | 'bulk-png' | 'zip-jpg' | 'bulk-zip-jpg'
+type CompletionTier = 'complete' | 'unsaved' | 'incomplete'
+
+interface StudentStatus {
+  studentId: string
+  name: string
+  tier: CompletionTier
+}
+
+// ─────────────────────────────────────────────
+// Canvas renderer — shared by all download handlers
+// ─────────────────────────────────────────────
+async function renderStudentCanvas(
+  v: Partial<ReportCardValues>,
+  studentName: string
+): Promise<HTMLCanvasElement> {
+  const W = 1240
+  const H = 1754
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas 2D not supported')
+
+  // 1. Draw background image
+  await new Promise<void>((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => { ctx.drawImage(img, 0, 0, W, H); resolve() }
+    img.onerror = reject
+    img.src = '/actual-result-card.jpeg'
+  })
+
+  // Load fonts
+  await document.fonts.load('bold 55px "Dancing Script"')
+  await document.fonts.load('bold 32px "Dancing Script"')
+  await document.fonts.load('bold 28px "Inter"')
+
+  // Helper: draw centered text in a bounding box
+  const draw = (
+    text: string,
+    xPct: number,
+    yPct: number,
+    wPct: number,
+    fontSize: number,
+    fontFamily = 'Inter, sans-serif'
+  ) => {
+    if (!text) return
+    const cx = ((xPct + wPct / 2) / 100) * W
+    const cy = (yPct / 100) * H
+    ctx.save()
+    ctx.font = `bold ${fontSize}px ${fontFamily}`
+    ctx.fillStyle = '#000000'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(text, cx, cy, (wPct / 100) * W)
+    ctx.restore()
+  }
+
+  // 2. Student name
+  draw(v.studentName || studentName || '', 10, 30.2, 80, 55, '"Dancing Script", cursive')
+  // 3. Level
+  draw(v.level || '', 32, 36.8, 24, 32, '"Dancing Script", cursive')
+
+  // 4. Mark rows
+  const marksFontSize = 28
+  const marksX = 72.5
+  const marksW = 15.5
+  const startY = 46.1
+  const gapY = 3.53
+
+  draw(String(v.midtermObtained ?? ''), marksX, startY, marksW, marksFontSize)
+  draw(String(v.finalObtained ?? ''), marksX, startY + gapY, marksW, marksFontSize)
+  draw(String(v.attendanceObtained ?? ''), marksX, startY + gapY * 2, marksW, marksFontSize)
+  draw(String(v.participationObtained ?? ''), marksX, startY + gapY * 3, marksW, marksFontSize)
+  draw(String(v.disciplineObtained ?? ''), marksX, startY + gapY * 4, marksW, marksFontSize)
+  draw(String(v.extraCurricularObtained ?? ''), marksX, startY + gapY * 5, marksW, marksFontSize)
+
+  // 5. Grand total
+  const grand = (
+    [v.midtermObtained, v.finalObtained, v.attendanceObtained,
+    v.participationObtained, v.disciplineObtained, v.extraCurricularObtained] as (string | number | undefined)[]
+  ).reduce((sum: number, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
+  if (grand > 0) draw(String(grand), marksX, startY + gapY * 6, marksW, 30)
+
+  // 6. Result & Grade
+  draw(v.overallResult || '', 32, 72.0, 14, 30)
+  draw(v.grade || '', 67, 72.0, 14, 30)
+
+  // 6.5 Comments
+  if (v.comments) {
+    const cx = ((10 + 80 / 2) / 100) * W
+    const cy = (77.8 / 100) * H
+    ctx.save()
+    ctx.font = 'italic 32px Georgia, serif'
+    ctx.fillStyle = '#000000'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(v.comments, cx, cy, (80 / 100) * W)
+    ctx.restore()
+  }
+
+  // 7. Erase baked-in dates + redraw editable values
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(Math.round(0.20 * W), Math.round(0.93 * H), Math.round(0.60 * W), Math.round(0.07 * H))
+  ctx.font = 'italic 20px Inter, sans-serif'
+  ctx.fillStyle = '#000000'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(`Date of Issue: ${v.dateOfIssue || ''}`, W * 0.5, H * 0.954)
+  ctx.fillText(`Course Duration: ${v.courseDuration || ''}`, W * 0.5, H * 0.969)
+
+  return canvas
+}
+
+// ─────────────────────────────────────────────
+// Build card values for a student (mirrors page.tsx useEffect logic)
+// Used by bulk operations — no interactive UI needed
+// ─────────────────────────────────────────────
+function buildCardValues(
+  student: any,
+  course: any,
+  evaluations: any[],
+  submissions: any[],
+  assessments: any[],
+  formatDateRange: (start: any, end: any) => string
+): Partial<ReportCardValues> {
+  const existingEval = evaluations.find(
+    e => e.studentId === student.id && e.courseId === course.id
+  )
+
+  if (existingEval) {
+    const totalMarks =
+      (existingEval.midterm || 0) + (existingEval.final || 0) +
+      (existingEval.attendance || 0) + (existingEval.participation || 0) +
+      (existingEval.discipline || 0) + (existingEval.extra || 0)
+    const pct = (totalMarks / 300) * 100
+    let calcGrade = 'B'
+    if (pct >= 90) calcGrade = 'A+'
+    else if (pct >= 80) calcGrade = 'A'
+    else if (pct >= 70) calcGrade = 'B+'
+    else if (pct >= 60) calcGrade = 'B'
+    else if (pct >= 50) calcGrade = 'C'
+    else calcGrade = 'F'
+
+    return {
+      studentName: student.name,
+      level: course.title,
+      midtermObtained: existingEval.midterm ?? '',
+      finalObtained: existingEval.final ?? '',
+      attendanceObtained: existingEval.attendance ?? '',
+      participationObtained: existingEval.participation ?? '',
+      disciplineObtained: existingEval.discipline ?? '',
+      extraCurricularObtained: existingEval.extra ?? '',
+      overallResult: totalMarks >= 130 ? 'PASS' : 'FAIL',
+      grade: calcGrade,
+      dateOfIssue: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
+        month: 'long', day: 'numeric', year: 'numeric'
+      }),
+      courseDuration: formatDateRange(course.startDate, course.endDate)
+    }
+  }
+
+  // Fallback: submissions + hardcoded defaults
+  const studentSubmissions = submissions?.filter(s => s.studentId === student.id) || []
+  let midtermMark: string | number = ''
+  let finalMark: string | number = ''
+
+  const midtermSub = studentSubmissions.find(s => {
+    const ass = assessments.find(a => a.id === s.assignmentId)
+    return ass?.phase === 'First Test'
+  })
+  if (midtermSub && midtermSub.grade !== undefined && midtermSub.grade !== null) {
+    const ass = assessments.find(a => a.id === midtermSub.assignmentId)
+    const max = ass?.totalMarks || 100
+    midtermMark = Math.round((midtermSub.grade / max) * 100)
+  }
+
+  const finalSub = studentSubmissions.find(s => {
+    const ass = assessments.find(a => a.id === s.assignmentId)
+    return ass?.phase === 'Last Test'
+  })
+  if (finalSub && finalSub.grade !== undefined && finalSub.grade !== null) {
+    const ass = assessments.find(a => a.id === finalSub.assignmentId)
+    const max = ass?.totalMarks || 100
+    finalMark = Math.round((finalSub.grade / max) * 100)
+  }
+
+  const attendanceMark = 56
+  const participationMark = 18
+  const disciplineMark = 9
+  const extraMark = 8
+
+  const grandTotalObtained =
+    (typeof midtermMark === 'number' ? midtermMark : 0) +
+    (typeof finalMark === 'number' ? finalMark : 0) +
+    attendanceMark + participationMark + disciplineMark + extraMark
+
+  const isPass = grandTotalObtained >= 130
+  const pct = (grandTotalObtained / 300) * 100
+  let calculatedGrade = 'B'
+  if (pct >= 90) calculatedGrade = 'A+'
+  else if (pct >= 80) calculatedGrade = 'A'
+  else if (pct >= 70) calculatedGrade = 'B+'
+  else if (pct >= 60) calculatedGrade = 'B'
+  else if (pct >= 50) calculatedGrade = 'C'
+  else calculatedGrade = 'F'
+
+  return {
+    studentName: student.name,
+    level: course.title,
+    midtermObtained: midtermMark,
+    finalObtained: finalMark,
+    attendanceObtained: attendanceMark,
+    participationObtained: participationMark,
+    disciplineObtained: disciplineMark,
+    extraCurricularObtained: extraMark,
+    overallResult: isPass ? 'PASS' : 'FAIL',
+    grade: calculatedGrade,
+    dateOfIssue: new Date().toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    }),
+    courseDuration: formatDateRange(course.startDate, course.endDate)
+  }
+}
+
+// ─────────────────────────────────────────────
+// Trigger a browser file download from a data URL
+// ─────────────────────────────────────────────
+function triggerDownload(dataUrl: string, filename: string) {
+  const a = document.createElement('a')
+  a.href = dataUrl
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+
+// ─────────────────────────────────────────────
+// Completion tier color helpers
+// ─────────────────────────────────────────────
+const tierColor: Record<CompletionTier, string> = {
+  complete: '#10b981',
+  unsaved: '#f59e0b',
+  incomplete: '#ef4444',
+}
+
+const tierLabel: Record<CompletionTier, string> = {
+  complete: 'Saved to Registry',
+  unsaved: 'Marks entered, not saved',
+  incomplete: 'Missing test scores',
+}
+
+const tierIcon = {
+  complete: CheckCircle2,
+  unsaved: Clock,
+  incomplete: AlertCircle,
+}
+
+// ─────────────────────────────────────────────
+// Main Page Component
+// ─────────────────────────────────────────────
 function ReportCardGeneratorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
-  const { 
-    students, 
-    courses, 
-    submissions, 
-    assessments, 
-    evaluations, 
-    saveEvaluations, 
-    isInitialized 
+  const {
+    students,
+    courses,
+    submissions,
+    assessments,
+    evaluations,
+    saveEvaluations,
+    isInitialized
   } = useData()
 
   // Selection states
   const [selectedCourseId, setSelectedCourseId] = useState<string>('all')
   const [selectedStudentId, setSelectedStudentId] = useState<string>('all')
-  
+
   // The values inside the card
   const [cardValues, setCardValues] = useState<Partial<ReportCardValues>>({})
   const [isSaving, setIsSaving] = useState(false)
-  const [isDownloading, setIsDownloading] = useState(false)
 
-  // Ref to the card DOM element for PDF capture
+  // Download state
+  const [activeDownload, setActiveDownload] = useState<DownloadFormat | null>(null)
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number } | null>(null)
+
+  // Ref to the card DOM element
   const cardRef = useRef<HTMLDivElement>(null)
-  
-  // Container ref and scale state for mobile responsiveness
+
+  // Container ref for mobile scaling
   const containerRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
 
-  // Guard flag — once the teacher edits any field, stop overwriting their changes
+  // Guard flag — stop overwriting teacher edits
   const isManuallyEdited = useRef(false)
 
-  // Filter courses taught by this teacher
-  const teacherCourses = useMemo(() => courses?.filter(c => c.teacherId === user?.id) || [], [courses, user?.id])
-  
-  // Filter students based on selected course
+  // ── Derived data ──────────────────────────────
+  const teacherCourses = useMemo(
+    () => courses?.filter(c => c.teacherId === user?.id) || [],
+    [courses, user?.id]
+  )
+
   const teacherStudents = students?.filter(student => {
     if (selectedCourseId && selectedCourseId !== 'all') {
       const course = teacherCourses.find(c => c.id === selectedCourseId)
@@ -67,197 +349,8 @@ function ReportCardGeneratorContent() {
     return teacherCourses.some(course => isStudentInCourse(student, course))
   }) || []
 
-  // Handle URL query parameters for pre-filling (from Student Dossier link)
-  useEffect(() => {
-    if (!isInitialized) return
-    const studentIdParam = searchParams.get('studentId')
-    if (studentIdParam) {
-      const student = students.find(s => s.id === studentIdParam)
-      if (student) {
-        // Find the course this student is enrolled in
-        const studentCourse = teacherCourses.find(c => isStudentInCourse(student, c))
-        if (studentCourse) {
-          setSelectedCourseId(studentCourse.id)
-        }
-        setSelectedStudentId(student.id)
-      }
-    }
-  }, [searchParams, isInitialized, students, teacherCourses])
-
-  // Reset manual edit flag whenever student or course selection changes
-  useEffect(() => {
-    isManuallyEdited.current = false
-  }, [selectedStudentId, selectedCourseId])
-
-  // Pull existing records or calculate marks whenever student/course selections change
-  // Skip recalculation if the teacher has manually edited any field
-  useEffect(() => {
-    if (isManuallyEdited.current) return
-    if (!isInitialized || selectedStudentId === 'all') {
-      if (Object.keys(cardValues).length !== 0) {
-        setCardValues({})
-      }
-      return
-    }
-
-    const student = students.find(s => s.id === selectedStudentId)
-    if (!student) return
-
-    // Find course (either explicit selected course, or the first matched course)
-    let course = teacherCourses.find(c => c.id === selectedCourseId)
-    if (!course || selectedCourseId === 'all') {
-      course = teacherCourses.find(c => isStudentInCourse(student, c))
-    }
-
-    if (!course) return
-
-    // 1. Check if an evaluation already exists in the database
-    const existingEval = evaluations.find(
-      e => e.studentId === student.id && e.courseId === course.id
-    )
-
-    let newValues: Partial<ReportCardValues> = {}
-
-    if (existingEval) {
-      const totalMarks = (existingEval.midterm || 0) + (existingEval.final || 0) + (existingEval.attendance || 0) + (existingEval.participation || 0) + (existingEval.discipline || 0) + (existingEval.extra || 0)
-      let calcGrade = 'B'
-      const pct = (totalMarks / 300) * 100
-      if (pct >= 90) calcGrade = 'A+'
-      else if (pct >= 80) calcGrade = 'A'
-      else if (pct >= 70) calcGrade = 'B+'
-      else if (pct >= 60) calcGrade = 'B'
-      else if (pct >= 50) calcGrade = 'C'
-      else calcGrade = 'F'
-
-      newValues = {
-        studentName: student.name,
-        level: course.title,
-        midtermObtained: existingEval.midterm ?? '',
-        finalObtained: existingEval.final ?? '',
-        attendanceObtained: existingEval.attendance ?? '',
-        participationObtained: existingEval.participation ?? '',
-        disciplineObtained: existingEval.discipline ?? '',
-        extraCurricularObtained: existingEval.extra ?? '',
-        overallResult: totalMarks >= 130 ? 'PASS' : 'FAIL',
-        grade: calcGrade,
-        dateOfIssue: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-        }),
-        courseDuration: formatDateRange(course.startDate, course.endDate)
-      }
-    } else {
-      // 2. No evaluation found: Auto-populate marks from submissions registry
-      const studentSubmissions = submissions?.filter(s => s.studentId === student.id) || []
-      
-      let midtermMark: string | number = ''
-      let finalMark: string | number = ''
-
-      // Find Midterm Submissions
-      const midtermSub = studentSubmissions.find(s => {
-        const ass = assessments.find(a => a.id === s.assignmentId)
-        return ass?.phase === 'First Test'
-      })
-      if (midtermSub && midtermSub.grade !== undefined && midtermSub.grade !== null) {
-        const ass = assessments.find(a => a.id === midtermSub.assignmentId)
-        const max = ass?.totalMarks || 100
-        // Scale to 100
-        midtermMark = Math.round((midtermSub.grade / max) * 100)
-      }
-
-      // Find Final Submissions
-      const finalSub = studentSubmissions.find(s => {
-        const ass = assessments.find(a => a.id === s.assignmentId)
-        return ass?.phase === 'Last Test'
-      })
-      if (finalSub && finalSub.grade !== undefined && finalSub.grade !== null) {
-        const ass = assessments.find(a => a.id === finalSub.assignmentId)
-        const max = ass?.totalMarks || 100
-        // Scale to 100
-        finalMark = Math.round((finalSub.grade / max) * 100)
-      }
-
-      // Pre-calculate attendance from mock student attendance metrics (default to 94% scaled to 60 marks -> 56, or calculate)
-      const attendanceMark = 56 // Default matching typical 94% attendance
-      const participationMark = 18 // Default out of 20
-      const disciplineMark = 9 // Default out of 10
-      const extraMark = 8 // Default out of 10
-
-      const grandTotalObtained = 
-        (typeof midtermMark === 'number' ? midtermMark : 0) +
-        (typeof finalMark === 'number' ? finalMark : 0) +
-        attendanceMark + participationMark + disciplineMark + extraMark
-
-      const isPass = grandTotalObtained >= 130
-      
-      // Compute grade mapping
-      let calculatedGrade = 'B'
-      const pct = (grandTotalObtained / 300) * 100
-      if (pct >= 90) calculatedGrade = 'A+'
-      else if (pct >= 80) calculatedGrade = 'A'
-      else if (pct >= 70) calculatedGrade = 'B+'
-      else if (pct >= 60) calculatedGrade = 'B'
-      else if (pct >= 50) calculatedGrade = 'C'
-      else calculatedGrade = 'F'
-
-      newValues = {
-        studentName: student.name,
-        level: course.title,
-        midtermObtained: midtermMark,
-        finalObtained: finalMark,
-        attendanceObtained: attendanceMark,
-        participationObtained: participationMark,
-        disciplineObtained: disciplineMark,
-        extraCurricularObtained: extraMark,
-        overallResult: isPass ? 'PASS' : 'FAIL',
-        grade: calculatedGrade,
-        dateOfIssue: new Date().toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-        }),
-        courseDuration: formatDateRange(course.startDate, course.endDate)
-      }
-    }
-
-    if (JSON.stringify(cardValues) !== JSON.stringify(newValues)) {
-      setCardValues(newValues)
-    }
-
-  // NOTE: cardValues intentionally removed from deps — adding it caused the infinite loop.
-  // The isManuallyEdited guard above ensures edits are never overwritten.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations])
-
-  // Handle mobile responsiveness scaling
-  useEffect(() => {
-    if (selectedStudentId === 'all') return
-    const updateScale = () => {
-      if (containerRef.current) {
-        // padding md:p-8 is 64px total, p-4 is 32px. Let's subtract safety padding.
-        const parentWidth = containerRef.current.clientWidth - 48
-        const cardWidth = 794 // 210mm in pixels is approx 794px
-        if (parentWidth < cardWidth) {
-          setScale(parentWidth / cardWidth)
-        } else {
-          setScale(1)
-        }
-      }
-    }
-
-    updateScale()
-    window.addEventListener('resize', updateScale)
-    const timer = setTimeout(updateScale, 150)
-
-    return () => {
-      window.removeEventListener('resize', updateScale)
-      clearTimeout(timer)
-    }
-  }, [selectedStudentId])
-
-  // Format Course Dates
-  const formatDateRange = (start: any, end: any) => {
+  // ── Format Course Dates ───────────────────────
+  const formatDateRange = useCallback((start: any, end: any) => {
     if (!start || !end) return 'March 2026 To May 2026'
     try {
       const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' }
@@ -267,29 +360,151 @@ function ReportCardGeneratorContent() {
     } catch {
       return 'March 2026 To May 2026'
     }
-  }
+  }, [])
 
-  // Handle Save
-  const handleSave = async () => {
-    if (selectedStudentId === 'all') {
-      toast.error('Please select a student first.')
+  // ── Completion stats per selected class ────────
+  const classCompletionStats = useMemo(() => {
+    if (selectedCourseId === 'all' || !isInitialized) return null
+
+    const course = teacherCourses.find(c => c.id === selectedCourseId)
+    if (!course) return null
+
+    const classStudents = students?.filter(s => isStudentInCourse(s, course)) || []
+    if (classStudents.length === 0) return null
+
+    const statuses: StudentStatus[] = classStudents.map(student => {
+      const hasDbRecord = evaluations.some(
+        e => e.studentId === student.id && e.courseId === course.id
+      )
+
+      if (hasDbRecord) {
+        return { studentId: student.id, name: student.name, tier: 'complete' }
+      }
+
+      // Check if submissions data gives non-zero midterm + final
+      const studentSubs = submissions?.filter(s => s.studentId === student.id) || []
+      const midtermSub = studentSubs.find(s => {
+        const ass = assessments.find(a => a.id === s.assignmentId)
+        return ass?.phase === 'First Test'
+      })
+      const finalSub = studentSubs.find(s => {
+        const ass = assessments.find(a => a.id === s.assignmentId)
+        return ass?.phase === 'Last Test'
+      })
+      const hasMidterm = midtermSub && midtermSub.grade !== undefined && midtermSub.grade !== null
+      const hasFinal = finalSub && finalSub.grade !== undefined && finalSub.grade !== null
+
+      if (hasMidterm && hasFinal) {
+        return { studentId: student.id, name: student.name, tier: 'unsaved' }
+      }
+      return { studentId: student.id, name: student.name, tier: 'incomplete' }
+    })
+
+    const complete = statuses.filter(s => s.tier === 'complete').length
+    const unsaved = statuses.filter(s => s.tier === 'unsaved').length
+    const incomplete = statuses.filter(s => s.tier === 'incomplete').length
+
+    return {
+      total: classStudents.length,
+      complete,
+      unsaved,
+      incomplete,
+      studentStatuses: statuses,
+      courseName: course.title
+    }
+  }, [selectedCourseId, teacherCourses, students, evaluations, submissions, assessments, isInitialized])
+
+  // Bar fill percentage and color
+  const barPct = classCompletionStats
+    ? Math.round((classCompletionStats.complete / classCompletionStats.total) * 100)
+    : 0
+  const barColor =
+    barPct >= 80 ? '#10b981' :
+    barPct >= 50 ? '#f59e0b' :
+    '#ef4444'
+
+  // ── URL query parameter pre-fill ──────────────
+  useEffect(() => {
+    if (!isInitialized) return
+    const studentIdParam = searchParams.get('studentId')
+    if (studentIdParam) {
+      const student = students.find(s => s.id === studentIdParam)
+      if (student) {
+        const studentCourse = teacherCourses.find(c => isStudentInCourse(student, c))
+        if (studentCourse) setSelectedCourseId(studentCourse.id)
+        setSelectedStudentId(student.id)
+      }
+    }
+  }, [searchParams, isInitialized, students, teacherCourses])
+
+  // ── Reset manual edit flag on selection change ─
+  useEffect(() => {
+    isManuallyEdited.current = false
+  }, [selectedStudentId, selectedCourseId])
+
+  // ── Auto-populate card values ─────────────────
+  useEffect(() => {
+    if (isManuallyEdited.current) return
+    if (!isInitialized || selectedStudentId === 'all') {
+      if (Object.keys(cardValues).length !== 0) setCardValues({})
       return
     }
 
+    const student = students.find(s => s.id === selectedStudentId)
+    if (!student) return
+
+    let course = teacherCourses.find(c => c.id === selectedCourseId)
+    if (!course || selectedCourseId === 'all') {
+      course = teacherCourses.find(c => isStudentInCourse(student, c))
+    }
+    if (!course) return
+
+    const newValues = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
+
+    if (JSON.stringify(cardValues) !== JSON.stringify(newValues)) {
+      setCardValues(newValues)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations])
+
+  // ── Mobile scaling ────────────────────────────
+  useEffect(() => {
+    if (selectedStudentId === 'all') return
+    const updateScale = () => {
+      if (containerRef.current) {
+        const parentWidth = containerRef.current.clientWidth - 48
+        const cardWidth = 794
+        setScale(parentWidth < cardWidth ? parentWidth / cardWidth : 1)
+      }
+    }
+    updateScale()
+    window.addEventListener('resize', updateScale)
+    const timer = setTimeout(updateScale, 150)
+    return () => { window.removeEventListener('resize', updateScale); clearTimeout(timer) }
+  }, [selectedStudentId])
+
+  // ── Helpers for bulk course context ──────────────
+  const getBulkStudents = useCallback(() => {
+    if (selectedCourseId === 'all') return []
+    const course = teacherCourses.find(c => c.id === selectedCourseId)
+    if (!course) return []
+    return (students?.filter(s => isStudentInCourse(s, course)) || []).map(s => ({ student: s, course }))
+  }, [selectedCourseId, teacherCourses, students])
+
+  // ─────────────────────────────────────────────
+  // Handle Save
+  // ─────────────────────────────────────────────
+  const handleSave = async () => {
+    if (selectedStudentId === 'all') { toast.error('Please select a student first.'); return }
     const student = students.find(s => s.id === selectedStudentId)
     let course = teacherCourses.find(c => c.id === selectedCourseId)
     if (!course && selectedCourseId === 'all') {
       course = teacherCourses.find(c => isStudentInCourse(student, c))
     }
-
-    if (!student || !course) {
-      toast.error('Student and Course context matching error.')
-      return
-    }
+    if (!student || !course) { toast.error('Student and Course context matching error.'); return }
 
     setIsSaving(true)
     try {
-      // Upsert report card evaluations
       await saveEvaluations(course.id, [{
         studentId: student.id,
         midterm: Number(cardValues.midtermObtained) || 0,
@@ -301,143 +516,194 @@ function ReportCardGeneratorContent() {
         term: 'Term 1'
       }])
       toast.success('Report card marks synchronized and recorded successfully.')
-    } catch (error) {
+    } catch {
       toast.error('Failed to save report card marks.')
     } finally {
       setIsSaving(false)
     }
   }
 
+  // ─────────────────────────────────────────────
   // Handle Print
+  // ─────────────────────────────────────────────
   const handlePrint = () => {
-    if (selectedStudentId === 'all') {
-      toast.error('Please select a student before printing.')
-      return
-    }
+    if (selectedStudentId === 'all') { toast.error('Please select a student before printing.'); return }
     window.print()
   }
 
-  // Handle Download — pure Canvas API, no external library needed
+  // ─────────────────────────────────────────────
+  // Download: Single PDF
+  // ─────────────────────────────────────────────
   const handleDownloadPDF = async () => {
-    if (selectedStudentId === 'all') {
-      toast.error('Please select a student before downloading.')
-      return
-    }
-    setIsDownloading(true)
+    if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
+    setActiveDownload('pdf')
     try {
-      // A4 canvas at 150 DPI
-      const W = 1240
-      const H = 1754
-      const canvas = document.createElement('canvas')
-      canvas.width = W
-      canvas.height = H
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Canvas 2D not supported')
-
-      // 1. Draw the background image
-      await new Promise<void>((resolve, reject) => {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        img.onload = () => { ctx.drawImage(img, 0, 0, W, H); resolve() }
-        img.onerror = reject
-        img.src = '/actual-result-card.jpeg'
-      })
-
-      // Load fonts explicitly so canvas can use them
-      await document.fonts.load('bold 55px "Dancing Script"')
-      await document.fonts.load('bold 32px "Dancing Script"')
-      await document.fonts.load('bold 28px "Inter"')
-
-      // Helper: draw horizontally centered text within a bounding box
-      const draw = (
-        text: string,
-        xPct: number,
-        yPct: number,
-        wPct: number,
-        fontSize: number,
-        fontFamily = 'Inter, sans-serif'
-      ) => {
-        if (!text) return
-        const cx = ((xPct + wPct / 2) / 100) * W
-        const cy = (yPct / 100) * H
-        ctx.save()
-        ctx.font = `bold ${fontSize}px ${fontFamily}`
-        ctx.fillStyle = '#000000'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(text, cx, cy, (wPct / 100) * W)
-        ctx.restore()
-      }
-
-      const v = cardValues
-
-      // 2. Student name
-      draw(v.studentName || '', 10, 30.2, 80, 55, '"Dancing Script", cursive')
-      // 3. Level
-      draw(v.level || '', 32, 36.8, 24, 32, '"Dancing Script", cursive')
-      
-      // 4. Mark rows — Using calculated mathematical loop to prevent downward vertical drift
-      const marksFontSize = 28
-      const marksX = 72.5
-      const marksW = 15.5
-      const startY = 46.1
-      const gapY = 3.53
-      
-      draw(String(v.midtermObtained ?? ''), marksX, startY, marksW, marksFontSize)
-      draw(String(v.finalObtained ?? ''), marksX, startY + gapY, marksW, marksFontSize)
-      draw(String(v.attendanceObtained ?? ''), marksX, startY + gapY * 2, marksW, marksFontSize)
-      draw(String(v.participationObtained ?? ''), marksX, startY + gapY * 3, marksW, marksFontSize)
-      draw(String(v.disciplineObtained ?? ''), marksX, startY + gapY * 4, marksW, marksFontSize)
-      draw(String(v.extraCurricularObtained ?? ''), marksX, startY + gapY * 5, marksW, marksFontSize)
-      
-      // 5. Grand total
-      const grand = [
-        v.midtermObtained, v.finalObtained, v.attendanceObtained,
-        v.participationObtained, v.disciplineObtained, v.extraCurricularObtained
-      ].reduce((sum, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
-      if (grand > 0) draw(String(grand), marksX, startY + gapY * 6, marksW, 30)
-      // 6. Result & Grade
-      draw(v.overallResult || '', 32, 72.0, 14, 30)
-      draw(v.grade || '', 67, 72.0, 14, 30)
-      // 6.5. Comments (drawn with Georgia Italic, non-bold, aligned to line coordinate)
-      if (v.comments) {
-        const cx = ((10 + 80 / 2) / 100) * W
-        const cy = (77.8 / 100) * H
-        ctx.save()
-        ctx.font = 'italic 32px Georgia, serif'
-        ctx.fillStyle = '#000000'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(v.comments, cx, cy, (80 / 100) * W)
-        ctx.restore()
-      }
-      // 7. Erase baked-in dates and redraw editable values (expanded white box)
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(Math.round(0.20 * W), Math.round(0.93 * H), Math.round(0.60 * W), Math.round(0.07 * H))
-      ctx.font = 'italic 20px Inter, sans-serif'
-      ctx.fillStyle = '#000000'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(`Date of Issue: ${v.dateOfIssue || ''}`, W * 0.5, H * 0.954)
-      ctx.fillText(`Course Duration: ${v.courseDuration || ''}`, W * 0.5, H * 0.969)
-
-      // 8. Generate PDF and trigger download
+      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '')
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      })
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
-      const name = (v.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
+      const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
       pdf.save(`${name}-report-card.pdf`)
-      toast.success('Report card downloaded successfully!')
+      toast.success('PDF downloaded successfully!')
     } catch (err) {
       console.error(err)
-      toast.error('Failed to generate download. Please try again.')
+      toast.error('Failed to generate PDF. Please try again.')
     } finally {
-      setIsDownloading(false)
+      setActiveDownload(null)
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // Download: Single Image (JPG or PNG)
+  // ─────────────────────────────────────────────
+  const handleDownloadImage = async (format: 'jpg' | 'png') => {
+    if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
+    setActiveDownload(format)
+    try {
+      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '')
+      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
+      const quality = format === 'png' ? undefined : 0.95
+      const dataUrl = canvas.toDataURL(mimeType, quality)
+      const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
+      triggerDownload(dataUrl, `${name}-report-card.${format}`)
+      toast.success(`${format.toUpperCase()} downloaded successfully!`)
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to generate image. Please try again.')
+    } finally {
+      setActiveDownload(null)
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // Download: Bulk PDF (all students in class)
+  // ─────────────────────────────────────────────
+  const handleBulkPDF = async () => {
+    const pairs = getBulkStudents()
+    if (pairs.length === 0) { toast.error('No students found in the selected class.'); return }
+    setActiveDownload('bulk-pdf')
+    setBulkProgress({ current: 0, total: pairs.length })
+    try {
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      for (let i = 0; i < pairs.length; i++) {
+        const { student, course } = pairs[i]
+        setBulkProgress({ current: i + 1, total: pairs.length })
+        const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
+        const canvas = await renderStudentCanvas(values, student.name)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+        if (i > 0) pdf.addPage()
+        pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
+      }
+      const courseName = pairs[0].course.title.replace(/\s+/g, '-').toLowerCase()
+      pdf.save(`${courseName}-bulk-report-cards.pdf`)
+      toast.success(`Bulk PDF with ${pairs.length} cards downloaded!`)
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to generate bulk PDF.')
+    } finally {
+      setActiveDownload(null)
+      setBulkProgress(null)
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // Download: Bulk Images (sequential downloads)
+  // ─────────────────────────────────────────────
+  const handleBulkImages = async (format: 'jpg' | 'png') => {
+    const pairs = getBulkStudents()
+    if (pairs.length === 0) { toast.error('No students found in the selected class.'); return }
+    setActiveDownload(format === 'jpg' ? 'bulk-jpg' : 'bulk-png')
+    setBulkProgress({ current: 0, total: pairs.length })
+    try {
+      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
+      const quality = format === 'png' ? undefined : 0.95
+      for (let i = 0; i < pairs.length; i++) {
+        const { student, course } = pairs[i]
+        setBulkProgress({ current: i + 1, total: pairs.length })
+        const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
+        const canvas = await renderStudentCanvas(values, student.name)
+        const dataUrl = canvas.toDataURL(mimeType, quality)
+        const name = student.name.replace(/\s+/g, '-').toLowerCase()
+        triggerDownload(dataUrl, `${name}-report-card.${format}`)
+        // Brief pause between downloads to avoid browser throttling
+        await new Promise(r => setTimeout(r, 300))
+      }
+      toast.success(`${pairs.length} ${format.toUpperCase()} files downloaded!`)
+    } catch (err) {
+      console.error(err)
+      toast.error(`Failed to generate bulk ${format.toUpperCase()} files.`)
+    } finally {
+      setActiveDownload(null)
+      setBulkProgress(null)
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // Download: ZIP of JPGs (single or bulk)
+  // ─────────────────────────────────────────────
+  const handleZipJPGs = async (bulk: boolean) => {
+    if (!bulk && selectedStudentId === 'all') {
+      toast.error('Please select a student before downloading.'); return
+    }
+
+    const pairs = bulk
+      ? getBulkStudents()
+      : (() => {
+          const student = students.find(s => s.id === selectedStudentId)
+          let course = teacherCourses.find(c => c.id === selectedCourseId)
+          if (!course) course = teacherCourses.find(c => isStudentInCourse(student, c))
+          return student && course ? [{ student, course }] : []
+        })()
+
+    if (pairs.length === 0) { toast.error('No student data available for ZIP.'); return }
+
+    setActiveDownload(bulk ? 'bulk-zip-jpg' : 'zip-jpg')
+    setBulkProgress({ current: 0, total: pairs.length })
+
+    try {
+      const zip = new JSZip()
+      for (let i = 0; i < pairs.length; i++) {
+        const { student, course } = pairs[i]
+        setBulkProgress({ current: i + 1, total: pairs.length })
+        const values = bulk
+          ? buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
+          : cardValues
+        const canvas = await renderStudentCanvas(values, student.name)
+        // Convert data URL to blob for zip
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+        const base64 = dataUrl.split(',')[1]
+        const name = student.name.replace(/\s+/g, '-').toLowerCase()
+        zip.file(`${name}-report-card.jpg`, base64, { base64: true })
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } })
+      const url = URL.createObjectURL(blob)
+      const zipName = bulk
+        ? `${pairs[0].course.title.replace(/\s+/g, '-').toLowerCase()}-report-cards.zip`
+        : `${pairs[0].student.name.replace(/\s+/g, '-').toLowerCase()}-report-card.zip`
+      triggerDownload(url, zipName)
+      URL.revokeObjectURL(url)
+      toast.success(`ZIP with ${pairs.length} card${pairs.length > 1 ? 's' : ''} downloaded!`)
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to generate ZIP file.')
+    } finally {
+      setActiveDownload(null)
+      setBulkProgress(null)
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // Derived UI state
+  // ─────────────────────────────────────────────
+  const isAnyDownloading = activeDownload !== null
+  const isClassSelected = selectedCourseId !== 'all'
+  const clasHasStudents = getBulkStudents().length > 0
+
+  const downloadButtonLabel = () => {
+    if (!isAnyDownloading) return 'Download'
+    if (bulkProgress) return `Generating ${bulkProgress.current} / ${bulkProgress.total}...`
+    return 'Generating...'
   }
 
   if (!user?.id) return null
@@ -445,51 +711,27 @@ function ReportCardGeneratorContent() {
 
   return (
     <PageShell>
-      {/* Hide elements in print mode */}
+      {/* Print styles */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          /* Hide sidebars and layout UI */
-          aside,
-          header,
-          .no-print,
-          button,
-          .page-header-container,
-          .filters-container {
+          aside, header, .no-print, button, .page-header-container, .filters-container {
             display: none !important;
           }
-          
-          /* Full sheet container overrides */
-          main, 
-          .premium-scrollbar,
-          div[class*="PageShell"],
-          div[class*="SidebarInset"],
-          div[class*="SidebarProvider"] {
-            padding: 0 !important;
-            margin: 0 !important;
-            background: #ffffff !important;
-            border: none !important;
-            box-shadow: none !important;
-            overflow: visible !important;
-            display: block !important;
-            height: auto !important;
-            width: auto !important;
+          main, .premium-scrollbar,
+          div[class*="PageShell"], div[class*="SidebarInset"], div[class*="SidebarProvider"] {
+            padding: 0 !important; margin: 0 !important; background: #ffffff !important;
+            border: none !important; box-shadow: none !important;
+            overflow: visible !important; display: block !important;
+            height: auto !important; width: auto !important;
           }
-
-          body {
-            background: #ffffff !important;
-          }
-          
-          /* Force page margins */
-          @page {
-            size: A4 portrait;
-            margin: 0;
-          }
+          body { background: #ffffff !important; }
+          @page { size: A4 portrait; margin: 0; }
         }
       `}} />
 
-      {/* Screen only Header */}
+      {/* Screen-only header */}
       <div className="no-print">
-        <PageHeader 
+        <PageHeader
           title="Term Report Card Generator"
           description="Design, preview, and print official Academic Report Cards."
           actions={
@@ -502,76 +744,271 @@ function ReportCardGeneratorContent() {
 
         {/* Configuration Panel */}
         <Card className="mb-8 border-primary/5 shadow-md">
-          <CardContent className="pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-4 flex-1">
-              <div className="flex flex-col gap-1.5 w-60">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground opacity-60">Select Class</span>
-                <Select value={selectedCourseId} onValueChange={(val) => {
-                  setSelectedCourseId(val)
-                  setSelectedStudentId('all')
-                }}>
-                  <SelectTrigger className="h-11 text-xs">
-                    <SelectValue placeholder="All Classes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Classes</SelectItem>
-                    {teacherCourses.map(course => (
-                      <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <CardContent className="pt-6 flex flex-col gap-5">
+
+            {/* Row 1: Selectors + Action Buttons */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4 flex-1">
+                {/* Course Selector */}
+                <div className="flex flex-col gap-1.5 w-60">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground opacity-60">Select Class</span>
+                  <Select value={selectedCourseId} onValueChange={(val) => {
+                    setSelectedCourseId(val)
+                    setSelectedStudentId('all')
+                  }}>
+                    <SelectTrigger className="h-11 text-xs">
+                      <SelectValue placeholder="All Classes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Classes</SelectItem>
+                      {teacherCourses.map(course => (
+                        <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Student Selector */}
+                <div className="flex flex-col gap-1.5 w-60">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground opacity-60">Select Student</span>
+                  <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                    <SelectTrigger className="h-11 text-xs">
+                      <SelectValue placeholder="Select Student" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Choose a Student...</SelectItem>
+                      {teacherStudents.map(student => (
+                        <SelectItem key={student.id} value={student.id}>
+                          {student.name} ({student.studentId || 'No ID'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="flex flex-col gap-1.5 w-60">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground opacity-60">Select Student</span>
-                <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger className="h-11 text-xs">
-                    <SelectValue placeholder="Select Student" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Choose a Student...</SelectItem>
-                    {teacherStudents.map(student => (
-                      <SelectItem key={student.id} value={student.id}>{student.name} ({student.studentId || 'No ID'})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <Button
+                  variant="outline"
+                  className="h-11 px-5 font-normal text-xs border-primary/10 hover:bg-primary/5 text-primary"
+                  onClick={handleSave}
+                  disabled={isSaving || selectedStudentId === 'all'}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Record Registry
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-11 px-5 font-normal text-xs"
+                  onClick={handlePrint}
+                  disabled={selectedStudentId === 'all'}
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  Print
+                </Button>
+
+                {/* Split Download Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="h-11 px-5 font-normal text-xs bg-[#10b981] hover:bg-[#059669] text-white shadow-md shadow-emerald-500/10 flex items-center gap-2"
+                      disabled={isAnyDownloading}
+                    >
+                      {isAnyDownloading
+                        ? <><div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />{downloadButtonLabel()}</>
+                        : <><Download className="w-4 h-4" /> Download <ChevronDown className="w-3.5 h-3.5 ml-1 opacity-80" /></>
+                      }
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+
+                    {/* Single student formats */}
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold opacity-60 pb-1">
+                      This Student
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={handleDownloadPDF}
+                      disabled={selectedStudentId === 'all'}
+                      className="gap-2.5 text-xs"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-red-500" />
+                      Download PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDownloadImage('jpg')}
+                      disabled={selectedStudentId === 'all'}
+                      className="gap-2.5 text-xs"
+                    >
+                      <FileImage className="w-3.5 h-3.5 text-sky-500" />
+                      Download JPG
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDownloadImage('png')}
+                      disabled={selectedStudentId === 'all'}
+                      className="gap-2.5 text-xs"
+                    >
+                      <FileImage className="w-3.5 h-3.5 text-violet-500" />
+                      Download PNG
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleZipJPGs(false)}
+                      disabled={selectedStudentId === 'all'}
+                      className="gap-2.5 text-xs"
+                    >
+                      <Archive className="w-3.5 h-3.5 text-amber-500" />
+                      ZIP of JPG
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    {/* Bulk formats */}
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold opacity-60 pb-1 flex items-center gap-1.5">
+                      <Users className="w-3 h-3" /> Whole Class
+                      {!isClassSelected && <span className="text-[9px] text-amber-500 font-normal normal-case">(select a class first)</span>}
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={handleBulkPDF}
+                      disabled={!isClassSelected || !clasHasStudents}
+                      className="gap-2.5 text-xs"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-red-500" />
+                      Bulk PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleBulkImages('jpg')}
+                      disabled={!isClassSelected || !clasHasStudents}
+                      className="gap-2.5 text-xs"
+                    >
+                      <FileImage className="w-3.5 h-3.5 text-sky-500" />
+                      Bulk JPG
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleBulkImages('png')}
+                      disabled={!isClassSelected || !clasHasStudents}
+                      className="gap-2.5 text-xs"
+                    >
+                      <FileImage className="w-3.5 h-3.5 text-violet-500" />
+                      Bulk PNG
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleZipJPGs(true)}
+                      disabled={!isClassSelected || !clasHasStudents}
+                      className="gap-2.5 text-xs"
+                    >
+                      <Archive className="w-3.5 h-3.5 text-amber-500" />
+                      Bulk ZIP of JPGs
+                    </DropdownMenuItem>
+
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                className="h-11 px-5 font-normal text-xs border-primary/10 hover:bg-primary/5 text-primary"
-                onClick={handleSave}
-                disabled={isSaving || selectedStudentId === 'all'}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Record Registry
-              </Button>
-              <Button
-                variant="outline"
-                className="h-11 px-5 font-normal text-xs"
-                onClick={handlePrint}
-                disabled={selectedStudentId === 'all'}
-              >
-                <Printer className="w-4 h-4 mr-2" />
-                Print
-              </Button>
-              <Button
-                className="h-11 px-6 font-normal text-xs bg-[#10b981] hover:bg-[#059669] text-white shadow-md shadow-emerald-500/10"
-                onClick={handleDownloadPDF}
-                disabled={selectedStudentId === 'all' || isDownloading}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {isDownloading ? 'Generating...' : 'Download PDF'}
-              </Button>
-            </div>
+            {/* Row 2: Bulk progress bar (shown during bulk generation) */}
+            {bulkProgress && (
+              <div className="flex flex-col gap-1.5 pt-1 pb-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    Generating cards...
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-600">
+                    {bulkProgress.current} / {bulkProgress.total}
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-[#10b981] transition-all duration-300 ease-out"
+                    style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Row 3: Completion Tracker — only when a class is selected */}
+            {classCompletionStats && !bulkProgress && (
+              <div className="border border-border/60 rounded-2xl p-4 bg-muted/20 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1 duration-300">
+
+                {/* Header row */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] uppercase font-bold tracking-widest text-muted-foreground opacity-70">
+                      Card Completion
+                    </span>
+                    <p className="text-xs font-semibold text-foreground mt-0.5">
+                      {classCompletionStats.courseName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xl font-bold" style={{ color: barColor }}>
+                      {classCompletionStats.complete}
+                    </span>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {' '}/ {classCompletionStats.total}
+                    </span>
+                    <p className="text-[10px] text-muted-foreground opacity-60 mt-0.5">saved to registry</p>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${barPct}%`, backgroundColor: barColor }}
+                  />
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center gap-4 flex-wrap">
+                  {(
+                    [
+                      { tier: 'complete' as const, count: classCompletionStats.complete, label: 'Saved' },
+                      { tier: 'unsaved' as const, count: classCompletionStats.unsaved, label: 'Has marks, unsaved' },
+                      { tier: 'incomplete' as const, count: classCompletionStats.incomplete, label: 'Missing scores' },
+                    ]
+                  ).map(({ tier, count, label }) => (
+                    <div key={tier} className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: tierColor[tier] }} />
+                      <span className="text-[10px] text-muted-foreground">{count} {label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Student chips */}
+                <div className="flex flex-wrap gap-2 pt-0.5 max-h-28 overflow-y-auto">
+                  {classCompletionStats.studentStatuses.map(({ studentId, name, tier }) => {
+                    const Icon = tierIcon[tier]
+                    const isSelected = selectedStudentId === studentId
+                    return (
+                      <button
+                        key={studentId}
+                        onClick={() => setSelectedStudentId(studentId)}
+                        title={`${name} — ${tierLabel[tier]}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all duration-150 cursor-pointer hover:scale-[1.04] active:scale-[0.97]"
+                        style={{
+                          borderColor: isSelected ? tierColor[tier] : `${tierColor[tier]}55`,
+                          backgroundColor: isSelected ? `${tierColor[tier]}18` : `${tierColor[tier]}09`,
+                          color: tierColor[tier],
+                          boxShadow: isSelected ? `0 0 0 2px ${tierColor[tier]}33` : 'none',
+                        }}
+                      >
+                        <Icon className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate max-w-[100px]">{name.split(' ')[0]}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+              </div>
+            )}
+
           </CardContent>
         </Card>
       </div>
 
       {/* Preview Section */}
-      <div 
+      <div
         ref={containerRef}
         className="flex flex-col items-center justify-center p-4 md:p-8 bg-slate-100 rounded-3xl border border-slate-200 min-h-[500px] w-full overflow-hidden"
       >
@@ -582,7 +1019,7 @@ function ReportCardGeneratorContent() {
             <p className="text-xs mt-1">Grades and name will be fetched and pre-loaded automatically.</p>
           </div>
         ) : (
-          <div 
+          <div
             className="origin-top transition-transform duration-200 bg-white shadow-xl"
             style={{
               transform: `scale(${scale})`,
@@ -591,10 +1028,10 @@ function ReportCardGeneratorContent() {
               marginBottom: scale < 1 ? `calc(297mm * (${scale} - 1))` : '0px'
             }}
           >
-            <ReportCard 
+            <ReportCard
               key={selectedStudentId}
               initialValues={cardValues}
-              cardRef={cardRef}
+              cardRef={cardRef as React.RefObject<HTMLDivElement>}
               onChange={(newValues) => {
                 isManuallyEdited.current = true
                 setCardValues(newValues)
