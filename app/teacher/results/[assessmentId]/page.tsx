@@ -84,7 +84,7 @@ export default function AssessmentWorkspacePage() {
     </div>
   )
 
-  const allEntries = [...assessmentSubmissions, ...pendingCandidates]
+  const allEntries: any[] = [...assessmentSubmissions, ...pendingCandidates]
 
   const filteredSubmissions = allEntries.filter(s => 
     (s.studentName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
