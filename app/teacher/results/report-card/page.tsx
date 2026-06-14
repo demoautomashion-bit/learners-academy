@@ -26,6 +26,7 @@ import {
 import { ReportCard, ReportCardValues } from '@/components/report-card'
 import { isStudentInCourse } from '@/lib/utils/student-matching'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
+import { getTierForLevel } from '@/lib/utils/card-tiers'
 import {
   Award, Printer, Save, Download, ArrowLeft, ChevronDown,
   FileImage, FileText, Archive, Users, CheckCircle2, AlertCircle, Clock
@@ -62,23 +63,39 @@ async function renderStudentCanvas(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas 2D not supported')
 
-  // Find template mappings
-  const template = (cardTemplates || []).find((t: any) => t.level === v.level)
+  // Find template mappings using tier mapping helper
+  const tierId = getTierForLevel(v.level || '')
+  const template = (cardTemplates || []).find((t: any) => t.level === tierId)
   const bgImage = template?.backgroundUrl || "/actual-result-card.jpeg"
-  const c = template?.coordinates || {}
-
-  const getCoord = (field: string, prop: string, defVal: number) => {
-    if (c[field] && c[field][prop] !== undefined) {
-      return c[field][prop]
-    }
-    return defVal
-  }
+  const dims = template?.coordinates || {} // contains width, height, borderRadius, padding if configured
 
   // 1. Draw background image
   await new Promise<void>((resolve, reject) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
-    img.onload = () => { ctx.drawImage(img, 0, 0, W, H); resolve() }
+    img.onload = () => {
+      // Paint background fitting the container dimensions if scaling is custom
+      const scaleW = (dims.width || 100) / 100
+      const scaleH = (dims.height || 100) / 100
+      
+      const width = W * scaleW
+      const height = H * scaleH
+      const xOffset = (W - width) / 2
+      const yOffset = (H - height) / 2
+
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, W, H)
+
+      ctx.save()
+      if (dims.borderRadius) {
+        ctx.beginPath()
+        ctx.roundRect(xOffset, yOffset, width, height, dims.borderRadius * 4) // scale border radius for print res
+        ctx.clip()
+      }
+      ctx.drawImage(img, xOffset, yOffset, width, height)
+      ctx.restore()
+      resolve()
+    }
     img.onerror = reject
     img.src = bgImage
   })
@@ -98,36 +115,31 @@ async function renderStudentCanvas(
     fontFamily = 'Inter, sans-serif'
   ) => {
     if (!text) return
-    const cx = ((xPct + wPct / 2) / 100) * W
-    const cy = (yPct / 100) * H
+    const scaleW = (dims.width || 100) / 100
+    const scaleH = (dims.height || 100) / 100
+    
+    // Scale positioning mapping to target border size bounds
+    const width = W * scaleW
+    const height = H * scaleH
+    const xOffset = (W - width) / 2
+    const yOffset = (H - height) / 2
+
+    const cx = xOffset + ((xPct + wPct / 2) / 100) * width
+    const cy = yOffset + (yPct / 100) * height
+    
     ctx.save()
     ctx.font = `bold ${fontSize}px ${fontFamily}`
     ctx.fillStyle = '#000000'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(text, cx, cy, (wPct / 100) * W)
+    ctx.fillText(text, cx, cy, (wPct / 100) * width)
     ctx.restore()
   }
 
   // 2. Student name
-  draw(
-    v.studentName || studentName || '',
-    getCoord('studentName', 'left', 10),
-    getCoord('studentName', 'top', 30.2),
-    getCoord('studentName', 'width', 80),
-    getCoord('studentName', 'fontSize', 55),
-    '"Dancing Script", cursive'
-  )
-  
+  draw(v.studentName || studentName || '', 10, 30.2, 80, 55, '"Dancing Script", cursive')
   // 3. Level
-  draw(
-    v.level || '',
-    getCoord('level', 'left', 32),
-    getCoord('level', 'top', 36.8),
-    getCoord('level', 'width', 24),
-    getCoord('level', 'fontSize', 32),
-    '"Dancing Script", cursive'
-  )
+  draw(v.level || '', 32, 36.8, 24, 32, '"Dancing Script", cursive')
 
   // 4. Mark rows
   const marksFontSize = 28
@@ -136,70 +148,51 @@ async function renderStudentCanvas(
   const startY = 46.1
   const gapY = 3.53
 
-  const getMarkX = (field: string) => getCoord(field, 'left', marksX)
-  const getMarkY = (field: string, index: number) => getCoord(field, 'top', startY + gapY * index)
-  const getMarkW = (field: string) => getCoord(field, 'width', marksW)
-  const getMarkSize = (field: string) => getCoord(field, 'fontSize', marksFontSize)
-
-  draw(String(v.midtermObtained ?? ''), getMarkX('midtermObtained'), getMarkY('midtermObtained', 0), getMarkW('midtermObtained'), getMarkSize('midtermObtained'))
-  draw(String(v.finalObtained ?? ''), getMarkX('finalObtained'), getMarkY('finalObtained', 1), getMarkW('finalObtained'), getMarkSize('finalObtained'))
-  draw(String(v.attendanceObtained ?? ''), getMarkX('attendanceObtained'), getMarkY('attendanceObtained', 2), getMarkW('attendanceObtained'), getMarkSize('attendanceObtained'))
-  draw(String(v.participationObtained ?? ''), getMarkX('participationObtained'), getMarkY('participationObtained', 3), getMarkW('participationObtained'), getMarkSize('participationObtained'))
-  draw(String(v.disciplineObtained ?? ''), getMarkX('disciplineObtained'), getMarkY('disciplineObtained', 4), getMarkW('disciplineObtained'), getMarkSize('disciplineObtained'))
-  draw(String(v.extraCurricularObtained ?? ''), getMarkX('extraCurricularObtained'), getMarkY('extraCurricularObtained', 5), getMarkW('extraCurricularObtained'), getMarkSize('extraCurricularObtained'))
+  draw(String(v.midtermObtained ?? ''), marksX, startY, marksW, marksFontSize)
+  draw(String(v.finalObtained ?? ''), marksX, startY + gapY, marksW, marksFontSize)
+  draw(String(v.attendanceObtained ?? ''), marksX, startY + gapY * 2, marksW, marksFontSize)
+  draw(String(v.participationObtained ?? ''), marksX, startY + gapY * 3, marksW, marksFontSize)
+  draw(String(v.disciplineObtained ?? ''), marksX, startY + gapY * 4, marksW, marksFontSize)
+  draw(String(v.extraCurricularObtained ?? ''), marksX, startY + gapY * 5, marksW, marksFontSize)
 
   // 5. Grand total
   const grand = (
     [v.midtermObtained, v.finalObtained, v.attendanceObtained,
     v.participationObtained, v.disciplineObtained, v.extraCurricularObtained] as (string | number | undefined)[]
   ).reduce((sum: number, val) => sum + (parseFloat(String(val ?? 0)) || 0), 0)
-  if (grand > 0) {
-    draw(
-      String(grand),
-      getCoord('grandTotal', 'left', marksX),
-      getCoord('grandTotal', 'top', startY + gapY * 6),
-      getCoord('grandTotal', 'width', marksW),
-      getCoord('grandTotal', 'fontSize', 30)
-    )
-  }
+  if (grand > 0) draw(String(grand), marksX, startY + gapY * 6, marksW, 30)
 
   // 6. Result & Grade
-  draw(
-    v.overallResult || '',
-    getCoord('overallResult', 'left', 32),
-    getCoord('overallResult', 'top', 72.0),
-    getCoord('overallResult', 'width', 14),
-    getCoord('overallResult', 'fontSize', 30)
-  )
-  draw(
-    v.grade || '',
-    getCoord('grade', 'left', 67),
-    getCoord('grade', 'top', 72.0),
-    getCoord('grade', 'width', 14),
-    getCoord('grade', 'fontSize', 30)
-  )
+  draw(v.overallResult || '', 32, 72.0, 14, 30)
+  draw(v.grade || '', 67, 72.0, 14, 30)
 
   // 6.5 Comments
   if (v.comments) {
-    draw(
-      v.comments,
-      getCoord('comments', 'left', 10),
-      getCoord('comments', 'top', 77.8),
-      getCoord('comments', 'width', 80),
-      getCoord('comments', 'fontSize', 32),
-      'Georgia, serif'
-    )
+    draw(v.comments, 10, 77.8, 80, 32, 'Georgia, serif')
   }
 
   // 7. Erase baked-in dates + redraw editable values
+  const scaleW = (dims.width || 100) / 100
+  const scaleH = (dims.height || 100) / 100
+  const width = W * scaleW
+  const height = H * scaleH
+  const xOffset = (W - width) / 2
+  const yOffset = (H - height) / 2
+
   ctx.fillStyle = '#ffffff'
-  ctx.fillRect(Math.round(0.20 * W), Math.round(0.93 * H), Math.round(0.60 * W), Math.round(0.07 * H))
+  ctx.fillRect(
+    xOffset + Math.round(0.20 * width), 
+    yOffset + Math.round(0.93 * height), 
+    Math.round(0.60 * width), 
+    Math.round(0.07 * height)
+  )
+  
   ctx.font = 'italic 20px Inter, sans-serif'
   ctx.fillStyle = '#000000'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(`Date of Issue: ${v.dateOfIssue || ''}`, W * 0.5, H * 0.954)
-  ctx.fillText(`Course Duration: ${v.courseDuration || ''}`, W * 0.5, H * 0.969)
+  ctx.fillText(`Date of Issue: ${v.dateOfIssue || ''}`, xOffset + width * 0.5, yOffset + height * 0.954)
+  ctx.fillText(`Course Duration: ${v.courseDuration || ''}`, xOffset + width * 0.5, yOffset + height * 0.969)
 
   return canvas
 }

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
+import { getTierForLevel } from '@/lib/utils/card-tiers'
 
 export interface ReportCardValues {
   studentName: string
@@ -87,29 +88,27 @@ export function ReportCard({
     parseMark(values.disciplineObtained) +
     parseMark(values.extraCurricularObtained)
 
-  // Find template mappings
-  const template = (cardTemplates || []).find((t: any) => t.level === values.level)
+  // Find template mappings using tier mapping helper
+  const tierId = getTierForLevel(values.level)
+  const template = (cardTemplates || []).find((t: any) => t.level === tierId)
   const bgImage = template?.backgroundUrl || "/actual-result-card.jpeg"
-  const c = template?.coordinates || {}
-
-  const getCoord = (field: string, prop: string, defVal: number) => {
-    if (c[field] && c[field][prop] !== undefined) {
-      return c[field][prop]
-    }
-    return defVal
-  }
+  const dims = template?.coordinates || {}
 
   return (
     <div ref={cardRef} className={cn("report-card-container relative bg-white overflow-hidden shadow-2xl mx-auto", className)}
       style={{
-        width: '210mm',
-        height: '297mm',
+        width: dims.width ? `${dims.width}%` : '210mm',
+        height: dims.height ? `${dims.height}%` : '297mm',
+        borderRadius: dims.borderRadius ? `${dims.borderRadius}px` : '0px',
+        padding: dims.padding ? `${dims.padding}px` : '0px',
         backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         boxSizing: 'border-box',
-        color: '#0f172a'
+        color: '#0f172a',
+        maxWidth: '100%',
+        maxHeight: '100%'
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: `
@@ -174,11 +173,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-handwritten"
         style={{ 
-          top: `${getCoord('studentName', 'top', 27.8)}%`, 
-          left: `${getCoord('studentName', 'left', 10)}%`, 
-          width: `${getCoord('studentName', 'width', 80)}%`, 
+          top: '27.8%', 
+          left: '10%', 
+          width: '80%', 
           height: '4.2%', 
-          fontSize: `${getCoord('studentName', 'fontSize', 36)}px`, 
+          fontSize: '36px', 
           display: 'flex', 
           alignItems: 'flex-end' 
         }}
@@ -192,11 +191,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-handwritten"
         style={{ 
-          top: `${getCoord('level', 'top', 35.8)}%`, 
-          left: `${getCoord('level', 'left', 32)}%`, 
-          width: `${getCoord('level', 'width', 24)}%`, 
+          top: '35.8%', 
+          left: '32%', 
+          width: '24%', 
           height: '2.5%', 
-          fontSize: `${getCoord('level', 'fontSize', 24)}px`, 
+          fontSize: '24px', 
           fontWeight: '700', 
           display: 'flex', 
           alignItems: 'center' 
@@ -211,11 +210,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ 
-          top: `${getCoord('midtermObtained', 'top', 44.4)}%`, 
-          left: `${getCoord('midtermObtained', 'left', 72.5)}%`, 
-          width: `${getCoord('midtermObtained', 'width', 15.5)}%`, 
+          top: '44.4%', 
+          left: '72.5%', 
+          width: '15.5%', 
           height: '3.4%', 
-          fontSize: `${getCoord('midtermObtained', 'fontSize', 15)}px`, 
+          fontSize: '15px', 
           padding: '0', 
           lineHeight: '1' 
         }}
@@ -227,11 +226,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ 
-          top: `${getCoord('finalObtained', 'top', 47.9)}%`, 
-          left: `${getCoord('finalObtained', 'left', 72.5)}%`, 
-          width: `${getCoord('finalObtained', 'width', 15.5)}%`, 
+          top: '47.9%', 
+          left: '72.5%', 
+          width: '15.5%', 
           height: '3.4%', 
-          fontSize: `${getCoord('finalObtained', 'fontSize', 15)}px`, 
+          fontSize: '15px', 
           padding: '0', 
           lineHeight: '1' 
         }}
@@ -243,11 +242,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ 
-          top: `${getCoord('attendanceObtained', 'top', 51.5)}%`, 
-          left: `${getCoord('attendanceObtained', 'left', 72.5)}%`, 
-          width: `${getCoord('attendanceObtained', 'width', 15.5)}%`, 
+          top: '51.5%', 
+          left: '72.5%', 
+          width: '15.5%', 
           height: '3.4%', 
-          fontSize: `${getCoord('attendanceObtained', 'fontSize', 15)}px`, 
+          fontSize: '15px', 
           padding: '0', 
           lineHeight: '1' 
         }}
@@ -259,11 +258,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ 
-          top: `${getCoord('participationObtained', 'top', 55.0)}%`, 
-          left: `${getCoord('participationObtained', 'left', 72.5)}%`, 
-          width: `${getCoord('participationObtained', 'width', 15.5)}%`, 
+          top: '55.0%', 
+          left: '72.5%', 
+          width: '15.5%', 
           height: '3.4%', 
-          fontSize: `${getCoord('participationObtained', 'fontSize', 15)}px`, 
+          fontSize: '15px', 
           padding: '0', 
           lineHeight: '1' 
         }}
@@ -275,11 +274,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ 
-          top: `${getCoord('disciplineObtained', 'top', 58.5)}%`, 
-          left: `${getCoord('disciplineObtained', 'left', 72.5)}%`, 
-          width: `${getCoord('disciplineObtained', 'width', 15.5)}%`, 
+          top: '58.5%', 
+          left: '72.5%', 
+          width: '15.5%', 
           height: '3.4%', 
-          fontSize: `${getCoord('disciplineObtained', 'fontSize', 15)}px`, 
+          fontSize: '15px', 
           padding: '0', 
           lineHeight: '1' 
         }}
@@ -291,11 +290,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ 
-          top: `${getCoord('extraCurricularObtained', 'top', 62.1)}%`, 
-          left: `${getCoord('extraCurricularObtained', 'left', 72.5)}%`, 
-          width: `${getCoord('extraCurricularObtained', 'width', 15.5)}%`, 
+          top: '62.1%', 
+          left: '72.5%', 
+          width: '15.5%', 
           height: '3.4%', 
-          fontSize: `${getCoord('extraCurricularObtained', 'fontSize', 15)}px`, 
+          fontSize: '15px', 
           padding: '0', 
           lineHeight: '1' 
         }}
@@ -305,9 +304,9 @@ export function ReportCard({
       <div 
         className="rc-input-overlay flex items-center justify-center rc-font-sans"
         style={{ 
-          top: `${getCoord('grandTotal', 'top', 65.6)}%`, 
-          left: `${getCoord('grandTotal', 'left', 72.5)}%`, 
-          width: `${getCoord('grandTotal', 'width', 15.5)}%`, 
+          top: '65.6%', 
+          left: '72.5%', 
+          width: '15.5%', 
           height: '3.4%', 
           fontSize: '16px', 
           fontWeight: '700', 
@@ -325,11 +324,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ 
-          top: `${getCoord('overallResult', 'top', 70.8)}%`, 
-          left: `${getCoord('overallResult', 'left', 32)}%`, 
-          width: `${getCoord('overallResult', 'width', 14)}%`, 
+          top: '70.8%', 
+          left: '32%', 
+          width: '14%', 
           height: '3%', 
-          fontSize: `${getCoord('overallResult', 'fontSize', 18)}px`, 
+          fontSize: '18px', 
           display: 'flex', 
           alignItems: 'center' 
         }}
@@ -342,11 +341,11 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay rc-font-sans"
         style={{ 
-          top: `${getCoord('grade', 'top', 70.8)}%`, 
-          left: `${getCoord('grade', 'left', 67)}%`, 
-          width: `${getCoord('grade', 'width', 14)}%`, 
+          top: '70.8%', 
+          left: '67%', 
+          width: '14%', 
           height: '3%', 
-          fontSize: `${getCoord('grade', 'fontSize', 18)}px`, 
+          fontSize: '18px', 
           display: 'flex', 
           alignItems: 'center' 
         }}
@@ -360,13 +359,13 @@ export function ReportCard({
         disabled={readOnly}
         className="rc-input-overlay"
         style={{ 
-          top: `${getCoord('comments', 'top', 76.4)}%`, 
-          left: `${getCoord('comments', 'left', 10)}%`, 
-          width: `${getCoord('comments', 'width', 80)}%`, 
+          top: '76.4%', 
+          left: '10%', 
+          width: '80%', 
           height: '2.8%', 
           fontFamily: 'Georgia, serif', 
           fontStyle: 'italic', 
-          fontSize: `${getCoord('comments', 'fontSize', 24)}px`, 
+          fontSize: '24px', 
           fontWeight: '500', 
           display: 'flex', 
           alignItems: 'flex-end', 
