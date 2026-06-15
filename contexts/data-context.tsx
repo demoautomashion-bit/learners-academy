@@ -54,7 +54,7 @@ interface DataContextType {
   // Actions
   enrollStudent: (student: any) => Promise<void>
   removeStudent: (id: string) => Promise<void>
-  addAnnouncement: (data: { title: string, summary: string, content: string, category: string, date: string }) => Promise<void>
+  addAnnouncement: (data: { title: string, summary: string, content: string, category: string, date: string, imageUrl?: string | null }) => Promise<void>
   updateStudentStatus: (id: string, status: Student['status']) => Promise<void>
   updateStudent: (id: string, data: Partial<Student>) => Promise<void>
   updateStudentSuccessMetrics: (id: string, progress: number, grade?: string) => Promise<void>
@@ -363,7 +363,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return executeAction(() => dbSaveAudioRecord(blobUrl, title, filename, user.id), "Institutional asset verified")
   }, [executeAction, user?.id])
   const deleteAudio = useCallback((id: string) => executeAction(() => dbDeleteAudio(id, user?.id || ''), "Asset purged"), [executeAction, user?.id])
-  const addAnnouncement = useCallback((data: { title: string, summary: string, content: string, category: string, date: string }) => executeAction(() => dbCreateAnnouncement(data), "Announcement posted"), [executeAction])
+  const addAnnouncement = useCallback((data: { title: string, summary: string, content: string, category: string, date: string, imageUrl?: string | null }) => executeAction(() => dbCreateAnnouncement(data), "Announcement posted"), [executeAction])
   const saveCardTemplate = useCallback((level: string, backgroundUrl: string, coordinates: any) => executeAction(() => dbSaveCardTemplate(level, backgroundUrl, coordinates), "Card template saved"), [executeAction])
   const deleteCardTemplate = useCallback((level: string) => executeAction(() => dbDeleteCardTemplate(level), "Card template reset"), [executeAction])
 

@@ -284,6 +284,7 @@ model Announcement {
   content   String
   category  String
   date      String
+  imageUrl  String?
   createdAt DateTime @default(now())
 }
 

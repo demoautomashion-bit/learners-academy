@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getAnnouncementById, getAnnouncements } from '@/lib/actions/announcements'
 import { MOCK_ANNOUNCEMENTS } from '@/lib/constants/mock-data'
+import { AnnouncementImage } from '@/components/announcement-image'
 import { ArrowLeft, Calendar, Megaphone } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -74,6 +75,11 @@ export default async function AnnouncementDetailPage({ params }: Props) {
             {announcement.summary}
           </p>
         </header>
+
+        {/* Announcement Image Attachment */}
+        {announcement.imageUrl && (
+          <AnnouncementImage imageUrl={announcement.imageUrl} title={announcement.title} />
+        )}
 
         {/* Divider */}
         <div className="w-full h-px bg-border mb-12" />

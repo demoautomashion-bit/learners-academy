@@ -29,6 +29,7 @@ export async function createAnnouncement(data: {
   content: string
   category: string
   date: string
+  imageUrl?: string | null
 }) {
   try {
     const result = await db.announcement.create({
@@ -37,7 +38,8 @@ export async function createAnnouncement(data: {
         summary: data.summary,
         content: data.content,
         category: data.category,
-        date: data.date
+        date: data.date,
+        imageUrl: data.imageUrl || null
       }
     })
     revalidatePath('/')

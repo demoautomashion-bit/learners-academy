@@ -388,6 +388,15 @@ export default function HomePage() {
                 variants={fadeUpItem}
               >
                 <Card className="border-border bg-card/20 backdrop-blur-2xl rounded-[1.8rem] overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 flex flex-col h-full">
+                  {announcement.imageUrl && (
+                    <div className="w-full h-48 overflow-hidden bg-muted/20 border-b border-border">
+                      <img 
+                        src={announcement.imageUrl} 
+                        alt={announcement.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                      />
+                    </div>
+                  )}
                   <CardContent className="p-6 flex flex-col h-full justify-between">
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">

@@ -51,17 +51,13 @@ export default function SettingsPage() {
     email: user?.email || '',
     avatar: user?.avatar || ''
   })
-  const [termSettings, setTermSettings] = useState({
-    termLabel: 'Term 2 Registration',
-    termEndDate: ''
-  })
+
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const loadSettings = async () => {
-      const [sysRes, termRes] = await Promise.all([
+      const [sysRes] = await Promise.all([
         getSystemSettings(),
-        getTermSettings()
       ])
       if (sysRes) {
         setIdentity({
@@ -69,14 +65,6 @@ export default function SettingsPage() {
           tagline: sysRes.tagline || '',
           missionStatement: sysRes.missionStatement || '',
           logoUrl: sysRes.logoUrl || ''
-        })
-      }
-      if (termRes) {
-        setTermSettings({
-          termLabel: termRes.termLabel || 'Term 2 Registration',
-          termEndDate: termRes.termEndDate
-            ? new Date(termRes.termEndDate).toISOString().split('T')[0]
-            : ''
         })
       }
     }
@@ -157,20 +145,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSaveTermSettings = async () => {
-    if (!termSettings.termLabel.trim()) {
-      toast.error('Term label cannot be blank.')
-      return
-    }
-    setIsLoading(true)
-    const res = await updateTermSettings({
-      termLabel: termSettings.termLabel,
-      termEndDate: termSettings.termEndDate || null
-    })
-    setIsLoading(false)
-    if (res.success) toast.success('Term schedule synchronized to homepage')
-    else toast.error(res.error || 'Term sync failed')
-  }
+
 
   return (
     <PageShell>
@@ -185,10 +160,7 @@ export default function SettingsPage() {
             <Building2 className="w-4 h-4" />
             General Identity
           </TabsTrigger>
-          <TabsTrigger value="term" className="gap-2 px-6 py-2.5 rounded-xl text-[10px] uppercase tracking-widest font-bold data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-primary">
-            <Calendar className="w-4 h-4" />
-            Term Schedule
-          </TabsTrigger>
+
           <TabsTrigger value="security" className="gap-2 px-6 py-2.5 rounded-xl text-[10px] uppercase tracking-widest font-bold data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-primary">
             <Shield className="w-4 h-4" />
             Security & Auth
@@ -269,65 +241,7 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-        {/* ── Term Schedule Tab ── */}
-        <TabsContent value="term" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="max-w-2xl">
-            <Card className="glass-1 rounded-[2rem] border-primary/5 shadow-2xl p-10">
-              <div className="flex items-center gap-4 mb-10">
-                <div className="w-10 h-10 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-serif text-xl font-medium tracking-tight">Active Term Settings</h3>
-                  <p className="text-[10px] uppercase tracking-widest opacity-40 font-bold mt-1">Controls the countdown ticker shown on the homepage</p>
-                </div>
-              </div>
 
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Term Label</label>
-                  <Input
-                    value={termSettings.termLabel}
-                    onChange={e => setTermSettings(prev => ({ ...prev, termLabel: e.target.value }))}
-                    placeholder="e.g. Term 2 Registration"
-                    className="h-12 bg-primary/[0.02] border-none"
-                  />
-                  <p className="text-[10px] text-muted-foreground opacity-50 ml-1">Displayed in the homepage banner, e.g. "Term 2 Registration — 14 days left."</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Registration End Date</label>
-                  <Input
-                    type="date"
-                    value={termSettings.termEndDate}
-                    onChange={e => setTermSettings(prev => ({ ...prev, termEndDate: e.target.value }))}
-                    className="h-12 bg-primary/[0.02] border-none"
-                  />
-                  <p className="text-[10px] text-muted-foreground opacity-50 ml-1">The homepage will auto-calculate days remaining. Leave blank to hide the ticker.</p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-primary/[0.02] border border-primary/5">
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-primary/60 mb-2">Preview</p>
-                  <p className="text-sm font-bold text-foreground">
-                    🔔 {termSettings.termLabel || 'Term Label'} —{' '}
-                    {termSettings.termEndDate
-                      ? (() => {
-                          const days = Math.ceil((new Date(termSettings.termEndDate).getTime() - Date.now()) / 86400000)
-                          return days > 0 ? `${days} days left.` : 'Registration Closed.'
-                        })()
-                      : 'No end date set (ticker hidden).'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end mt-10">
-                <Button onClick={handleSaveTermSettings} disabled={isLoading} className="font-normal h-12 px-10 shadow-xl shadow-primary/20">
-                  {isLoading ? 'Saving...' : 'Save Term Settings'}
-                </Button>
-              </div>
-            </Card>
-          </div>
-        </TabsContent>
 
         <TabsContent value="security" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
            <div className="grid gap-12 max-w-4xl">
