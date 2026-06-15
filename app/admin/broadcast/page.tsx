@@ -31,6 +31,7 @@ export default function BroadcastPage() {
   const [subject, setSubject] = useState('')
   const [termName, setTermName] = useState('Term 2 - Summer 2026')
   const [targetGroup, setTargetGroup] = useState('active')
+  const [category, setCategory] = useState('SMS Announcement')
   const [message, setMessage] = useState('Hi {Name}, we are pleased to announce that registration for {Term} is officially open! Visit the portal or click the link to configure your classes. {UnsubscribeLink}')
   const [appendUnsubscribe, setAppendUnsubscribe] = useState(true)
   const [isSending, setIsSending] = useState(false)
@@ -81,7 +82,7 @@ export default function BroadcastPage() {
         title: subject,
         summary: message.slice(0, 100) + (message.length > 100 ? '...' : ''),
         content: getMergedMessage(),
-        category: 'SMS Announcement',
+        category: category,
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
       })
     } catch (err) {
@@ -137,6 +138,31 @@ export default function BroadcastPage() {
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Term Name</label>
                   <Input value={termName} onChange={e => setTermName(e.target.value)} placeholder="e.g. Term 2 - Summer 2026" className="h-12 bg-primary/[0.02] border-none" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest opacity-40 font-bold ml-1">Announcement Category</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[
+                    { id: 'SMS Announcement', label: 'SMS / Text' },
+                    { id: 'Term Announcement', label: 'Term News' },
+                    { id: 'Academic', label: 'Academic' },
+                    { id: 'Updates', label: 'Updates' }
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategory(cat.id)}
+                      className={`p-3 rounded-xl border text-center transition-all flex flex-col justify-center items-center h-auto py-3.5 ${
+                        category === cat.id
+                          ? 'border-primary bg-primary/5 shadow-md shadow-primary/5 text-primary font-bold'
+                          : 'border-primary/5 bg-primary/[0.01] hover:border-primary/20 text-muted-foreground'
+                      }`}
+                    >
+                      <span className="text-xs">{cat.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 

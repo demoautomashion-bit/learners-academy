@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getAnnouncementById, getAnnouncements } from '@/lib/actions/announcements'
+import { MOCK_ANNOUNCEMENTS } from '@/lib/constants/mock-data'
 import { ArrowLeft, Calendar, Megaphone } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -9,7 +10,10 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const announcement = await getAnnouncementById(params.id)
+  let announcement = await getAnnouncementById(params.id)
+  if (!announcement) {
+    announcement = MOCK_ANNOUNCEMENTS.find(a => a.id === params.id) || null
+  }
   if (!announcement) return { title: 'Announcement Not Found | TLA' }
   return {
     title: `${announcement.title} | The Learners Academy`,
@@ -18,7 +22,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function AnnouncementDetailPage({ params }: Props) {
-  const announcement = await getAnnouncementById(params.id)
+  let announcement = await getAnnouncementById(params.id)
+  if (!announcement) {
+    announcement = MOCK_ANNOUNCEMENTS.find(a => a.id === params.id) || null
+  }
 
   if (!announcement) notFound()
 
