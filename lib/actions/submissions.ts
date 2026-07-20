@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
@@ -87,13 +87,13 @@ export async function submitTestResult(result: StudentTest, assignmentTitle: str
           }
         }
       } catch (syncError) {
-        // Log but do not rethrow — the submission record is already committed.
+        // Log but do not rethrow â€” the submission record is already committed.
         // The evaluation sheet sync can be retried independently if needed.
         console.error('SYNC_ERROR [submitTestResult] Evaluation sheet sync failed (submission saved):', syncError)
       }
     }
 
-    revalidatePath('/')
+
     return { success: true, data: res }
   } catch (error) {
     console.error('DATABASE_ERROR [submitTestResult]:', error)
@@ -132,7 +132,7 @@ export async function gradeSubmission(id: string, grade: number, feedback: strin
 
           const field = res.evaluationCategory === 'Midterm' ? 'midterm' : 'final'
 
-          // Sequential upserts — same deadlock prevention as submitTestResult
+          // Sequential upserts â€” same deadlock prevention as submitTestResult
           for (const courseId of targetCourses) {
             await db.evaluation.upsert({
               where: {
@@ -157,7 +157,7 @@ export async function gradeSubmission(id: string, grade: number, feedback: strin
       }
     }
 
-    revalidatePath('/')
+
     return { success: true, data: res }
   } catch (error) {
     console.error('DATABASE_ERROR [gradeSubmission]:', error)
