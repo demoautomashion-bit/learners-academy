@@ -1172,12 +1172,17 @@ export default function StudentAssessmentsPage() {
                       {randomizedQuestions[currentQuestionIndex] && (
                         <>
                           <div className="space-y-3">
-                            <Badge variant="secondary" className="text-[9px] uppercase tracking-[0.25em] font-medium px-2 py-0.5 bg-secondary/50 border-secondary/10">
-                              {randomizedQuestions[currentQuestionIndex].category}
-                            </Badge>
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant="secondary" className="text-[9px] uppercase tracking-[0.25em] font-medium px-2 py-0.5 bg-secondary/50 border-secondary/10">
+                                {randomizedQuestions[currentQuestionIndex].category}
+                              </Badge>
+                              <Badge variant="outline" className="text-[9px] uppercase tracking-[0.25em] font-bold px-2 py-0.5 border-primary/20 bg-primary/5 text-primary">
+                                {randomizedQuestions[currentQuestionIndex].type}
+                              </Badge>
+                            </div>
                             {/* Don't repeat the content as heading if it's a Fill in the Blanks — the input renders it inline */}
                             {randomizedQuestions[currentQuestionIndex].type !== 'Fill in the Blanks' && (
-                              <h3 className="text-xl sm:text-2xl font-serif leading-snug text-foreground font-medium">
+                              <h3 className="text-xl sm:text-2xl font-serif leading-snug text-foreground font-bold whitespace-pre-wrap">
                                 {randomizedQuestions[currentQuestionIndex].content}
                               </h3>
                             )}
