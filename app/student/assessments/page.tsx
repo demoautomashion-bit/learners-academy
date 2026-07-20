@@ -393,29 +393,35 @@ export default function StudentAssessmentsPage() {
       if (activeTest && user) {
           setIsSubmitting(true)
           setSubmitError(null)
-          const adaptivePayload = {
-             id: `test-res-${Date.now()}`,
-             templateId: activeTest.id,
-             studentId: user.id,
-             studentName: user.name,
-             assignedAt: new Date().toISOString(),
-             completedAt: new Date().toISOString(),
-             status: 'Completed',
-             randomizedQuestions,
-             answers: { ...answers, __proctoringLogs },
-             score: finalCalculatedScore,
-             feedback: aiAuditResults.feedback || "Adaptive assessment complete.",
-             evaluationCategory: activeTest.evaluationCategory,
+          try {
+              const adaptivePayload = {
+                 id: `test-res-${Date.now()}`,
+                 templateId: activeTest.id,
+                 studentId: user.id,
+                 studentName: user.name,
+                 assignedAt: new Date().toISOString(),
+                 completedAt: new Date().toISOString(),
+                 status: 'Completed',
+                 randomizedQuestions,
+                 answers: { ...answers, __proctoringLogs: proctoringLogs },
+                 score: finalCalculatedScore,
+                 feedback: aiAuditResults.feedback || "Adaptive assessment complete.",
+                 evaluationCategory: activeTest.evaluationCategory,
+              }
+              const saved = await submitWithRetry(() => directSubmitTestResult(adaptivePayload, activeTest?.title || 'Test'))
+              if (saved) {
+                 // Only clear the session after the DB confirms success
+                 sessionStorage.removeItem('current_assessment_code')
+                 sessionStorage.removeItem('current_assessment_data')
+              } else {
+                 setSubmitError("The server is under heavy load. Your score is displayed below — please inform your teacher to check the registry, or try refreshing this page.")
+              }
+          } catch (err) {
+              console.error("Adaptive submission error:", err)
+              setSubmitError("An error occurred during results serialization. Your score is displayed below.")
+          } finally {
+              setIsSubmitting(false)
           }
-          const saved = await submitWithRetry(() => directSubmitTestResult(adaptivePayload, activeTest?.title || 'Test'))
-          if (saved) {
-             // Only clear the session after the DB confirms success
-             sessionStorage.removeItem('current_assessment_code')
-             sessionStorage.removeItem('current_assessment_data')
-          } else {
-             setSubmitError("The server is under heavy load. Your score is displayed below — please inform your teacher to check the registry, or try refreshing this page.")
-          }
-          setIsSubmitting(false)
       }
       return
     }
@@ -535,29 +541,35 @@ export default function StudentAssessmentsPage() {
     if (activeTest && user) {
       setIsSubmitting(true)
       setSubmitError(null)
-      const submissionPayload = {
-        id: `test-res-${Date.now()}`,
-        templateId: activeTest.id,
-        studentId: user.id,
-        studentName: user.name,
-        assignedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        status: 'Completed',
-        randomizedQuestions,
-        answers: { ...answers, __proctoringLogs: proctoringLogs },
-        score: finalCalculatedScore,
-        feedback: scoreFeedback,
-        evaluationCategory: activeTest.evaluationCategory,
+      try {
+        const submissionPayload = {
+          id: `test-res-${Date.now()}`,
+          templateId: activeTest.id,
+          studentId: user.id,
+          studentName: user.name,
+          assignedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          status: 'Completed',
+          randomizedQuestions,
+          answers: { ...answers, __proctoringLogs: proctoringLogs },
+          score: finalCalculatedScore,
+          feedback: scoreFeedback,
+          evaluationCategory: activeTest.evaluationCategory,
+        }
+        const saved = await submitWithRetry(() => directSubmitTestResult(submissionPayload, activeTest?.title || 'Test'))
+        if (saved) {
+          // Only clear session after confirmed DB success — prevents silent data loss
+          sessionStorage.removeItem('current_assessment_code')
+          sessionStorage.removeItem('current_assessment_data')
+        } else {
+          setSubmitError("The server is under heavy load. Your score is displayed below — please inform your teacher to check the registry, or try refreshing this page.")
+        }
+      } catch (err) {
+        console.error("Submission error:", err)
+        setSubmitError("An error occurred during submission. Your score is displayed below.")
+      } finally {
+        setIsSubmitting(false)
       }
-      const saved = await submitWithRetry(() => directSubmitTestResult(submissionPayload, activeTest?.title || 'Test'))
-      if (saved) {
-        // Only clear session after confirmed DB success — prevents silent data loss
-        sessionStorage.removeItem('current_assessment_code')
-        sessionStorage.removeItem('current_assessment_data')
-      } else {
-        setSubmitError("The server is under heavy load. Your score is displayed below — please inform your teacher to check the registry, or try refreshing this page.")
-      }
-      setIsSubmitting(false)
     }
   }
 
