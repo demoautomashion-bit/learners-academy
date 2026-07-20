@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils"
 import { evaluateSubjective } from "@/lib/ai-auditor"
 import { generateRandomizedQuestions } from "@/lib/actions/assessments"
+import { submitTestResult as directSubmitTestResult } from "@/lib/actions/submissions"
 import type { AssessmentTemplate, Question, StudentTest } from "@/lib/types"
 
 const AUTO_GRADED_TYPES = ['MCQ', 'True/False', 'Fill in the Blanks', 'Matching'] as const
@@ -96,7 +97,7 @@ function scoreMultiBlank(q: Question, answers: Record<string, string>, points: n
 export default function StudentAssessmentsPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const { assessments: mockAssessments, questions: mockQuestions, submitTestResult } = useData()
+  const { assessments: mockAssessments, questions: mockQuestions } = useData()
 
   const [sessionToken, setSessionToken] = useState<string | null>(null)
   const [storedAssessment, setStoredAssessment] = useState<AssessmentTemplate | null>(null)
@@ -406,7 +407,7 @@ export default function StudentAssessmentsPage() {
              feedback: aiAuditResults.feedback || "Adaptive assessment complete.",
              evaluationCategory: activeTest.evaluationCategory,
           }
-          const saved = await submitWithRetry(() => submitTestResult(adaptivePayload))
+          const saved = await submitWithRetry(() => directSubmitTestResult(adaptivePayload, activeTest?.title || 'Test'))
           if (saved) {
              // Only clear the session after the DB confirms success
              sessionStorage.removeItem('current_assessment_code')
@@ -548,7 +549,7 @@ export default function StudentAssessmentsPage() {
         feedback: scoreFeedback,
         evaluationCategory: activeTest.evaluationCategory,
       }
-      const saved = await submitWithRetry(() => submitTestResult(submissionPayload))
+      const saved = await submitWithRetry(() => directSubmitTestResult(submissionPayload, activeTest?.title || 'Test'))
       if (saved) {
         // Only clear session after confirmed DB success — prevents silent data loss
         sessionStorage.removeItem('current_assessment_code')
