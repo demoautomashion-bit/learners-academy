@@ -139,6 +139,18 @@ export default function StudentAssessmentsPage() {
 
   const [isBlackedOut, setIsBlackedOut] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
+  
+  const [proctoringLogs, setProctoringLogs] = useState<any[]>([])
+  const currentQuestionIndexRef = useRef(currentQuestionIndex)
+  const randomizedQuestionsRef = useRef(randomizedQuestions)
+
+  useEffect(() => {
+    currentQuestionIndexRef.current = currentQuestionIndex
+  }, [currentQuestionIndex])
+
+  useEffect(() => {
+    randomizedQuestionsRef.current = randomizedQuestions
+  }, [randomizedQuestions])
 
   // ── Start Test ──────────────────────────────────────────────────────────────
   const startTest = async (assessment: AssessmentTemplate) => {
@@ -224,6 +236,16 @@ export default function StudentAssessmentsPage() {
     if (!isTestEngineOpen || showResult) return
 
     const handleViolation = (reason: string) => {
+      const currentIdx = currentQuestionIndexRef.current
+      const currentQ = randomizedQuestionsRef.current[currentIdx]
+      const log = {
+        timestamp: new Date().toLocaleTimeString(),
+        violation: reason,
+        questionIndex: currentIdx + 1,
+        questionText: currentQ?.content || "N/A"
+      }
+      setProctoringLogs(prev => [...prev, log])
+
       if (reason === "Print Screen Attempted") {
         setIsBlackedOut(true)
       }
@@ -245,6 +267,9 @@ export default function StudentAssessmentsPage() {
         setIsPaused(true)
         handleViolation("Tab Switch Detected")
       }
+    }
+    const onBlur = () => {
+      handleViolation("Window Focus Lost")
     }
     const onFullscreen = () => { 
       const isIOS = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
@@ -268,7 +293,7 @@ export default function StudentAssessmentsPage() {
     }
 
     window.addEventListener('visibilitychange', onVisibility)
-    // Removed fragile window blur listener to prevent false positives (e.g. keyboard dismissals/interactions on iOS Safari)
+    window.addEventListener('blur', onBlur)
     const isIOS = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
     if (!isIOS && document.fullscreenEnabled) {
       document.addEventListener('fullscreenchange', onFullscreen)
@@ -278,6 +303,7 @@ export default function StudentAssessmentsPage() {
     window.addEventListener('copy', preventCopy)
     return () => {
       window.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('blur', onBlur)
       if (!isIOS && document.fullscreenEnabled) {
         document.removeEventListener('fullscreenchange', onFullscreen)
       }
@@ -370,7 +396,7 @@ export default function StudentAssessmentsPage() {
              completedAt: new Date().toISOString(),
              status: 'Completed',
              randomizedQuestions,
-             answers,
+             answers: { ...answers, __proctoringLogs },
              score: finalCalculatedScore,
              feedback: aiAuditResults.feedback || "Adaptive assessment complete.",
              evaluationCategory: activeTest.evaluationCategory,
@@ -512,7 +538,7 @@ export default function StudentAssessmentsPage() {
         completedAt: new Date().toISOString(),
         status: 'Completed',
         randomizedQuestions,
-        answers,
+        answers: { ...answers, __proctoringLogs: proctoringLogs },
         score: finalCalculatedScore,
         feedback: scoreFeedback,
         evaluationCategory: activeTest.evaluationCategory,
@@ -725,13 +751,13 @@ export default function StudentAssessmentsPage() {
 
       return (
         <div className="space-y-3 pt-4">
-          <div className="hidden sm:grid grid-cols-2 gap-3 mb-2">
+          <div className="grid grid-cols-2 gap-3 mb-2">
             <p className="text-editorial-label text-[10px] pl-1">Column A — Term</p>
             <p className="text-editorial-label text-[10px] pl-1">Column B — Match</p>
           </div>
           {pairs.map((pair: any, i: number) => (
-            <div key={i} className="flex flex-col sm:grid sm:grid-cols-2 gap-3 items-center">
-              <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-sm font-medium leading-tight">
+            <div key={i} className="grid grid-cols-2 gap-3 items-center">
+              <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-sm font-medium leading-tight w-full">
                 {pair.left}
               </div>
               <Select

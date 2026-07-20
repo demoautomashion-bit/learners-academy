@@ -311,6 +311,33 @@ export default function AssessmentWorkspacePage() {
             {/* Left Hand: Student Responses */}
             <div className="p-8 overflow-y-auto space-y-6 bg-background border-r  premium-scrollbar">
                <h4 className="text-xs opacity-30 sticky top-0 bg-background py-2 font-medium">Candidate responses</h4>
+               
+               {/* Proctoring Violations Alert Box */}
+               {selectedSubmission?.answers?.__proctoringLogs && Array.isArray(selectedSubmission.answers.__proctoringLogs) && selectedSubmission.answers.__proctoringLogs.length > 0 && (
+                 <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-[2rem] space-y-3">
+                   <div className="flex items-center gap-2 text-destructive">
+                     <AlertCircle className="w-5 h-5 animate-pulse" />
+                     <span className="text-xs font-bold uppercase tracking-widest">Proctoring Telemetry Alert</span>
+                   </div>
+                   <p className="text-xs text-muted-foreground leading-relaxed">
+                     The browser recorded multiple screen capture, copy/clipboard actions, or window focus switches during this assessment:
+                   </p>
+                   <div className="space-y-2 mt-2 max-h-48 overflow-y-auto premium-scrollbar pr-1">
+                     {selectedSubmission.answers.__proctoringLogs.map((log: any, idx: number) => (
+                       <div key={idx} className="bg-background/50 p-3 rounded-xl border border-destructive/10 text-xs space-y-1">
+                         <div className="flex justify-between font-mono text-[10px] text-muted-foreground">
+                           <span>{log.timestamp}</span>
+                           <span className="text-destructive font-bold">{log.violation}</span>
+                         </div>
+                         <p className="font-medium text-foreground">
+                           Question {log.questionIndex}: <span className="font-serif italic text-muted-foreground">"{log.questionText}"</span>
+                         </p>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+
                {selectedSubmission?.randomizedQuestions?.map((q: any, i: number) => (
                     <div key={q.id} className="space-y-4 pb-8 border-b  last:border-0">
                       <div className="flex items-center justify-between">
