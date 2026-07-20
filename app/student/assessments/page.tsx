@@ -143,6 +143,7 @@ export default function StudentAssessmentsPage() {
   const [proctoringLogs, setProctoringLogs] = useState<any[]>([])
   const currentQuestionIndexRef = useRef(currentQuestionIndex)
   const randomizedQuestionsRef = useRef(randomizedQuestions)
+  const isSubmittingInProgress = useRef(false)
 
   useEffect(() => {
     currentQuestionIndexRef.current = currentQuestionIndex
@@ -236,6 +237,7 @@ export default function StudentAssessmentsPage() {
     if (!isTestEngineOpen || showResult) return
 
     const handleViolation = (reason: string) => {
+      if (isSubmittingInProgress.current) return
       const currentIdx = currentQuestionIndexRef.current
       const currentQ = randomizedQuestionsRef.current[currentIdx]
       const log = {
@@ -348,6 +350,9 @@ export default function StudentAssessmentsPage() {
 
   // ── Score & Submit ─────────────────────────────────────────────────────────
   const finishTest = async (isAuto = false) => {
+    if (isSubmittingInProgress.current) return
+    isSubmittingInProgress.current = true
+
     setIsEvaluating(true)
 
     let totalScore = 0
