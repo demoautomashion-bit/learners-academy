@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles,
@@ -24,8 +25,11 @@ import {
   ChevronRight,
   ChevronLeft,
   Quote,
-  Lightbulb,
-  Check
+  Check,
+  Calendar,
+  Download,
+  Layers,
+  ArrowRight
 } from 'lucide-react'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
@@ -36,6 +40,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
 // Pre-defined CEFR Options & Presets
@@ -57,35 +62,25 @@ const QUICK_GRAMMAR_PRESETS = [
   'Modal Verbs of Deduction',
 ]
 
-const QUICK_IDIOM_PRESETS = [
-  'Break the ice',
-  'Hit the nail on the head',
-  'Burn the midnight oil',
-  'Bite the bullet',
-  'See eye to eye',
-]
-
-const ACTIVITY_STYLES = [
-  { id: 'roleplay', title: 'Pair Roleplay', icon: MessageSquare },
-  { id: 'discussion', title: 'Debate / Discussion', icon: Brain },
-  { id: 'gapfill', title: 'Gap-Fill Worksheet', icon: FileText },
-  { id: 'game', title: 'Matching Game', icon: Puzzle },
-]
-
 const DURATION_OPTIONS = [15, 30, 45, 60, 90]
 
 export default function LessonGeneratorPage() {
-  const [activeMode, setActiveMode] = useState<'full' | 'activity'>('full')
+  // Scope Switcher: 'single' vs 'term'
+  const [syllabusScope, setSyllabusScope] = useState<'single' | 'term'>('single')
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
   
-  // Form State: Dedicated Flexible Inputs
+  // Term Specific State
+  const [termWeeks, setTermWeeks] = useState(12) // 12 weeks = 3 months
+  const [sessionsPerWeek, setSessionsPerWeek] = useState(3)
+  
+  // Form State
   const [selectedCefr, setSelectedCefr] = useState('B1')
   const [duration, setDuration] = useState(45)
   const [customTopic, setCustomTopic] = useState('Travel & World Experiences')
   
   // Tag Inputs State
   const [grammarInput, setGrammarInput] = useState('')
-  const [grammarTags, setGrammarTags] = useState<string[]>(['Present Perfect vs Past Simple'])
+  const [grammarTags, setGrammarTags] = useState<string[]>(['Present Perfect vs Past Simple', 'Passive Voice'])
 
   const [vocabInput, setVocabInput] = useState('')
   const [vocabTags, setVocabTags] = useState<string[]>(['itinerary', 'destination', 'embark'])
@@ -93,13 +88,10 @@ export default function LessonGeneratorPage() {
   const [idiomsInput, setIdiomsInput] = useState('')
   const [idiomTags, setIdiomTags] = useState<string[]>(['break the ice', 'hit the road'])
 
-  const [selectedActivities, setSelectedActivities] = useState<string[]>(['roleplay', 'discussion'])
-
   // Form Options Checkboxes
   const [includeWarmup, setIncludeWarmup] = useState(true)
   const [includeVocab, setIncludeVocab] = useState(true)
   const [includeActivities, setIncludeActivities] = useState(true)
-  const [includeHomework, setIncludeHomework] = useState(true)
   const [includeAssessment, setIncludeAssessment] = useState(true)
 
   // AI Loading & Result States
@@ -108,6 +100,7 @@ export default function LessonGeneratorPage() {
   const [generatedResult, setGeneratedResult] = useState<any>(null)
   const [isCopied, setIsCopied] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [downloadToast, setDownloadToast] = useState<string | null>(null)
 
   // Generic Tag Helper
   const handleAddTag = (
@@ -127,12 +120,13 @@ export default function LessonGeneratorPage() {
     setTags(tagsList.filter(t => t !== tagToRemove))
   }
 
-  const toggleActivityStyle = (id: string) => {
-    if (selectedActivities.includes(id)) {
-      setSelectedActivities(selectedActivities.filter(a => a !== id))
-    } else {
-      setSelectedActivities([...selectedActivities, id])
-    }
+  // Trigger Mock File Download
+  const handleDownloadFile = (ext: string) => {
+    const title = generatedResult?.title || 'Academic_Syllabus'
+    setDownloadToast(`Downloading ${title}.${ext}...`)
+    setTimeout(() => {
+      setDownloadToast(null)
+    }, 2500)
   }
 
   // Mock Generation Trigger
@@ -149,70 +143,120 @@ export default function LessonGeneratorPage() {
     setTimeout(() => {
       setIsGenerating(false)
       setGenerationStep(0)
-      
-      setGeneratedResult({
-        title: `Mastering ${grammarTags.join(' & ') || 'Grammatical Structures'}`,
-        cefr: selectedCefr,
-        duration: `${duration} Minutes`,
-        theme: customTopic || 'General Academic Context',
-        objectives: [
-          `Distinguish between finished past actions and ongoing states using ${grammarTags[0] || 'the target structure'}.`,
-          `Formulate grammatically accurate sentences incorporating target vocabulary: ${vocabTags.slice(0, 3).join(', ') || 'essential terms'}.`,
-          `Apply idioms such as "${idiomTags[0] || 'break the ice'}" naturally in conversational scenarios.`
-        ],
-        vocabulary: vocabTags.map(v => ({ word: v, def: `Target key vocabulary term aligned to ${selectedCefr} level.` })),
-        idioms: idiomTags.map(idm => ({ expression: idm, usage: 'Common English idiom used for natural speaking fluency.' })),
-        timeline: [
-          {
-            phase: 'Warm-Up & Schema Activation',
-            time: `${Math.round(duration * 0.15)} mins`,
-            activity: `Icebreaker: "${idiomTags[0] || 'Break the Ice'}" Discussion`,
-            instructions: `Students discuss past experiences using targeted vocabulary (${vocabTags.slice(0, 2).join(', ') || 'key terms'}).`
-          },
-          {
-            phase: 'Direct Instruction & Form Analysis',
-            time: `${Math.round(duration * 0.25)} mins`,
-            activity: 'Structure & Meaning Mapping',
-            instructions: `Teacher explains ${grammarTags.join(', ')} with timeline diagrams and contrastive analysis.`
-          },
-          {
-            phase: 'Guided Practice',
-            time: `${Math.round(duration * 0.3)} mins`,
-            activity: 'Sentence Transformation & Idiom Matching',
-            instructions: `Worksheet activity incorporating target idioms (${idiomTags.join(', ') || 'idioms'}) and vocabulary.`
-          },
-          {
-            phase: 'Production & Application',
-            time: `${Math.round(duration * 0.2)} mins`,
-            activity: `Pair Work: ${selectedActivities.join(' & ').toUpperCase()} Roleplay`,
-            instructions: `Students engage in a real-world scenario focused on "${customTopic}".`
-          },
-          {
-            phase: 'Wrap-up & Exit Quiz',
-            time: `${Math.round(duration * 0.1)} mins`,
-            activity: 'Comprehension Exit Ticket',
-            instructions: 'Quick 3-question evaluation of grammar accuracy and vocabulary usage.'
+
+      if (syllabusScope === 'term') {
+        // 3-Month Term Roadmap Data Structure
+        const totalSessions = termWeeks * sessionsPerWeek
+        const roadmapWeeks = []
+
+        for (let w = 1; w <= termWeeks; w++) {
+          const weekDays = []
+          for (let d = 1; d <= sessionsPerWeek; d++) {
+            const sessionNum = (w - 1) * sessionsPerWeek + d
+            
+            if (w === 6 && d === sessionsPerWeek) {
+              weekDays.push({
+                day: `Session ${sessionNum} (Week ${w}, Day ${d})`,
+                topic: 'MID-TERM REVIEW & PROGRESS CHECK',
+                type: 'Assessment',
+                objective: 'Evaluate mid-term grammar mastery and oral presentation.'
+              })
+            } else if (w === 12 && d === sessionsPerWeek) {
+              weekDays.push({
+                day: `Session ${sessionNum} (Week ${w}, Day ${d})`,
+                topic: 'FINAL TERM WRITTEN & ORAL EVALUATION',
+                type: 'Exam',
+                objective: 'Comprehensive term assessment aligned to CEFR criteria.'
+              })
+            } else {
+              weekDays.push({
+                day: `Session ${sessionNum} (Week ${w}, Day ${d})`,
+                topic: `${grammarTags[(sessionNum - 1) % grammarTags.length] || 'Core Structure'} - Module ${d}`,
+                type: 'Instruction & Practice',
+                objective: `Master target structure in "${customTopic}" context with featured vocabulary.`
+              })
+            }
           }
-        ],
-        activities: [
-          {
-            title: `Interactive Roleplay: ${customTopic}`,
-            type: 'Pair Activity',
-            duration: '15 mins',
-            setup: 'Divide students into pairs with role cards.',
-            prompt: `Incorporate at least 2 target idioms (${idiomTags.slice(0, 2).join(', ') || 'idioms'}) while using ${grammarTags[0] || 'target grammar'}.`
-          }
-        ],
-        quiz: [
-          {
-            question: `Which option correctly completes the ${selectedCefr}-level context?`,
-            options: ['Option A (Correct)', 'Option B', 'Option C', 'Option D'],
-            answer: 'Option A (Correct)',
-            reason: 'Proper alignment with target grammatical rules.'
-          }
-        ],
-        homework: `Write a 120-word paragraph about "${customTopic}" utilizing target grammar and at least 2 key vocabulary terms.`
-      })
+
+          roadmapWeeks.push({
+            weekNum: w,
+            title: `Week ${w}: ${grammarTags[(w - 1) % grammarTags.length] || 'Academic Module'} Mastery`,
+            days: weekDays
+          })
+        }
+
+        setGeneratedResult({
+          isTerm: true,
+          title: `3-Month (${termWeeks}-Week) Comprehensive Course Roadmap`,
+          cefr: selectedCefr,
+          duration: `${totalSessions} Sessions (${sessionsPerWeek}x / week)`,
+          theme: customTopic || 'General Context',
+          totalSessions,
+          weeks: roadmapWeeks,
+          objectives: [
+            `Complete ${termWeeks}-week progressive mastery from basic structures to ${selectedCefr} CEFR proficiency.`,
+            `Systematically cover ${grammarTags.length} core grammar units with daily classroom timelines.`,
+            `Conduct mid-term review (Week 6) and final term assessment (Week 12).`
+          ]
+        })
+      } else {
+        // Single Lesson Data Structure
+        setGeneratedResult({
+          isTerm: false,
+          title: `Mastering ${grammarTags.join(' & ') || 'Grammatical Structures'}`,
+          cefr: selectedCefr,
+          duration: `${duration} Minutes`,
+          theme: customTopic || 'General Context',
+          objectives: [
+            `Distinguish between finished past actions and ongoing states using ${grammarTags[0] || 'target structure'}.`,
+            `Formulate grammatically accurate sentences incorporating target vocabulary: ${vocabTags.slice(0, 3).join(', ')}.`,
+            `Apply idioms such as "${idiomTags[0] || 'break the ice'}" naturally in conversational scenarios.`
+          ],
+          vocabulary: vocabTags.map(v => ({ word: v, def: `Target key vocabulary term aligned to ${selectedCefr} level.` })),
+          idioms: idiomTags.map(idm => ({ expression: idm, usage: 'Common English idiom used for natural speaking fluency.' })),
+          timeline: [
+            {
+              phase: 'Warm-Up & Schema Activation',
+              time: `${Math.round(duration * 0.15)} mins`,
+              activity: `Icebreaker: "${idiomTags[0] || 'Break the Ice'}" Discussion`,
+              instructions: `Students discuss past experiences using targeted vocabulary.`
+            },
+            {
+              phase: 'Direct Instruction',
+              time: `${Math.round(duration * 0.25)} mins`,
+              activity: 'Form & Meaning Mapping',
+              instructions: `Teacher explains ${grammarTags.join(', ')} with timeline diagrams.`
+            },
+            {
+              phase: 'Guided Practice',
+              time: `${Math.round(duration * 0.3)} mins`,
+              activity: 'Sentence Transformation & Worksheet',
+              instructions: `Worksheet activity incorporating target idioms and vocabulary.`
+            },
+            {
+              phase: 'Production & Application',
+              time: `${Math.round(duration * 0.2)} mins`,
+              activity: 'Pair Work Roleplay',
+              instructions: `Students engage in a real-world scenario focused on "${customTopic}".`
+            },
+            {
+              phase: 'Wrap-up & Exit Quiz',
+              time: `${Math.round(duration * 0.1)} mins`,
+              activity: 'Comprehension Exit Ticket',
+              instructions: 'Quick 3-question evaluation of immediate comprehension.'
+            }
+          ],
+          quiz: [
+            {
+              question: `Which option correctly completes the ${selectedCefr}-level context?`,
+              options: ['Option A (Correct)', 'Option B', 'Option C', 'Option D'],
+              answer: 'Option A (Correct)',
+              reason: 'Proper alignment with target grammatical rules.'
+            }
+          ],
+          homework: `Write a 120-word paragraph about "${customTopic}" utilizing target grammar.`
+        })
+      }
     }, 2400)
   }
 
@@ -227,35 +271,57 @@ export default function LessonGeneratorPage() {
 
   return (
     <PageShell>
+      {/* Toast Download Notification */}
+      {downloadToast && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="fixed top-6 right-6 z-50 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg shadow-lg text-xs font-semibold flex items-center gap-2"
+        >
+          <Download className="w-4 h-4 animate-bounce" />
+          {downloadToast}
+        </motion.div>
+      )}
+
       {/* Page Header */}
       <PageHeader
-        title="AI Lesson & Activity Generator"
-        description="Design CEFR-aligned syllabi, structured lesson plans, vocabulary, and idioms tailored to your classroom needs."
+        title="AI Lesson & Term Syllabus Generator"
+        description="Synthesize single-session lesson plans or full 3-month (12-week) day-by-day term syllabi tailored to CEFR standards."
         badgeText="Academic Tool"
         icon={Wand2}
         action={
-          <div className="flex items-center gap-2 bg-muted/60 p-1 rounded-lg border border-border">
-            <Button
-              variant={activeMode === 'full' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveMode('full')}
-              className="text-xs gap-1.5"
-            >
+          <Link href="/teacher/lesson-generator/saved">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
               <BookOpen className="w-3.5 h-3.5" />
-              Full Syllabus
+              View Saved Syllabi Library
             </Button>
-            <Button
-              variant={activeMode === 'activity' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveMode('activity')}
-              className="text-xs gap-1.5"
-            >
-              <Puzzle className="w-3.5 h-3.5" />
-              Activity Generator
-            </Button>
-          </div>
+          </Link>
         }
       />
+
+      {/* Main Scope Switcher Header */}
+      <div className="flex items-center gap-3 mt-6 bg-card border border-border p-2 rounded-xl">
+        <span className="text-xs font-semibold text-muted-foreground px-2">Generation Scope:</span>
+        <Button
+          variant={syllabusScope === 'single' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setSyllabusScope('single')}
+          className="text-xs gap-1.5 flex-1 md:flex-none"
+        >
+          <Clock className="w-3.5 h-3.5" />
+          Single Session Plan (30-90m)
+        </Button>
+        <Button
+          variant={syllabusScope === 'term' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setSyllabusScope('term')}
+          className="text-xs gap-1.5 flex-1 md:flex-none"
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          Full 3-Month Term Roadmap (12 Weeks)
+        </Button>
+      </div>
 
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
@@ -264,7 +330,7 @@ export default function LessonGeneratorPage() {
         <div className="lg:col-span-5 space-y-6">
           <Card className="border-border bg-card shadow-sm">
             
-            {/* Wizard Step Progress Bar Header */}
+            {/* Wizard Header Progress Bar */}
             <div className="border-b border-border p-4 bg-muted/30">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -272,7 +338,7 @@ export default function LessonGeneratorPage() {
                 </span>
                 <span className="text-xs font-medium text-primary">
                   {currentStep === 1 && 'Grammar, Vocab & Idioms'}
-                  {currentStep === 2 && 'CEFR, Context & Duration'}
+                  {currentStep === 2 && (syllabusScope === 'term' ? 'Term Scope & CEFR' : 'CEFR & Duration')}
                   {currentStep === 3 && 'Syllabus Components'}
                 </span>
               </div>
@@ -295,11 +361,12 @@ export default function LessonGeneratorPage() {
             </div>
 
             <CardContent className="pt-6 space-y-6">
-              {/* STEP 1: Dedicated Grammar, Vocabulary, Idioms & Activity Inputs */}
+              
+              {/* STEP 1: Grammar, Vocab, Idioms */}
               {currentStep === 1 && (
                 <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
                   
-                  {/* 1. Target Grammar Field */}
+                  {/* Grammar Input */}
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold flex items-center justify-between">
                       <span>Grammar Structure(s) <span className="text-destructive">*</span></span>
@@ -343,7 +410,7 @@ export default function LessonGeneratorPage() {
                     </div>
                   </div>
 
-                  {/* 2. Target Vocabulary Field */}
+                  {/* Vocabulary Input */}
                   <div className="space-y-2 pt-1 border-t border-border">
                     <Label className="text-xs font-semibold flex items-center justify-between">
                       <span>Target Vocabulary & Terms</span>
@@ -387,10 +454,10 @@ export default function LessonGeneratorPage() {
                     </div>
                   </div>
 
-                  {/* 3. Target Idioms Field */}
+                  {/* Idioms Input */}
                   <div className="space-y-2 pt-1 border-t border-border">
                     <Label className="text-xs font-semibold flex items-center justify-between">
-                      <span>Target Idioms & Phrases</span>
+                      <span>Target Idioms & Collocations</span>
                       <span className="text-[11px] text-muted-foreground">{idiomTags.length} added</span>
                     </Label>
 
@@ -429,59 +496,15 @@ export default function LessonGeneratorPage() {
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
-
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      <span className="text-[11px] text-muted-foreground mr-1">Quick Idioms:</span>
-                      {QUICK_IDIOM_PRESETS.slice(0, 3).map((idm) => (
-                        <button
-                          key={idm}
-                          type="button"
-                          onClick={() => handleAddTag(idm, idiomTags, setIdiomTags, setIdiomsInput)}
-                          className="text-[10px] px-2 py-0.5 rounded bg-muted/60 hover:bg-accent text-muted-foreground hover:text-foreground border border-border"
-                        >
-                          + {idm}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 4. Preferred Activity Styles */}
-                  <div className="space-y-2 pt-1 border-t border-border">
-                    <Label className="text-xs font-semibold block">Preferred Classroom Dynamics</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {ACTIVITY_STYLES.map((act) => {
-                        const Icon = act.icon
-                        const isSelected = selectedActivities.includes(act.id)
-                        return (
-                          <button
-                            key={act.id}
-                            type="button"
-                            onClick={() => toggleActivityStyle(act.id)}
-                            className={cn(
-                              'p-2.5 rounded-lg border text-left flex items-center justify-between text-xs transition-all',
-                              isSelected
-                                ? 'bg-primary/10 border-primary text-primary font-semibold'
-                                : 'bg-background border-border text-muted-foreground hover:bg-accent'
-                            )}
-                          >
-                            <span className="flex items-center gap-2">
-                              <Icon className="w-3.5 h-3.5" />
-                              {act.title}
-                            </span>
-                            {isSelected && <Check className="w-3.5 h-3.5" />}
-                          </button>
-                        )
-                      })}
-                    </div>
                   </div>
                 </motion.div>
               )}
 
-              {/* STEP 2: CEFR Level, Context & Non-Sticky Fluid Duration */}
+              {/* STEP 2: CEFR Level & Scope / Duration */}
               {currentStep === 2 && (
                 <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
                   
-                  {/* CEFR Level Selector */}
+                  {/* CEFR Level */}
                   <div className="space-y-3">
                     <Label className="text-sm font-semibold flex items-center justify-between">
                       <span>CEFR Benchmark Level</span>
@@ -506,46 +529,87 @@ export default function LessonGeneratorPage() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground italic">
-                      {CEFR_LEVELS.find(c => c.level === selectedCefr)?.desc}
-                    </p>
                   </div>
 
-                  {/* Smooth Fluid Duration Selector */}
-                  <div className="space-y-3 pt-2 border-t border-border">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-semibold">Lesson Duration</Label>
-                      <Badge variant="secondary" className="font-mono text-xs flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-primary" />
-                        {duration} Minutes
-                      </Badge>
-                    </div>
+                  {/* Term Specific Controls */}
+                  {syllabusScope === 'term' ? (
+                    <div className="space-y-4 pt-2 border-t border-border">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold">Term Duration</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[4, 8, 12].map((w) => (
+                            <button
+                              key={w}
+                              type="button"
+                              onClick={() => setTermWeeks(w)}
+                              className={cn(
+                                'py-2 rounded-md text-xs font-semibold border transition-all text-center',
+                                termWeeks === w
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-muted/40 border-border text-muted-foreground'
+                              )}
+                            >
+                              {w === 12 ? '3 Months (12w)' : `${w} Weeks`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                    {/* Smooth Duration Pills */}
-                    <div className="grid grid-cols-5 gap-1.5">
-                      {DURATION_OPTIONS.map((d) => (
-                        <button
-                          key={d}
-                          type="button"
-                          onClick={() => setDuration(d)}
-                          className={cn(
-                            'py-2 rounded-md text-xs font-semibold border transition-all text-center',
-                            duration === d
-                              ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                              : 'bg-muted/40 border-border text-muted-foreground hover:bg-accent'
-                          )}
-                        >
-                          {d}m
-                        </button>
-                      ))}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold">Sessions Per Week</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[2, 3, 5].map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => setSessionsPerWeek(s)}
+                              className={cn(
+                                'py-2 rounded-md text-xs font-semibold border transition-all text-center',
+                                sessionsPerWeek === s
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-muted/40 border-border text-muted-foreground'
+                              )}
+                            >
+                              {s}x Weekly
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Single Lesson Duration */
+                    <div className="space-y-3 pt-2 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold">Single Session Duration</Label>
+                        <Badge variant="secondary" className="font-mono text-xs">
+                          {duration} Minutes
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {DURATION_OPTIONS.map((d) => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setDuration(d)}
+                            className={cn(
+                              'py-2 rounded-md text-xs font-semibold border transition-all text-center',
+                              duration === d
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-muted/40 border-border text-muted-foreground'
+                            )}
+                          >
+                            {d}m
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Real World Topic Context */}
+                  {/* Topic Context */}
                   <div className="space-y-2 pt-2 border-t border-border">
                     <Label className="text-sm font-semibold">Real-World Topic Theme</Label>
                     <Input
-                      placeholder="e.g. Job Interviews, Travel, Technology"
+                      placeholder="e.g. Travel, Business English, Technology"
                       value={customTopic}
                       onChange={(e) => setCustomTopic(e.target.value)}
                     />
@@ -553,15 +617,15 @@ export default function LessonGeneratorPage() {
                 </motion.div>
               )}
 
-              {/* STEP 3: Component Selection */}
+              {/* STEP 3: Component Toggles */}
               {currentStep === 3 && (
                 <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-                  <Label className="text-sm font-semibold block">Syllabus Sections to Include</Label>
+                  <Label className="text-sm font-semibold block">Syllabus Components to Include</Label>
                   
                   <div className="space-y-3 border border-border rounded-xl p-4 bg-muted/20">
                     <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer">
                       <Checkbox checked={includeWarmup} onCheckedChange={(c) => setIncludeWarmup(!!c)} />
-                      <span>Warm-up & Schema Activation</span>
+                      <span>Daily Warm-up & Schema Activation</span>
                     </label>
                     <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer">
                       <Checkbox checked={includeVocab} onCheckedChange={(c) => setIncludeVocab(!!c)} />
@@ -569,18 +633,18 @@ export default function LessonGeneratorPage() {
                     </label>
                     <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer">
                       <Checkbox checked={includeActivities} onCheckedChange={(c) => setIncludeActivities(!!c)} />
-                      <span>Pair & Group Classroom Activities</span>
+                      <span>Pair/Group Classroom Dynamics</span>
                     </label>
                     <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer">
                       <Checkbox checked={includeAssessment} onCheckedChange={(c) => setIncludeAssessment(!!c)} />
-                      <span>Exit Quiz Check & Homework Task</span>
+                      <span>Mid-Term & Final Evaluation Milestones</span>
                     </label>
                   </div>
                 </motion.div>
               )}
             </CardContent>
 
-            {/* FIXED Wizard Navigation Footer (Prevents Button Truncation) */}
+            {/* Wizard Navigation Footer */}
             <CardFooter className="border-t border-border pt-4 flex items-center justify-between gap-3">
               {currentStep > 1 ? (
                 <Button
@@ -592,9 +656,7 @@ export default function LessonGeneratorPage() {
                   <ChevronLeft className="w-3.5 h-3.5" />
                   Back
                 </Button>
-              ) : (
-                <div />
-              )}
+              ) : <div />}
 
               {currentStep < 3 ? (
                 <Button
@@ -614,12 +676,12 @@ export default function LessonGeneratorPage() {
                   {isGenerating ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Generating Plan...</span>
+                      <span>Synthesizing Syllabus...</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      <span>Generate Academic Syllabus</span>
+                      <span>Generate {syllabusScope === 'term' ? 'Full 3-Month Term Roadmap' : 'Single Plan'}</span>
                     </>
                   )}
                 </Button>
@@ -628,11 +690,11 @@ export default function LessonGeneratorPage() {
           </Card>
         </div>
 
-        {/* Right Column: Academic Document Preview Sheet */}
+        {/* Right Column: Academic Document Preview */}
         <div className="lg:col-span-7">
           <Card className="border-border bg-card shadow-sm min-h-[600px] flex flex-col">
             
-            {/* Header Toolbar */}
+            {/* Header Toolbar with Explicit Downloads */}
             <div className="p-4 md:p-5 border-b border-border flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -640,20 +702,34 @@ export default function LessonGeneratorPage() {
                   Syllabus Document Preview
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  {generatedResult ? 'Generated academic plan ready for class use.' : 'Configure parameters and generate to view output.'}
+                  {generatedResult ? 'Generated academic document ready for export.' : 'Configure scope and generate to view output.'}
                 </p>
               </div>
 
               {generatedResult && (
-                <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline" onClick={handleCopy} className="text-xs gap-1.5">
-                    {isCopied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    {isCopied ? 'Copied' : 'Copy'}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Explicit PDF Download Button */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadFile('pdf')}
+                    className="text-xs gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5 text-primary" />
+                    Download PDF
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handleSave} className="text-xs gap-1.5">
-                    <BookmarkPlus className="w-3.5 h-3.5" />
-                    {isSaved ? 'Saved' : 'Save'}
+                  
+                  {/* Explicit Word Download Button */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadFile('docx')}
+                    className="text-xs gap-1.5"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    Download Word
                   </Button>
+
                   <Button size="sm" onClick={() => window.print()} className="text-xs gap-1.5">
                     <Printer className="w-3.5 h-3.5" />
                     Print
@@ -662,10 +738,9 @@ export default function LessonGeneratorPage() {
               )}
             </div>
 
-            {/* Document Content Body */}
+            {/* Document Body */}
             <div className="p-6 flex-1 flex flex-col">
               
-              {/* Empty Initial State */}
               {!isGenerating && !generatedResult && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-border rounded-xl bg-muted/20 my-auto">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 text-primary">
@@ -673,31 +748,30 @@ export default function LessonGeneratorPage() {
                   </div>
                   <h4 className="text-sm font-semibold text-foreground mb-1">No Syllabus Generated Yet</h4>
                   <p className="text-xs text-muted-foreground max-w-sm mb-4 leading-relaxed">
-                    Complete the 3 configuration steps on the left to synthesize a CEFR-aligned syllabus document.
+                    Select a scope (Single Lesson or 3-Month Term), complete the 3 configuration steps, and generate to view output.
                   </p>
                 </div>
               )}
 
-              {/* Loading State */}
               {isGenerating && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 my-auto space-y-4">
                   <div className="w-12 h-12 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                   <div className="space-y-1">
-                    <h4 className="text-sm font-semibold text-foreground">Structuring Academic Plan</h4>
+                    <h4 className="text-sm font-semibold text-foreground">Synthesizing Course Structure</h4>
                     <p className="text-xs text-muted-foreground animate-pulse">
-                      {generationStep === 1 && 'Integrating custom grammar, vocabulary & idioms...'}
+                      {generationStep === 1 && 'Building weekly progression roadmap...'}
                       {generationStep === 2 && `Aligning with ${selectedCefr} CEFR criteria...`}
-                      {generationStep === 3 && 'Formatting activities and assessment...'}
+                      {generationStep === 3 && 'Formatting daily objectives and milestones...'}
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Generated Academic Document Display */}
+              {/* Generated Result View */}
               {generatedResult && !isGenerating && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                   
-                  {/* Formal Document Title Banner */}
+                  {/* Title Banner */}
                   <div className="border-b border-border pb-4 space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -717,23 +791,12 @@ export default function LessonGeneratorPage() {
                     </h2>
                   </div>
 
-                  {/* Tabs for Clean Document Organization */}
-                  <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid grid-cols-4 w-full mb-4">
-                      <TabsTrigger value="overview" className="text-xs font-medium">Overview</TabsTrigger>
-                      <TabsTrigger value="timeline" className="text-xs font-medium">Timeline</TabsTrigger>
-                      <TabsTrigger value="activities" className="text-xs font-medium">Activities</TabsTrigger>
-                      <TabsTrigger value="assessment" className="text-xs font-medium">Assessment</TabsTrigger>
-                    </TabsList>
-
-                    {/* OVERVIEW TAB */}
-                    <TabsContent value="overview" className="space-y-4">
+                  {/* 3-MONTH TERM DAY-BY-DAY ROADMAP VIEW */}
+                  {generatedResult.isTerm ? (
+                    <div className="space-y-6">
                       <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                          <Target className="w-4 h-4" />
-                          Learning Objectives
-                        </h4>
-                        <ul className="space-y-1.5 pt-1">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Term Overview & Goals</h4>
+                        <ul className="space-y-1.5">
                           {generatedResult.objectives.map((obj: string, i: number) => (
                             <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
                               <span className="text-primary font-bold">•</span>
@@ -743,110 +806,107 @@ export default function LessonGeneratorPage() {
                         </ul>
                       </div>
 
-                      {/* Vocabulary Section */}
-                      {generatedResult.vocabulary?.length > 0 && (
-                        <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                            <BookOpen className="w-4 h-4" />
-                            Featured Vocabulary
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-                            {generatedResult.vocabulary.map((v: any, i: number) => (
-                              <div key={i} className="p-2.5 rounded bg-background border border-border">
-                                <span className="text-xs font-semibold text-foreground block">{v.word}</span>
-                                <span className="text-[11px] text-muted-foreground block">{v.def}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Idioms Section */}
-                      {generatedResult.idioms?.length > 0 && (
-                        <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                            <Quote className="w-4 h-4" />
-                            Target Idioms & Collocations
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-                            {generatedResult.idioms.map((idm: any, i: number) => (
-                              <div key={i} className="p-2.5 rounded bg-background border border-border">
-                                <span className="text-xs font-semibold text-primary block">"{idm.expression}"</span>
-                                <span className="text-[11px] text-muted-foreground block">{idm.usage}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    {/* TIMELINE TAB */}
-                    <TabsContent value="timeline" className="space-y-3">
-                      {generatedResult.timeline.map((step: any, i: number) => (
-                        <div key={i} className="p-3.5 rounded-lg border border-border bg-card space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-foreground">{step.phase}</span>
-                            <Badge variant="outline" className="text-[10px] font-mono">
-                              {step.time}
-                            </Badge>
-                          </div>
-                          <h5 className="text-xs font-medium text-primary">{step.activity}</h5>
-                          <p className="text-xs text-muted-foreground leading-relaxed">{step.instructions}</p>
-                        </div>
-                      ))}
-                    </TabsContent>
-
-                    {/* ACTIVITIES TAB */}
-                    <TabsContent value="activities" className="space-y-4">
-                      {generatedResult.activities.map((act: any, i: number) => (
-                        <div key={i} className="p-4 rounded-lg border border-border bg-card space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary" className="text-[10px]">
-                              {act.type}
-                            </Badge>
-                            <span className="text-xs font-mono text-muted-foreground">{act.duration}</span>
-                          </div>
-                          <h4 className="text-sm font-semibold text-foreground">{act.title}</h4>
-                          <p className="text-xs text-muted-foreground">{act.setup}</p>
-                          <div className="p-3 rounded bg-muted/40 border border-border text-xs italic text-foreground">
-                            "{act.prompt}"
-                          </div>
-                        </div>
-                      ))}
-                    </TabsContent>
-
-                    {/* ASSESSMENT TAB */}
-                    <TabsContent value="assessment" className="space-y-4">
-                      <div className="p-4 rounded-lg border border-border bg-card space-y-3">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Exit Quiz Check</h4>
-                        {generatedResult.quiz.map((q: any, i: number) => (
-                          <div key={i} className="p-3 rounded bg-muted/20 space-y-2 text-xs">
-                            <span className="font-medium text-foreground block">Q{i + 1}: {q.question}</span>
-                            <div className="grid grid-cols-2 gap-2">
-                              {q.options.map((opt: string, optIdx: number) => (
+                      {/* 12-Week Day-by-Day Timeline */}
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+                          12-Week Day-by-Day Syllabus Roadmap
+                        </h4>
+                        
+                        {generatedResult.weeks.map((w: any) => (
+                          <div key={w.weekNum} className="border border-border rounded-lg bg-card overflow-hidden">
+                            <div className="bg-muted/40 p-3 border-b border-border flex items-center justify-between">
+                              <span className="text-xs font-bold text-foreground">{w.title}</span>
+                              <Badge variant="outline" className="text-[10px] font-mono">
+                                Week {w.weekNum} of {termWeeks}
+                              </Badge>
+                            </div>
+                            
+                            <div className="p-3 space-y-2">
+                              {w.days.map((d: any, idx: number) => (
                                 <div
-                                  key={optIdx}
+                                  key={idx}
                                   className={cn(
-                                    'p-2 rounded border text-xs',
-                                    opt === q.answer ? 'bg-primary/10 border-primary/30 font-semibold text-primary' : 'bg-background border-border'
+                                    'p-2.5 rounded border text-xs flex flex-col md:flex-row md:items-center justify-between gap-2',
+                                    d.type === 'Exam'
+                                      ? 'bg-destructive/10 border-destructive/30 font-semibold'
+                                      : d.type === 'Assessment'
+                                      ? 'bg-primary/10 border-primary/30 font-semibold'
+                                      : 'bg-background border-border'
                                   )}
                                 >
-                                  {opt}
+                                  <div>
+                                    <span className="text-xs font-bold text-foreground block">{d.day}</span>
+                                    <span className="text-xs text-primary font-medium">{d.topic}</span>
+                                  </div>
+                                  <span className="text-[11px] text-muted-foreground">{d.objective}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
                         ))}
                       </div>
+                    </div>
+                  ) : (
+                    /* SINGLE LESSON PREVIEW */
+                    <Tabs defaultValue="overview" className="w-full">
+                      <TabsList className="grid grid-cols-4 w-full mb-4">
+                        <TabsTrigger value="overview" className="text-xs font-medium">Overview</TabsTrigger>
+                        <TabsTrigger value="timeline" className="text-xs font-medium">Timeline</TabsTrigger>
+                        <TabsTrigger value="activities" className="text-xs font-medium">Activities</TabsTrigger>
+                        <TabsTrigger value="assessment" className="text-xs font-medium">Assessment</TabsTrigger>
+                      </TabsList>
 
-                      <div className="p-4 rounded-lg border border-border bg-card space-y-1.5">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Homework Assignment</h4>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {generatedResult.homework}
-                        </p>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
+                      <TabsContent value="overview" className="space-y-4">
+                        <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Learning Objectives</h4>
+                          <ul className="space-y-1.5 pt-1">
+                            {generatedResult.objectives.map((obj: string, i: number) => (
+                              <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                                <span className="text-primary font-bold">•</span>
+                                <span>{obj}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="timeline" className="space-y-3">
+                        {generatedResult.timeline.map((step: any, i: number) => (
+                          <div key={i} className="p-3.5 rounded-lg border border-border bg-card space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-foreground">{step.phase}</span>
+                              <Badge variant="outline" className="text-[10px] font-mono">{step.time}</Badge>
+                            </div>
+                            <h5 className="text-xs font-medium text-primary">{step.activity}</h5>
+                            <p className="text-xs text-muted-foreground">{step.instructions}</p>
+                          </div>
+                        ))}
+                      </TabsContent>
+
+                      <TabsContent value="activities" className="space-y-4">
+                        {generatedResult.activities.map((act: any, i: number) => (
+                          <div key={i} className="p-4 rounded-lg border border-border bg-card space-y-2">
+                            <h4 className="text-sm font-semibold text-foreground">{act.title}</h4>
+                            <p className="text-xs text-muted-foreground">{act.setup}</p>
+                            <div className="p-3 rounded bg-muted/40 border border-border text-xs italic text-foreground">
+                              "{act.prompt}"
+                            </div>
+                          </div>
+                        ))}
+                      </TabsContent>
+
+                      <TabsContent value="assessment" className="space-y-4">
+                        <div className="p-4 rounded-lg border border-border bg-card space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Exit Quiz Check</h4>
+                          {generatedResult.quiz.map((q: any, i: number) => (
+                            <div key={i} className="p-3 rounded bg-muted/20 space-y-2 text-xs">
+                              <span className="font-medium text-foreground block">Q{i + 1}: {q.question}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  )}
                 </motion.div>
               )}
             </div>

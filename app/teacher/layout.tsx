@@ -84,6 +84,7 @@ const teacherNavItems = [
         { title: 'Test Registry', href: '/teacher/assessments', icon: ClipboardList },
         { title: 'Test Generator', href: '/teacher/assessments/generator', icon: Sparkles },
         { title: 'AI Lesson Generator', href: '/teacher/lesson-generator', icon: BookMarked },
+        { title: 'Saved Syllabi Library', href: '/teacher/lesson-generator/saved', icon: Library },
     ]
   },
   {
