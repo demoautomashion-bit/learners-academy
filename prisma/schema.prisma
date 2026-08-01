@@ -30,6 +30,7 @@ model Teacher {
   courses          Course[]
   payrollRecords   PayrollRecord[]
   attendance       TeacherAttendance[]
+  syllabi          LessonSyllabus[]
 }
 
 model TeacherAttendance {
@@ -304,4 +305,25 @@ model BroadcastLog {
   recipientCount Int
   status         String   @default("Delivered")
   createdAt      DateTime @default(now())
+}
+
+model LessonSyllabus {
+  id          String   @id @default(cuid())
+  title       String
+  scope       String   @default("single")
+  cefr        String
+  topic       String
+  duration    String
+  grammar     String[]
+  vocabulary  Json?
+  idioms      Json?
+  timeline    Json?
+  weeks       Json?
+  quiz        Json?
+  homework    String?
+  teacherId   String
+  teacherName String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  teacher     Teacher  @relation(fields: [teacherId], references: [id])
 }

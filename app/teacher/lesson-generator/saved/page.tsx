@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -10,19 +10,13 @@ import {
   Plus,
   Calendar,
   Clock,
-  Award,
   Download,
   FileText,
   Trash2,
   Eye,
-  Sparkles,
   BookMarked,
   Printer,
-  Copy,
-  CheckCircle2,
-  X,
-  Layers,
-  ArrowRight
+  RefreshCw
 } from 'lucide-react'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
@@ -32,84 +26,65 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
-
-// Mock Saved Syllabi Data
-const INITIAL_SAVED_ITEMS = [
-  {
-    id: 'syl-1',
-    title: 'Level 4 English: 3-Month Comprehensive Term Roadmap',
-    type: 'Term Syllabus',
-    scope: '3 Months (12 Weeks)',
-    cefr: 'B2',
-    topic: 'Business English & Formal Negotiation',
-    grammar: ['Second Conditional', 'Passive Voice', 'Reported Speech'],
-    createdAt: '2026-07-28',
-    classesCount: '36 Sessions',
-    targetBatch: 'Level 4 - Evening Batch'
-  },
-  {
-    id: 'syl-2',
-    title: 'Mastering Present Perfect vs Past Simple',
-    type: 'Single Lesson',
-    scope: '45 Minutes',
-    cefr: 'B1',
-    topic: 'Travel & World Experiences',
-    grammar: ['Present Perfect vs Past Simple'],
-    createdAt: '2026-07-25',
-    classesCount: '1 Session',
-    targetBatch: 'Level 3 - Foundation'
-  },
-  {
-    id: 'syl-3',
-    title: 'Advanced Relative Clauses & Formal Discourse',
-    type: 'Single Lesson',
-    scope: '60 Minutes',
-    cefr: 'C1',
-    topic: 'Academic Essay Writing',
-    grammar: ['Defining & Non-Defining Relative Clauses'],
-    createdAt: '2026-07-20',
-    classesCount: '1 Session',
-    targetBatch: 'Level 5 - Advanced'
-  },
-  {
-    id: 'syl-4',
-    title: 'Elementary Communication & Daily Habits (1-Month Roadmap)',
-    type: 'Term Syllabus',
-    scope: '1 Month (4 Weeks)',
-    cefr: 'A2',
-    topic: 'Daily Routines & Social Exchanges',
-    grammar: ['Present Simple', 'Adverbs of Frequency', 'Past Simple'],
-    createdAt: '2026-07-15',
-    classesCount: '12 Sessions',
-    targetBatch: 'Level 2 - Beginner'
-  }
-]
+import { useAuth } from '@/contexts/auth-context'
 
 export default function SavedSyllabiPage() {
+  const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCefr, setSelectedCefr] = useState('ALL')
   const [selectedType, setSelectedType] = useState('ALL')
-  const [items, setItems] = useState(INITIAL_SAVED_ITEMS)
+  
+  const [items, setItems] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [previewItem, setPreviewItem] = useState<any>(null)
   const [downloadToast, setDownloadToast] = useState<string | null>(null)
 
+  // Fetch real data from database via GET /api/lessons
+  const fetchSyllabi = async () => {
+    setIsLoading(true)
+    try {
+      const url = user?.id ? `/api/lessons?teacherId=${user.id}` : '/api/lessons'
+      const res = await fetch(url)
+      const data = await res.json()
+      if (data.success) {
+        setItems(data.data || [])
+      }
+    } catch (err) {
+      console.error('Failed to load syllabi:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchSyllabi()
+  }, [user?.id])
+
+  // Delete real record from database via DELETE /api/lessons/[id]
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/lessons/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        setItems((prev) => prev.filter((item) => item.id !== id))
+        if (previewItem?.id === id) setPreviewItem(null)
+      }
+    } catch (err) {
+      console.error('Failed to delete syllabus:', err)
+    }
+  }
+
   const filteredItems = items.filter((item) => {
     const matchesSearch =
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.grammar.some((g) => g.toLowerCase().includes(searchQuery.toLowerCase()))
+      item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.topic?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.grammar && item.grammar.some((g: string) => g.toLowerCase().includes(searchQuery.toLowerCase())))
     
     const matchesCefr = selectedCefr === 'ALL' || item.cefr === selectedCefr
-    const matchesType = selectedType === 'ALL' || item.type === selectedType
+    const matchesType = selectedType === 'ALL' || item.scope === selectedType
 
     return matchesSearch && matchesCefr && matchesType
   })
-
-  const handleDelete = (id: string) => {
-    setItems(items.filter((item) => item.id !== id))
-    if (previewItem?.id === id) setPreviewItem(null)
-  }
 
   const triggerDownload = (fileName: string, fileType: string) => {
     setDownloadToast(`Preparing ${fileName}.${fileType} download...`)
@@ -135,7 +110,7 @@ export default function SavedSyllabiPage() {
         }
       />
 
-      {/* Toast Download Notification */}
+      {/* Download Toast Notification */}
       {downloadToast && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -161,7 +136,6 @@ export default function SavedSyllabiPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          {/* CEFR Filter */}
           <Select value={selectedCefr} onValueChange={setSelectedCefr}>
             <SelectTrigger className="w-36 text-xs h-9">
               <SelectValue placeholder="CEFR Level" />
@@ -177,111 +151,122 @@ export default function SavedSyllabiPage() {
             </SelectContent>
           </Select>
 
-          {/* Type Filter */}
           <Select value={selectedType} onValueChange={setSelectedType}>
             <SelectTrigger className="w-40 text-xs h-9">
               <SelectValue placeholder="Syllabus Scope" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Scopes</SelectItem>
-              <SelectItem value="Single Lesson">Single Lessons</SelectItem>
-              <SelectItem value="Term Syllabus">3-Month Term Syllabi</SelectItem>
+              <SelectItem value="single">Single Session</SelectItem>
+              <SelectItem value="term">3-Month Term Roadmap</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button variant="outline" size="sm" onClick={fetchSyllabi} className="h-9 px-2.5">
+            <RefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
+          </Button>
         </div>
       </div>
 
-      {/* Syllabi Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        {filteredItems.map((item) => (
-          <Card key={item.id} className="border-border bg-card shadow-sm hover:shadow-md transition-all flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <Badge
-                  variant={item.type === 'Term Syllabus' ? 'default' : 'secondary'}
-                  className="text-[10px] font-semibold"
-                >
-                  {item.type}
-                </Badge>
-                <Badge variant="outline" className="font-mono text-[10px]">
-                  CEFR {item.cefr}
-                </Badge>
-              </div>
-              <CardTitle className="text-sm font-bold leading-snug text-foreground line-clamp-2">
-                {item.title}
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground pt-1">
-                Context: <span className="text-foreground font-medium">{item.topic}</span>
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="flex-1 space-y-3 pt-0">
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-                  Grammar Focus:
-                </span>
-                <div className="flex flex-wrap gap-1">
-                  {item.grammar.map((g) => (
-                    <Badge key={g} variant="outline" className="text-[10px] bg-muted/30">
-                      {g}
-                    </Badge>
-                  ))}
+      {/* Loading Skeleton / Spinner */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <RefreshCw className="w-8 h-8 text-primary animate-spin mb-3" />
+          <p className="text-xs text-muted-foreground">Loading saved syllabi from database...</p>
+        </div>
+      ) : (
+        /* Syllabi Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          {filteredItems.map((item) => (
+            <Card key={item.id} className="border-border bg-card shadow-sm hover:shadow-md transition-all flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <Badge
+                    variant={item.scope === 'term' ? 'default' : 'secondary'}
+                    className="text-[10px] font-semibold"
+                  >
+                    {item.scope === 'term' ? '3-Month Term Roadmap' : 'Single Session'}
+                  </Badge>
+                  <Badge variant="outline" className="font-mono text-[10px]">
+                    CEFR {item.cefr}
+                  </Badge>
                 </div>
-              </div>
+                <CardTitle className="text-sm font-bold leading-snug text-foreground line-clamp-2">
+                  {item.title}
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground pt-1">
+                  Context: <span className="text-foreground font-medium">{item.topic}</span>
+                </CardDescription>
+              </CardHeader>
 
-              <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-primary" />
-                  {item.scope}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {item.createdAt}
-                </span>
-              </div>
-            </CardContent>
+              <CardContent className="flex-1 space-y-3 pt-0">
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                    Grammar Focus:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {item.grammar && item.grammar.map((g: string) => (
+                      <Badge key={g} variant="outline" className="text-[10px] bg-muted/30">
+                        {g}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
 
-            <CardFooter className="border-t border-border pt-3 flex items-center justify-between gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPreviewItem(item)}
-                className="text-xs gap-1 flex-1"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                View & Export
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(item.id)}
-                className="text-muted-foreground hover:text-destructive text-xs"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-primary" />
+                    {item.duration}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </CardContent>
 
-      {filteredItems.length === 0 && (
+              <CardFooter className="border-t border-border pt-3 flex items-center justify-between gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPreviewItem(item)}
+                  className="text-xs gap-1 flex-1"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  View & Export
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(item.id)}
+                  className="text-muted-foreground hover:text-destructive text-xs"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && filteredItems.length === 0 && (
         <div className="text-center py-16 border border-dashed border-border rounded-xl bg-muted/20 mt-6">
           <BookMarked className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-foreground">No Syllabi Found</h3>
+          <h3 className="text-sm font-semibold text-foreground">No Saved Syllabi</h3>
           <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-            No saved lesson plans match your search query or filters.
+            Generate and save a lesson plan or term syllabus to build your personal library.
           </p>
         </div>
       )}
 
-      {/* Preview & Export Modal */}
+      {/* Preview Modal */}
       {previewItem && (
         <Dialog open={!!previewItem} onOpenChange={() => setPreviewItem(null)}>
           <DialogContent className="max-w-2xl bg-card border-border">
             <DialogHeader>
               <div className="flex items-center gap-2 mb-1">
                 <Badge variant="default" className="text-[10px]">
-                  {previewItem.type}
+                  {previewItem.scope === 'term' ? '3-Month Term Roadmap' : 'Single Session Plan'}
                 </Badge>
                 <Badge variant="outline" className="font-mono text-[10px]">
                   {previewItem.cefr} Level
@@ -289,7 +274,7 @@ export default function SavedSyllabiPage() {
               </div>
               <DialogTitle className="text-lg font-bold">{previewItem.title}</DialogTitle>
               <DialogDescription className="text-xs">
-                Target Batch: <span className="font-medium text-foreground">{previewItem.targetBatch}</span> • {previewItem.scope}
+                Instructor: <span className="font-medium text-foreground">{previewItem.teacherName}</span> • {previewItem.duration}
               </DialogDescription>
             </DialogHeader>
 
@@ -300,9 +285,9 @@ export default function SavedSyllabiPage() {
               </div>
 
               <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
-                <span className="text-xs font-semibold text-primary block">Core Grammatical Focus</span>
+                <span className="text-xs font-semibold text-primary block">Grammar Focus</span>
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {previewItem.grammar.map((g: string) => (
+                  {previewItem.grammar && previewItem.grammar.map((g: string) => (
                     <Badge key={g} variant="secondary" className="text-xs">
                       {g}
                     </Badge>
@@ -311,7 +296,6 @@ export default function SavedSyllabiPage() {
               </div>
             </div>
 
-            {/* Modal Export Toolbar */}
             <div className="flex items-center justify-between gap-2 border-t border-border pt-4">
               <div className="flex items-center gap-2">
                 <Button
@@ -330,7 +314,7 @@ export default function SavedSyllabiPage() {
                   className="text-xs gap-1.5"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  Word Document
+                  Word File
                 </Button>
               </div>
 
@@ -340,7 +324,7 @@ export default function SavedSyllabiPage() {
                 className="text-xs gap-1.5"
               >
                 <Printer className="w-3.5 h-3.5" />
-                Print Document
+                Print
               </Button>
             </div>
           </DialogContent>

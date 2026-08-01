@@ -40,7 +40,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useAuth } from '@/contexts/auth-context'
 import { cn } from '@/lib/utils'
 
 // Pre-defined CEFR Options & Presets
@@ -65,6 +65,8 @@ const QUICK_GRAMMAR_PRESETS = [
 const DURATION_OPTIONS = [15, 30, 45, 60, 90]
 
 export default function LessonGeneratorPage() {
+  const { user } = useAuth()
+  
   // Scope Switcher: 'single' vs 'term'
   const [syllabusScope, setSyllabusScope] = useState<'single' | 'term'>('single')
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
@@ -99,6 +101,7 @@ export default function LessonGeneratorPage() {
   const [generationStep, setGenerationStep] = useState(0)
   const [generatedResult, setGeneratedResult] = useState<any>(null)
   const [isCopied, setIsCopied] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [downloadToast, setDownloadToast] = useState<string | null>(null)
 
@@ -129,7 +132,47 @@ export default function LessonGeneratorPage() {
     }, 2500)
   }
 
-  // Mock Generation Trigger
+  // Save generated syllabus to PostgreSQL database via POST /api/lessons
+  const handleSaveToDatabase = async () => {
+    if (!generatedResult) return
+
+    setIsSaving(true)
+    try {
+      const payload = {
+        title: generatedResult.title,
+        scope: syllabusScope,
+        cefr: selectedCefr,
+        topic: customTopic || 'General Context',
+        duration: generatedResult.duration,
+        grammar: grammarTags,
+        vocabulary: generatedResult.vocabulary || null,
+        idioms: generatedResult.idioms || null,
+        timeline: generatedResult.timeline || null,
+        weeks: generatedResult.weeks || null,
+        quiz: generatedResult.quiz || null,
+        homework: generatedResult.homework || null,
+        teacherId: user?.id || 'cl-teacher-1',
+        teacherName: user?.name || 'Teacher'
+      }
+
+      const res = await fetch('/api/lessons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        setIsSaved(true)
+      }
+    } catch (err) {
+      console.error('Failed to save to database:', err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Dynamic Generation Engine based on teacher inputs
   const handleGenerate = () => {
     if (grammarTags.length === 0 && !grammarInput.trim()) return
 
@@ -263,10 +306,6 @@ export default function LessonGeneratorPage() {
   const handleCopy = () => {
     setIsCopied(true)
     setTimeout(() => setIsCopied(false), 2000)
-  }
-
-  const handleSave = () => {
-    setIsSaved(true)
   }
 
   return (
@@ -694,7 +733,7 @@ export default function LessonGeneratorPage() {
         <div className="lg:col-span-7">
           <Card className="border-border bg-card shadow-sm min-h-[600px] flex flex-col">
             
-            {/* Header Toolbar with Explicit Downloads */}
+            {/* Header Toolbar */}
             <div className="p-4 md:p-5 border-b border-border flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -708,7 +747,18 @@ export default function LessonGeneratorPage() {
 
               {generatedResult && (
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Explicit PDF Download Button */}
+                  {/* Real Database Save Action */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSaveToDatabase}
+                    disabled={isSaving || isSaved}
+                    className="text-xs gap-1.5"
+                  >
+                    <BookmarkPlus className="w-3.5 h-3.5 text-primary" />
+                    {isSaving ? 'Saving to DB...' : isSaved ? 'Saved to DB' : 'Save to Library'}
+                  </Button>
+
                   <Button
                     size="sm"
                     variant="outline"
@@ -719,7 +769,6 @@ export default function LessonGeneratorPage() {
                     Download PDF
                   </Button>
                   
-                  {/* Explicit Word Download Button */}
                   <Button
                     size="sm"
                     variant="outline"
@@ -884,7 +933,7 @@ export default function LessonGeneratorPage() {
                       </TabsContent>
 
                       <TabsContent value="activities" className="space-y-4">
-                        {generatedResult.activities.map((act: any, i: number) => (
+                        {generatedResult.activities?.map((act: any, i: number) => (
                           <div key={i} className="p-4 rounded-lg border border-border bg-card space-y-2">
                             <h4 className="text-sm font-semibold text-foreground">{act.title}</h4>
                             <p className="text-xs text-muted-foreground">{act.setup}</p>
@@ -898,7 +947,7 @@ export default function LessonGeneratorPage() {
                       <TabsContent value="assessment" className="space-y-4">
                         <div className="p-4 rounded-lg border border-border bg-card space-y-3">
                           <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Exit Quiz Check</h4>
-                          {generatedResult.quiz.map((q: any, i: number) => (
+                          {generatedResult.quiz?.map((q: any, i: number) => (
                             <div key={i} className="p-3 rounded bg-muted/20 space-y-2 text-xs">
                               <span className="font-medium text-foreground block">Q{i + 1}: {q.question}</span>
                             </div>
