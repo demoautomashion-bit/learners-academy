@@ -23,10 +23,9 @@ import {
   Sliders,
   ChevronRight,
   ChevronLeft,
-  ArrowRight,
-  GraduationCap,
-  Layers,
-  Sparkle
+  Quote,
+  Lightbulb,
+  Check
 } from 'lucide-react'
 import { PageShell } from '@/components/shared/page-shell'
 import { PageHeader } from '@/components/shared/page-header'
@@ -39,7 +38,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 
-// Pre-defined CEFR Options & Preset Grammar Tags
+// Pre-defined CEFR Options & Presets
 const CEFR_LEVELS = [
   { level: 'A1', label: 'A1 - Beginner', desc: 'Basic phrases & everyday expressions' },
   { level: 'A2', label: 'A2 - Elementary', desc: 'Routine sentences & direct exchanges' },
@@ -58,19 +57,44 @@ const QUICK_GRAMMAR_PRESETS = [
   'Modal Verbs of Deduction',
 ]
 
+const QUICK_IDIOM_PRESETS = [
+  'Break the ice',
+  'Hit the nail on the head',
+  'Burn the midnight oil',
+  'Bite the bullet',
+  'See eye to eye',
+]
+
+const ACTIVITY_STYLES = [
+  { id: 'roleplay', title: 'Pair Roleplay', icon: MessageSquare },
+  { id: 'discussion', title: 'Debate / Discussion', icon: Brain },
+  { id: 'gapfill', title: 'Gap-Fill Worksheet', icon: FileText },
+  { id: 'game', title: 'Matching Game', icon: Puzzle },
+]
+
 const DURATION_OPTIONS = [15, 30, 45, 60, 90]
 
 export default function LessonGeneratorPage() {
   const [activeMode, setActiveMode] = useState<'full' | 'activity'>('full')
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
   
-  // Form State
+  // Form State: Dedicated Flexible Inputs
   const [selectedCefr, setSelectedCefr] = useState('B1')
   const [duration, setDuration] = useState(45)
-  const [grammarInput, setGrammarInput] = useState('')
-  const [grammarTags, setGrammarTags] = useState<string[]>(['Present Perfect vs Past Simple'])
   const [customTopic, setCustomTopic] = useState('Travel & World Experiences')
   
+  // Tag Inputs State
+  const [grammarInput, setGrammarInput] = useState('')
+  const [grammarTags, setGrammarTags] = useState<string[]>(['Present Perfect vs Past Simple'])
+
+  const [vocabInput, setVocabInput] = useState('')
+  const [vocabTags, setVocabTags] = useState<string[]>(['itinerary', 'destination', 'embark'])
+
+  const [idiomsInput, setIdiomsInput] = useState('')
+  const [idiomTags, setIdiomTags] = useState<string[]>(['break the ice', 'hit the road'])
+
+  const [selectedActivities, setSelectedActivities] = useState<string[]>(['roleplay', 'discussion'])
+
   // Form Options Checkboxes
   const [includeWarmup, setIncludeWarmup] = useState(true)
   const [includeVocab, setIncludeVocab] = useState(true)
@@ -85,16 +109,30 @@ export default function LessonGeneratorPage() {
   const [isCopied, setIsCopied] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
 
-  // Add Tag Helper
-  const handleAddTag = (tag: string) => {
-    if (tag && !grammarTags.includes(tag)) {
-      setGrammarTags([...grammarTags, tag])
-      setGrammarInput('')
+  // Generic Tag Helper
+  const handleAddTag = (
+    inputVal: string,
+    tagsList: string[],
+    setTags: (tags: string[]) => void,
+    setInput: (val: string) => void
+  ) => {
+    const trimmed = inputVal.trim()
+    if (trimmed && !tagsList.includes(trimmed)) {
+      setTags([...tagsList, trimmed])
+      setInput('')
     }
   }
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setGrammarTags(grammarTags.filter(t => t !== tagToRemove))
+  const handleRemoveTag = (tagToRemove: string, tagsList: string[], setTags: (tags: string[]) => void) => {
+    setTags(tagsList.filter(t => t !== tagToRemove))
+  }
+
+  const toggleActivityStyle = (id: string) => {
+    if (selectedActivities.includes(id)) {
+      setSelectedActivities(selectedActivities.filter(a => a !== id))
+    } else {
+      setSelectedActivities([...selectedActivities, id])
+    }
   }
 
   // Mock Generation Trigger
@@ -119,83 +157,61 @@ export default function LessonGeneratorPage() {
         theme: customTopic || 'General Academic Context',
         objectives: [
           `Distinguish between finished past actions and ongoing states using ${grammarTags[0] || 'the target structure'}.`,
-          `Formulate grammatically accurate affirmative, negative, and interrogative sentences at the ${selectedCefr} benchmark.`,
-          `Apply target grammar naturally in real-life conversational scenarios and written tasks.`
+          `Formulate grammatically accurate sentences incorporating target vocabulary: ${vocabTags.slice(0, 3).join(', ') || 'essential terms'}.`,
+          `Apply idioms such as "${idiomTags[0] || 'break the ice'}" naturally in conversational scenarios.`
         ],
-        vocabulary: [
-          { word: 'Already / Yet', def: 'Time markers used with present perfect to indicate completion relative to now.' },
-          { word: 'Ever / Never', def: 'Adverbs referencing lifetime experiences up to the current moment.' },
-          { word: 'Since / For', def: 'Prepositions specifying starting point vs total duration of an ongoing state.' },
-          { word: 'Unspecified Time', def: 'Concept where the exact moment of an action is secondary to its present relevance.' }
-        ],
+        vocabulary: vocabTags.map(v => ({ word: v, def: `Target key vocabulary term aligned to ${selectedCefr} level.` })),
+        idioms: idiomTags.map(idm => ({ expression: idm, usage: 'Common English idiom used for natural speaking fluency.' })),
         timeline: [
           {
             phase: 'Warm-Up & Schema Activation',
-            time: '7 mins',
-            activity: 'Two Truths and One Lie (Life Experiences)',
-            instructions: 'Students write 3 statements about their past experiences using "I have...". Partners guess the false statement by asking follow-up Past Simple questions ("When did you do that?").'
+            time: `${Math.round(duration * 0.15)} mins`,
+            activity: `Icebreaker: "${idiomTags[0] || 'Break the Ice'}" Discussion`,
+            instructions: `Students discuss past experiences using targeted vocabulary (${vocabTags.slice(0, 2).join(', ') || 'key terms'}).`
           },
           {
-            phase: 'Concept Checking & Direct Instruction',
-            time: '12 mins',
-            activity: 'Timeline Mapping & Form Analysis',
-            instructions: 'Teacher draws a timeline on the board illustrating the difference between closed past events vs open present relevance. Elicit formula: [Have/Has + Past Participle].'
+            phase: 'Direct Instruction & Form Analysis',
+            time: `${Math.round(duration * 0.25)} mins`,
+            activity: 'Structure & Meaning Mapping',
+            instructions: `Teacher explains ${grammarTags.join(', ')} with timeline diagrams and contrastive analysis.`
           },
           {
             phase: 'Guided Practice',
-            time: '13 mins',
-            activity: 'Grammar Transformation & Sentence Building',
-            instructions: 'Students complete paired worksheets converting Past Simple sentences into Present Perfect where relevant, correcting deliberate errors in context.'
+            time: `${Math.round(duration * 0.3)} mins`,
+            activity: 'Sentence Transformation & Idiom Matching',
+            instructions: `Worksheet activity incorporating target idioms (${idiomTags.join(', ') || 'idioms'}) and vocabulary.`
           },
           {
             phase: 'Production & Application',
-            time: '10 mins',
-            activity: 'Roleplay: Job Interviewer vs Candidate',
-            instructions: 'Interviewer asks about work history using Present Perfect. Candidate responds with specifics in Past Simple.'
+            time: `${Math.round(duration * 0.2)} mins`,
+            activity: `Pair Work: ${selectedActivities.join(' & ').toUpperCase()} Roleplay`,
+            instructions: `Students engage in a real-world scenario focused on "${customTopic}".`
           },
           {
-            phase: 'Wrap-up & Assessment',
-            time: '3 mins',
-            activity: 'Exit Ticket Quiz',
-            instructions: 'Quick 3-question gap fill check before leaving class to evaluate immediate comprehension.'
+            phase: 'Wrap-up & Exit Quiz',
+            time: `${Math.round(duration * 0.1)} mins`,
+            activity: 'Comprehension Exit Ticket',
+            instructions: 'Quick 3-question evaluation of grammar accuracy and vocabulary usage.'
           }
         ],
         activities: [
           {
-            title: 'Roleplay: The World Traveler Interview',
-            type: 'Speaking / Pair Work',
-            duration: '12 mins',
-            setup: 'Divide students into pairs (Student A: Reporter, Student B: Famous Traveler).',
-            prompt: 'Student A asks 5 questions using "Have you ever visited...?". Student B answers with details using specific dates/years in Past Simple.'
-          },
-          {
-            title: 'Spot the Slip: Error Correction Challenge',
-            type: 'Collaborative Problem Solving',
-            duration: '10 mins',
-            setup: 'Group students in trios with 6 contextual sentences containing common errors.',
-            prompt: 'Find and correct errors like: "I have seen that movie yesterday" → "I saw that movie yesterday".'
+            title: `Interactive Roleplay: ${customTopic}`,
+            type: 'Pair Activity',
+            duration: '15 mins',
+            setup: 'Divide students into pairs with role cards.',
+            prompt: `Incorporate at least 2 target idioms (${idiomTags.slice(0, 2).join(', ') || 'idioms'}) while using ${grammarTags[0] || 'target grammar'}.`
           }
         ],
         quiz: [
           {
-            question: `Choose the correct form for ${selectedCefr} level context: "She _____ (live) in Madrid for three years before moving to London."`,
-            options: ['has lived', 'lived', 'is living', 'was lived'],
-            answer: 'lived',
-            reason: 'The action is completed in the past with a finished time frame (before moving).'
-          },
-          {
-            question: 'Which sentence correctly uses the target time marker?',
-            options: [
-              'I have already finished my assignment yesterday.',
-              'I haven\'t finished my assignment yet.',
-              'I didn\'t finish my assignment yet last week.',
-              'I have finished my assignment ago.'
-            ],
-            answer: 'I haven\'t finished my assignment yet.',
-            reason: '"Yet" is used with present perfect in negative sentences to show expectation.'
+            question: `Which option correctly completes the ${selectedCefr}-level context?`,
+            options: ['Option A (Correct)', 'Option B', 'Option C', 'Option D'],
+            answer: 'Option A (Correct)',
+            reason: 'Proper alignment with target grammatical rules.'
           }
         ],
-        homework: `Write a short 120-word paragraph titled "My Greatest Journey So Far" using at least 4 Present Perfect sentences and 4 Past Simple sentences correctly.`
+        homework: `Write a 120-word paragraph about "${customTopic}" utilizing target grammar and at least 2 key vocabulary terms.`
       })
     }, 2400)
   }
@@ -211,10 +227,10 @@ export default function LessonGeneratorPage() {
 
   return (
     <PageShell>
-      {/* Page Header aligned with portal standard */}
+      {/* Page Header */}
       <PageHeader
         title="AI Lesson & Activity Generator"
-        description="Design CEFR-aligned syllabi, structured lesson plans, and classroom activities tailored to target grammatical structures."
+        description="Design CEFR-aligned syllabi, structured lesson plans, vocabulary, and idioms tailored to your classroom needs."
         badgeText="Academic Tool"
         icon={Wand2}
         action={
@@ -244,7 +260,7 @@ export default function LessonGeneratorPage() {
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
         
-        {/* Left Column: Clean 3-Step Wizard Form */}
+        {/* Left Column: 3-Step Wizard Form */}
         <div className="lg:col-span-5 space-y-6">
           <Card className="border-border bg-card shadow-sm">
             
@@ -255,8 +271,8 @@ export default function LessonGeneratorPage() {
                   Step {currentStep} of 3
                 </span>
                 <span className="text-xs font-medium text-primary">
-                  {currentStep === 1 && 'Grammar & CEFR'}
-                  {currentStep === 2 && 'Context & Duration'}
+                  {currentStep === 1 && 'Grammar, Vocab & Idioms'}
+                  {currentStep === 2 && 'CEFR, Context & Duration'}
                   {currentStep === 3 && 'Syllabus Components'}
                 </span>
               </div>
@@ -279,80 +295,194 @@ export default function LessonGeneratorPage() {
             </div>
 
             <CardContent className="pt-6 space-y-6">
-              {/* STEP 1: Grammar Structures & CEFR */}
+              {/* STEP 1: Dedicated Grammar, Vocabulary, Idioms & Activity Inputs */}
               {currentStep === 1 && (
                 <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
+                  
+                  {/* 1. Target Grammar Field */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center justify-between">
-                      <span>Target Grammatical Structure <span className="text-destructive">*</span></span>
+                    <Label className="text-xs font-semibold flex items-center justify-between">
+                      <span>Grammar Structure(s) <span className="text-destructive">*</span></span>
+                      <span className="text-[11px] text-muted-foreground">{grammarTags.length} added</span>
                     </Label>
 
-                    {/* Selected Tags list */}
                     {grammarTags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-2">
                         {grammarTags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="gap-1.5 py-1 px-2.5 text-xs font-normal"
-                          >
+                          <Badge key={tag} variant="secondary" className="gap-1.5 py-0.5 px-2 text-xs font-normal">
                             {tag}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTag(tag)}
-                              className="hover:text-destructive transition-colors ml-0.5"
-                            >
-                              <X className="w-3 h-3" />
+                            <button type="button" onClick={() => handleRemoveTag(tag, grammarTags, setGrammarTags)}>
+                              <X className="w-3 h-3 hover:text-destructive" />
                             </button>
                           </Badge>
                         ))}
                       </div>
                     )}
 
-                    {/* Input with Add Button */}
                     <div className="flex gap-2">
                       <Input
-                        placeholder="e.g. Present Continuous for Future"
+                        placeholder="e.g. Second Conditional"
                         value={grammarInput}
                         onChange={(e) => setGrammarInput(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault()
-                            handleAddTag(grammarInput.trim())
+                            handleAddTag(grammarInput, grammarTags, setGrammarTags, setGrammarInput)
                           }
                         }}
                       />
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => handleAddTag(grammarInput.trim())}
+                        size="sm"
+                        onClick={() => handleAddTag(grammarInput, grammarTags, setGrammarTags, setGrammarInput)}
                         disabled={!grammarInput.trim()}
-                        className="shrink-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* 2. Target Vocabulary Field */}
+                  <div className="space-y-2 pt-1 border-t border-border">
+                    <Label className="text-xs font-semibold flex items-center justify-between">
+                      <span>Target Vocabulary & Terms</span>
+                      <span className="text-[11px] text-muted-foreground">{vocabTags.length} added</span>
+                    </Label>
+
+                    {vocabTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {vocabTags.map((v) => (
+                          <Badge key={v} variant="outline" className="gap-1.5 py-0.5 px-2 text-xs font-normal bg-muted/40">
+                            {v}
+                            <button type="button" onClick={() => handleRemoveTag(v, vocabTags, setVocabTags)}>
+                              <X className="w-3 h-3 hover:text-destructive" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="e.g. itinerary, compromise"
+                        value={vocabInput}
+                        onChange={(e) => setVocabInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleAddTag(vocabInput, vocabTags, setVocabTags, setVocabInput)
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddTag(vocabInput, vocabTags, setVocabTags, setVocabInput)}
+                        disabled={!vocabInput.trim()}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* 3. Target Idioms Field */}
+                  <div className="space-y-2 pt-1 border-t border-border">
+                    <Label className="text-xs font-semibold flex items-center justify-between">
+                      <span>Target Idioms & Phrases</span>
+                      <span className="text-[11px] text-muted-foreground">{idiomTags.length} added</span>
+                    </Label>
+
+                    {idiomTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {idiomTags.map((idm) => (
+                          <Badge key={idm} variant="secondary" className="gap-1.5 py-0.5 px-2 text-xs font-normal bg-primary/10 text-primary">
+                            "{idm}"
+                            <button type="button" onClick={() => handleRemoveTag(idm, idiomTags, setIdiomTags)}>
+                              <X className="w-3 h-3 hover:text-destructive" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="e.g. break the ice"
+                        value={idiomsInput}
+                        onChange={(e) => setIdiomsInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleAddTag(idiomsInput, idiomTags, setIdiomTags, setIdiomsInput)
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddTag(idiomsInput, idiomTags, setIdiomTags, setIdiomsInput)}
+                        disabled={!idiomsInput.trim()}
                       >
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
 
-                    {/* Presets */}
-                    <div className="pt-2">
-                      <span className="text-xs text-muted-foreground block mb-2 font-medium">Quick Select Presets:</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {QUICK_GRAMMAR_PRESETS.map((preset) => (
-                          <button
-                            key={preset}
-                            type="button"
-                            onClick={() => handleAddTag(preset)}
-                            className="text-xs px-2.5 py-1 rounded-md bg-muted/60 hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border transition-all text-left"
-                          >
-                            + {preset}
-                          </button>
-                        ))}
-                      </div>
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      <span className="text-[11px] text-muted-foreground mr-1">Quick Idioms:</span>
+                      {QUICK_IDIOM_PRESETS.slice(0, 3).map((idm) => (
+                        <button
+                          key={idm}
+                          type="button"
+                          onClick={() => handleAddTag(idm, idiomTags, setIdiomTags, setIdiomsInput)}
+                          className="text-[10px] px-2 py-0.5 rounded bg-muted/60 hover:bg-accent text-muted-foreground hover:text-foreground border border-border"
+                        >
+                          + {idm}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
+                  {/* 4. Preferred Activity Styles */}
+                  <div className="space-y-2 pt-1 border-t border-border">
+                    <Label className="text-xs font-semibold block">Preferred Classroom Dynamics</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ACTIVITY_STYLES.map((act) => {
+                        const Icon = act.icon
+                        const isSelected = selectedActivities.includes(act.id)
+                        return (
+                          <button
+                            key={act.id}
+                            type="button"
+                            onClick={() => toggleActivityStyle(act.id)}
+                            className={cn(
+                              'p-2.5 rounded-lg border text-left flex items-center justify-between text-xs transition-all',
+                              isSelected
+                                ? 'bg-primary/10 border-primary text-primary font-semibold'
+                                : 'bg-background border-border text-muted-foreground hover:bg-accent'
+                            )}
+                          >
+                            <span className="flex items-center gap-2">
+                              <Icon className="w-3.5 h-3.5" />
+                              {act.title}
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 2: CEFR Level, Context & Non-Sticky Fluid Duration */}
+              {currentStep === 2 && (
+                <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
+                  
                   {/* CEFR Level Selector */}
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-3">
                     <Label className="text-sm font-semibold flex items-center justify-between">
                       <span>CEFR Benchmark Level</span>
                       <Badge variant="outline" className="font-mono text-xs text-primary">
@@ -366,7 +496,7 @@ export default function LessonGeneratorPage() {
                           type="button"
                           onClick={() => setSelectedCefr(item.level)}
                           className={cn(
-                            'py-2 px-1 rounded-lg text-xs font-bold transition-all border text-center',
+                            'py-2.5 px-1 rounded-lg text-xs font-bold transition-all border text-center',
                             selectedCefr === item.level
                               ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                               : 'bg-background border-border text-muted-foreground hover:bg-accent'
@@ -380,32 +510,29 @@ export default function LessonGeneratorPage() {
                       {CEFR_LEVELS.find(c => c.level === selectedCefr)?.desc}
                     </p>
                   </div>
-                </motion.div>
-              )}
 
-              {/* STEP 2: Duration & Context Theme */}
-              {currentStep === 2 && (
-                <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
-                  {/* Lesson Duration Buttons */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-semibold flex items-center justify-between">
-                      <span>Lesson Duration</span>
-                      <span className="text-xs font-mono text-primary flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
+                  {/* Smooth Fluid Duration Selector */}
+                  <div className="space-y-3 pt-2 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-semibold">Lesson Duration</Label>
+                      <Badge variant="secondary" className="font-mono text-xs flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-primary" />
                         {duration} Minutes
-                      </span>
-                    </Label>
-                    <div className="grid grid-cols-5 gap-2">
+                      </Badge>
+                    </div>
+
+                    {/* Smooth Duration Pills */}
+                    <div className="grid grid-cols-5 gap-1.5">
                       {DURATION_OPTIONS.map((d) => (
                         <button
                           key={d}
                           type="button"
                           onClick={() => setDuration(d)}
                           className={cn(
-                            'py-2 rounded-lg text-xs font-semibold border transition-all',
+                            'py-2 rounded-md text-xs font-semibold border transition-all text-center',
                             duration === d
                               ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                              : 'bg-background border-border text-muted-foreground hover:bg-accent'
+                              : 'bg-muted/40 border-border text-muted-foreground hover:bg-accent'
                           )}
                         >
                           {d}m
@@ -415,16 +542,13 @@ export default function LessonGeneratorPage() {
                   </div>
 
                   {/* Real World Topic Context */}
-                  <div className="space-y-2 pt-2">
-                    <Label className="text-sm font-semibold">Real-World Context / Topic Theme</Label>
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <Label className="text-sm font-semibold">Real-World Topic Theme</Label>
                     <Input
                       placeholder="e.g. Job Interviews, Travel, Technology"
                       value={customTopic}
                       onChange={(e) => setCustomTopic(e.target.value)}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Provides realistic thematic vocabulary and discussion scenarios.
-                    </p>
                   </div>
                 </motion.div>
               )}
@@ -436,57 +560,47 @@ export default function LessonGeneratorPage() {
                   
                   <div className="space-y-3 border border-border rounded-xl p-4 bg-muted/20">
                     <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer">
-                      <Checkbox
-                        checked={includeWarmup}
-                        onCheckedChange={(c) => setIncludeWarmup(!!c)}
-                      />
+                      <Checkbox checked={includeWarmup} onCheckedChange={(c) => setIncludeWarmup(!!c)} />
                       <span>Warm-up & Schema Activation</span>
                     </label>
                     <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer">
-                      <Checkbox
-                        checked={includeVocab}
-                        onCheckedChange={(c) => setIncludeVocab(!!c)}
-                      />
-                      <span>Target Vocabulary List</span>
+                      <Checkbox checked={includeVocab} onCheckedChange={(c) => setIncludeVocab(!!c)} />
+                      <span>Target Vocabulary & Idioms List</span>
                     </label>
                     <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer">
-                      <Checkbox
-                        checked={includeActivities}
-                        onCheckedChange={(c) => setIncludeActivities(!!c)}
-                      />
+                      <Checkbox checked={includeActivities} onCheckedChange={(c) => setIncludeActivities(!!c)} />
                       <span>Pair & Group Classroom Activities</span>
                     </label>
                     <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer">
-                      <Checkbox
-                        checked={includeAssessment}
-                        onCheckedChange={(c) => setIncludeAssessment(!!c)}
-                      />
-                      <span>Formative Quiz & Homework Task</span>
+                      <Checkbox checked={includeAssessment} onCheckedChange={(c) => setIncludeAssessment(!!c)} />
+                      <span>Exit Quiz Check & Homework Task</span>
                     </label>
                   </div>
                 </motion.div>
               )}
             </CardContent>
 
-            {/* Wizard Navigation Footer */}
+            {/* FIXED Wizard Navigation Footer (Prevents Button Truncation) */}
             <CardFooter className="border-t border-border pt-4 flex items-center justify-between gap-3">
               {currentStep > 1 ? (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentStep((currentStep - 1) as any)}
-                  className="gap-1 text-xs"
+                  className="gap-1 text-xs shrink-0"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   Back
                 </Button>
-              ) : <div />}
+              ) : (
+                <div />
+              )}
 
               {currentStep < 3 ? (
                 <Button
                   size="sm"
                   onClick={() => setCurrentStep((currentStep + 1) as any)}
-                  className="gap-1 text-xs ml-auto"
+                  className="gap-1 text-xs ml-auto shrink-0"
                 >
                   Next Step
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -495,7 +609,7 @@ export default function LessonGeneratorPage() {
                 <Button
                   onClick={handleGenerate}
                   disabled={isGenerating || (grammarTags.length === 0 && !grammarInput.trim())}
-                  className="w-full text-xs font-semibold gap-2 py-5 shadow-sm"
+                  className="flex-1 text-xs font-semibold gap-2 py-5 shadow-sm ml-auto"
                 >
                   {isGenerating ? (
                     <>
@@ -532,29 +646,15 @@ export default function LessonGeneratorPage() {
 
               {generatedResult && (
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleCopy}
-                    className="text-xs gap-1.5"
-                  >
+                  <Button size="sm" variant="outline" onClick={handleCopy} className="text-xs gap-1.5">
                     {isCopied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                     {isCopied ? 'Copied' : 'Copy'}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleSave}
-                    className="text-xs gap-1.5"
-                  >
+                  <Button size="sm" variant="outline" onClick={handleSave} className="text-xs gap-1.5">
                     <BookmarkPlus className="w-3.5 h-3.5" />
                     {isSaved ? 'Saved' : 'Save'}
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => window.print()}
-                    className="text-xs gap-1.5"
-                  >
+                  <Button size="sm" onClick={() => window.print()} className="text-xs gap-1.5">
                     <Printer className="w-3.5 h-3.5" />
                     Print
                   </Button>
@@ -585,7 +685,7 @@ export default function LessonGeneratorPage() {
                   <div className="space-y-1">
                     <h4 className="text-sm font-semibold text-foreground">Structuring Academic Plan</h4>
                     <p className="text-xs text-muted-foreground animate-pulse">
-                      {generationStep === 1 && 'Analyzing grammatical structures...'}
+                      {generationStep === 1 && 'Integrating custom grammar, vocabulary & idioms...'}
                       {generationStep === 2 && `Aligning with ${selectedCefr} CEFR criteria...`}
                       {generationStep === 3 && 'Formatting activities and assessment...'}
                     </p>
@@ -595,11 +695,8 @@ export default function LessonGeneratorPage() {
 
               {/* Generated Academic Document Display */}
               {generatedResult && !isGenerating && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-6"
-                >
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                  
                   {/* Formal Document Title Banner */}
                   <div className="border-b border-border pb-4 space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -646,20 +743,41 @@ export default function LessonGeneratorPage() {
                         </ul>
                       </div>
 
-                      <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                          <BookOpen className="w-4 h-4" />
-                          Target Vocabulary & Markers
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-                          {generatedResult.vocabulary.map((v: any, i: number) => (
-                            <div key={i} className="p-2.5 rounded bg-background border border-border">
-                              <span className="text-xs font-semibold text-foreground block">{v.word}</span>
-                              <span className="text-[11px] text-muted-foreground block">{v.def}</span>
-                            </div>
-                          ))}
+                      {/* Vocabulary Section */}
+                      {generatedResult.vocabulary?.length > 0 && (
+                        <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                            <BookOpen className="w-4 h-4" />
+                            Featured Vocabulary
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+                            {generatedResult.vocabulary.map((v: any, i: number) => (
+                              <div key={i} className="p-2.5 rounded bg-background border border-border">
+                                <span className="text-xs font-semibold text-foreground block">{v.word}</span>
+                                <span className="text-[11px] text-muted-foreground block">{v.def}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {/* Idioms Section */}
+                      {generatedResult.idioms?.length > 0 && (
+                        <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                            <Quote className="w-4 h-4" />
+                            Target Idioms & Collocations
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+                            {generatedResult.idioms.map((idm: any, i: number) => (
+                              <div key={i} className="p-2.5 rounded bg-background border border-border">
+                                <span className="text-xs font-semibold text-primary block">"{idm.expression}"</span>
+                                <span className="text-[11px] text-muted-foreground block">{idm.usage}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </TabsContent>
 
                     {/* TIMELINE TAB */}
