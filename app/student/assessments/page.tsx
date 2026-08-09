@@ -730,28 +730,61 @@ export default function StudentAssessmentsPage() {
       const isUnderMin = wordCount > 0 && wordCount < minWords
       const isOverMax = !!(maxWords && wordCount > maxWords)
 
+      const specificWritingType = q.writingSubType 
+        ? `${q.writingSubType} (${q.writingGenre || 'Writing'})` 
+        : q.writingGenre 
+        ? `${q.writingGenre} Writing` 
+        : 'Writing Prompt'
+
       return (
-        <div className="space-y-3 pt-3">
-          {/* Genre / SubType Badge Header */}
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary font-normal text-xs py-1 px-2.5 rounded-lg">
-                Task: {q.writingGenre || 'Writing'} {q.writingSubType ? `• ${q.writingSubType}` : ''}
-              </Badge>
-              {(q.wordLimitMin || q.wordLimitMax) && (
-                <span className="text-xs text-muted-foreground font-medium">
-                  (Target: {minWords}{maxWords ? `–${maxWords}` : '+'} words)
-                </span>
-              )}
+        <div className="space-y-4 pt-3">
+          {/* Detailed Task & Word Count Target Header Bar */}
+          <div className="bg-primary/[0.03] border border-primary/15 rounded-2xl p-4 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-primary text-primary-foreground font-semibold text-xs py-1 px-3 rounded-lg shadow-sm border-none">
+                  Task Type: {specificWritingType}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Word Limit:</span>
+                <Badge variant="secondary" className="text-xs px-2.5 py-0.5 font-bold bg-muted border border-border/50">
+                  Min: {minWords} words
+                </Badge>
+                {maxWords ? (
+                  <Badge variant="secondary" className="text-xs px-2.5 py-0.5 font-bold bg-muted border border-border/50">
+                    Max: {maxWords} words
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs px-2.5 py-0.5 font-normal opacity-70 bg-muted border border-border/50">
+                    No Max Limit
+                  </Badge>
+                )}
+              </div>
             </div>
-            <span className={`font-sans text-xs font-bold tabular-nums ${
-              wordCount === 0 ? 'text-muted-foreground/40' :
-              isUnderMin ? 'text-warning' :
-              isOverMax ? 'text-destructive' :
-              'text-success'
-            }`}>
-              {wordCount} {wordCount === 1 ? 'word' : 'words'}
-            </span>
+
+            {/* Word Count Live Meter */}
+            <div className="flex items-center justify-between pt-1 border-t border-primary/10">
+              <span className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                Current Word Count:
+              </span>
+              <div className="flex items-center gap-2">
+                <span className={`font-sans text-xs font-bold tabular-nums px-2.5 py-0.5 rounded-full border ${
+                  wordCount === 0 
+                    ? 'bg-muted text-muted-foreground/50 border-transparent' :
+                  isUnderMin 
+                    ? 'bg-warning/10 text-warning border-warning/30' :
+                  isOverMax 
+                    ? 'bg-destructive/10 text-destructive border-destructive/30' :
+                  'bg-success/10 text-success border-success/30'
+                }`}>
+                  {wordCount} {wordCount === 1 ? 'word' : 'words'}
+                </span>
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {wordCount === 0 ? '(Start typing)' : isUnderMin ? `(${minWords - wordCount} more needed)` : isOverMax ? `(${wordCount - maxWords} words over max)` : '(Target met ✓)'}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Evaluation Criteria Checklist Box if provided */}
@@ -1264,7 +1297,9 @@ export default function StudentAssessmentsPage() {
                                 {randomizedQuestions[currentQuestionIndex].category}
                               </Badge>
                               <Badge variant="outline" className="text-[9px] uppercase tracking-[0.25em] font-bold px-2 py-0.5 border-primary/20 bg-primary/5 text-primary">
-                                {randomizedQuestions[currentQuestionIndex].type}
+                                {randomizedQuestions[currentQuestionIndex].type === 'Writing' 
+                                  ? (randomizedQuestions[currentQuestionIndex].writingSubType || randomizedQuestions[currentQuestionIndex].writingGenre || 'Writing Prompt') 
+                                  : randomizedQuestions[currentQuestionIndex].type}
                               </Badge>
                             </div>
                             {/* Don't repeat the content as heading if it's a Fill in the Blanks — the input renders it inline */}
