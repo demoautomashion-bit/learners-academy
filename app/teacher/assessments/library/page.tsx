@@ -106,23 +106,22 @@ export default function AssessmentLibraryPage() {
     if (!file) return
 
     setIsUploading(true)
-    const toastId = toast.loading("Uploading institutional asset...")
-
-    const formData = new FormData()
-    formData.append('file', file)
+    const toastId = toast.loading("Uploading institutional asset to Vercel Blob...")
 
     try {
-      const res = await uploadAudioFile(formData)
-      if (res.success) {
-        toast.success("Asset verified and stored.", { id: toastId })
-        await loadAudio()
-        setValue('audioUrl', `/assets/audio/${res.filename}`)
-        setShowManualAudio(false)
-      } else {
-        toast.error(res.error || "Registry rejection.", { id: toastId })
-      }
-    } catch (err) {
-      toast.error("Network disruption during upload.", { id: toastId })
+      const sanitizedName = `audio/${user?.id || 'teacher'}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+      const blob = await upload(sanitizedName, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+        multipart: true,
+      })
+
+      toast.success("Asset verified and stored in Vercel Blob.", { id: toastId })
+      await loadAudio()
+      setValue('audioUrl', blob.url)
+      setShowManualAudio(false)
+    } catch (err: any) {
+      toast.error(err.message || "Upload rejected.", { id: toastId })
     } finally {
       setIsUploading(false)
       if (audioInputRef.current) audioInputRef.current.value = ''
@@ -469,19 +468,19 @@ export default function AssessmentLibraryPage() {
                           setValue('audioUrl', '')
                         } else {
                           setShowManualAudio(false)
-                          setValue('audioUrl', `/assets/audio/${v}`)
+                          setValue('audioUrl', v)
                         }
                       }}>
                          <SelectTrigger className="h-12 bg-primary/5 text-[10px] font-mono">
-                            <SelectValue placeholder="Select Audio File..." />
+                            <SelectValue placeholder="Select Audio File from Vault..." />
                          </SelectTrigger>
                          <SelectContent>
                             {audioRepo.length > 0 ? (
                               audioRepo.map(file => (
-                                <SelectItem key={file} value={file} className="font-mono text-[10px]">{file}</SelectItem>
+                                <SelectItem key={file} value={file} className="font-mono text-[10px] truncate max-w-md">{file}</SelectItem>
                               ))
                             ) : (
-                              <SelectItem value="none" disabled>No files found in public/assets/audio/</SelectItem>
+                              <SelectItem value="none" disabled>No files found in Vault</SelectItem>
                             )}
                             <SelectItem value="manual" className="border-t mt-2 opacity-60">Custom External Link...</SelectItem>
                          </SelectContent>
@@ -495,6 +494,77 @@ export default function AssessmentLibraryPage() {
                       )}
                     </div>
                   )}
+
+                  {/* Multi-Blank Transcript Preview & Dedicated Answer Key Inputs */}
+                  {(() => {
+                    const contentVal = watch('content') || ''
+                    const blankMatches = contentVal.match(/_{3,}/g) || []
+                    const hasBlanks = blankMatches.length > 0
+
+                    if (!hasBlanks) return null
+
+                    const parts = contentVal.split(/_{3,}/)
+
+                    return (
+                      <div className="space-y-4 pt-4 border-t border-primary/10">
+                        {/* Live Transcript Preview */}
+                        <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 space-y-2">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                            <FileText className="w-3.5 h-3.5" /> Student View Live Preview ({blankMatches.length} {blankMatches.length === 1 ? 'Blank' : 'Blanks'})
+                          </p>
+                          <div className="text-sm font-serif leading-relaxed text-foreground flex flex-wrap items-baseline gap-1 pt-1">
+                            {parts.map((part, i) => (
+                              <span key={i} className="inline flex-wrap items-baseline">
+                                <span>{part}</span>
+                                {i < parts.length - 1 && (
+                                  <span className="inline-flex items-center justify-center bg-primary/15 text-primary font-sans font-bold text-[10px] px-2 py-0.5 rounded border border-primary/20 mx-1 align-baseline">
+                                    [{i + 1}] ____
+                                  </span>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Order-Wise Blank Answer Key Inputs */}
+                        <div className="space-y-3 bg-muted/20 border border-border/80 rounded-2xl p-4">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold uppercase tracking-widest text-foreground opacity-80">
+                              Order-Wise Answer Key ({blankMatches.length} {blankMatches.length === 1 ? 'Blank' : 'Blanks'})
+                            </label>
+                            <span className="text-[10px] text-muted-foreground">Specify exact answer for each blank</span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {blankMatches.map((_, idx) => {
+                              const currentCorrect = watch('correctAnswer') || ''
+                              const currentArray = currentCorrect.split(',').map(s => s.trim())
+                              const val = currentArray[idx] || ''
+
+                              return (
+                                <div key={idx} className="flex items-center gap-2 bg-background border rounded-xl p-2.5 shadow-xs">
+                                  <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary font-bold text-[10px] flex items-center justify-center shrink-0">
+                                    #{idx + 1}
+                                  </span>
+                                  <Input
+                                    placeholder={`Answer for Blank #${idx + 1}...`}
+                                    value={val}
+                                    onChange={(e) => {
+                                      const updated = [...currentArray]
+                                      while (updated.length < blankMatches.length) updated.push('')
+                                      updated[idx] = e.target.value
+                                      setValue('correctAnswer', updated.join(', '))
+                                    }}
+                                    className="h-8 text-xs bg-transparent border-none shadow-none focus-visible:ring-0 p-0"
+                                  />
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
 
                   {watchType === 'MCQ' && (
                     <div className="space-y-4 pt-4 border-t">
@@ -521,8 +591,8 @@ export default function AssessmentLibraryPage() {
                      <label className="text-xs opacity-40">Validated Key (Institutional Resolution)</label>
                      <Input 
                         {...register('correctAnswer')}
-                        placeholder="The correct solution for auto-grading..."
-                        className="h-12 bg-success/5 border-success/10 font-medium"
+                        placeholder="The correct solution for auto-grading (or comma-separated for multi-blanks)..."
+                        className="h-12 bg-success/5 border-success/10 font-medium text-xs"
                      />
                   </div>
                 </div>
