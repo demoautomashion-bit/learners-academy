@@ -4,7 +4,7 @@ import { useState, useRef, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useData } from '@/contexts/data-context'
 import { useAuth } from '@/contexts/auth-context'
-import type { Question, QuestionCategory } from '@/lib/types'
+import { Question, QuestionCategory, WritingGenre, WRITING_SUBTYPES } from '@/lib/types'
 import { ACADEMY_LEVELS } from '@/lib/registry'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,7 +29,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { toast } from 'sonner'
-import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen, Check, Play, Pause } from 'lucide-react'
+import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen, Check, Play, Pause, FileText, CheckSquare } from 'lucide-react'
 import Image from 'next/image'
 
 const questionSchema = z.object({
@@ -42,6 +42,11 @@ const questionSchema = z.object({
   imageUrl: z.string().optional(),
   passageText: z.string().optional(),
   audioUrl: z.string().optional(),
+  writingGenre: z.string().optional(),
+  writingSubType: z.string().optional(),
+  evaluationCriteria: z.string().optional(),
+  wordLimitMin: z.coerce.number().optional(),
+  wordLimitMax: z.coerce.number().optional(),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).default('Medium'),
   classLevel: z.string().optional(),
 })
@@ -155,6 +160,11 @@ export default function QuestionLibraryPage() {
       imageUrl: '',
       passageText: '',
       audioUrl: '',
+      writingGenre: undefined,
+      writingSubType: undefined,
+      evaluationCriteria: '',
+      wordLimitMin: undefined,
+      wordLimitMax: undefined,
       classLevel: undefined
     })
     setMatchPairs([{ left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' }])
@@ -173,6 +183,11 @@ export default function QuestionLibraryPage() {
     setValue('imageUrl', q.imageUrl || '')
     setValue('passageText', q.passageText || '')
     setValue('audioUrl', q.audioUrl || '')
+    setValue('writingGenre', q.writingGenre)
+    setValue('writingSubType', q.writingSubType)
+    setValue('evaluationCriteria', q.evaluationCriteria || '')
+    setValue('wordLimitMin', q.wordLimitMin)
+    setValue('wordLimitMax', q.wordLimitMax)
     setValue('classLevel', q.classLevel || undefined)
     
     if (q.type === 'Matching' && q.matchPairs) {
@@ -230,6 +245,11 @@ export default function QuestionLibraryPage() {
       passageText: data.passageText || undefined,
       audioUrl: data.audioUrl || undefined,
       matchPairs: data.type === 'Matching' ? validPairs : undefined,
+      writingGenre: data.type === 'Writing' ? (data.writingGenre as WritingGenre) : undefined,
+      writingSubType: data.type === 'Writing' ? data.writingSubType : undefined,
+      evaluationCriteria: data.type === 'Writing' ? data.evaluationCriteria : undefined,
+      wordLimitMin: data.type === 'Writing' ? data.wordLimitMin : undefined,
+      wordLimitMax: data.type === 'Writing' ? data.wordLimitMax : undefined,
       isApproved: editingQuestion ? editingQuestion.isApproved : !requiresReview,
       teacherId: user.id,
       difficulty: data.difficulty as any,
@@ -418,6 +438,111 @@ export default function QuestionLibraryPage() {
                         </p>
                       )}
                     </Field>
+                  )}
+
+                  {selectedType === 'Writing' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3 items-stretch">
+                        <Field>
+                          <FieldLabel className="text-xs flex items-center gap-1">
+                            <FileText className="w-3 h-3 text-primary" /> Writing Genre
+                          </FieldLabel>
+                          <Select 
+                            value={watch('writingGenre') || ''} 
+                            onValueChange={(v) => {
+                              setValue('writingGenre', v)
+                              setValue('writingSubType', '')
+                            }}
+                          >
+                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Select Genre..." /></SelectTrigger>
+                            <SelectContent>
+                              {Object.keys(WRITING_SUBTYPES).map((genre) => (
+                                <SelectItem key={genre} value={genre} className="text-xs">{genre}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+
+                        <Field>
+                          <FieldLabel className="text-xs flex items-center gap-1">
+                            Writing Sub-Type / Style
+                          </FieldLabel>
+                          <Select 
+                            value={watch('writingSubType') || ''} 
+                            onValueChange={(v) => setValue('writingSubType', v)}
+                            disabled={!watch('writingGenre')}
+                          >
+                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={watch('writingGenre') ? "Select Sub-type..." : "Pick genre first"} /></SelectTrigger>
+                            <SelectContent>
+                              {watch('writingGenre') && WRITING_SUBTYPES[watch('writingGenre') as WritingGenre]?.map((sub) => (
+                                <SelectItem key={sub} value={sub} className="text-xs">{sub}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 items-stretch">
+                        <Field>
+                          <FieldLabel className="text-xs">Min Target Words</FieldLabel>
+                          <Input 
+                            type="number" 
+                            {...register('wordLimitMin')} 
+                            className="h-8 text-xs" 
+                            placeholder="e.g. 150" 
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel className="text-xs">Max Target Words</FieldLabel>
+                          <Input 
+                            type="number" 
+                            {...register('wordLimitMax')} 
+                            className="h-8 text-xs" 
+                            placeholder="e.g. 250" 
+                          />
+                        </Field>
+                      </div>
+
+                      <Field>
+                        <FieldLabel className="text-xs flex items-center gap-1.5 justify-between">
+                          <span className="flex items-center gap-1">
+                            <CheckSquare className="w-3 h-3 text-primary" /> Evaluation Criteria ("Things to Look For")
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-normal">Shown to students & AI grader</span>
+                        </FieldLabel>
+
+                        <div className="flex flex-wrap gap-1 mb-1.5">
+                          {[
+                            'Proper Structure & Paragraphing',
+                            'Formal Tone & Register',
+                            'Salutation & Sign-off',
+                            'Required Key Points',
+                            'Vocabulary & Grammar'
+                          ].map(tag => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => {
+                                const current = watch('evaluationCriteria') || ''
+                                if (current.includes(tag)) return
+                                const updated = current ? `${current}\n- ${tag}` : `- ${tag}`
+                                setValue('evaluationCriteria', updated)
+                              }}
+                              className="text-[10px] px-2 py-0.5 rounded-md border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary transition-colors"
+                            >
+                              + {tag}
+                            </button>
+                          ))}
+                        </div>
+
+                        <Textarea
+                          {...register('evaluationCriteria')}
+                          rows={3}
+                          className="text-xs resize-none"
+                          placeholder="List key elements, required points, structure guidelines, or style requirements students must demonstrate..."
+                        />
+                      </Field>
+                    </>
                   )}
 
                   <Field>
@@ -672,6 +797,17 @@ export default function QuestionLibraryPage() {
                               <Badge variant="secondary" className="text-xs px-2 h-5 font-normal   bg-muted/30">
                                 {q.phase}
                               </Badge>
+                              {q.type === 'Writing' && (q.writingGenre || q.writingSubType) && (
+                                <Badge variant="outline" className="text-xs px-2 h-5 font-normal border-primary/20 bg-primary/5 text-primary gap-1">
+                                  <FileText className="w-2.5 h-2.5" />
+                                  {q.writingGenre}{q.writingSubType ? ` • ${q.writingSubType}` : ''}
+                                </Badge>
+                              )}
+                              {q.type === 'Writing' && (q.wordLimitMin || q.wordLimitMax) && (
+                                <Badge variant="outline" className="text-xs px-2 h-5 font-normal border-muted-foreground/20 bg-muted/20 text-muted-foreground">
+                                  {q.wordLimitMin && q.wordLimitMax ? `${q.wordLimitMin}–${q.wordLimitMax} words` : q.wordLimitMin ? `Min ${q.wordLimitMin} w` : `Max ${q.wordLimitMax} w`}
+                                </Badge>
+                              )}
                               {q.passageText && (
                                 <Badge variant="outline" className="text-xs px-2 h-5 font-normal    text-primary/60 gap-1">
                                   <BookOpen className="w-2.5 h-2.5" /> Passage

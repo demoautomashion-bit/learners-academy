@@ -90,7 +90,7 @@ export async function updateQuestion(id: string, data: Partial<Question>): Promi
   try {
     const result = await db.question.update({ where: { id }, data: data as any })
     revalidatePath('/')
-    return { success: true, data: result }
+    return { success: true, data: result as any }
   } catch (error) {
     console.error('FAILED_TO_UPDATE_QUESTION:', error)
     return { success: false, error: 'Curriculum update failed' }
@@ -147,7 +147,7 @@ export async function addQuestion(question: Omit<Question, 'id'>): Promise<Actio
       }
     })
     revalidatePath('/')
-    return { success: true, data: result }
+    return { success: true, data: result as any }
   } catch (error) {
     console.error('FAILED_TO_ADD_QUESTION:', error)
     return { success: false, error: 'Database operation failed' }

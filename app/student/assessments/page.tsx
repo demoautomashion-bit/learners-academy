@@ -15,7 +15,7 @@ import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ClipboardList, Clock, CheckCircle, ArrowRight, ChevronLeft, ChevronRight,
-  Lock, Timer, AlertTriangle, Award, TrendingUp, XCircle, Volume2, BookOpen, Zap
+  Lock, Timer, AlertTriangle, Award, TrendingUp, XCircle, Volume2, BookOpen, Zap, CheckSquare
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { evaluateSubjective } from "@/lib/ai-auditor"
@@ -724,17 +724,52 @@ export default function StudentAssessmentsPage() {
     // Writing
     if (q.type === 'Writing') {
       const wordCount = currentAnswer.trim() ? currentAnswer.trim().split(/\s+/).length : 0
+      const minWords = q.wordLimitMin || 80
+      const maxWords = q.wordLimitMax
+
+      const isUnderMin = wordCount > 0 && wordCount < minWords
+      const isOverMax = !!(maxWords && wordCount > maxWords)
+
       return (
-        <div className="space-y-2 pt-4">
-          <div className="flex items-center justify-between mb-1">
-            <Label className="text-editorial-label text-xs">Essay Response</Label>
-            <span className={`font-sans text-xs font-bold tabular-nums ${wordCount === 0 ? 'text-muted-foreground/40' : wordCount < 80 ? 'text-warning' : 'text-success'}`}>
+        <div className="space-y-3 pt-3">
+          {/* Genre / SubType Badge Header */}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary font-normal text-xs py-1 px-2.5 rounded-lg">
+                Task: {q.writingGenre || 'Writing'} {q.writingSubType ? `• ${q.writingSubType}` : ''}
+              </Badge>
+              {(q.wordLimitMin || q.wordLimitMax) && (
+                <span className="text-xs text-muted-foreground font-medium">
+                  (Target: {minWords}{maxWords ? `–${maxWords}` : '+'} words)
+                </span>
+              )}
+            </div>
+            <span className={`font-sans text-xs font-bold tabular-nums ${
+              wordCount === 0 ? 'text-muted-foreground/40' :
+              isUnderMin ? 'text-warning' :
+              isOverMax ? 'text-destructive' :
+              'text-success'
+            }`}>
               {wordCount} {wordCount === 1 ? 'word' : 'words'}
             </span>
           </div>
+
+          {/* Evaluation Criteria Checklist Box if provided */}
+          {q.evaluationCriteria && (
+            <div className="bg-muted/40 border border-primary/15 rounded-xl p-3.5 space-y-1 text-xs">
+              <div className="flex items-center gap-1.5 font-medium text-primary text-xs">
+                <CheckSquare className="w-3.5 h-3.5" />
+                Key Guidelines & Evaluation Focus:
+              </div>
+              <p className="text-muted-foreground whitespace-pre-line leading-relaxed font-sans text-xs pl-5">
+                {q.evaluationCriteria}
+              </p>
+            </div>
+          )}
+
           <Textarea
-            placeholder="Write your structured essay response here. Aim for at least 80 words."
-            className="min-h-[300px] sm:min-h-[340px] resize-y text-base p-4 leading-relaxed bg-background/50 border-2 focus:border-primary/40 rounded-xl"
+            placeholder={`Draft your ${q.writingSubType || q.writingGenre || 'writing'} response here...`}
+            className="min-h-[280px] sm:min-h-[340px] resize-y text-base p-4 leading-relaxed bg-background/50 border-2 focus:border-primary/40 rounded-xl"
             value={currentAnswer}
             onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
             spellCheck={false}
@@ -744,8 +779,16 @@ export default function StudentAssessmentsPage() {
             inputMode="text"
             data-gramm="false"
           />
-          {wordCount > 0 && wordCount < 80 && (
-            <p className="text-xs text-warning/80 font-medium">Aim for at least 80 words for a complete academic response.</p>
+
+          {isUnderMin && (
+            <p className="text-xs text-warning font-medium">
+              Aim for at least {minWords} words for a complete academic response.
+            </p>
+          )}
+          {isOverMax && (
+            <p className="text-xs text-destructive font-medium">
+              Response exceeds max target limit of {maxWords} words. Consider editing for conciseness.
+            </p>
           )}
         </div>
       )

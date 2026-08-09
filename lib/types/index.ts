@@ -128,6 +128,47 @@ export interface TimeSlot {
 export type QuestionCategory = 'Grammar' | 'Vocab & Idioms' | 'Listening' | 'Reading' | 'Speaking' | 'Writing'
 export type QuestionType = 'MCQ' | 'Subjective' | 'True/False' | 'Fill in the Blanks' | 'Writing' | 'Matching' | 'Reading' | 'Listening'
 
+export type WritingGenre = 'Essay' | 'Letter' | 'Application' | 'Precis' | 'Story' | 'Report & Notice'
+
+export const WRITING_SUBTYPES: Record<WritingGenre, string[]> = {
+  'Essay': [
+    'Argumentative / Persuasive',
+    'Descriptive',
+    'Expository',
+    'Narrative',
+    'Analytical',
+    'Compare & Contrast',
+  ],
+  'Letter': [
+    'Formal / Official',
+    'Informal / Personal',
+    'Business Letter',
+    'Letter to the Editor',
+  ],
+  'Application': [
+    'Leave Application',
+    'Admission / Job Application',
+    'Official Complaint / Appeal',
+  ],
+  'Precis': [
+    'Standard Precis Writing',
+    'Executive Summary',
+    'Passage Abstract',
+  ],
+  'Story': [
+    'Picture-Based Story',
+    'Short Story Outline / Completion',
+    'Narrative Script / Dialogue',
+    'Fable / Allegory',
+  ],
+  'Report & Notice': [
+    'Newspaper / Media Report',
+    'Event / Incident Report',
+    'Official Notice',
+    'Feature Article',
+  ],
+}
+
 export interface Question {
   id: string
   category: QuestionCategory
@@ -140,6 +181,11 @@ export interface Question {
   passageText?: string   // For Reading: passage shown above question
   audioUrl?: string      // For Listening: audio clip URL
   matchPairs?: { left: string; right: string }[] // For Matching: column pairs
+  writingGenre?: WritingGenre
+  writingSubType?: string
+  evaluationCriteria?: string
+  wordLimitMin?: number
+  wordLimitMax?: number
   isApproved: boolean
   teacherId?: string
   difficulty?: 'Easy' | 'Medium' | 'Hard'

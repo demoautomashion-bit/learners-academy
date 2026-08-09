@@ -34,7 +34,13 @@ export async function POST(req: Request) {
       )
     }
 
-    // Define the prompt for the OpenAI Model
+    // Writing metadata sections
+    const writingDetailsSection = question.type === 'Writing' ? `
+Writing Details:
+- Writing Genre: ${question.writingGenre || 'General Writing'}
+- Sub-Type / Style: ${question.writingSubType || 'Standard'}
+${question.evaluationCriteria ? `- Evaluation Criteria ("Things to Look For"): "${question.evaluationCriteria}"\n` : ''}${question.wordLimitMin || question.wordLimitMax ? `- Target Word Count: ${question.wordLimitMin || 0} to ${question.wordLimitMax || 'unlimited'} words\n` : ''}` : ''
+
     const referenceAnswerSection = question.correctAnswer && question.correctAnswer.trim()
       ? `\nReference / Expected Answer Key (AI Rubric):\n"${question.correctAnswer}"\n\nIMPORTANT: Use the Reference Answer Key as your primary rubric. Award full or near-full marks if the student's answer is semantically equivalent, covers the same key concepts and facts, or is contextually correct — even if the wording, phrasing, or sentence structure is different. Only deduct marks for genuinely missing concepts or factual inaccuracies.\n`
       : `\nNo reference answer was provided. Evaluate based on academic accuracy, relevance to the question, and depth of explanation.\n`
@@ -45,8 +51,9 @@ You are an encouraging, fair, and supportive academic auditor. Your goal is to e
 Evaluation Rules:
 1. Ignore minor spelling mistakes, typos, and grammatical errors. Do not deduct points for them.
 2. Focus on whether the student's answer demonstrates a correct understanding of the core concept.
-3. Be lenient and encouraging. If the student clearly understands the concept but expresses it in a different way or in simpler phrasing, award full or near-full marks.
-4. Provide constructive, warm, and encouraging feedback to the student that highlights what they got right, while gently pointing out any gaps (max 2-3 sentences).
+3. For Writing tasks, check if the student adheres to the expected genre, structural format, and key evaluation criteria listed in the rubric.
+4. Be lenient and encouraging. If the student clearly understands the concept but expresses it in a different way or in simpler phrasing, award full or near-full marks.
+5. Provide constructive, warm, and encouraging feedback to the student that highlights what they got right, while gently pointing out any gaps (max 2-3 sentences).
 
 Provide a strictly structured JSON response with the following keys:
 - "score": A number between 0.0 and 1.0 representing the accuracy and completeness of the answer. (0.0 is completely wrong/empty, 1.0 is perfect).
@@ -57,7 +64,7 @@ Question details:
 - Category: ${question.category}
 - Type: ${question.type}
 - Question Content: "${question.content}"
-${referenceAnswerSection}
+${writingDetailsSection}${referenceAnswerSection}
 Student's Answer:
 "${answer}"
 
