@@ -1,6 +1,7 @@
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server'
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 
 /**
  * Secure token-generation endpoint for client-side Vercel Blob uploads.
