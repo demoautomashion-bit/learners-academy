@@ -947,39 +947,118 @@ export default function StudentAssessmentsPage() {
       )
     }
 
-    // Listening — Interactive Blanks or Subjective
+    // Listening — Integrated Audio Player, Passage with Numbered Blank Slots & Order-Wise Response Sheet
     if (q.type === 'Listening') {
       const isCloze = q.content.includes('____')
+      const blankMatches = q.content.match(/_{3,}/g) || []
+      const blankCount = Math.max(1, blankMatches.length)
+      const parts = q.content.split(/_{3,}/)
+
       return (
-        <div className="space-y-6 pt-4">
-          {q.audioUrl && (
-            <div className="rounded-3xl border border-primary/10 bg-primary/[0.02] p-6 flex flex-col gap-4 shadow-inner">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-primary/10 text-primary shrink-0 shadow-sm">
-                  <Volume2 className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-editorial-label text-[10px] uppercase tracking-widest text-primary/70 font-bold mb-1">Auditory Assessment Clip</p>
-                  <p className="text-xs text-muted-foreground opacity-60">Listen carefully before attempting the task below.</p>
-                </div>
+        <div className="space-y-6 pt-2">
+          {/* Integrated Listening Audio Player & Title Header */}
+          <div className="rounded-3xl border border-primary/15 bg-primary/[0.03] p-6 space-y-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-primary text-primary-foreground shrink-0 shadow-md">
+                <Volume2 className="w-5 h-5 animate-pulse" />
               </div>
-              <div className="bg-background/50 p-2 rounded-2xl border border-primary/5">
-                <audio ref={audioRef} controls src={q.audioUrl} className="w-full h-10" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary font-bold text-[10px] uppercase tracking-wider px-2 py-0.5">
+                    Auditory Exercise
+                  </Badge>
+                  {isCloze && (
+                    <Badge variant="secondary" className="text-[10px] font-medium bg-muted">
+                      {blankCount} {blankCount === 1 ? 'Blank' : 'Order-Wise Blanks'}
+                    </Badge>
+                  )}
+                </div>
+                <h4 className="font-serif text-lg font-bold text-foreground mt-1">
+                  Listening Audio & Transcript
+                </h4>
               </div>
             </div>
-          )}
+
+            {q.audioUrl ? (
+              <div className="bg-background/80 p-3 rounded-2xl border border-primary/10 shadow-inner">
+                <audio ref={audioRef} controls src={q.audioUrl} className="w-full h-10" />
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">No audio clip attached.</p>
+            )}
+          </div>
 
           {isCloze ? (
-             <div className="bg-background/40 p-8 rounded-[2.5rem] border border-primary/5">
-                <p className="text-editorial-label text-[10px] uppercase tracking-widest text-muted-foreground/40 mb-4 font-bold">Task: Auditory Gap-Fill Transcript</p>
-                {renderClozeInput(q.content, qId)}
-             </div>
+            <div className="space-y-6">
+              {/* Passage text with clear numbered slots */}
+              <div className="bg-muted/30 border border-primary/10 p-6 sm:p-8 rounded-3xl space-y-3 shadow-inner">
+                <p className="text-editorial-label text-[10px] uppercase tracking-widest text-primary/80 font-bold flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5" /> Passage Transcript (Read while listening):
+                </p>
+                <div className="font-serif text-lg sm:text-xl leading-relaxed text-foreground/90 flex flex-wrap items-baseline gap-x-2 gap-y-3 pt-2">
+                  {parts.map((part, i) => (
+                    <span key={i} className="inline flex-wrap items-baseline">
+                      <span>{part}</span>
+                      {i < parts.length - 1 && (
+                        <span className="inline-flex items-center justify-center bg-primary/10 text-primary font-sans font-bold text-xs px-2.5 py-1 rounded-lg border border-primary/20 mx-1 align-baseline shadow-xs">
+                          [{i + 1}] ____
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dedicated Order-Wise Numbered Response Sheet */}
+              <div className="bg-background/80 border-2 border-primary/20 rounded-3xl p-6 sm:p-8 space-y-4 shadow-md">
+                <div className="flex items-center justify-between border-b border-primary/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-primary" />
+                    <h5 className="font-serif font-bold text-sm text-foreground">
+                      Order-Wise Answer Sheet ({blankCount} {blankCount === 1 ? 'Entry' : 'Entries'})
+                    </h5>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium">
+                    Type your answer for each numbered blank
+                  </span>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {Array.from({ length: blankCount }).map((_, i) => {
+                    const val = answers[`${qId}-${i}`] || ''
+                    return (
+                      <div key={i} className="flex items-center gap-3 bg-muted/20 border border-border/60 p-3 rounded-2xl transition-all focus-within:border-primary/50 focus-within:bg-background shadow-xs">
+                        <span className="w-8 h-8 rounded-xl bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20">
+                          #{i + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <Label htmlFor={`blank-input-${qId}-${i}`} className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-0.5">
+                            Blank #{i + 1} Answer
+                          </Label>
+                          <input
+                            id={`blank-input-${qId}-${i}`}
+                            type="text"
+                            value={val}
+                            onChange={(e) => setAnswers(prev => ({ ...prev, [`${qId}-${i}`]: e.target.value }))}
+                            placeholder={`Type exact word for Blank #${i + 1}...`}
+                            className="w-full text-sm font-medium bg-transparent border-none outline-none focus:ring-0 p-0 text-foreground placeholder:text-muted-foreground/40"
+                          />
+                        </div>
+                        {val.trim() && (
+                          <CheckCircle className="w-4 h-4 text-success shrink-0" />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="space-y-3">
-              <Label className="text-editorial-label text-xs">Your Response</Label>
+              <Label className="text-editorial-label text-xs">Your Listening Response</Label>
               <Textarea
                 placeholder="Describe or respond to what you heard..."
-                className="min-h-[140px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
+                className="min-h-[160px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
                 value={currentAnswer}
                 onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
                 spellCheck={false}
