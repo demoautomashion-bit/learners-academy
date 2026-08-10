@@ -315,6 +315,7 @@ export default function AssessmentGeneratorPage() {
                                       <SelectItem value="Fill in the Blanks" className="rounded-xl py-3">Cloze (Blanks)</SelectItem>
                                       <SelectItem value="Matching" className="rounded-xl py-3">Matching</SelectItem>
                                       <SelectItem value="Writing" className="rounded-xl py-3">Essay / Writing</SelectItem>
+                                      <SelectItem value="Speaking" className="rounded-xl py-3">Speaking Task</SelectItem>
                                       <SelectItem value="Reading" className="rounded-xl py-3">Reading Comprehension</SelectItem>
                                       <SelectItem value="Listening" className="rounded-xl py-3">Listening Audio</SelectItem>
                                    </SelectContent>
