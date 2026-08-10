@@ -24,7 +24,7 @@ import { submitTestResult as directSubmitTestResult } from "@/lib/actions/submis
 import type { AssessmentTemplate, Question, StudentTest } from "@/lib/types"
 
 const AUTO_GRADED_TYPES = ['MCQ', 'True/False', 'Fill in the Blanks', 'Matching'] as const
-const AI_GRADED_TYPES   = ['Subjective', 'Writing', 'Reading', 'Listening'] as const
+const AI_GRADED_TYPES   = ['Subjective', 'Writing', 'Reading', 'Listening', 'Speaking'] as const
 
 // ── Components ─────────────────────────────────────────────────────────────
 function WatermarkOverlay({ name, id }: { name: string; id: string }) {
@@ -155,6 +155,11 @@ export default function StudentAssessmentsPage() {
   const [adaptiveHistory, setAdaptiveHistory] = useState<{questionId: string, difficulty: string, score: number}[]>([])
 
   const [isBlackedOut, setIsBlackedOut] = useState(false)
+  const [activeRecordingId, setActiveRecordingId] = useState<string | null>(null)
+  const [recordingSecondsLeft, setRecordingSecondsLeft] = useState<number>(0)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const activeRecordingIntervalRef = useRef<any>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   
   const [proctoringLogs, setProctoringLogs] = useState<any[]>([])
@@ -550,7 +555,34 @@ export default function StudentAssessmentsPage() {
 
     // Send Subjective, Writing, and open-ended Reading/Listening to AI evaluator
     const trueSubjective = [...alwaysAI, ...openAIType]
-    const auditPromises = trueSubjective.map(q => evaluateSubjective(q, answers[q.id] || ""))
+    const auditPromises = trueSubjective.map(async (q) => {
+      const studentAns = answers[q.id] || ""
+      if (q.type === 'Speaking' && studentAns.startsWith('data:audio')) {
+        try {
+          const res = await fetch(studentAns)
+          const blob = await res.blob()
+          const formData = new FormData()
+          formData.append('file', blob, 'speech.webm')
+          formData.append('question', JSON.stringify(q))
+
+          const apiRes = await fetch('/api/evaluate-speaking', {
+            method: 'POST',
+            body: formData,
+          })
+          if (apiRes.ok) {
+            const data = await apiRes.json()
+            return {
+              score: typeof data.score === 'number' ? data.score : 0.7,
+              feedback: data.feedback || 'Speaking evaluation completed.',
+              justification: data.transcript ? `Speech Transcript: "${data.transcript}". ${data.justification || ''}` : (data.justification || 'Evaluated via Whisper & AI.')
+            }
+          }
+        } catch (err) {
+          console.error('Failed speaking evaluation:', err)
+        }
+      }
+      return evaluateSubjective(q, studentAns)
+    })
     const audits = await Promise.all(auditPromises)
 
     let aiFeedbackChain = ""
@@ -1202,103 +1234,143 @@ export default function StudentAssessmentsPage() {
       const topicTitle = q.speakingTitle || q.content || 'Spoken English Evaluation'
       const prepTime = q.prepTimeSeconds || 30
       const speakTime = q.speakingTimeSeconds || 60
+      const isCurrentlyRecording = activeRecordingId === qId
+
+      const startRecording = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          mediaStreamRef.current = stream
+          const mediaRecorder = new MediaRecorder(stream)
+          mediaRecorderRef.current = mediaRecorder
+          const audioChunks: Blob[] = []
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data)
+          }
+
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
+            const reader = new FileReader()
+            reader.readAsDataURL(audioBlob)
+            reader.onloadend = () => {
+              setAnswers(prev => ({ ...prev, [qId]: reader.result as string }))
+              toast.success('Speech response recorded successfully!')
+            }
+            if (mediaStreamRef.current) {
+              mediaStreamRef.current.getTracks().forEach(track => track.stop())
+            }
+            setActiveRecordingId(null)
+            if (activeRecordingIntervalRef.current) clearInterval(activeRecordingIntervalRef.current)
+          }
+
+          mediaRecorder.start()
+          setActiveRecordingId(qId)
+          setRecordingSecondsLeft(speakTime)
+
+          activeRecordingIntervalRef.current = setInterval(() => {
+            setRecordingSecondsLeft(prev => {
+              if (prev <= 1) {
+                if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                  mediaRecorderRef.current.stop()
+                }
+                return 0
+              }
+              return prev - 1
+            })
+          }, 1000)
+
+          toast.info('Microphone active! Speak now...')
+        } catch (err) {
+          toast.error('Microphone permission denied or device not found.')
+        }
+      }
+
+      const stopRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop()
+        }
+      }
 
       return (
         <div className="space-y-6 pt-4">
-          <div className="rounded-3xl border-2 border-primary/20 bg-primary/[0.02] p-6 sm:p-8 space-y-6 shadow-md">
-            <div className="flex items-center justify-between border-b border-primary/10 pb-4">
+          <div className="rounded-3xl border-2 border-primary/20 bg-primary/[0.02] p-5 sm:p-8 space-y-6 shadow-md">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-primary/10 pb-4 gap-3">
               <div>
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1">
-                  Speaking Assessment Topic
+                  Speaking Assessment Task
                 </Badge>
-                <h3 className="font-serif text-2xl font-bold text-foreground mt-2 drop-shadow-xs">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-foreground mt-2 drop-shadow-xs">
                   {topicTitle}
                 </h3>
               </div>
-              <div className="text-right hidden sm:block">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Prep Time</span>
-                <span className="text-sm font-bold text-primary">{prepTime}s</span>
+              <div className="flex items-center gap-3 self-start sm:self-auto">
+                <div className="text-left sm:text-right bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground block">Prep Time</span>
+                  <span className="text-xs font-bold text-primary">{prepTime}s</span>
+                </div>
+                <div className="text-left sm:text-right bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground block">Speak Max</span>
+                  <span className="text-xs font-bold text-primary">{speakTime}s</span>
+                </div>
               </div>
             </div>
 
             {q.content && q.content !== topicTitle && (
-              <div className="p-4 rounded-2xl bg-background/80 border border-primary/10 text-sm font-serif leading-relaxed text-foreground/80">
+              <div className="p-4 rounded-2xl bg-background/80 border border-primary/10 text-sm font-serif leading-relaxed text-foreground/85">
                 {q.content}
               </div>
             )}
 
-            {/* Live Media Recorder Control Panel */}
-            <div className="p-8 rounded-3xl bg-background/95 border-2 border-primary/20 flex flex-col items-center justify-center space-y-6 text-center shadow-lg relative overflow-hidden">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/30 relative">
-                <Mic className="w-10 h-10 text-primary animate-pulse" />
+            {/* Responsive Live Microphone Control Panel */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-background/95 border-2 border-primary/20 flex flex-col items-center justify-center space-y-5 text-center shadow-lg relative overflow-hidden max-w-lg mx-auto">
+              <div className={cn("w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center border-2 transition-all duration-300", isCurrentlyRecording ? "bg-destructive/10 border-destructive animate-ping" : "bg-primary/10 border-primary/30")}>
+                <Mic className={cn("w-8 h-8 sm:w-10 sm:h-10 transition-colors", isCurrentlyRecording ? "text-destructive" : "text-primary")} />
               </div>
 
-              <div className="space-y-1 max-w-md">
-                <h4 className="font-serif text-lg font-bold text-foreground">Record Your Spoken Answer</h4>
+              <div className="space-y-1 max-w-xs sm:max-w-md">
+                <h4 className="font-serif text-base sm:text-lg font-bold text-foreground">
+                  {isCurrentlyRecording ? "Microphone Active — Recording Speech..." : "Record Your Spoken Answer"}
+                </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Speak clearly into your microphone responding to the topic above. AI will evaluate clarity, vocabulary, and cohesion.
+                  {isCurrentlyRecording ? "Speak clearly. Click stop when you finish your response." : "Click below to activate microphone and start speaking."}
                 </p>
               </div>
 
-              {/* Status and Record Controls */}
-              <div className="space-y-4 w-full max-w-sm">
+              {/* Responsive Controls & Task Timer */}
+              <div className="w-full max-w-xs sm:max-w-sm space-y-3">
                 {!answers[qId] ? (
-                  <div className="space-y-3">
+                  isCurrentlyRecording ? (
                     <Button
                       type="button"
                       size="lg"
-                      onClick={async () => {
-                        try {
-                          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-                          const mediaRecorder = new MediaRecorder(stream)
-                          const audioChunks: Blob[] = []
-
-                          mediaRecorder.ondataavailable = (event) => {
-                            audioChunks.push(event.data)
-                          }
-
-                          mediaRecorder.onstop = () => {
-                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
-                            const reader = new FileReader()
-                            reader.readAsDataURL(audioBlob)
-                            reader.onloadend = () => {
-                              setAnswers({ ...answers, [qId]: reader.result as string })
-                              toast.success('Audio recording captured successfully!')
-                            }
-                          }
-
-                          mediaRecorder.start()
-                          toast.info('Recording started! Speak now...')
-
-                          // Auto stop after speakingTime limit
-                          setTimeout(() => {
-                            if (mediaRecorder.state === 'recording') {
-                              mediaRecorder.stop()
-                              stream.getTracks().forEach(track => track.stop())
-                            }
-                          }, speakTime * 1000)
-
-                        } catch (err) {
-                          toast.error('Microphone access denied or not available.')
-                        }
-                      }}
-                      className="w-full h-12 rounded-2xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md gap-2 text-sm"
+                      onClick={stopRecording}
+                      className="w-full h-11 sm:h-12 rounded-2xl font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg gap-2 text-xs sm:text-sm animate-pulse"
                     >
-                      <Mic className="w-4 h-4" /> Start Microphone Recording ({speakTime}s max)
+                      <div className="w-3 h-3 rounded-sm bg-white shrink-0" />
+                      Stop Recording ({recordingSecondsLeft}s left)
                     </Button>
-                  </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      size="lg"
+                      onClick={startRecording}
+                      className="w-full h-11 sm:h-12 rounded-2xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md gap-2 text-xs sm:text-sm"
+                    >
+                      <Mic className="w-4 h-4 shrink-0" /> Start Recording ({speakTime}s max)
+                    </Button>
+                  )
                 ) : (
                   <div className="space-y-3 w-full p-4 rounded-2xl bg-success/10 border border-success/20">
                     <p className="text-xs font-bold text-success flex items-center justify-center gap-1.5">
-                      <Check className="w-4 h-4" /> Recording Captured & Ready
+                      <Check className="w-4 h-4" /> Response Captured
                     </p>
-                    <audio controls src={currentAnswer} className="w-full h-10" />
+                    <audio controls src={currentAnswer} className="w-full h-9 rounded-lg" />
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setAnswers({ ...answers, [qId]: '' })}
-                      className="text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
+                      onClick={() => setAnswers(prev => ({ ...prev, [qId]: '' }))}
+                      className="w-full h-9 text-xs border-destructive/30 text-destructive hover:bg-destructive/10 rounded-xl"
                     >
                       Re-record Response
                     </Button>
