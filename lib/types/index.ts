@@ -173,6 +173,7 @@ export interface SubQuestion {
   id: string
   type: 'MCQ' | 'True/False' | 'Fill in the Blanks' | 'Subjective' | 'Matching'
   content: string
+  points?: number
   options?: string[]
   correctAnswer?: string
   matchPairs?: { left: string; right: string }[]

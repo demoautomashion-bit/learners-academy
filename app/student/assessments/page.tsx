@@ -503,6 +503,51 @@ export default function StudentAssessmentsPage() {
       if (answers[q.id] === q.correctAnswer) totalScore += points
     })
 
+    // Grade sub-questions nested under Reading/Listening sets
+    const subQuestionPromises: { sq: any; parentQ: Question; sqKey: string; points: number; promise?: Promise<any> }[] = []
+
+    randomizedQuestions.forEach(q => {
+      if (q.subQuestions && q.subQuestions.length > 0) {
+        q.subQuestions.forEach(sq => {
+          const sqKey = `${q.id}_sub_${sq.id}`
+          const sqAns = answers[sqKey] || ''
+          const sqPts = sq.points || (sq.type === 'Subjective' ? 3 : 1)
+
+          if (sq.type === 'MCQ' || sq.type === 'True/False') {
+            if (sqAns.trim().toLowerCase() === (sq.correctAnswer || '').trim().toLowerCase()) {
+              totalScore += sqPts
+            }
+          } else if (sq.type === 'Fill in the Blanks') {
+            if (sqAns.trim().toLowerCase() === (sq.correctAnswer || '').trim().toLowerCase()) {
+              totalScore += sqPts
+            }
+          } else if (sq.type === 'Subjective') {
+            const subQObj = {
+              category: q.category,
+              type: 'Subjective',
+              content: sq.content,
+              correctAnswer: sq.correctAnswer || ''
+            }
+            subQuestionPromises.push({
+              sq,
+              parentQ: q,
+              sqKey,
+              points: sqPts,
+              promise: evaluateSubjective(subQObj as any, sqAns)
+            })
+          }
+        })
+      }
+    })
+
+    if (subQuestionPromises.length > 0) {
+      const subAudits = await Promise.all(subQuestionPromises.map(p => p.promise!))
+      subAudits.forEach((audit, idx) => {
+        const item = subQuestionPromises[idx]
+        totalScore += (audit.score * item.points)
+      })
+    }
+
     // Send Subjective, Writing, and open-ended Reading/Listening to AI evaluator
     const trueSubjective = [...alwaysAI, ...openAIType]
     const auditPromises = trueSubjective.map(q => evaluateSubjective(q, answers[q.id] || ""))
@@ -955,6 +1000,9 @@ export default function StudentAssessmentsPage() {
                     <div key={sq.id} className="p-6 border-2 border-primary/10 rounded-3xl bg-background/60 space-y-4 shadow-xs">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold uppercase text-primary">Question #{idx + 1} ({sq.type})</span>
+                        <Badge variant="secondary" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">
+                          {sq.points || (sq.type === 'Subjective' ? 3 : 1)} {sq.points === 1 ? 'Mark' : 'Marks'}
+                        </Badge>
                       </div>
                       <p className="text-base font-serif font-medium text-foreground">{sq.content}</p>
 

@@ -59,6 +59,7 @@ const subQuestionSchema = z.object({
   id: z.string(),
   type: z.enum(['MCQ', 'True/False', 'Fill in the Blanks', 'Subjective', 'Matching']),
   content: z.string().min(1, 'Question text required'),
+  points: z.number().optional(),
   options: z.array(z.string()).optional(),
   correctAnswer: z.string().optional(),
   matchPairs: z.array(z.object({ left: z.string(), right: z.string() })).optional(),
@@ -581,10 +582,21 @@ export default function AssessmentLibraryPage() {
                     <div className="space-y-4 pt-4 border-t border-primary/10">
                       <div className="flex items-center justify-between">
                         <div>
-                          <label className="text-xs font-bold uppercase tracking-wider text-foreground">
-                            Comprehension Sub-Questions
-                          </label>
-                          <p className="text-[10px] text-muted-foreground">Attach multiple questions (MCQ, True/False, Blanks, Subjective) under this passage/audio.</p>
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-foreground">
+                              Comprehension Sub-Questions
+                            </label>
+                            {(() => {
+                              const subs = watch('subQuestions') || []
+                              const totalPts = subs.reduce((sum, sq) => sum + (sq.points || (sq.type === 'Subjective' ? 3 : 1)), 0)
+                              return subs.length > 0 ? (
+                                <Badge variant="secondary" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">
+                                  Total: {totalPts} {totalPts === 1 ? 'Mark' : 'Marks'}
+                                </Badge>
+                              ) : null
+                            })()}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">Attach multiple questions (MCQ, True/False, Blanks, Subjective) under this passage/audio with custom marks.</p>
                         </div>
                         <Button
                           type="button"
@@ -598,6 +610,7 @@ export default function AssessmentLibraryPage() {
                                 id: `sub_${Date.now()}_${current.length + 1}`,
                                 type: 'MCQ',
                                 content: '',
+                                points: 1,
                                 options: ['', '', '', ''],
                                 correctAnswer: ''
                               }
@@ -625,13 +638,32 @@ export default function AssessmentLibraryPage() {
                             {subs.map((sq, sIdx) => (
                               <div key={sq.id} className="p-4 border rounded-2xl bg-card/60 space-y-3 relative shadow-xs">
                                 <div className="flex items-center justify-between border-b pb-2">
-                                  <span className="text-xs font-bold text-primary">Question #{sIdx + 1}</span>
                                   <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-primary">Question #{sIdx + 1}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1 bg-muted/30 border px-2 py-0.5 rounded-lg">
+                                      <span className="text-[10px] font-bold text-muted-foreground uppercase">Marks:</span>
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="20"
+                                        value={sq.points !== undefined ? sq.points : (sq.type === 'Subjective' ? 3 : 1)}
+                                        onChange={(e) => {
+                                          const updated = [...subs]
+                                          updated[sIdx].points = Math.max(1, parseInt(e.target.value) || 1)
+                                          setValue('subQuestions', updated)
+                                        }}
+                                        className="w-10 text-xs font-bold bg-transparent border-none outline-none text-right focus:ring-0 p-0"
+                                      />
+                                    </div>
+
                                     <Select
                                       value={sq.type}
                                       onValueChange={(newType: any) => {
                                         const updated = [...subs]
-                                        updated[sIdx] = { ...sq, type: newType, options: newType === 'MCQ' ? ['', '', '', ''] : sq.options }
+                                        const defaultPts = newType === 'Subjective' ? 3 : 1
+                                        updated[sIdx] = { ...sq, type: newType, points: defaultPts, options: newType === 'MCQ' ? ['', '', '', ''] : sq.options }
                                         setValue('subQuestions', updated)
                                       }}
                                     >
