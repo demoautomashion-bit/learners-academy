@@ -194,6 +194,8 @@ export default function QuestionLibraryPage() {
     setValue('correctAnswer', q.correctAnswer || '')
     setValue('imageUrl', q.imageUrl || '')
     setValue('passageText', q.passageText || '')
+    setValue('passageTitle', q.passageTitle || '')
+    setValue('subQuestions', q.subQuestions || [])
     setValue('audioUrl', q.audioUrl || '')
     setValue('writingGenre', q.writingGenre)
     setValue('writingSubType', q.writingSubType)
@@ -255,6 +257,8 @@ export default function QuestionLibraryPage() {
       correctAnswer: finalCorrectAnswer,
       imageUrl: data.imageUrl || undefined,
       passageText: data.passageText || undefined,
+      passageTitle: data.passageTitle || undefined,
+      subQuestions: data.subQuestions || undefined,
       audioUrl: data.audioUrl || undefined,
       matchPairs: data.type === 'Matching' ? validPairs : undefined,
       writingGenre: data.type === 'Writing' ? (data.writingGenre as WritingGenre) : undefined,
