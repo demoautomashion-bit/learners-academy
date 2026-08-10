@@ -457,7 +457,7 @@ export default function StudentAssessmentsPage() {
     // d) MCQ-style AI-type: any AI-type with correctAnswer and NO blanks (legacy exact match for Listening MCQ style)
     const aiTyped = randomizedQuestions.filter(q => (AI_GRADED_TYPES as readonly string[]).includes(q.type))
 
-    const alwaysAI = aiTyped.filter(q => q.type === 'Subjective' || q.type === 'Writing')
+    const alwaysAI = aiTyped.filter(q => q.type === 'Subjective' || q.type === 'Writing' || q.type === 'Speaking')
     const clozeAIType = aiTyped.filter(q =>
       (q.type === 'Reading' || q.type === 'Listening') && q.content.includes('____')
     )
