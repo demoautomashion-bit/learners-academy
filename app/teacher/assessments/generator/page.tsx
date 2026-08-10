@@ -49,7 +49,7 @@ const assessmentSchema = z.object({
   phase: z.enum(['First Test', 'Last Test']),
   courseId: z.string().min(1, 'Please select a target course'), 
   classLevel: z.string().optional(),
-  nature: z.enum(['MCQ', 'Subjective', 'Mixed', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening']),
+  nature: z.enum(['MCQ', 'Subjective', 'Mixed', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening']),
   totalMarks: z.coerce.number().optional(),
   markAllocation: z.object({
     MCQ: z.coerce.number().min(0).default(0),
@@ -57,6 +57,7 @@ const assessmentSchema = z.object({
     'True/False': z.coerce.number().min(0).default(0),
     'Fill in the Blanks': z.coerce.number().min(0).default(0),
     Writing: z.coerce.number().min(0).default(0),
+    Speaking: z.coerce.number().min(0).default(0),
     Matching: z.coerce.number().min(0).default(0),
     Reading: z.coerce.number().min(0).default(0),
     Listening: z.coerce.number().min(0).default(0),
@@ -103,7 +104,7 @@ export default function AssessmentGeneratorPage() {
       accessCode: '',
       markAllocation: {
         MCQ: 0, Subjective: 0, 'True/False': 0, 'Fill in the Blanks': 0,
-        Writing: 0, Matching: 0, Reading: 0, Listening: 0
+        Writing: 0, Speaking: 0, Matching: 0, Reading: 0, Listening: 0
       },
       isAdaptive: false,
       evaluationCategory: 'None'
@@ -361,12 +362,12 @@ export default function AssessmentGeneratorPage() {
                               </div>
                            </div>
                            <div className="flex h-2 w-full rounded-full overflow-hidden bg-muted/10 border border-primary/5">
-                              {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening'].map((type, i) => {
+                              {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening'].map((type, i) => {
                                  const val = Number(watchAlloc?.[type as keyof typeof watchAlloc]) || 0
-                                 const expectedTypeQuestions = watchNature === 'Mixed' ? watchQuestionCount / 8 : watchQuestionCount
+                                 const expectedTypeQuestions = watchNature === 'Mixed' ? watchQuestionCount / 9 : watchQuestionCount
                                  const totalTypeMarks = val * expectedTypeQuestions
                                  const width = totalCalculatedMarks > 0 ? (totalTypeMarks / totalCalculatedMarks) * 100 : 0
-                                 const colors = ['bg-primary', 'bg-indigo-400', 'bg-success', 'bg-amber-400', 'bg-destructive', 'bg-purple-400', 'bg-cyan-400', 'bg-pink-400']
+                                 const colors = ['bg-primary', 'bg-indigo-400', 'bg-success', 'bg-amber-400', 'bg-destructive', 'bg-emerald-400', 'bg-purple-400', 'bg-cyan-400', 'bg-pink-400']
                                  return (
                                     <motion.div 
                                       key={type}
@@ -378,16 +379,16 @@ export default function AssessmentGeneratorPage() {
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                           {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening'].map(type => {
+                        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-9 gap-3">
+                           {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening'].map(type => {
                               const isDisabled = watchNature !== 'Mixed' && watchNature !== type
                               return (
-                                 <div key={type} className={cn("space-y-2.5 transition-all", isDisabled && "opacity-20 pointer-events-none grayscale")}>
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">{type}</label>
+                                 <div key={type} className={cn("space-y-2 transition-all", isDisabled && "opacity-20 pointer-events-none grayscale")}>
+                                    <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block text-center truncate">{type}</label>
                                     <Input 
                                        type="number"
                                        {...register(`markAllocation.${type}` as any, { valueAsNumber: true })}
-                                       className="h-12 bg-muted/5 border-primary/5 rounded-xl text-center font-sans focus:ring-primary/20"
+                                       className="h-11 bg-muted/5 border-primary/5 rounded-xl text-center font-sans focus:ring-primary/20 text-xs font-semibold"
                                     />
                                  </div>
                               )
