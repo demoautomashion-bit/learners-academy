@@ -70,15 +70,30 @@ function scoreMultiBlank(q: Question, answers: Record<string, string>, points: n
   const numBlanks = Math.max(1, parts.length - 1)
   let correctBlanks = 0
   let parsedCorrect: string[] = []
+  
+  const rawCorrect = q.correctAnswer || ''
+
   try {
-    parsedCorrect = JSON.parse(q.correctAnswer || '[]')
-    if (!Array.isArray(parsedCorrect)) parsedCorrect = [q.correctAnswer || '']
+    const parsed = JSON.parse(rawCorrect)
+    if (Array.isArray(parsed)) {
+      parsedCorrect = parsed.map(s => String(s).trim())
+    } else if (rawCorrect.includes(',')) {
+      parsedCorrect = rawCorrect.split(',').map(s => s.trim())
+    } else {
+      parsedCorrect = [rawCorrect.trim()]
+    }
   } catch {
-    parsedCorrect = [q.correctAnswer || '']
+    if (rawCorrect.includes(',')) {
+      parsedCorrect = rawCorrect.split(',').map(s => s.trim())
+    } else {
+      parsedCorrect = [rawCorrect.trim()]
+    }
   }
+
   for (let i = 0; i < numBlanks; i++) {
     const studentAns = (answers[`${q.id}-${i}`] || '').trim().toLowerCase()
     let correctAns = ''
+
     if (parsedCorrect.length >= numBlanks) {
       correctAns = (parsedCorrect[i] || '').trim().toLowerCase()
     } else if (parsedCorrect.length === 1) {
@@ -87,6 +102,7 @@ function scoreMultiBlank(q: Question, answers: Record<string, string>, points: n
     } else {
       correctAns = (parsedCorrect[i] || '').trim().toLowerCase()
     }
+
     if (studentAns && studentAns === correctAns) {
       correctBlanks++
     }
@@ -905,9 +921,11 @@ export default function StudentAssessmentsPage() {
       )
     }
 
-    // Reading — Interactive Blanks or Subjective
+    // Reading — Interactive Blanks, Sub-Questions Set, or Subjective
     if (q.type === 'Reading') {
       const isCloze = q.content.includes('____')
+      const hasSubQuestions = q.subQuestions && q.subQuestions.length > 0
+
       return (
         <div className="space-y-6 pt-4">
           {q.passageText && (
@@ -921,7 +939,52 @@ export default function StudentAssessmentsPage() {
             </div>
           )}
           
-          {isCloze ? (
+          {hasSubQuestions ? (
+            <div className="space-y-6 pt-2">
+              <div className="flex items-center justify-between border-b pb-3">
+                <h4 className="font-serif text-lg font-bold text-foreground">Comprehension Sub-Questions ({q.subQuestions?.length})</h4>
+                <Badge variant="outline" className="text-[10px] uppercase">Mixed Question Set</Badge>
+              </div>
+
+              <div className="space-y-6">
+                {q.subQuestions?.map((sq, idx) => {
+                  const sqKey = `${qId}_sub_${sq.id}`
+                  const sqAns = answers[sqKey] || ''
+
+                  return (
+                    <div key={sq.id} className="p-6 border-2 border-primary/10 rounded-3xl bg-background/60 space-y-4 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase text-primary">Question #{idx + 1} ({sq.type})</span>
+                      </div>
+                      <p className="text-base font-serif font-medium text-foreground">{sq.content}</p>
+
+                      {/* Sub MCQ / True-False */}
+                      {(sq.type === 'MCQ' || sq.type === 'True/False') && (
+                        <RadioGroup value={sqAns} onValueChange={(val) => setAnswers(prev => ({ ...prev, [sqKey]: val }))} className="space-y-2 pt-1">
+                          {(sq.type === 'True/False' ? ['True', 'False'] : (sq.options || [])).map((opt, oIdx) => (
+                            <div key={oIdx} className="flex items-center space-x-3 p-3 rounded-xl border hover:bg-muted/30 cursor-pointer">
+                              <RadioGroupItem value={opt} id={`${sqKey}_${oIdx}`} />
+                              <Label htmlFor={`${sqKey}_${oIdx}`} className="flex-1 text-sm font-medium cursor-pointer">{opt}</Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      )}
+
+                      {/* Sub Blanks / Subjective */}
+                      {(sq.type === 'Fill in the Blanks' || sq.type === 'Subjective') && (
+                        <Textarea
+                          placeholder={sq.type === 'Fill in the Blanks' ? "Type exact answer for the blank..." : "Write your response..."}
+                          value={sqAns}
+                          onChange={(e) => setAnswers(prev => ({ ...prev, [sqKey]: e.target.value }))}
+                          className="min-h-[80px] text-sm bg-background border-2 rounded-xl"
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : isCloze ? (
              <div className="bg-background/40 p-6 rounded-[2rem] border border-primary/5">
                 <p className="text-editorial-label text-[10px] uppercase tracking-widest text-muted-foreground/40 mb-4">Task: Gap-Fill Analysis</p>
                 {renderClozeInput(q.content, qId)}

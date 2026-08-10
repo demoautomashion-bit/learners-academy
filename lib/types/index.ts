@@ -169,6 +169,15 @@ export const WRITING_SUBTYPES: Record<WritingGenre, string[]> = {
   ],
 }
 
+export interface SubQuestion {
+  id: string
+  type: 'MCQ' | 'True/False' | 'Fill in the Blanks' | 'Subjective' | 'Matching'
+  content: string
+  options?: string[]
+  correctAnswer?: string
+  matchPairs?: { left: string; right: string }[]
+}
+
 export interface Question {
   id: string
   category: QuestionCategory
@@ -181,6 +190,7 @@ export interface Question {
   passageText?: string   // For Reading: passage shown above question
   audioUrl?: string      // For Listening: audio clip URL
   matchPairs?: { left: string; right: string }[] // For Matching: column pairs
+  subQuestions?: SubQuestion[] // For Reading/Listening sets with sub-questions
   writingGenre?: WritingGenre
   writingSubType?: string
   evaluationCriteria?: string

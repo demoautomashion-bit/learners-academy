@@ -55,6 +55,15 @@ import { AssessmentSkeleton } from '@/components/dashboard-skeleton'
 import { Question, QuestionCategory, QuestionType } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
+const subQuestionSchema = z.object({
+  id: z.string(),
+  type: z.enum(['MCQ', 'True/False', 'Fill in the Blanks', 'Subjective', 'Matching']),
+  content: z.string().min(1, 'Question text required'),
+  options: z.array(z.string()).optional(),
+  correctAnswer: z.string().optional(),
+  matchPairs: z.array(z.object({ left: z.string(), right: z.string() })).optional(),
+})
+
 const questionSchema = z.object({
   category: z.enum(['Grammar', 'Vocab & Idioms', 'Listening', 'Reading', 'Speaking', 'Writing']),
   type: z.enum(['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening']),
@@ -65,6 +74,7 @@ const questionSchema = z.object({
   options: z.array(z.string()).optional(),
   passageText: z.string().optional(),
   audioUrl: z.string().optional(),
+  subQuestions: z.array(subQuestionSchema).optional(),
 })
 
 type QuestionFormValues = z.infer<typeof questionSchema>
@@ -565,6 +575,169 @@ export default function AssessmentLibraryPage() {
                       </div>
                     )
                   })()}
+
+                  {/* Sub-Questions Builder for Reading and Listening */}
+                  {(watchType === 'Reading' || watchType === 'Listening') && (
+                    <div className="space-y-4 pt-4 border-t border-primary/10">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-xs font-bold uppercase tracking-wider text-foreground">
+                            Comprehension Sub-Questions
+                          </label>
+                          <p className="text-[10px] text-muted-foreground">Attach multiple questions (MCQ, True/False, Blanks, Subjective) under this passage/audio.</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const current = watch('subQuestions') || []
+                            setValue('subQuestions', [
+                              ...current,
+                              {
+                                id: `sub_${Date.now()}_${current.length + 1}`,
+                                type: 'MCQ',
+                                content: '',
+                                options: ['', '', '', ''],
+                                correctAnswer: ''
+                              }
+                            ])
+                          }}
+                          className="h-8 text-xs gap-1 border-primary/20 text-primary hover:bg-primary/5"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Sub-Question
+                        </Button>
+                      </div>
+
+                      {/* Render Sub-Questions List */}
+                      {(() => {
+                        const subs = watch('subQuestions') || []
+                        if (subs.length === 0) {
+                          return (
+                            <div className="p-4 border border-dashed rounded-2xl text-center bg-muted/10">
+                              <p className="text-xs text-muted-foreground italic">No sub-questions added. Click "Add Sub-Question" above to attach questions to this passage.</p>
+                            </div>
+                          )
+                        }
+
+                        return (
+                          <div className="space-y-4">
+                            {subs.map((sq, sIdx) => (
+                              <div key={sq.id} className="p-4 border rounded-2xl bg-card/60 space-y-3 relative shadow-xs">
+                                <div className="flex items-center justify-between border-b pb-2">
+                                  <span className="text-xs font-bold text-primary">Question #{sIdx + 1}</span>
+                                  <div className="flex items-center gap-2">
+                                    <Select
+                                      value={sq.type}
+                                      onValueChange={(newType: any) => {
+                                        const updated = [...subs]
+                                        updated[sIdx] = { ...sq, type: newType, options: newType === 'MCQ' ? ['', '', '', ''] : sq.options }
+                                        setValue('subQuestions', updated)
+                                      }}
+                                    >
+                                      <SelectTrigger className="h-7 text-[10px] w-32">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="MCQ">Multiple Choice</SelectItem>
+                                        <SelectItem value="True/False">True / False</SelectItem>
+                                        <SelectItem value="Fill in the Blanks">Fill in Blanks</SelectItem>
+                                        <SelectItem value="Subjective">Open Synthesis</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                                      onClick={() => {
+                                        const updated = subs.filter((_, idx) => idx !== sIdx)
+                                        setValue('subQuestions', updated)
+                                      }}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                {/* Sub-Question Content */}
+                                <Input
+                                  placeholder={`Enter Question #${sIdx + 1} text...`}
+                                  value={sq.content}
+                                  onChange={(e) => {
+                                    const updated = [...subs]
+                                    updated[sIdx].content = e.target.value
+                                    setValue('subQuestions', updated)
+                                  }}
+                                  className="h-9 text-xs"
+                                />
+
+                                {/* MCQ Options */}
+                                {sq.type === 'MCQ' && (
+                                  <div className="grid grid-cols-2 gap-2 pt-1">
+                                    {[0, 1, 2, 3].map(oIdx => (
+                                      <Input
+                                        key={oIdx}
+                                        placeholder={`Option ${oIdx + 1}`}
+                                        value={(sq.options || [])[oIdx] || ''}
+                                        onChange={(e) => {
+                                          const updated = [...subs]
+                                          const opts = [...(updated[sIdx].options || ['', '', '', ''])]
+                                          opts[oIdx] = e.target.value
+                                          updated[sIdx].options = opts
+                                          setValue('subQuestions', updated)
+                                        }}
+                                        className="h-8 text-xs bg-muted/10"
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* True/False Options */}
+                                {sq.type === 'True/False' && (
+                                  <div className="flex gap-4 items-center text-xs pt-1">
+                                    <span className="text-muted-foreground text-[10px]">Correct Answer:</span>
+                                    {['True', 'False'].map(tf => (
+                                      <label key={tf} className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                          type="radio"
+                                          name={`tf_${sq.id}`}
+                                          checked={sq.correctAnswer === tf}
+                                          onChange={() => {
+                                            const updated = [...subs]
+                                            updated[sIdx].correctAnswer = tf
+                                            setValue('subQuestions', updated)
+                                          }}
+                                        />
+                                        <span>{tf}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Correct Answer Key Input (MCQ / Blanks / Subjective) */}
+                                {sq.type !== 'True/False' && (
+                                  <Input
+                                    placeholder={
+                                      sq.type === 'Subjective' ? "Reference Model Answer (for AI evaluation)..." : "Correct Answer..."
+                                    }
+                                    value={sq.correctAnswer || ''}
+                                    onChange={(e) => {
+                                      const updated = [...subs]
+                                      updated[sIdx].correctAnswer = e.target.value
+                                      setValue('subQuestions', updated)
+                                    }}
+                                    className="h-8 text-xs bg-success/5 border-success/20"
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  )}
 
                   {watchType === 'MCQ' && (
                     <div className="space-y-4 pt-4 border-t">
