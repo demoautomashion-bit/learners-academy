@@ -225,9 +225,12 @@ model Question {
   isApproved    Boolean  @default(false)
   teacherId     String?
   difficulty    String   @default("Medium")
-  classLevel    String?
-  subQuestions  Json?
-  passageTitle  String?
+  classLevel          String?
+  subQuestions        Json?
+  passageTitle        String?
+  speakingTitle       String?
+  prepTimeSeconds     Int?
+  speakingTimeSeconds Int?
 }
 
 model AssessmentTemplate {

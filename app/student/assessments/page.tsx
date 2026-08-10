@@ -15,7 +15,7 @@ import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ClipboardList, Clock, CheckCircle, ArrowRight, ChevronLeft, ChevronRight,
-  Lock, Timer, AlertTriangle, Award, TrendingUp, XCircle, Volume2, BookOpen, Zap, CheckSquare
+  Lock, Timer, AlertTriangle, Award, TrendingUp, XCircle, Volume2, BookOpen, Zap, CheckSquare, Mic, Check
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { evaluateSubjective } from "@/lib/ai-auditor"
@@ -1193,6 +1193,120 @@ export default function StudentAssessmentsPage() {
               />
             </div>
           )}
+        </div>
+      )
+    }
+
+    // Speaking — Live Microphone Recorder
+    if (q.type === 'Speaking') {
+      const topicTitle = q.speakingTitle || q.content || 'Spoken English Evaluation'
+      const prepTime = q.prepTimeSeconds || 30
+      const speakTime = q.speakingTimeSeconds || 60
+
+      return (
+        <div className="space-y-6 pt-4">
+          <div className="rounded-3xl border-2 border-primary/20 bg-primary/[0.02] p-6 sm:p-8 space-y-6 shadow-md">
+            <div className="flex items-center justify-between border-b border-primary/10 pb-4">
+              <div>
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1">
+                  Speaking Assessment Topic
+                </Badge>
+                <h3 className="font-serif text-2xl font-bold text-foreground mt-2 drop-shadow-xs">
+                  {topicTitle}
+                </h3>
+              </div>
+              <div className="text-right hidden sm:block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Prep Time</span>
+                <span className="text-sm font-bold text-primary">{prepTime}s</span>
+              </div>
+            </div>
+
+            {q.content && q.content !== topicTitle && (
+              <div className="p-4 rounded-2xl bg-background/80 border border-primary/10 text-sm font-serif leading-relaxed text-foreground/80">
+                {q.content}
+              </div>
+            )}
+
+            {/* Live Media Recorder Control Panel */}
+            <div className="p-8 rounded-3xl bg-background/95 border-2 border-primary/20 flex flex-col items-center justify-center space-y-6 text-center shadow-lg relative overflow-hidden">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/30 relative">
+                <Mic className="w-10 h-10 text-primary animate-pulse" />
+              </div>
+
+              <div className="space-y-1 max-w-md">
+                <h4 className="font-serif text-lg font-bold text-foreground">Record Your Spoken Answer</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Speak clearly into your microphone responding to the topic above. AI will evaluate clarity, vocabulary, and cohesion.
+                </p>
+              </div>
+
+              {/* Status and Record Controls */}
+              <div className="space-y-4 w-full max-w-sm">
+                {!answers[qId] ? (
+                  <div className="space-y-3">
+                    <Button
+                      type="button"
+                      size="lg"
+                      onClick={async () => {
+                        try {
+                          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+                          const mediaRecorder = new MediaRecorder(stream)
+                          const audioChunks: Blob[] = []
+
+                          mediaRecorder.ondataavailable = (event) => {
+                            audioChunks.push(event.data)
+                          }
+
+                          mediaRecorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
+                            const reader = new FileReader()
+                            reader.readAsDataURL(audioBlob)
+                            reader.onloadend = () => {
+                              setAnswers({ ...answers, [qId]: reader.result as string })
+                              toast.success('Audio recording captured successfully!')
+                            }
+                          }
+
+                          mediaRecorder.start()
+                          toast.info('Recording started! Speak now...')
+
+                          // Auto stop after speakingTime limit
+                          setTimeout(() => {
+                            if (mediaRecorder.state === 'recording') {
+                              mediaRecorder.stop()
+                              stream.getTracks().forEach(track => track.stop())
+                            }
+                          }, speakTime * 1000)
+
+                        } catch (err) {
+                          toast.error('Microphone access denied or not available.')
+                        }
+                      }}
+                      className="w-full h-12 rounded-2xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md gap-2 text-sm"
+                    >
+                      <Mic className="w-4 h-4" /> Start Microphone Recording ({speakTime}s max)
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3 w-full p-4 rounded-2xl bg-success/10 border border-success/20">
+                    <p className="text-xs font-bold text-success flex items-center justify-center gap-1.5">
+                      <Check className="w-4 h-4" /> Recording Captured & Ready
+                    </p>
+                    <audio controls src={currentAnswer} className="w-full h-10" />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAnswers({ ...answers, [qId]: '' })}
+                      className="text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
+                    >
+                      Re-record Response
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )
     }

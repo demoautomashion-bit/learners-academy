@@ -126,7 +126,7 @@ export interface TimeSlot {
 }
 
 export type QuestionCategory = 'Grammar' | 'Vocab & Idioms' | 'Listening' | 'Reading' | 'Speaking' | 'Writing'
-export type QuestionType = 'MCQ' | 'Subjective' | 'True/False' | 'Fill in the Blanks' | 'Writing' | 'Matching' | 'Reading' | 'Listening'
+export type QuestionType = 'MCQ' | 'Subjective' | 'True/False' | 'Fill in the Blanks' | 'Writing' | 'Matching' | 'Reading' | 'Listening' | 'Speaking'
 
 export type WritingGenre = 'Essay' | 'Letter' | 'Application' | 'Precis' | 'Story' | 'Report & Notice'
 
@@ -195,6 +195,9 @@ export interface Question {
   subQuestions?: SubQuestion[] // For Reading/Listening sets with sub-questions
   writingGenre?: WritingGenre
   writingSubType?: string
+  speakingTitle?: string
+  prepTimeSeconds?: number
+  speakingTimeSeconds?: number
   evaluationCriteria?: string
   wordLimitMin?: number
   wordLimitMax?: number

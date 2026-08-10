@@ -44,7 +44,7 @@ const subQuestionSchema = z.object({
 
 const questionSchema = z.object({
   category: z.string().min(1, 'Required'),
-  type: z.enum(['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Matching', 'Reading', 'Listening']),
+  type: z.enum(['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening']),
   phase: z.enum(['First Test', 'Last Test', 'Both']),
   content: z.string().min(1, 'Required'),
   options: z.string().optional(),
@@ -52,6 +52,9 @@ const questionSchema = z.object({
   imageUrl: z.string().optional(),
   passageText: z.string().optional(),
   passageTitle: z.string().optional(),
+  speakingTitle: z.string().optional(),
+  prepTimeSeconds: z.coerce.number().optional(),
+  speakingTimeSeconds: z.coerce.number().optional(),
   audioUrl: z.string().optional(),
   subQuestions: z.array(subQuestionSchema).optional(),
   writingGenre: z.string().optional(),
@@ -72,6 +75,7 @@ const TYPE_OPTIONS = [
   { value: 'True/False',        label: 'True / False' },
   { value: 'Fill in the Blanks',label: 'Fill in the Blanks' },
   { value: 'Writing',           label: 'Writing Prompt' },
+  { value: 'Speaking',          label: 'Speaking Task' },
   { value: 'Matching',          label: 'Column Matching' },
   { value: 'Reading',           label: 'Reading Question' },
   { value: 'Listening',         label: 'Listening Question' },
@@ -195,6 +199,9 @@ export default function QuestionLibraryPage() {
     setValue('imageUrl', q.imageUrl || '')
     setValue('passageText', q.passageText || '')
     setValue('passageTitle', q.passageTitle || '')
+    setValue('speakingTitle', q.speakingTitle || '')
+    setValue('prepTimeSeconds', q.prepTimeSeconds || 30)
+    setValue('speakingTimeSeconds', q.speakingTimeSeconds || 60)
     setValue('subQuestions', q.subQuestions || [])
     setValue('audioUrl', q.audioUrl || '')
     setValue('writingGenre', q.writingGenre)
@@ -258,6 +265,9 @@ export default function QuestionLibraryPage() {
       imageUrl: data.imageUrl || undefined,
       passageText: data.passageText || undefined,
       passageTitle: data.passageTitle || undefined,
+      speakingTitle: data.type === 'Speaking' ? data.speakingTitle : undefined,
+      prepTimeSeconds: data.type === 'Speaking' ? data.prepTimeSeconds : undefined,
+      speakingTimeSeconds: data.type === 'Speaking' ? data.speakingTimeSeconds : undefined,
       subQuestions: data.subQuestions || undefined,
       audioUrl: data.audioUrl || undefined,
       matchPairs: data.type === 'Matching' ? validPairs : undefined,
@@ -388,7 +398,59 @@ export default function QuestionLibraryPage() {
                     </Select>
                   </Field>
 
-                  {selectedCategory === 'Reading' && (
+                  {selectedType === 'Speaking' && (
+                    <div className="space-y-4 pt-2 border-t border-primary/10">
+                      <Field>
+                        <FieldLabel className="text-xs flex items-center gap-1.5 font-bold">
+                          <Volume2 className="w-3.5 h-3.5 text-primary" /> Speaking Topic / Prompt Title
+                        </FieldLabel>
+                        <Input
+                          {...register('speakingTitle')}
+                          className="h-10 text-xs font-serif font-semibold bg-primary/5 border-primary/20"
+                          placeholder="e.g., Describe a Memorable Trip or Event"
+                        />
+                      </Field>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <Field>
+                          <FieldLabel className="text-xs opacity-70 font-semibold">Preparation Time (Seconds)</FieldLabel>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={300}
+                            defaultValue={30}
+                            {...register('prepTimeSeconds')}
+                            className="h-9 text-xs"
+                            placeholder="30"
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel className="text-xs opacity-70 font-semibold">Speaking Time Limit (Seconds)</FieldLabel>
+                          <Input
+                            type="number"
+                            min={10}
+                            max={600}
+                            defaultValue={60}
+                            {...register('speakingTimeSeconds')}
+                            className="h-9 text-xs"
+                            placeholder="60"
+                          />
+                        </Field>
+                      </div>
+
+                      <Field>
+                        <FieldLabel className="text-xs flex items-center gap-1.5 font-semibold">
+                          Evaluation Rubric / Focus Criteria (for AI Auditor)
+                        </FieldLabel>
+                        <Textarea
+                          {...register('evaluationCriteria')}
+                          rows={3}
+                          className="text-xs resize-none bg-muted/10 p-3"
+                          placeholder="e.g., Check for clear pronunciation, rich vocabulary, logical cohesion, and minimal hesitations."
+                        />
+                      </Field>
+                    </div>
+                  )}
                     <div className="space-y-4 pt-2 border-t border-primary/10">
                       <Field>
                         <FieldLabel className="text-xs flex items-center gap-1.5 font-bold">
