@@ -975,11 +975,23 @@ export default function StudentAssessmentsPage() {
         <div className="space-y-6 pt-4">
           {q.passageText && (
             <div className="rounded-3xl border border-primary/10 bg-primary/[0.02] p-8 space-y-4 shadow-inner">
-              <p className="text-editorial-label text-[10px] uppercase tracking-widest flex items-center gap-2 text-primary/70 font-bold">
-                <BookOpen className="w-4 h-4" /> Institutional Reading Passage
-              </p>
-              <div className="max-h-[300px] overflow-y-auto pr-4 custom-scrollbar">
-                <p className="font-serif text-lg leading-relaxed text-foreground/80 first-letter:text-4xl first-letter:font-bold first-letter:mr-1">{q.passageText}</p>
+              <div className="flex items-center justify-between border-b border-primary/10 pb-3">
+                <p className="text-editorial-label text-[10px] uppercase tracking-widest flex items-center gap-2 text-primary/70 font-bold">
+                  <BookOpen className="w-4 h-4" /> Reading Comprehension Passage
+                </p>
+                {q.passageTitle && (
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 font-serif text-xs font-semibold">
+                    {q.passageTitle}
+                  </Badge>
+                )}
+              </div>
+              {q.passageTitle && (
+                <h3 className="font-serif text-2xl font-bold text-foreground drop-shadow-xs pt-1">
+                  {q.passageTitle}
+                </h3>
+              )}
+              <div className="max-h-[350px] overflow-y-auto pr-4 custom-scrollbar">
+                <p className="font-serif text-lg leading-relaxed text-foreground/85 whitespace-pre-line first-letter:text-4xl first-letter:font-bold first-letter:mr-1">{q.passageText}</p>
               </div>
             </div>
           )}
@@ -1492,8 +1504,9 @@ export default function StudentAssessmentsPage() {
                                   : randomizedQuestions[currentQuestionIndex].type}
                               </Badge>
                             </div>
-                            {/* Don't repeat the content as heading if it's a Fill in the Blanks — the input renders it inline */}
-                            {randomizedQuestions[currentQuestionIndex].type !== 'Fill in the Blanks' && (
+                            {/* Don't repeat the content as heading if it's Reading or Fill in the Blanks */}
+                            {randomizedQuestions[currentQuestionIndex].type !== 'Fill in the Blanks' && 
+                             randomizedQuestions[currentQuestionIndex].type !== 'Reading' && (
                               <h3 className="text-xl sm:text-2xl font-serif leading-snug text-foreground font-bold whitespace-pre-wrap">
                                 {randomizedQuestions[currentQuestionIndex].content}
                               </h3>

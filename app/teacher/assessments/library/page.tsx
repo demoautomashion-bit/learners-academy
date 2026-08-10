@@ -74,6 +74,7 @@ const questionSchema = z.object({
   correctAnswer: z.string().optional(),
   options: z.array(z.string()).optional(),
   passageText: z.string().optional(),
+  passageTitle: z.string().optional(),
   audioUrl: z.string().optional(),
   subQuestions: z.array(subQuestionSchema).optional(),
 })
@@ -415,30 +416,43 @@ export default function AssessmentLibraryPage() {
                     </div>
                   </div>
 
+                  {watchType === 'Reading' && (
+                    <div className="space-y-4 pt-2 border-t border-primary/10">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-foreground">Reading Passage Title</label>
+                        <Input 
+                          {...register('passageTitle')}
+                          placeholder="e.g., The Impact of Climate Change on Marine Ecosystems"
+                          className="h-11 bg-primary/5 border-primary/20 font-serif text-sm font-semibold"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-foreground">Reading Passage Text</label>
+                        <Textarea 
+                          {...register('passageText')}
+                          placeholder="Input the full reading passage analysis text here..."
+                          className="min-h-[200px] bg-primary/5 p-4 text-sm font-serif leading-relaxed"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
-                     <label className="text-xs opacity-40">Block Content / Narrative</label>
+                     <label className="text-xs opacity-40">
+                      {watchType === 'Reading' || watchType === 'Listening' ? 'Section Instructions / Overview' : 'Block Content / Narrative'}
+                     </label>
                       <Textarea 
                         {...register('content')}
                         placeholder={
-                          watchType === 'Listening' ? "Enter the transcript here. Use '____' for gaps (e.g., 'The capital is ____.')" :
-                          watchType === 'Reading' ? "Enter the comprehension task or summary here. Use '____' for gaps." :
+                          watchType === 'Listening' ? "Enter instructions or transcript gaps (e.g., 'Listen to the recording and answer the sub-questions below.')" :
+                          watchType === 'Reading' ? "Enter section instructions (e.g., 'Read the passage above and complete the following sub-questions.')" :
                           "Input the core pedagogical content here..."
                         }
-                        className="min-h-[120px] bg-muted/20 p-4 text-sm resize-none focus:ring-1 focus:ring-primary/20"
+                        className="min-h-[90px] bg-muted/20 p-4 text-sm resize-none focus:ring-1 focus:ring-primary/20"
                       />
                      {errors.content && <p className="text-xs text-destructive">{errors.content.message}</p>}
                   </div>
-
-                  {watchType === 'Reading' && (
-                    <div className="space-y-2 pt-2">
-                      <label className="text-xs opacity-40">Reading Passage</label>
-                      <Textarea 
-                        {...register('passageText')}
-                        placeholder="Input the analysis text..."
-                        className="min-h-[180px] bg-primary/5 p-4 text-sm italic"
-                      />
-                    </div>
-                  )}
 
                   {watchType === 'Listening' && (
                     <div className="space-y-2 pt-2">

@@ -227,6 +227,7 @@ model Question {
   difficulty    String   @default("Medium")
   classLevel    String?
   subQuestions  Json?
+  passageTitle  String?
 }
 
 model AssessmentTemplate {

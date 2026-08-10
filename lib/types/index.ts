@@ -189,6 +189,7 @@ export interface Question {
   imageUrl?: string
   phase: 'First Test' | 'Last Test' | 'Both'
   passageText?: string   // For Reading: passage shown above question
+  passageTitle?: string  // For Reading: title of the passage
   audioUrl?: string      // For Listening: audio clip URL
   matchPairs?: { left: string; right: string }[] // For Matching: column pairs
   subQuestions?: SubQuestion[] // For Reading/Listening sets with sub-questions
