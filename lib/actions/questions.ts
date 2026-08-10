@@ -29,6 +29,8 @@ export async function addQuestion(question: Omit<Question, 'id'>): Promise<Actio
         imageUrl: question.imageUrl,
         phase: question.phase,
         passageText: question.passageText,
+        passageTitle: question.passageTitle,
+        subQuestions: question.subQuestions as any,
         audioUrl: question.audioUrl,
         matchPairs: question.matchPairs as any,
         isApproved: question.isApproved ?? false,
@@ -76,6 +78,7 @@ export async function updateQuestion(id: string, data: Partial<Question>, teache
       where: { id }, 
       data: {
         ...data,
+        subQuestions: data.subQuestions as any,
         matchPairs: data.matchPairs as any
       } as any 
     })
