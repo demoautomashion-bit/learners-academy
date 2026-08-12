@@ -56,6 +56,94 @@ async function renderStudentCanvas(
   studentName: string,
   cardTemplates: any[] = []
 ): Promise<HTMLCanvasElement> {
+  const tierId = getTierForLevel(v.level || '')
+  const isA5 = tierId === 'pre-foundation-lvl-5'
+
+  if (isA5) {
+    // A5 Landscape canvas resolution (2480 x 1748 px @ 300 DPI or 1754 x 1240)
+    const W = 1754
+    const H = 1240
+    const canvas = document.createElement('canvas')
+    canvas.width = W
+    canvas.height = H
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas 2D not supported')
+
+    // 1. Draw A5 Template Image
+    await new Promise<void>((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, W, H)
+        resolve()
+      }
+      img.onerror = reject
+      img.src = "/result-card-a5-template.png"
+    })
+
+    // Load Montserrat font for crisp output
+    await document.fonts.load('bold 26px "Montserrat"')
+
+    const drawLeftText = (text: string, xPct: number, yPct: number, fontSize = 26) => {
+      if (!text) return
+      ctx.save()
+      ctx.font = `700 ${fontSize}px Montserrat, sans-serif`
+      ctx.fillStyle = '#0b192c'
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(text, (xPct / 100) * W, (yPct / 100) * H)
+      ctx.restore()
+    }
+
+    const drawCenterText = (text: string, xPct: number, yPct: number, fontSize = 24, weight = '700') => {
+      if (text === undefined || text === null || text === '') return
+      ctx.save()
+      ctx.font = `${weight} ${fontSize}px Montserrat, sans-serif`
+      ctx.fillStyle = '#0b192c'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(String(text), (xPct / 100) * W, (yPct / 100) * H)
+      ctx.restore()
+    }
+
+    // Student Info Overlays
+    drawLeftText(v.studentName || studentName || '', 18.8, 40.6, 26)
+    drawLeftText(v.fatherName || '', 27.2, 47.7, 26)
+    drawLeftText(v.level || '', 21.2, 54.6, 26)
+    drawLeftText(v.dateAwarded || v.dateOfIssue || 'June 04, 2026', 18.8, 61.7, 26)
+
+    // Table Obtained Marks (Column Center X = 90.1%)
+    const colCenterX = 90.1
+    drawCenterText(v.midtermObtained !== undefined ? String(v.midtermObtained) : '', colCenterX, 32.9, 24)
+    drawCenterText(v.finalObtained !== undefined ? String(v.finalObtained) : '', colCenterX, 37.9, 24)
+    drawCenterText(v.attendanceObtained !== undefined ? String(v.attendanceObtained) : '', colCenterX, 42.9, 24)
+    drawCenterText(v.participationObtained !== undefined ? String(v.participationObtained) : '', colCenterX, 47.9, 24)
+    drawCenterText(v.disciplineObtained !== undefined ? String(v.disciplineObtained) : '', colCenterX, 52.9, 24)
+    drawCenterText(v.extraCurricularObtained !== undefined ? String(v.extraCurricularObtained) : '', colCenterX, 57.9, 24)
+
+    // Grand Total, Percentage, Grade, Remarks
+    const grand = v.grandTotalObtained !== undefined && v.grandTotalObtained !== ''
+      ? String(v.grandTotalObtained)
+      : String(
+          (parseFloat(String(v.midtermObtained || 0)) || 0) +
+          (parseFloat(String(v.finalObtained || 0)) || 0) +
+          (parseFloat(String(v.attendanceObtained || 0)) || 0) +
+          (parseFloat(String(v.participationObtained || 0)) || 0) +
+          (parseFloat(String(v.disciplineObtained || 0)) || 0) +
+          (parseFloat(String(v.extraCurricularObtained || 0)) || 0)
+        )
+    drawCenterText(grand !== '0' ? grand : '', colCenterX, 62.9, 24, '800')
+
+    const summaryCenterX = 84.8
+    const autoPct = grand !== '0' ? ((parseFloat(grand) / 300) * 100).toFixed(1) + '%' : ''
+    drawCenterText(v.percentage || autoPct, summaryCenterX, 68.1, 24, '800')
+    drawCenterText(v.grade || '', summaryCenterX, 73.1, 24, '800')
+    drawCenterText(v.comments || '', summaryCenterX, 78.1, 22, '700')
+
+    return canvas
+  }
+
+  // Fallback for Level 6+ Portrait cards
   const W = 1240
   const H = 1754
   const canvas = document.createElement('canvas')
@@ -65,7 +153,6 @@ async function renderStudentCanvas(
   if (!ctx) throw new Error('Canvas 2D not supported')
 
   // Find template mappings using tier mapping helper
-  const tierId = getTierForLevel(v.level || '')
   const template = (cardTemplates || []).find((t: any) => t.level === tierId)
   const bgImage = template?.backgroundUrl || "/actual-result-card.jpeg"
   const dims = template?.coordinates || {} // contains width, height, borderRadius, padding if configured
