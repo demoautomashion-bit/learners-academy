@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ReportCard, ReportCardValues } from '@/components/report-card'
+import { ReportCardA5 } from '@/components/report-card-a5'
 import { isStudentInCourse } from '@/lib/utils/student-matching'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { getTierForLevel } from '@/lib/utils/card-tiers'
@@ -229,6 +230,7 @@ function buildCardValues(
 
     return {
       studentName: student.name,
+      fatherName: student.fatherName || student.guardianName || '',
       level: course.title,
       midtermObtained: existingEval.midterm ?? '',
       finalObtained: existingEval.final ?? '',
@@ -292,6 +294,7 @@ function buildCardValues(
 
   return {
     studentName: student.name,
+    fatherName: student.fatherName || student.guardianName || '',
     level: course.title,
     midtermObtained: midtermMark,
     finalObtained: finalMark,
@@ -1065,25 +1068,46 @@ function ReportCardGeneratorContent() {
             <p className="text-xs mt-1">Grades and name will be fetched and pre-loaded automatically.</p>
           </div>
         ) : (
-          <div
-            className="origin-top transition-transform duration-200 bg-white shadow-xl"
-            style={{
-              transform: `scale(${scale})`,
-              width: '210mm',
-              height: '297mm',
-              marginBottom: scale < 1 ? `calc(297mm * (${scale} - 1))` : '0px'
-            }}
-          >
-            <ReportCard
-              key={selectedStudentId}
-              initialValues={cardValues}
-              cardRef={cardRef as React.RefObject<HTMLDivElement>}
-              onChange={(newValues) => {
-                isManuallyEdited.current = true
-                setCardValues(newValues)
-              }}
-            />
-          </div>
+          (() => {
+            const currentTier = getTierForLevel(cardValues.level || '')
+            const isA5 = currentTier === 'pre-foundation-lvl-5'
+            const cardWidth = isA5 ? '210mm' : '210mm'
+            const cardHeight = isA5 ? '148mm' : '297mm'
+
+            return (
+              <div
+                className="origin-top transition-transform duration-200 bg-white shadow-xl"
+                style={{
+                  transform: `scale(${scale})`,
+                  width: cardWidth,
+                  height: cardHeight,
+                  marginBottom: scale < 1 ? `calc(${cardHeight} * (${scale} - 1))` : '0px'
+                }}
+              >
+                {isA5 ? (
+                  <ReportCardA5
+                    key={selectedStudentId}
+                    initialValues={cardValues}
+                    cardRef={cardRef as React.RefObject<HTMLDivElement>}
+                    onChange={(newValues) => {
+                      isManuallyEdited.current = true
+                      setCardValues(newValues)
+                    }}
+                  />
+                ) : (
+                  <ReportCard
+                    key={selectedStudentId}
+                    initialValues={cardValues}
+                    cardRef={cardRef as React.RefObject<HTMLDivElement>}
+                    onChange={(newValues) => {
+                      isManuallyEdited.current = true
+                      setCardValues(newValues)
+                    }}
+                  />
+                )}
+              </div>
+            )
+          })()
         )}
       </div>
     </PageShell>

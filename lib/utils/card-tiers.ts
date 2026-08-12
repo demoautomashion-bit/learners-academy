@@ -36,6 +36,6 @@ export const CARD_TEMPLATE_TIERS = [
 ] as const
 
 export function getTierForLevel(level: string): string {
-  const matched = CARD_TEMPLATE_TIERS.find(t => t.levels.includes(level))
+  const matched = CARD_TEMPLATE_TIERS.find(t => (t.levels as readonly string[]).includes(level))
   return matched ? matched.id : 'pre-foundation-lvl-5' // Default fallback
 }
