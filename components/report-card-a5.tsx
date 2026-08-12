@@ -181,7 +181,7 @@ export function ReportCardA5({
         disabled={readOnly}
         className="a5-overlay-input"
         style={{
-          top: '38.2%',
+          top: '36.0%',
           left: '18.5%',
           width: '33.2%',
           height: '4.8%',
@@ -197,7 +197,7 @@ export function ReportCardA5({
         disabled={readOnly}
         className="a5-overlay-input"
         style={{
-          top: '45.3%',
+          top: '43.1%',
           left: '26.8%',
           width: '24.9%',
           height: '4.8%',
@@ -213,7 +213,7 @@ export function ReportCardA5({
         disabled={readOnly}
         className="a5-overlay-input"
         style={{
-          top: '52.2%',
+          top: '50.0%',
           left: '20.8%',
           width: '30.9%',
           height: '4.8%',
@@ -229,7 +229,7 @@ export function ReportCardA5({
         disabled={readOnly}
         className="a5-overlay-input"
         style={{
-          top: '59.3%',
+          top: '57.1%',
           left: '18.5%',
           width: '33.2%',
           height: '4.8%',
