@@ -676,10 +676,26 @@ function ReportCardGeneratorContent() {
     try {
       const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
-      const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
-      pdf.save(`${name}-report-card.pdf`)
+      const currentTier = getTierForLevel(cardValues.level || '')
+      const isA5 = currentTier === 'pre-foundation-lvl-5'
+
+      if (isA5) {
+        // Generate an A5 Portrait PDF (148mm x 210mm) with 2 stacked cards (148mm x 105mm each)
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
+        // Top card
+        pdf.addImage(dataUrl, 'JPEG', 0, 0, 148, 105)
+        // Bottom card
+        pdf.addImage(dataUrl, 'JPEG', 0, 105, 148, 105)
+
+        const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
+        pdf.save(`${name}-report-card-a5-2up.pdf`)
+      } else {
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+        pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
+        const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
+        pdf.save(`${name}-report-card.pdf`)
+      }
+
       toast.success('PDF downloaded successfully!')
     } catch (err) {
       console.error(err)
@@ -720,18 +736,54 @@ function ReportCardGeneratorContent() {
     setActiveDownload('bulk-pdf')
     setBulkProgress({ current: 0, total: pairs.length })
     try {
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      for (let i = 0; i < pairs.length; i++) {
-        const { student, course } = pairs[i]
-        setBulkProgress({ current: i + 1, total: pairs.length })
-        const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
-        const canvas = await renderStudentCanvas(values, student.name, cardTemplates)
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-        if (i > 0) pdf.addPage()
-        pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
+      const firstCourseTitle = pairs[0]?.course?.title || ''
+      const currentTier = getTierForLevel(firstCourseTitle)
+      const isA5 = currentTier === 'pre-foundation-lvl-5'
+
+      if (isA5) {
+        // A5 Portrait PDF with 2 cards per sheet
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
+        
+        for (let i = 0; i < pairs.length; i += 2) {
+          if (i > 0) pdf.addPage()
+
+          // Card 1 (Top)
+          const pair1 = pairs[i]
+          setBulkProgress({ current: i + 1, total: pairs.length })
+          const val1 = buildCardValues(pair1.student, pair1.course, evaluations, submissions, assessments, formatDateRange)
+          const canvas1 = await renderStudentCanvas(val1, pair1.student.name, cardTemplates)
+          pdf.addImage(canvas1.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 148, 105)
+
+          // Card 2 (Bottom) - If odd count, duplicate card 1 or render student 2
+          if (i + 1 < pairs.length) {
+            const pair2 = pairs[i + 1]
+            setBulkProgress({ current: i + 2, total: pairs.length })
+            const val2 = buildCardValues(pair2.student, pair2.course, evaluations, submissions, assessments, formatDateRange)
+            const canvas2 = await renderStudentCanvas(val2, pair2.student.name, cardTemplates)
+            pdf.addImage(canvas2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 105, 148, 105)
+          } else {
+            // Duplicate single card for 2-up sheet
+            pdf.addImage(canvas1.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 105, 148, 105)
+          }
+        }
+
+        const courseName = firstCourseTitle.replace(/\s+/g, '-').toLowerCase()
+        pdf.save(`${courseName}-bulk-report-cards-a5-2up.pdf`)
+      } else {
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+        for (let i = 0; i < pairs.length; i++) {
+          const { student, course } = pairs[i]
+          setBulkProgress({ current: i + 1, total: pairs.length })
+          const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
+          const canvas = await renderStudentCanvas(values, student.name, cardTemplates)
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+          if (i > 0) pdf.addPage()
+          pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
+        }
+        const courseName = firstCourseTitle.replace(/\s+/g, '-').toLowerCase()
+        pdf.save(`${courseName}-bulk-report-cards.pdf`)
       }
-      const courseName = pairs[0].course.title.replace(/\s+/g, '-').toLowerCase()
-      pdf.save(`${courseName}-bulk-report-cards.pdf`)
+
       toast.success(`Bulk PDF with ${pairs.length} cards downloaded!`)
     } catch (err) {
       console.error(err)
