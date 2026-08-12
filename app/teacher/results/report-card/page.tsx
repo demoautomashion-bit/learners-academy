@@ -28,6 +28,7 @@ import { ReportCardA5 } from '@/components/report-card-a5'
 import { isStudentInCourse } from '@/lib/utils/student-matching'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { getTierForLevel } from '@/lib/utils/card-tiers'
+import { getTLAGrading } from '@/lib/utils/tla-grading'
 import {
   Award, Printer, Save, Download, ArrowLeft, ChevronDown,
   FileImage, FileText, Archive, Users, CheckCircle2, AlertCircle, Clock
@@ -307,13 +308,7 @@ function buildCardValues(
       (existingEval.attendance || 0) + (existingEval.participation || 0) +
       (existingEval.discipline || 0) + (existingEval.extra || 0)
     const pct = (totalMarks / 300) * 100
-    let calcGrade = 'B'
-    if (pct >= 90) calcGrade = 'A+'
-    else if (pct >= 80) calcGrade = 'A'
-    else if (pct >= 70) calcGrade = 'B+'
-    else if (pct >= 60) calcGrade = 'B'
-    else if (pct >= 50) calcGrade = 'C'
-    else calcGrade = 'F'
+    const tlaResult = getTLAGrading(pct)
 
     return {
       studentName: student.name,
@@ -325,8 +320,9 @@ function buildCardValues(
       participationObtained: existingEval.participation ?? '',
       disciplineObtained: existingEval.discipline ?? '',
       extraCurricularObtained: existingEval.extra ?? '',
-      overallResult: totalMarks >= 130 ? 'PASS' : 'FAIL',
-      grade: calcGrade,
+      overallResult: tlaResult.isPass ? 'PASS' : 'FAIL',
+      grade: tlaResult.grade,
+      comments: tlaResult.remark,
       dateOfIssue: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
         month: 'long', day: 'numeric', year: 'numeric'
       }),
@@ -369,15 +365,8 @@ function buildCardValues(
     (typeof finalMark === 'number' ? finalMark : 0) +
     attendanceMark + participationMark + disciplineMark + extraMark
 
-  const isPass = grandTotalObtained >= 130
   const pct = (grandTotalObtained / 300) * 100
-  let calculatedGrade = 'B'
-  if (pct >= 90) calculatedGrade = 'A+'
-  else if (pct >= 80) calculatedGrade = 'A'
-  else if (pct >= 70) calculatedGrade = 'B+'
-  else if (pct >= 60) calculatedGrade = 'B'
-  else if (pct >= 50) calculatedGrade = 'C'
-  else calculatedGrade = 'F'
+  const tlaResult = getTLAGrading(pct)
 
   return {
     studentName: student.name,
@@ -389,8 +378,9 @@ function buildCardValues(
     participationObtained: participationMark,
     disciplineObtained: disciplineMark,
     extraCurricularObtained: extraMark,
-    overallResult: isPass ? 'PASS' : 'FAIL',
-    grade: calculatedGrade,
+    overallResult: tlaResult.isPass ? 'PASS' : 'FAIL',
+    grade: tlaResult.grade,
+    comments: tlaResult.remark,
     dateOfIssue: new Date().toLocaleDateString('en-US', {
       month: 'long', day: 'numeric', year: 'numeric'
     }),

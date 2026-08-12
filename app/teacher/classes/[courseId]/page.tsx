@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { getTLAGrading } from '@/lib/utils/tla-grading'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -155,28 +156,13 @@ export default function ClassWorkspacePage() {
     })
 
     const percentage = Math.round((total / tierConfig.total) * 100)
-    
-    let grade = 'F'
-    if (percentage >= 90) grade = 'A+'
-    else if (percentage >= 80) grade = 'A'
-    else if (percentage >= 70) grade = 'B'
-    else if (percentage >= 60) grade = 'C'
-    else if (percentage >= 50) grade = 'D'
-
-    let eligibility = 'P' // Pass
-    if (percentage < 50) eligibility = 'X' // Fail
-    
-    // Tier-specific attendance rules
-    const attendanceMark = Number(marks.attendance) || 0
-    if (tierConfig === TIER_CONFIGS.STANDARD && attendanceMark < 30) eligibility = 'V'
-    if (tierConfig === TIER_CONFIGS.ADVANCED && attendanceMark < 30) eligibility = 'V'
-    if (tierConfig === TIER_CONFIGS.PROFESSIONAL && attendanceMark < 10) eligibility = 'V'
+    const tlaResult = getTLAGrading(percentage)
 
     return { 
       total: isBlank ? '--' : total, 
       percentage: isBlank ? '--' : percentage, 
-      grade: isBlank ? '-' : grade, 
-      eligibility: isBlank ? '-' : eligibility 
+      grade: isBlank ? '-' : tlaResult.grade, 
+      eligibility: isBlank ? '-' : (tlaResult.isPass ? 'P' : 'X')
     }
   }
 

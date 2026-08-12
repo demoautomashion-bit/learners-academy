@@ -391,14 +391,16 @@ export function ReportCardA5({
         value={values.comments || ''}
         onChange={(e) => handleValueChange('comments', e.target.value)}
         disabled={readOnly}
-        className="a5-overlay-input text-center"
+        className="a5-overlay-input text-center truncate"
         style={{
           top: '75.8%',
           left: '73.1%',
           width: '23.4%',
           height: '4.6%',
-          fontSize: '13px',
-          fontWeight: '700'
+          fontSize: '11px',
+          fontWeight: '700',
+          paddingLeft: '2px',
+          paddingRight: '2px'
         }}
       />
     </div>
