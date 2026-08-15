@@ -201,7 +201,7 @@ export function ReportCardAdvA4({
         disabled={readOnly}
         placeholder="Enter Student Name"
         className="adv-overlay-input font-medium"
-        style={{ top: '19.1%', left: '37.0%', width: '55%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '20.3%', left: '37.0%', width: '55%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -211,7 +211,7 @@ export function ReportCardAdvA4({
         disabled={readOnly}
         placeholder="Enter Father's Name"
         className="adv-overlay-input font-medium"
-        style={{ top: '21.0%', left: '43.0%', width: '49%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '22.3%', left: '43.8%', width: '48%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -221,17 +221,29 @@ export function ReportCardAdvA4({
         disabled={readOnly}
         placeholder="e.g. August 2026"
         className="adv-overlay-input font-medium"
-        style={{ top: '24.8%', left: '49.0%', width: '43%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '26.2%', left: '49.0%', width: '43%', height: '1.9%', fontSize: '14px' }}
       />
 
-      <input
-        type="text"
-        value={values.transcriptNo || defaultTranscriptNo}
-        onChange={e => handleValueChange('transcriptNo', e.target.value)}
-        disabled={readOnly}
-        className="adv-overlay-input font-medium"
-        style={{ top: '26.8%', left: '61.5%', width: '32%', height: '1.9%', fontSize: '14px' }}
-      />
+      {/* Transcript No: Static TLA-ADV- prefix + editable tail sequence */}
+      <div
+        className="absolute flex items-center font-medium"
+        style={{ top: '28.2%', left: '53.8%', width: '40%', height: '1.9%', fontSize: '14px' }}
+      >
+        <span className="text-black select-none pointer-events-none pr-0.5" style={{ fontSize: '14px', lineHeight: 1 }}>
+          TLA-ADV-
+        </span>
+        <input
+          type="text"
+          value={(values.transcriptNo || defaultTranscriptNo).replace(/^TLA-ADV-/i, '')}
+          onChange={e => {
+            const raw = e.target.value
+            handleValueChange('transcriptNo', raw.toUpperCase().startsWith('TLA-ADV-') ? raw : `TLA-ADV-${raw}`)
+          }}
+          disabled={readOnly}
+          className="adv-overlay-input font-medium flex-1 h-full"
+          style={{ fontSize: '14px', padding: '0 2px' }}
+        />
+      </div>
 
       {/* OBTAINED MARKS OVERLAYS (Centered in 75% to 94% cell) */}
       <input
@@ -323,7 +335,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('totalScore', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '74.0%', left: '40.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '75.2%', left: '41.2%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -332,7 +344,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('percentage', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '74.0%', left: '64.5%', width: '28%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '75.2%', left: '65.5%', width: '28%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -341,7 +353,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('finalGrade', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '76.8%', left: '40.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '78.0%', left: '41.2%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -350,7 +362,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('remarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '76.8%', left: '62.5%', width: '31%', height: '1.9%', fontSize: '13px' }}
+        style={{ top: '78.0%', left: '63.5%', width: '31%', height: '1.9%', fontSize: '13px' }}
       />
     </div>
   )

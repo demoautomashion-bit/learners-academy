@@ -632,19 +632,25 @@ function ReportCardGeneratorContent() {
     if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
     setActiveDownload('pdf')
     try {
-      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+      let dataUrl = ''
+      const cardEl = containerRef.current?.querySelector('.report-card-l6-container, .report-card-adv-container, .report-card-container') as HTMLElement | null
+
+      if (cardEl) {
+        // High-DPI DOM capture with html2canvas for 100% reliable rendering
+        const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
+        dataUrl = domCanvas.toDataURL('image/jpeg', 0.95)
+      } else {
+        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+        dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+      }
+
       const currentTier = getTierForLevel(cardValues.level || '')
       const isA5 = currentTier === 'pre-foundation-lvl-5'
 
       if (isA5) {
-        // Generate an A5 Portrait PDF (148mm x 210mm) with 2 stacked cards (148mm x 105mm each)
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
-        // Top card
         pdf.addImage(dataUrl, 'JPEG', 0, 0, 148, 105)
-        // Bottom card
         pdf.addImage(dataUrl, 'JPEG', 0, 105, 148, 105)
-
         const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
         pdf.save(`${name}-report-card-a5-2up.pdf`)
       } else {
@@ -656,7 +662,7 @@ function ReportCardGeneratorContent() {
 
       toast.success('PDF downloaded successfully!')
     } catch (err) {
-      console.error(err)
+      console.error('PDF download error:', err)
       toast.error('Failed to generate PDF. Please try again.')
     } finally {
       setActiveDownload(null)
@@ -670,10 +676,19 @@ function ReportCardGeneratorContent() {
     if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
     setActiveDownload(format)
     try {
-      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+      let dataUrl = ''
       const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
       const quality = format === 'png' ? undefined : 0.95
-      const dataUrl = canvas.toDataURL(mimeType, quality)
+      const cardEl = containerRef.current?.querySelector('.report-card-l6-container, .report-card-adv-container, .report-card-container') as HTMLElement | null
+
+      if (cardEl) {
+        const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
+        dataUrl = domCanvas.toDataURL(mimeType, quality)
+      } else {
+        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+        dataUrl = canvas.toDataURL(mimeType, quality)
+      }
+
       const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
       triggerDownload(dataUrl, `${name}-report-card.${format}`)
       toast.success(`${format.toUpperCase()} downloaded successfully!`)
