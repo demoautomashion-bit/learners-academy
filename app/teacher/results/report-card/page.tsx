@@ -149,7 +149,7 @@ async function renderStudentCanvas(
   const isL6 = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel === 'level 6' || normLevel === 'l. 6' || normLevel === 'l6'
   const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
 
-  // A4 High Resolution Canvas (1240 x 1754 @ ~150DPI)
+  // A4 Resolution canvas (1240 x 1754 px @ 150 DPI)
   const W = 1240
   const H = 1754
   const canvas = document.createElement('canvas')
@@ -158,250 +158,88 @@ async function renderStudentCanvas(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas 2D not supported')
 
-  // Clear background to white
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(0, 0, W, H)
+  const bgSource = isL6 ? "/4.jpg.jpeg" : "/5.jpg.jpeg"
 
-  // 1. Draw Navy Left Sidebar (17% width)
-  const sidebarWidth = W * 0.17
-  ctx.fillStyle = '#061447'
-  ctx.fillRect(0, 0, sidebarWidth, H)
-
-  // Load fonts for canvas
-  await document.fonts.load('800 42px "Montserrat"')
-  await document.fonts.load('700 24px "Montserrat"')
-  await document.fonts.load('400 20px "Montserrat"')
-
-  // Rotate text for left sidebar
-  ctx.save()
-  ctx.translate(sidebarWidth / 2, H / 2)
-  ctx.rotate(-Math.PI / 2)
-  ctx.font = '800 40px Montserrat, sans-serif'
-  ctx.fillStyle = '#ffffff'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.letterSpacing = '10px'
-  ctx.fillText('ACADEMIC TRANSCRIPT', 0, 0)
-  ctx.restore()
-
-  // 2. Right Content Area (Starts at sidebarWidth + 50px)
-  const contentLeft = sidebarWidth + 50
-  const contentWidth = W - contentLeft - 50
-
-  // Draw Logo if available
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        ctx.drawImage(img, contentLeft, 60, 90, 110)
-        resolve()
-      }
-      img.onerror = () => resolve() // Continue if image fails
-      img.src = '/Logo.jpg.jpeg'
-    })
-  } catch (e) {}
-
-  // Header Titles
-  ctx.fillStyle = '#0e294b'
-  ctx.font = '500 22px Montserrat, sans-serif'
-  ctx.fillText('The', contentLeft + 110, 85)
-
-  ctx.fillStyle = '#0a3875'
-  ctx.font = '900 42px Montserrat, sans-serif'
-  ctx.fillText('LEARNERS', contentLeft + 110, 125)
-
-  ctx.fillStyle = '#0e294b'
-  ctx.font = '600 22px Montserrat, sans-serif'
-  ctx.fillText('Academy', contentLeft + 110, 155)
-
-  ctx.fillStyle = '#092b5a'
-  ctx.font = '700 20px Montserrat, sans-serif'
-  ctx.fillText('English Language Program', contentLeft + 110, 185)
-
-  // Cursive Tagline
-  ctx.fillStyle = '#3b82f6'
-  ctx.font = 'italic 24px "Playfair Display", Georgia, serif'
-  ctx.fillText('Join To Learn', contentLeft + 110, 220)
-
-  // 3. STUDENT INFORMATION Section
-  ctx.fillStyle = '#000000'
-  ctx.font = '800 22px Montserrat, sans-serif'
-  ctx.fillText('STUDENT INFORMATION', contentLeft, 275)
-
-  const infoLabelsY = 320
-  const lineGapY = 40
-  const labelsX = contentLeft
-  const valuesX = contentLeft + 220
-
-  const studentNameVal = v.studentName || studentName || ''
-  const fatherNameVal = v.fatherName || ''
-  const levelVal = isL6 ? 'Level Six' : isAdv ? 'Advanced' : (v.level || '')
-  const dateCompVal = v.dateOfCompletion || v.dateOfIssue || ''
-  const transcriptNoVal = (v as any).transcriptNo || (isL6 ? 'TLA-L6-001-T/08/2026' : 'TLA-ADV-001-T/08/2026')
-
-  const infoRows = [
-    { label: 'Name:', value: studentNameVal },
-    { label: "Father's Name:", value: fatherNameVal },
-    { label: 'Program / Level:', value: levelVal },
-    { label: 'Date of Completion:', value: dateCompVal },
-    { label: 'Transcript No.:', value: transcriptNoVal }
-  ]
-
-  infoRows.forEach((row, i) => {
-    const y = infoLabelsY + i * lineGapY
-    ctx.fillStyle = '#1e293b'
-    ctx.font = '600 20px Montserrat, sans-serif'
-    ctx.fillText(row.label, labelsX, y)
-
-    ctx.fillStyle = '#0f172a'
-    ctx.font = '400 20px Montserrat, sans-serif'
-    ctx.fillText(String(row.value), valuesX, y)
+  // 1. Draw Template Image Background
+  await new Promise<void>((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, W, H)
+      resolve()
+    }
+    img.onerror = reject
+    img.src = bgSource
   })
 
-  // 4. PERFORMANCE SUMMARY Table
-  const tableTopY = 550
-  ctx.fillStyle = '#000000'
-  ctx.font = '800 22px Montserrat, sans-serif'
-  ctx.fillText('PERFORMANCE SUMMARY', contentLeft, tableTopY)
+  // Load font
+  await document.fonts.load('bold 26px "Montserrat"')
+  await document.fonts.load('500 24px "Montserrat"')
 
-  const tableHeaderY = tableTopY + 30
-  const rowHeight = 42
-
-  // Draw Header Row
-  ctx.fillStyle = '#041549'
-  ctx.fillRect(contentLeft, tableHeaderY, contentWidth, rowHeight)
-
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '800 16px Montserrat, sans-serif'
-  ctx.textAlign = 'left'
-  ctx.fillText('ASSESSMENT COMPONENTS', contentLeft + 20, tableHeaderY + 26)
-  
-  ctx.textAlign = 'center'
-  ctx.fillText('TOTAL MARKS', contentLeft + contentWidth * 0.55, tableHeaderY + 26)
-  ctx.fillText('OBTAINED MARKS', contentLeft + contentWidth * 0.82, tableHeaderY + 26)
-
-  // Table Data Rows
-  const componentsList = [
-    { name: 'Listening', total: 100, obt: (v as any).listeningMarks ?? v.midtermObtained ?? '' },
-    { name: 'Speaking', total: 100, obt: (v as any).speakingMarks ?? v.finalObtained ?? '' },
-    { name: 'Reading', total: 100, obt: (v as any).readingMarks ?? v.attendanceObtained ?? '' },
-    { name: 'Writing', total: 100, obt: (v as any).writingMarks ?? v.participationObtained ?? '' },
-    { name: 'Grammar', total: 100, obt: (v as any).grammarMarks ?? v.disciplineObtained ?? '' },
-    { name: 'Attendance', total: 60, obt: (v as any).attendanceMarks ?? '' },
-    { name: 'Participation', total: 30, obt: (v as any).participationMarks ?? '' },
-    { name: 'Discipline', total: 10, obt: (v as any).disciplineMarks ?? '' },
-  ]
-
-  let currentY = tableHeaderY + rowHeight
-  ctx.strokeStyle = '#0f172a'
-  ctx.lineWidth = 1
-
-  componentsList.forEach(row => {
-    ctx.strokeRect(contentLeft, currentY, contentWidth, rowHeight)
-    
-    ctx.fillStyle = '#0f172a'
-    ctx.font = '700 18px Montserrat, sans-serif'
+  const drawLeftText = (text: string, xPct: number, yPct: number, fontSize = 24, weight = '500') => {
+    if (!text) return
+    ctx.save()
+    ctx.font = `${weight} ${fontSize}px Montserrat, sans-serif`
+    ctx.fillStyle = '#000000'
     ctx.textAlign = 'left'
-    ctx.fillText(row.name, contentLeft + 20, currentY + 26)
+    ctx.textBaseline = 'middle'
+    ctx.fillText(text, (xPct / 100) * W, (yPct / 100) * H)
+    ctx.restore()
+  }
 
-    ctx.font = '800 18px Montserrat, sans-serif'
+  const drawCenterText = (text: string, xPct: number, yPct: number, fontSize = 24, weight = '700') => {
+    if (text === undefined || text === null || text === '') return
+    ctx.save()
+    ctx.font = `${weight} ${fontSize}px Montserrat, sans-serif`
+    ctx.fillStyle = '#000000'
     ctx.textAlign = 'center'
-    ctx.fillText(String(row.total), contentLeft + contentWidth * 0.55, currentY + 26)
+    ctx.textBaseline = 'middle'
+    ctx.fillText(String(text), (xPct / 100) * W, (yPct / 100) * H)
+    ctx.restore()
+  }
 
-    ctx.font = '700 18px Montserrat, sans-serif'
-    ctx.fillText(row.obt !== undefined && row.obt !== '' ? String(row.obt) : '', contentLeft + contentWidth * 0.82, currentY + 26)
+  // Student Info Overlay Text
+  const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', 1)
+  drawLeftText(v.studentName || studentName || '', 37.5, 21.6, 25, '500')
+  drawLeftText(v.fatherName || '', 42.5, 23.6, 25, '500')
+  drawLeftText(isL6 ? 'Level Six' : 'Advanced', 53.5, 25.6, 25, '500')
+  drawLeftText(v.dateOfCompletion || v.dateOfIssue || '', 49.5, 27.6, 25, '500')
+  drawLeftText((v as any).transcriptNo || defaultTrNo, 53.5, 29.6, 25, '500')
 
-    currentY += rowHeight
-  })
+  // Obtained Marks Table (Column Center X = 84.7%)
+  const colCenterX = 84.7
+  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, 39.7, 26, '700')
+  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, 43.5, 26, '700')
+  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, 47.3, 26, '700')
+  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, 51.1, 26, '700')
+  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, 54.9, 26, '700')
+  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, 58.7, 26, '700')
+  drawCenterText((v as any).participationMarks ?? '', colCenterX, 62.5, 26, '700')
+  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, 66.3, 26, '700')
 
-  // Grand Total Row
-  ctx.fillStyle = '#dcd9d4'
-  ctx.fillRect(contentLeft, currentY, contentWidth, rowHeight)
-  ctx.strokeRect(contentLeft, currentY, contentWidth, rowHeight)
-
-  const calcTotalScore = componentsList.reduce((sum, item) => sum + (parseFloat(String(item.obt)) || 0), 0)
+  // Grand Total
+  const componentsList = [
+    (v as any).listeningMarks ?? v.midtermObtained ?? 0,
+    (v as any).speakingMarks ?? v.finalObtained ?? 0,
+    (v as any).readingMarks ?? v.attendanceObtained ?? 0,
+    (v as any).writingMarks ?? v.participationObtained ?? 0,
+    (v as any).grammarMarks ?? v.disciplineObtained ?? 0,
+    (v as any).attendanceMarks ?? 0,
+    (v as any).participationMarks ?? 0,
+    (v as any).disciplineMarks ?? 0
+  ]
+  const calcTotalScore = componentsList.reduce((sum: number, item) => sum + (parseFloat(String(item)) || 0), 0)
   const displayScore = (v as any).totalScore !== undefined && (v as any).totalScore !== '' ? String((v as any).totalScore) : String(calcTotalScore)
+  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, 70.1, 27, '900')
 
-  ctx.fillStyle = '#000000'
-  ctx.font = '900 18px Montserrat, sans-serif'
-  ctx.textAlign = 'left'
-  ctx.fillText('GRAND TOTAL', contentLeft + 20, currentY + 26)
-
-  ctx.textAlign = 'center'
-  ctx.fillText('600', contentLeft + contentWidth * 0.55, currentY + 26)
-  ctx.fillText(displayScore !== '0' ? displayScore : '', contentLeft + contentWidth * 0.82, currentY + 26)
-
-  // 5. ACADEMIC STANDING Section
-  const standingTopY = currentY + rowHeight + 40
-  ctx.fillStyle = '#000000'
-  ctx.font = '800 22px Montserrat, sans-serif'
-  ctx.textAlign = 'left'
-  ctx.fillText('ACADEMIC STANDING', contentLeft, standingTopY)
-
-  const standingGridY = standingTopY + 35
-  const col1X = contentLeft
-  const col2X = contentLeft + contentWidth * 0.5
-
+  // Academic Standing
   const calcPct = calcTotalScore > 0 ? ((calcTotalScore / 600) * 100).toFixed(1) + '%' : ''
   const tlaGrade = getTLAGrading(calcTotalScore > 0 ? (calcTotalScore / 600) * 100 : 0)
 
-  ctx.font = '600 20px Montserrat, sans-serif'
-  ctx.fillText(`Total Score:  ${displayScore}`, col1X, standingGridY)
-  ctx.fillText(`Percentage:  ${v.percentage || calcPct}`, col2X, standingGridY)
-
-  ctx.fillText(`Final Grade:  ${v.grade || tlaGrade.grade}`, col1X, standingGridY + 40)
-  ctx.fillText(`Remarks:  ${v.comments || tlaGrade.remark}`, col2X, standingGridY + 40)
-
-  // 6. Certification Paragraph
-  const certY = standingGridY + 110
-  const certText = isL6
-    ? 'This transcript certifies that the student has completed Level Six of the English Language Program at The Learners Academy. The grades and evaluations recorded herein reflect the student’s performance in the assessed components during the stated period of study.'
-    : 'This transcript certifies that the student has completed the Advanced Level of the English Language Program at The Learners Academy. The grades and evaluations recorded herein reflect the student’s performance in the assessed components during the stated period of study.'
-
-  ctx.fillStyle = '#334155'
-  ctx.font = '500 16px Montserrat, sans-serif'
-  
-  // Wrap paragraph lines cleanly
-  const words = certText.split(' ')
-  let line = ''
-  let py = certY
-  words.forEach(w => {
-    const testLine = line + w + ' '
-    if (ctx.measureText(testLine).width > contentWidth && line !== '') {
-      ctx.fillText(line, contentLeft, py)
-      line = w + ' '
-      py += 24
-    } else {
-      line = testLine
-    }
-  })
-  if (line) ctx.fillText(line, contentLeft, py)
-
-  // 7. Signatures
-  const sigY = H - 100
-  ctx.strokeStyle = '#94a3b8'
-  ctx.beginPath()
-  ctx.moveTo(contentLeft + 50, sigY)
-  ctx.lineTo(contentLeft + 250, sigY)
-  ctx.moveTo(contentLeft + contentWidth - 250, sigY)
-  ctx.lineTo(contentLeft + contentWidth - 50, sigY)
-  ctx.stroke()
-
-  ctx.fillStyle = '#1e293b'
-  ctx.font = '600 16px Montserrat, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('Executive Director', contentLeft + 150, sigY + 25)
-  ctx.fillText(isL6 ? 'Instructor, Level Six' : 'Instructor, Level Advanced', contentLeft + contentWidth - 150, sigY + 25)
-
-  // 8. Bottom Address Bar
-  ctx.fillStyle = '#061447'
-  ctx.fillRect(0, H - 35, W, 35)
-
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '800 13px Montserrat, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('THE LEARNERS ACADEMY | ALAMDAR ROAD, QUETTA, PAKISTAN | +92 300 3883286 | +92 311 5455533', W / 2, H - 13)
+  drawLeftText(displayScore !== '0' ? displayScore : '', 41.0, 76.9, 24, '700')
+  drawLeftText(v.percentage || calcPct, 65.0, 76.9, 24, '700')
+  drawLeftText(v.grade || tlaGrade.grade, 41.0, 79.6, 24, '700')
+  drawLeftText(v.comments || tlaGrade.remark, 63.0, 79.6, 23, '700')
 
   return canvas
 }

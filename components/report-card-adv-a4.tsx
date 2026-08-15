@@ -144,38 +144,43 @@ export function ReportCardAdvA4({
       style={{
         width: '210mm',
         height: '297mm',
+        backgroundImage: 'url("/5.jpg.jpeg")',
+        backgroundSize: '100% 100%',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         boxSizing: 'border-box',
-        color: '#000000',
-        fontFamily: "'Montserrat', 'Inter', sans-serif"
+        color: '#000000'
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@1,400;1,600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
 
-        .adv-input-field {
-          background: rgba(14, 165, 233, 0.03);
+        .adv-overlay-input {
+          position: absolute;
+          background: rgba(14, 165, 233, 0.04);
           border: 1px dashed rgba(14, 165, 233, 0.3);
           outline: none;
           color: #000;
-          font-family: inherit;
+          font-family: 'Montserrat', sans-serif;
+          font-weight: 500;
           transition: all 0.15s ease;
           border-radius: 2px;
           padding: 0 4px;
         }
 
-        .adv-input-field:hover:not(:disabled) {
+        .adv-overlay-input:hover:not(:disabled) {
           background: rgba(14, 165, 233, 0.08);
           border-color: rgba(14, 165, 233, 0.6);
         }
 
-        .adv-input-field:focus:not(:disabled) {
+        .adv-overlay-input:focus:not(:disabled) {
           background: rgba(14, 165, 233, 0.12);
           border: 1.5px solid #0284c7;
           box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
         }
 
         @media print {
-          .adv-input-field {
+          .adv-overlay-input {
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
@@ -188,327 +193,174 @@ export function ReportCardAdvA4({
         }
       ` }} />
 
-      {/* Main Layout Container */}
-      <div className="flex h-full w-full relative">
-        
-        {/* Left Dark Navy Banner */}
-        <div className="w-[17%] bg-[#061447] h-full relative flex items-center justify-center shrink-0">
-          <div className="transform -rotate-90 whitespace-nowrap text-white font-extrabold text-[42px] tracking-[0.25em] uppercase select-none">
-            ACADEMIC TRANSCRIPT
-          </div>
-        </div>
+      {/* STUDENT INFORMATION OVERLAYS */}
+      <input
+        type="text"
+        value={values.studentName}
+        onChange={e => handleValueChange('studentName', e.target.value)}
+        disabled={readOnly}
+        placeholder="Enter Student Name"
+        className="adv-overlay-input font-medium"
+        style={{ top: '20.6%', left: '37.5%', width: '56%', height: '2.2%', fontSize: '15px' }}
+      />
 
-        {/* Right Content Area */}
-        <div className="w-[83%] h-full flex flex-col justify-between pt-10 pb-4 px-12 relative bg-white">
+      <input
+        type="text"
+        value={values.fatherName || ''}
+        onChange={e => handleValueChange('fatherName', e.target.value)}
+        disabled={readOnly}
+        placeholder="Enter Father's Name"
+        className="adv-overlay-input font-medium"
+        style={{ top: '22.6%', left: '42.5%', width: '51%', height: '2.2%', fontSize: '15px' }}
+      />
 
-          {/* Header Section */}
-          <div className="flex flex-col items-start gap-1">
-            <div className="flex items-center gap-4">
-              <img 
-                src="/Logo.jpg.jpeg" 
-                alt="Logo" 
-                className="w-16 h-20 object-contain"
-              />
-              <div className="flex flex-col">
-                <span className="text-[#0e294b] font-medium text-lg leading-tight">The</span>
-                <span className="text-[#0a3875] font-black text-4xl tracking-wider uppercase leading-none">
-                  LEARNERS
-                </span>
-                <span className="text-[#0e294b] font-semibold text-lg leading-tight">Academy</span>
-                <span className="text-[#092b5a] font-bold text-base mt-1">
-                  English Language Program
-                </span>
-              </div>
-            </div>
-            <div className="pl-20 mt-1">
-              <span className="font-serif italic text-[#3b82f6] text-xl tracking-wide" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-                Join To Learn
-              </span>
-            </div>
-          </div>
+      <input
+        type="text"
+        value={values.programLevel || 'Advanced'}
+        onChange={e => handleValueChange('programLevel', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input font-medium"
+        style={{ top: '24.6%', left: '53.5%', width: '40%', height: '2.2%', fontSize: '15px' }}
+      />
 
-          {/* Student Information Section */}
-          <div className="mt-6">
-            <h2 className="text-[#000000] font-extrabold text-lg tracking-wide uppercase mb-3">
-              STUDENT INFORMATION
-            </h2>
+      <input
+        type="text"
+        value={values.dateOfCompletion || ''}
+        onChange={e => handleValueChange('dateOfCompletion', e.target.value)}
+        disabled={readOnly}
+        placeholder="e.g. August 2026"
+        className="adv-overlay-input font-medium"
+        style={{ top: '26.6%', left: '49.5%', width: '44%', height: '2.2%', fontSize: '15px' }}
+      />
 
-            <div className="grid grid-cols-[160px_1fr] gap-y-2 text-base font-semibold text-slate-800 items-center">
-              <div>Name:</div>
-              <div>
-                <input
-                  type="text"
-                  value={values.studentName}
-                  onChange={e => handleValueChange('studentName', e.target.value)}
-                  disabled={readOnly}
-                  placeholder="Enter Student Name"
-                  className="adv-input-field w-full text-base font-bold"
-                />
-              </div>
+      <input
+        type="text"
+        value={values.transcriptNo || defaultTranscriptNo}
+        onChange={e => handleValueChange('transcriptNo', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input font-medium"
+        style={{ top: '28.6%', left: '53.5%', width: '40%', height: '2.2%', fontSize: '15px' }}
+      />
 
-              <div>Father's Name:</div>
-              <div>
-                <input
-                  type="text"
-                  value={values.fatherName || ''}
-                  onChange={e => handleValueChange('fatherName', e.target.value)}
-                  disabled={readOnly}
-                  placeholder="Enter Father's Name"
-                  className="adv-input-field w-full text-base font-bold"
-                />
-              </div>
+      {/* OBTAINED MARKS OVERLAYS */}
+      <input
+        type="text"
+        value={values.listeningMarks ?? ''}
+        onChange={e => handleValueChange('listeningMarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-bold"
+        style={{ top: '38.0%', left: '75.5%', width: '18.5%', height: '3.4%', fontSize: '16px' }}
+      />
 
-              <div>Program / Level:</div>
-              <div>
-                <input
-                  type="text"
-                  value={values.programLevel || 'Advanced'}
-                  onChange={e => handleValueChange('programLevel', e.target.value)}
-                  disabled={readOnly}
-                  className="adv-input-field w-full text-base font-normal text-slate-900"
-                />
-              </div>
+      <input
+        type="text"
+        value={values.speakingMarks ?? ''}
+        onChange={e => handleValueChange('speakingMarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-bold"
+        style={{ top: '41.8%', left: '75.5%', width: '18.5%', height: '3.4%', fontSize: '16px' }}
+      />
 
-              <div>Date of Completion:</div>
-              <div>
-                <input
-                  type="text"
-                  value={values.dateOfCompletion || ''}
-                  onChange={e => handleValueChange('dateOfCompletion', e.target.value)}
-                  disabled={readOnly}
-                  placeholder="e.g. August 2026"
-                  className="adv-input-field w-full text-base font-normal text-slate-900"
-                />
-              </div>
+      <input
+        type="text"
+        value={values.readingMarks ?? ''}
+        onChange={e => handleValueChange('readingMarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-bold"
+        style={{ top: '45.6%', left: '75.5%', width: '18.5%', height: '3.4%', fontSize: '16px' }}
+      />
 
-              <div>Transcript No.:</div>
-              <div>
-                <input
-                  type="text"
-                  value={values.transcriptNo || defaultTranscriptNo}
-                  onChange={e => handleValueChange('transcriptNo', e.target.value)}
-                  disabled={readOnly}
-                  className="adv-input-field w-full text-base font-normal text-slate-900 tracking-normal"
-                />
-              </div>
-            </div>
-          </div>
+      <input
+        type="text"
+        value={values.writingMarks ?? ''}
+        onChange={e => handleValueChange('writingMarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-bold"
+        style={{ top: '49.4%', left: '75.5%', width: '18.5%', height: '3.4%', fontSize: '16px' }}
+      />
 
-          {/* Performance Summary Table */}
-          <div className="mt-4">
-            <h2 className="text-[#000000] font-extrabold text-lg tracking-wide uppercase mb-3">
-              PERFORMANCE SUMMARY
-            </h2>
+      <input
+        type="text"
+        value={values.grammarMarks ?? ''}
+        onChange={e => handleValueChange('grammarMarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-bold"
+        style={{ top: '53.2%', left: '75.5%', width: '18.5%', height: '3.4%', fontSize: '16px' }}
+      />
 
-            <table className="w-full border-collapse border border-slate-900 text-sm">
-              <thead>
-                <tr className="bg-[#041549] text-white text-xs font-extrabold tracking-wider uppercase">
-                  <th className="border border-slate-900 py-2.5 px-4 text-left w-[45%]">ASSESSMENT COMPONENTS</th>
-                  <th className="border border-slate-900 py-2.5 px-4 text-center w-[25%]">TOTAL MARKS</th>
-                  <th className="border border-slate-900 py-2.5 px-4 text-center w-[30%]">OBTAINED MARKS</th>
-                </tr>
-              </thead>
-              <tbody className="font-bold text-slate-900">
-                <tr>
-                  <td className="border border-slate-900 py-2 px-4 font-bold">Listening</td>
-                  <td className="border border-slate-900 py-2 px-4 text-center font-extrabold">100</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={values.listeningMarks ?? ''}
-                      onChange={e => handleValueChange('listeningMarks', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-bold"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-900 py-2 px-4 font-bold">Speaking</td>
-                  <td className="border border-slate-900 py-2 px-4 text-center font-extrabold">100</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={values.speakingMarks ?? ''}
-                      onChange={e => handleValueChange('speakingMarks', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-bold"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-900 py-2 px-4 font-bold">Reading</td>
-                  <td className="border border-slate-900 py-2 px-4 text-center font-extrabold">100</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={values.readingMarks ?? ''}
-                      onChange={e => handleValueChange('readingMarks', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-bold"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-900 py-2 px-4 font-bold">Writing</td>
-                  <td className="border border-slate-900 py-2 px-4 text-center font-extrabold">100</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={values.writingMarks ?? ''}
-                      onChange={e => handleValueChange('writingMarks', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-bold"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-900 py-2 px-4 font-bold">Grammar</td>
-                  <td className="border border-slate-900 py-2 px-4 text-center font-extrabold">100</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={values.grammarMarks ?? ''}
-                      onChange={e => handleValueChange('grammarMarks', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-bold"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-900 py-2 px-4 font-bold">Attendance</td>
-                  <td className="border border-slate-900 py-2 px-4 text-center font-extrabold">60</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={values.attendanceMarks ?? ''}
-                      onChange={e => handleValueChange('attendanceMarks', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-bold"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-900 py-2 px-4 font-bold">Participation</td>
-                  <td className="border border-slate-900 py-2 px-4 text-center font-extrabold">30</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={values.participationMarks ?? ''}
-                      onChange={e => handleValueChange('participationMarks', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-bold"
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-900 py-2 px-4 font-bold">Discipline</td>
-                  <td className="border border-slate-900 py-2 px-4 text-center font-extrabold">10</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={values.disciplineMarks ?? ''}
-                      onChange={e => handleValueChange('disciplineMarks', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-bold"
-                    />
-                  </td>
-                </tr>
-                <tr className="bg-[#dcd9d4] text-slate-950 font-black">
-                  <td className="border border-slate-900 py-2.5 px-4 tracking-wider uppercase font-black">GRAND TOTAL</td>
-                  <td className="border border-slate-900 py-2.5 px-4 text-center font-black text-base">600</td>
-                  <td className="border border-slate-900 py-1 px-2 text-center">
-                    <input
-                      type="text"
-                      value={displayTotalScore}
-                      onChange={e => handleValueChange('totalScore', e.target.value)}
-                      disabled={readOnly}
-                      className="adv-input-field w-24 text-center font-black text-base"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <input
+        type="text"
+        value={values.attendanceMarks ?? ''}
+        onChange={e => handleValueChange('attendanceMarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-bold"
+        style={{ top: '57.0%', left: '75.5%', width: '18.5%', height: '3.4%', fontSize: '16px' }}
+      />
 
-          {/* Academic Standing Section */}
-          <div className="mt-4">
-            <h2 className="text-[#000000] font-extrabold text-lg tracking-wide uppercase mb-2">
-              ACADEMIC STANDING
-            </h2>
+      <input
+        type="text"
+        value={values.participationMarks ?? ''}
+        onChange={e => handleValueChange('participationMarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-bold"
+        style={{ top: '60.8%', left: '75.5%', width: '18.5%', height: '3.4%', fontSize: '16px' }}
+      />
 
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-base font-semibold text-slate-900">
-              <div className="flex items-center gap-2">
-                <span className="min-w-[100px]">Total Score:</span>
-                <input
-                  type="text"
-                  value={displayTotalScore}
-                  onChange={e => handleValueChange('totalScore', e.target.value)}
-                  disabled={readOnly}
-                  className="adv-input-field w-full font-bold"
-                />
-              </div>
+      <input
+        type="text"
+        value={values.disciplineMarks ?? ''}
+        onChange={e => handleValueChange('disciplineMarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-bold"
+        style={{ top: '64.6%', left: '75.5%', width: '18.5%', height: '3.4%', fontSize: '16px' }}
+      />
 
-              <div className="flex items-center gap-2">
-                <span className="min-w-[100px]">Percentage:</span>
-                <input
-                  type="text"
-                  value={displayPercentage}
-                  onChange={e => handleValueChange('percentage', e.target.value)}
-                  disabled={readOnly}
-                  className="adv-input-field w-full font-bold"
-                />
-              </div>
+      {/* GRAND TOTAL OBTAINED OVERLAY */}
+      <input
+        type="text"
+        value={displayTotalScore}
+        onChange={e => handleValueChange('totalScore', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input text-center font-black"
+        style={{ top: '68.4%', left: '75.5%', width: '18.5%', height: '3.6%', fontSize: '17px' }}
+      />
 
-              <div className="flex items-center gap-2">
-                <span className="min-w-[100px]">Final Grade:</span>
-                <input
-                  type="text"
-                  value={displayGrade}
-                  onChange={e => handleValueChange('finalGrade', e.target.value)}
-                  disabled={readOnly}
-                  className="adv-input-field w-full font-bold"
-                />
-              </div>
+      {/* ACADEMIC STANDING OVERLAYS */}
+      <input
+        type="text"
+        value={displayTotalScore}
+        onChange={e => handleValueChange('totalScore', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input font-bold"
+        style={{ top: '75.8%', left: '41.0%', width: '12%', height: '2.2%', fontSize: '15px' }}
+      />
 
-              <div className="flex items-center gap-2">
-                <span className="min-w-[100px]">Remarks:</span>
-                <input
-                  type="text"
-                  value={displayRemarks}
-                  onChange={e => handleValueChange('remarks', e.target.value)}
-                  disabled={readOnly}
-                  className="adv-input-field w-full font-bold"
-                />
-              </div>
-            </div>
-          </div>
+      <input
+        type="text"
+        value={displayPercentage}
+        onChange={e => handleValueChange('percentage', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input font-bold"
+        style={{ top: '75.8%', left: '65.0%', width: '28%', height: '2.2%', fontSize: '15px' }}
+      />
 
-          {/* Certification Paragraph */}
-          <div className="mt-4 text-xs font-medium text-slate-800 leading-relaxed">
-            This transcript certifies that the student has completed the Advanced Level of the English Language Program at The Learners Academy. The grades and evaluations recorded herein reflect the student’s performance in the assessed components during the stated period of study.
-          </div>
+      <input
+        type="text"
+        value={displayGrade}
+        onChange={e => handleValueChange('finalGrade', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input font-bold"
+        style={{ top: '78.5%', left: '41.0%', width: '12%', height: '2.2%', fontSize: '15px' }}
+      />
 
-          {/* Signatures & Footer Banner */}
-          <div className="mt-8 flex flex-col gap-4">
-            <div className="flex justify-between items-end px-4">
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-48 border-b border-slate-400"></div>
-                <span className="text-xs font-semibold text-slate-800">Executive Director</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-48 border-b border-slate-400"></div>
-                <span className="text-xs font-semibold text-slate-800">Instructor, Level Advanced</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Bottom Full Width Address Bar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-[#061447] text-white py-1.5 text-[10px] font-extrabold tracking-widest text-center uppercase z-10">
-        THE LEARNERS ACADEMY | ALAMDAR ROAD, QUETTA, PAKISTAN | +92 300 3883286 | +92 311 5455533
-      </div>
+      <input
+        type="text"
+        value={displayRemarks}
+        onChange={e => handleValueChange('remarks', e.target.value)}
+        disabled={readOnly}
+        className="adv-overlay-input font-bold"
+        style={{ top: '78.5%', left: '63.0%', width: '32%', height: '2.2%', fontSize: '14px' }}
+      />
     </div>
   )
 }
