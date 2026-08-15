@@ -265,7 +265,7 @@ export function ReportCardAdvA4({
                   value={values.programLevel || 'Advanced'}
                   onChange={e => handleValueChange('programLevel', e.target.value)}
                   disabled={readOnly}
-                  className="adv-input-field w-full text-base font-extrabold"
+                  className="adv-input-field w-full text-base font-normal text-slate-900"
                 />
               </div>
 
@@ -277,7 +277,7 @@ export function ReportCardAdvA4({
                   onChange={e => handleValueChange('dateOfCompletion', e.target.value)}
                   disabled={readOnly}
                   placeholder="e.g. August 2026"
-                  className="adv-input-field w-full text-base font-bold"
+                  className="adv-input-field w-full text-base font-normal text-slate-900"
                 />
               </div>
 
@@ -288,7 +288,7 @@ export function ReportCardAdvA4({
                   value={values.transcriptNo || defaultTranscriptNo}
                   onChange={e => handleValueChange('transcriptNo', e.target.value)}
                   disabled={readOnly}
-                  className="adv-input-field w-full text-base font-black tracking-wide"
+                  className="adv-input-field w-full text-base font-normal text-slate-900 tracking-normal"
                 />
               </div>
             </div>
