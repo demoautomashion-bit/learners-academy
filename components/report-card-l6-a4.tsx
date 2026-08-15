@@ -144,14 +144,19 @@ export function ReportCardL6A4({
       style={{
         width: '210mm',
         height: '297mm',
-        backgroundImage: 'url("/4.jpg.jpeg")',
-        backgroundSize: '100% 100%',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
         boxSizing: 'border-box',
         color: '#000000'
       }}
     >
+      {/* Background Template Image */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/4.jpg.jpeg"
+        alt="Level Six Academic Transcript Template"
+        className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+        crossOrigin="anonymous"
+      />
+
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
 
