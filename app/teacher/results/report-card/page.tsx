@@ -161,20 +161,31 @@ async function renderStudentCanvas(
   const bgSource = isL6 ? "/4.jpg.jpeg" : "/5.jpg.jpeg"
 
   // 1. Draw Template Image Background
-  await new Promise<void>((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, W, H)
-      resolve()
-    }
-    img.onerror = reject
-    img.src = bgSource
-  })
+  try {
+    await new Promise<void>((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, W, H)
+        resolve()
+      }
+      img.onerror = () => {
+        // Fallback: draw plain white background if local image fails
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, W, H)
+        resolve()
+      }
+      img.src = bgSource
+    })
+  } catch (e) {
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, W, H)
+  }
 
-  // Load font
-  await document.fonts.load('bold 26px "Montserrat"')
-  await document.fonts.load('500 24px "Montserrat"')
+  // Load font safely
+  try {
+    await document.fonts.load('bold 26px "Montserrat"')
+    await document.fonts.load('500 24px "Montserrat"')
+  } catch (e) {}
 
   const drawLeftText = (text: string, xPct: number, yPct: number, fontSize = 24, weight = '500') => {
     if (!text) return
