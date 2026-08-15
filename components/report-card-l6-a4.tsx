@@ -201,7 +201,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Enter Student Name"
         className="l6-overlay-input font-medium"
-        style={{ top: '20.4%', left: '36.8%', width: '57%', height: '2.1%', fontSize: '15px' }}
+        style={{ top: '19.8%', left: '37.0%', width: '55%', height: '1.8%', fontSize: '14px' }}
       />
 
       <input
@@ -211,16 +211,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Enter Father's Name"
         className="l6-overlay-input font-medium"
-        style={{ top: '22.3%', left: '43.5%', width: '50%', height: '2.1%', fontSize: '15px' }}
-      />
-
-      <input
-        type="text"
-        value={values.programLevel || 'Level Six'}
-        onChange={e => handleValueChange('programLevel', e.target.value)}
-        disabled={readOnly}
-        className="l6-overlay-input font-medium"
-        style={{ top: '24.2%', left: '53.8%', width: '40%', height: '2.1%', fontSize: '15px' }}
+        style={{ top: '21.8%', left: '43.0%', width: '49%', height: '1.8%', fontSize: '14px' }}
       />
 
       <input
@@ -230,7 +221,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="e.g. August 2026"
         className="l6-overlay-input font-medium"
-        style={{ top: '26.1%', left: '50.0%', width: '44%', height: '2.1%', fontSize: '15px' }}
+        style={{ top: '25.8%', left: '49.0%', width: '43%', height: '1.8%', fontSize: '14px' }}
       />
 
       <input
@@ -239,7 +230,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('transcriptNo', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-medium"
-        style={{ top: '28.0%', left: '53.8%', width: '40%', height: '2.1%', fontSize: '15px' }}
+        style={{ top: '27.8%', left: '61.5%', width: '32%', height: '1.8%', fontSize: '14px' }}
       />
 
       {/* OBTAINED MARKS OVERLAYS */}
@@ -249,7 +240,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('listeningMarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-bold"
-        style={{ top: '38.0%', left: '75.8%', width: '18.2%', height: '3.4%', fontSize: '16px' }}
+        style={{ top: '37.6%', left: '75.8%', width: '17.5%', height: '3.1%', fontSize: '15px' }}
       />
 
       <input
@@ -258,7 +249,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('speakingMarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-bold"
-        style={{ top: '41.8%', left: '75.8%', width: '18.2%', height: '3.4%', fontSize: '16px' }}
+        style={{ top: '41.4%', left: '75.8%', width: '17.5%', height: '3.1%', fontSize: '15px' }}
       />
 
       <input
@@ -267,7 +258,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('readingMarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-bold"
-        style={{ top: '45.6%', left: '75.8%', width: '18.2%', height: '3.4%', fontSize: '16px' }}
+        style={{ top: '45.2%', left: '75.8%', width: '17.5%', height: '3.1%', fontSize: '15px' }}
       />
 
       <input
@@ -276,7 +267,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('writingMarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-bold"
-        style={{ top: '49.4%', left: '75.8%', width: '18.2%', height: '3.4%', fontSize: '16px' }}
+        style={{ top: '49.0%', left: '75.8%', width: '17.5%', height: '3.1%', fontSize: '15px' }}
       />
 
       <input
@@ -285,7 +276,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('grammarMarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-bold"
-        style={{ top: '53.2%', left: '75.8%', width: '18.2%', height: '3.4%', fontSize: '16px' }}
+        style={{ top: '52.8%', left: '75.8%', width: '17.5%', height: '3.1%', fontSize: '15px' }}
       />
 
       <input
@@ -294,7 +285,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('attendanceMarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-bold"
-        style={{ top: '57.0%', left: '75.8%', width: '18.2%', height: '3.4%', fontSize: '16px' }}
+        style={{ top: '56.6%', left: '75.8%', width: '17.5%', height: '3.1%', fontSize: '15px' }}
       />
 
       <input
@@ -303,7 +294,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('participationMarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-bold"
-        style={{ top: '60.8%', left: '75.8%', width: '18.2%', height: '3.4%', fontSize: '16px' }}
+        style={{ top: '60.4%', left: '75.8%', width: '17.5%', height: '3.1%', fontSize: '15px' }}
       />
 
       <input
@@ -312,7 +303,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('disciplineMarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-bold"
-        style={{ top: '64.6%', left: '75.8%', width: '18.2%', height: '3.4%', fontSize: '16px' }}
+        style={{ top: '64.2%', left: '75.8%', width: '17.5%', height: '3.1%', fontSize: '15px' }}
       />
 
       {/* GRAND TOTAL OBTAINED OVERLAY */}
@@ -322,7 +313,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('totalScore', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input text-center font-black"
-        style={{ top: '68.4%', left: '75.8%', width: '18.2%', height: '3.6%', fontSize: '17px' }}
+        style={{ top: '68.0%', left: '75.8%', width: '17.5%', height: '3.2%', fontSize: '16px' }}
       />
 
       {/* ACADEMIC STANDING OVERLAYS */}
@@ -332,7 +323,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('totalScore', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-bold"
-        style={{ top: '75.5%', left: '41.2%', width: '12%', height: '2.1%', fontSize: '15px' }}
+        style={{ top: '74.8%', left: '40.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -341,7 +332,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('percentage', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-bold"
-        style={{ top: '75.5%', left: '65.5%', width: '28%', height: '2.1%', fontSize: '15px' }}
+        style={{ top: '74.8%', left: '64.5%', width: '28%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -350,7 +341,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('finalGrade', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-bold"
-        style={{ top: '78.3%', left: '41.2%', width: '12%', height: '2.1%', fontSize: '15px' }}
+        style={{ top: '77.6%', left: '40.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -359,7 +350,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('remarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-bold"
-        style={{ top: '78.3%', left: '63.5%', width: '31%', height: '2.1%', fontSize: '14px' }}
+        style={{ top: '77.6%', left: '62.5%', width: '31%', height: '1.9%', fontSize: '13px' }}
       />
     </div>
   )
