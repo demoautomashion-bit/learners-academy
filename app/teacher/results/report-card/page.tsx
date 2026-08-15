@@ -37,6 +37,7 @@ import {
 import { toast } from 'sonner'
 import { jsPDF } from 'jspdf'
 import JSZip from 'jszip'
+import html2canvas from 'html2canvas'
 
 // ─────────────────────────────────────────────
 // Types
