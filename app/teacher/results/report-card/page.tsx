@@ -23,8 +23,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ReportCard, ReportCardValues } from '@/components/report-card'
 import { ReportCardA5 } from '@/components/report-card-a5'
+import { ReportCardL6A4 } from '@/components/report-card-l6-a4'
+import { ReportCardAdvA4 } from '@/components/report-card-adv-a4'
 import { isStudentInCourse } from '@/lib/utils/student-matching'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { getTierForLevel } from '@/lib/utils/card-tiers'
@@ -1199,7 +1200,11 @@ function ReportCardGeneratorContent() {
         ) : (
           (() => {
             const currentTier = getTierForLevel(cardValues.level || '')
-            const isA5 = currentTier === 'pre-foundation-lvl-5'
+            const normLevel = (cardValues.level || '').toLowerCase().trim()
+            const isL6 = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel === 'level 6'
+            const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
+            const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
+
             const cardWidth = isA5 ? '210mm' : '210mm'
             const cardHeight = isA5 ? '148mm' : '297mm'
 
@@ -1213,7 +1218,59 @@ function ReportCardGeneratorContent() {
                   marginBottom: scale < 1 ? `calc(${cardHeight} * (${scale} - 1))` : '0px'
                 }}
               >
-                {isA5 ? (
+                {isL6 ? (
+                  <ReportCardL6A4
+                    key={selectedStudentId}
+                    initialValues={{
+                      studentName: cardValues.studentName,
+                      fatherName: cardValues.fatherName,
+                      programLevel: 'Level Six',
+                      listeningMarks: (cardValues as any).listeningMarks ?? cardValues.midtermObtained,
+                      speakingMarks: (cardValues as any).speakingMarks ?? cardValues.finalObtained,
+                      readingMarks: (cardValues as any).readingMarks ?? cardValues.attendanceObtained,
+                      writingMarks: (cardValues as any).writingMarks ?? cardValues.participationObtained,
+                      grammarMarks: (cardValues as any).grammarMarks ?? cardValues.disciplineObtained,
+                      attendanceMarks: (cardValues as any).attendanceMarks,
+                      participationMarks: (cardValues as any).participationMarks,
+                      disciplineMarks: (cardValues as any).disciplineMarks,
+                      totalScore: (cardValues as any).totalScore,
+                      percentage: cardValues.percentage,
+                      finalGrade: cardValues.grade,
+                      remarks: cardValues.comments
+                    }}
+                    cardRef={cardRef as React.RefObject<HTMLDivElement>}
+                    onChange={(newValues) => {
+                      isManuallyEdited.current = true
+                      setCardValues(prev => ({ ...prev, ...newValues, grade: newValues.finalGrade, comments: newValues.remarks }))
+                    }}
+                  />
+                ) : isAdv ? (
+                  <ReportCardAdvA4
+                    key={selectedStudentId}
+                    initialValues={{
+                      studentName: cardValues.studentName,
+                      fatherName: cardValues.fatherName,
+                      programLevel: 'Advanced',
+                      listeningMarks: (cardValues as any).listeningMarks ?? cardValues.midtermObtained,
+                      speakingMarks: (cardValues as any).speakingMarks ?? cardValues.finalObtained,
+                      readingMarks: (cardValues as any).readingMarks ?? cardValues.attendanceObtained,
+                      writingMarks: (cardValues as any).writingMarks ?? cardValues.participationObtained,
+                      grammarMarks: (cardValues as any).grammarMarks ?? cardValues.disciplineObtained,
+                      attendanceMarks: (cardValues as any).attendanceMarks,
+                      participationMarks: (cardValues as any).participationMarks,
+                      disciplineMarks: (cardValues as any).disciplineMarks,
+                      totalScore: (cardValues as any).totalScore,
+                      percentage: cardValues.percentage,
+                      finalGrade: cardValues.grade,
+                      remarks: cardValues.comments
+                    }}
+                    cardRef={cardRef as React.RefObject<HTMLDivElement>}
+                    onChange={(newValues) => {
+                      isManuallyEdited.current = true
+                      setCardValues(prev => ({ ...prev, ...newValues, grade: newValues.finalGrade, comments: newValues.remarks }))
+                    }}
+                  />
+                ) : isA5 ? (
                   <ReportCardA5
                     key={selectedStudentId}
                     initialValues={cardValues}
