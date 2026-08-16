@@ -205,8 +205,8 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('studentName', e.target.value)}
         disabled={readOnly}
         placeholder="Enter Student Name"
-        className="l6-overlay-input font-medium"
-        style={{ top: '19.5%', left: '37.0%', width: '55%', height: '1.9%', fontSize: '14px' }}
+        className="l6-overlay-input font-bold"
+        style={{ top: '19.5%', left: '37.5%', width: '54.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -215,8 +215,8 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('fatherName', e.target.value)}
         disabled={readOnly}
         placeholder="Enter Father's Name"
-        className="l6-overlay-input font-medium"
-        style={{ top: '21.5%', left: '45.0%', width: '47%', height: '1.9%', fontSize: '14px' }}
+        className="l6-overlay-input font-bold"
+        style={{ top: '21.5%', left: '46.2%', width: '45.8%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -225,8 +225,8 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('programLevel', e.target.value)}
         disabled={readOnly}
         placeholder="Program / Level"
-        className="l6-overlay-input font-medium"
-        style={{ top: '23.6%', left: '46.0%', width: '46%', height: '1.9%', fontSize: '14px' }}
+        className="l6-overlay-input font-bold"
+        style={{ top: '23.6%', left: '47.5%', width: '44.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -235,8 +235,8 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('dateOfCompletion', e.target.value)}
         disabled={readOnly}
         placeholder="e.g. August 2026"
-        className="l6-overlay-input font-medium"
-        style={{ top: '25.6%', left: '50.2%', width: '42%', height: '1.9%', fontSize: '14px' }}
+        className="l6-overlay-input font-bold"
+        style={{ top: '25.6%', left: '51.2%', width: '40.8%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -245,8 +245,8 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('transcriptNo', e.target.value)}
         disabled={readOnly}
         placeholder="Transcript No."
-        className="l6-overlay-input font-medium"
-        style={{ top: '27.7%', left: '45.0%', width: '47%', height: '1.9%', fontSize: '14px' }}
+        className="l6-overlay-input font-bold"
+        style={{ top: '27.7%', left: '46.0%', width: '46.0%', height: '1.9%', fontSize: '14px' }}
       />
 
       {/* OBTAINED MARKS OVERLAYS (Centered in 75.5% to 94% cell) */}

@@ -218,11 +218,11 @@ async function renderStudentCanvas(
   const dateY = isL6 ? 25.6 : 25.1
   const trY = isL6 ? 27.7 : 27.2
 
-  drawLeftText(v.studentName || studentName || '', 37.0, nameY, 24, '500')
-  drawLeftText(v.fatherName || '', 45.0, fatherY, 24, '500')
-  drawLeftText(v.level || (isL6 ? 'Level Six' : 'Advanced'), 46.0, progY, 24, '500')
-  drawLeftText(v.dateOfCompletion || v.dateOfIssue || '', 50.2, dateY, 24, '500')
-  drawLeftText((v as any).transcriptNo || defaultTrNo, 45.0, trY, 24, '500')
+  drawLeftText(v.studentName || studentName || '', 37.5, nameY, 24, '700')
+  drawLeftText(v.fatherName || '', 46.2, fatherY, 24, '700')
+  drawLeftText(v.level || (isL6 ? 'Level Six' : 'Advanced'), 47.5, progY, 24, '700')
+  drawLeftText(v.dateOfCompletion || v.dateOfIssue || '', 51.2, dateY, 24, '700')
+  drawLeftText((v as any).transcriptNo || defaultTrNo, 46.0, trY, 24, '700')
 
   // Obtained Marks Table (Column Center X = 84.7%)
   const colCenterX = 84.7
