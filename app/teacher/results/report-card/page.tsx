@@ -185,7 +185,7 @@ async function renderStudentCanvas(
   const customBg = customTpl?.backgroundUrl
   const bgSource = (customBg && customBg.startsWith('data:image/'))
     ? customBg
-    : (isL6 ? "/4.jpg.jpeg" : "/5.jpg.jpeg")
+    : (isL6 ? "/level-6-template.jpg" : "/level-advanced-template.jpg")
 
   // 1. Draw Template Background safely
   try {

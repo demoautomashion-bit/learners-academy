@@ -151,7 +151,7 @@ export function ReportCardAdvA4({
       {/* Background Template Image */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/5.jpg.jpeg"
+        src="/level-advanced-template.jpg"
         alt="Advanced Academic Transcript Template"
         className="absolute inset-0 w-full h-full object-fill pointer-events-none"
         crossOrigin="anonymous"

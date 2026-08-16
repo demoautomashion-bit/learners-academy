@@ -151,7 +151,7 @@ export function ReportCardL6A4({
       {/* Background Template Image */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/4.jpg.jpeg"
+        src="/level-6-template.jpg"
         alt="Level Six Academic Transcript Template"
         className="absolute inset-0 w-full h-full object-fill pointer-events-none"
         crossOrigin="anonymous"
