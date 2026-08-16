@@ -195,13 +195,18 @@ async function renderStudentCanvas(
     }
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
-        ctx.drawImage(img, 0, 0, W, H)
-        resolve()
+        try {
+          ctx.drawImage(img, 0, 0, W, H)
+          resolve()
+        } catch (drawErr: any) {
+          reject(new Error(`Canvas drawImage failed: ${drawErr?.message || drawErr}`))
+        }
       }
-      img.onerror = (err) => reject(err)
+      img.onerror = () => reject(new Error(`Failed to load background template image asset from "${bgSource}"`))
       img.src = bgSource
     })
-  } catch (e) {
+  } catch (e: any) {
+    console.error('renderStudentCanvas image loading warning:', e)
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, W, H)
   }
@@ -764,9 +769,10 @@ function ReportCardGeneratorContent() {
       }
 
       toast.success('PDF downloaded successfully!')
-    } catch (err) {
+    } catch (err: any) {
       console.error('PDF download error:', err)
-      toast.error('Failed to generate PDF. Please try again.')
+      const details = err?.message || String(err)
+      toast.error(`PDF Download Error: ${details}`, { duration: 10000 })
     } finally {
       setActiveDownload(null)
     }
@@ -806,9 +812,10 @@ function ReportCardGeneratorContent() {
       const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
       triggerDownload(dataUrl, `${name}-report-card.${format}`)
       toast.success(`${format.toUpperCase()} downloaded successfully!`)
-    } catch (err) {
-      console.error(err)
-      toast.error('Failed to generate image. Please try again.')
+    } catch (err: any) {
+      console.error('Image download error:', err)
+      const details = err?.message || String(err)
+      toast.error(`Image Download Error: ${details}`, { duration: 10000 })
     } finally {
       setActiveDownload(null)
     }
