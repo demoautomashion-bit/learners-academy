@@ -26,6 +26,7 @@ import {
 import { ReportCardA5 } from '@/components/report-card-a5'
 import { ReportCardL6A4 } from '@/components/report-card-l6-a4'
 import { ReportCardAdvA4 } from '@/components/report-card-adv-a4'
+import { generateTranscriptNumber } from '@/lib/utils/transcript-number'
 import { isStudentInCourse } from '@/lib/utils/student-matching'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
 import { getTierForLevel } from '@/lib/utils/card-tiers'
