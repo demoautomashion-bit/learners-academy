@@ -212,21 +212,29 @@ async function renderStudentCanvas(
 
   // Student Info Overlay Text
   const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', 1)
-  drawLeftText(v.studentName || studentName || '', 37.0, 20.7, 24, '500')
-  drawLeftText(v.fatherName || '', 43.0, 22.7, 24, '500')
-  drawLeftText(v.dateOfCompletion || v.dateOfIssue || '', 49.0, 26.7, 24, '500')
-  drawLeftText((v as any).transcriptNo || defaultTrNo, 61.5, 28.7, 24, '500')
+  const nameY = isL6 ? 20.3 : 19.7
+  const fatherY = isL6 ? 22.3 : 21.8
+  const dateY = isL6 ? 26.4 : 25.9
+  const trY = isL6 ? 28.5 : 28.0
 
-  // Obtained Marks Table (Column Center X = 84.5%)
-  const colCenterX = 84.5
-  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, 39.1, 25, '700')
-  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, 42.9, 25, '700')
-  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, 46.7, 25, '700')
-  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, 50.5, 25, '700')
-  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, 54.3, 25, '700')
-  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, 58.1, 25, '700')
-  drawCenterText((v as any).participationMarks ?? '', colCenterX, 61.9, 25, '700')
-  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, 65.7, 25, '700')
+  drawLeftText(v.studentName || studentName || '', 37.0, nameY, 24, '500')
+  drawLeftText(v.fatherName || '', 45.0, fatherY, 24, '500')
+  drawLeftText(v.dateOfCompletion || v.dateOfIssue || '', 50.2, dateY, 24, '500')
+  drawLeftText((v as any).transcriptNo || defaultTrNo, 45.0, trY, 24, '500')
+
+  // Obtained Marks Table (Column Center X = 84.7%)
+  const colCenterX = 84.7
+  const rowStart = isL6 ? 39.6 : 39.0
+  const rowGap = 3.8
+
+  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, rowStart, 25, '700')
+  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, rowStart + rowGap, 25, '700')
+  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, rowStart + rowGap * 2, 25, '700')
+  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, rowStart + rowGap * 3, 25, '700')
+  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, rowStart + rowGap * 4, 25, '700')
+  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, rowStart + rowGap * 5, 25, '700')
+  drawCenterText((v as any).participationMarks ?? '', colCenterX, rowStart + rowGap * 6, 25, '700')
+  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, rowStart + rowGap * 7, 25, '700')
 
   // Grand Total
   const componentsList = [
@@ -241,16 +249,19 @@ async function renderStudentCanvas(
   ]
   const calcTotalScore = componentsList.reduce((sum: number, item) => sum + (parseFloat(String(item)) || 0), 0)
   const displayScore = (v as any).totalScore !== undefined && (v as any).totalScore !== '' ? String((v as any).totalScore) : String(calcTotalScore)
-  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, 69.6, 26, '900')
+  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, rowStart + rowGap * 8, 26, '900')
 
   // Academic Standing
   const calcPct = calcTotalScore > 0 ? ((calcTotalScore / 600) * 100).toFixed(1) + '%' : ''
   const tlaGrade = getTLAGrading(calcTotalScore > 0 ? (calcTotalScore / 600) * 100 : 0)
 
-  drawLeftText(displayScore !== '0' ? displayScore : '', 40.5, 75.7, 23, '700')
-  drawLeftText(v.percentage || calcPct, 64.5, 75.7, 23, '700')
-  drawLeftText(v.grade || tlaGrade.grade, 40.5, 78.5, 23, '700')
-  drawLeftText(v.comments || tlaGrade.remark, 62.5, 78.5, 22, '700')
+  const standY1 = isL6 ? 75.7 : 74.5
+  const standY2 = isL6 ? 78.6 : 77.4
+
+  drawLeftText(displayScore !== '0' ? displayScore : '', 41.0, standY1, 23, '700')
+  drawLeftText(v.percentage || calcPct, 64.5, standY1, 23, '700')
+  drawLeftText(v.grade || tlaGrade.grade, 41.0, standY2, 23, '700')
+  drawLeftText(v.comments || tlaGrade.remark, 62.5, standY2, 22, '700')
 
   return canvas
 }
