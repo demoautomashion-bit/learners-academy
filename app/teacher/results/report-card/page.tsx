@@ -72,17 +72,38 @@ async function renderStudentCanvas(
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('Canvas 2D not supported')
 
-    // 1. Draw A5 Template Image
-    await new Promise<void>((resolve, reject) => {
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, W, H)
-        resolve()
+    // 1. Draw A5 Template Image via same-origin Blob to prevent canvas tainting
+    let a5ObjUrl: string | null = null
+    try {
+      const res = await fetch("/result-card-a5-template.png")
+      const blob = await res.blob()
+      a5ObjUrl = URL.createObjectURL(blob)
+
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image()
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, W, H)
+          resolve()
+        }
+        img.onerror = reject
+        img.src = a5ObjUrl!
+      })
+    } catch {
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, W, H)
+          resolve()
+        }
+        img.onerror = reject
+        img.src = "/result-card-a5-template.png"
+      })
+    } finally {
+      if (a5ObjUrl) {
+        URL.revokeObjectURL(a5ObjUrl)
       }
-      img.onerror = reject
-      img.src = "/result-card-a5-template.png"
-    })
+    }
 
     // Load Montserrat font for crisp output
     await document.fonts.load('bold 26px "Montserrat"')
@@ -161,25 +182,41 @@ async function renderStudentCanvas(
 
   const bgSource = isL6 ? "/4.jpg.jpeg" : "/5.jpg.jpeg"
 
-  // 1. Draw Template Image Background
+  // 1. Draw Template Image Background via same-origin Blob to prevent canvas tainting
+  let objectUrlToClean: string | null = null
   try {
-    await new Promise<void>((resolve) => {
+    const res = await fetch(bgSource)
+    const blob = await res.blob()
+    objectUrlToClean = URL.createObjectURL(blob)
+
+    await new Promise<void>((resolve, reject) => {
       const img = new Image()
       img.onload = () => {
         ctx.drawImage(img, 0, 0, W, H)
         resolve()
       }
-      img.onerror = () => {
-        // Fallback: draw plain white background if local image fails
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, 0, W, H)
-        resolve()
-      }
-      img.src = bgSource
+      img.onerror = reject
+      img.src = objectUrlToClean!
     })
   } catch (e) {
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, W, H)
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image()
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, W, H)
+          resolve()
+        }
+        img.onerror = reject
+        img.src = bgSource
+      })
+    } catch {
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, W, H)
+    }
+  } finally {
+    if (objectUrlToClean) {
+      URL.revokeObjectURL(objectUrlToClean)
+    }
   }
 
   // Load font safely
