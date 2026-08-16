@@ -242,17 +242,17 @@ async function renderStudentCanvas(
 
   // Student Info Overlay Text
   const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', 1)
-  const nameY = isL6 ? 19.5 : 18.9
-  const fatherY = isL6 ? 21.5 : 21.0
-  const progY = isL6 ? 23.6 : 23.0
-  const dateY = isL6 ? 25.6 : 25.1
-  const trY = isL6 ? 27.7 : 27.2
+  const nameY = isL6 ? 20.2 : 19.8
+  const fatherY = isL6 ? 22.3 : 21.9
+  const progY = isL6 ? 24.4 : 23.9
+  const dateY = isL6 ? 26.5 : 25.9
+  const trY = isL6 ? 28.6 : 27.9
 
-  drawLeftText(v.studentName || studentName || '', 37.5, nameY, 24, '700')
-  drawLeftText(v.fatherName || '', 46.2, fatherY, 24, '700')
-  drawLeftText(v.level || (isL6 ? 'Level Six' : 'Advanced'), 47.5, progY, 24, '700')
-  drawLeftText(v.dateOfCompletion || v.dateOfIssue || '', 51.2, dateY, 24, '700')
-  drawLeftText((v as any).transcriptNo || defaultTrNo, 46.0, trY, 24, '700')
+  drawLeftText(v.studentName || studentName || '', 36.5, nameY, 24, '700')
+  drawLeftText(v.fatherName || '', 42.5, fatherY, 24, '700')
+  drawLeftText(v.level || (isL6 ? 'Level Six' : 'Advanced'), 45.0, progY, 24, '700')
+  drawLeftText(v.dateOfCompletion || v.dateOfIssue || '', 49.5, dateY, 24, '700')
+  drawLeftText((v as any).transcriptNo || defaultTrNo, 43.0, trY, 24, '700')
 
   // Obtained Marks Table (Column Center X = 84.7%)
   const colCenterX = 84.7
@@ -281,19 +281,19 @@ async function renderStudentCanvas(
   ]
   const calcTotalScore = componentsList.reduce((sum: number, item) => sum + (parseFloat(String(item)) || 0), 0)
   const displayScore = (v as any).totalScore !== undefined && (v as any).totalScore !== '' ? String((v as any).totalScore) : String(calcTotalScore)
-  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, rowStart + rowGap * 8, 26, '900')
+  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, rowStart + rowGap * 8, 25, '700')
 
   // Academic Standing
   const calcPct = calcTotalScore > 0 ? ((calcTotalScore / 600) * 100).toFixed(1) + '%' : ''
   const tlaGrade = getTLAGrading(calcTotalScore > 0 ? (calcTotalScore / 600) * 100 : 0)
 
-  const standY1 = isL6 ? 75.7 : 74.5
-  const standY2 = isL6 ? 78.6 : 77.4
+  const standY1 = isL6 ? 76.0 : 74.8
+  const standY2 = isL6 ? 79.0 : 77.8
 
-  drawLeftText(displayScore !== '0' ? displayScore : '', 41.0, standY1, 23, '700')
-  drawLeftText(v.percentage || calcPct, 64.5, standY1, 23, '700')
-  drawLeftText(v.grade || tlaGrade.grade, 41.0, standY2, 23, '700')
-  drawLeftText(v.comments || tlaGrade.remark, 62.5, standY2, 22, '700')
+  drawLeftText(displayScore !== '0' ? displayScore : '', 43.5, standY1, 23, '700')
+  drawLeftText(v.percentage || calcPct, 66.5, standY1, 23, '700')
+  drawLeftText(v.grade || tlaGrade.grade, 43.5, standY2, 23, '700')
+  drawLeftText(v.comments || tlaGrade.remark, 64.5, standY2, 22, '700')
 
   return canvas
 }

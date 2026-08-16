@@ -206,7 +206,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Enter Student Name"
         className="l6-overlay-input font-bold"
-        style={{ top: '19.5%', left: '37.5%', width: '54.5%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '20.2%', left: '36.5%', width: '55.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -216,7 +216,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Enter Father's Name"
         className="l6-overlay-input font-bold"
-        style={{ top: '21.5%', left: '46.2%', width: '45.8%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '22.3%', left: '42.5%', width: '49.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -226,7 +226,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Program / Level"
         className="l6-overlay-input font-bold"
-        style={{ top: '23.6%', left: '47.5%', width: '44.5%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '24.4%', left: '45.0%', width: '47.0%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -236,7 +236,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="e.g. August 2026"
         className="l6-overlay-input font-bold"
-        style={{ top: '25.6%', left: '51.2%', width: '40.8%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '26.5%', left: '49.5%', width: '42.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -246,7 +246,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Transcript No."
         className="l6-overlay-input font-bold"
-        style={{ top: '27.7%', left: '46.0%', width: '46.0%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '28.6%', left: '43.0%', width: '49.0%', height: '1.9%', fontSize: '14px' }}
       />
 
       {/* OBTAINED MARKS OVERLAYS (Centered in 75.5% to 94% cell) */}
@@ -328,8 +328,8 @@ export function ReportCardL6A4({
         value={displayTotalScore}
         onChange={e => handleValueChange('totalScore', e.target.value)}
         disabled={readOnly}
-        className="l6-overlay-input text-center font-black"
-        style={{ top: '68.3%', left: '75.5%', width: '18.5%', height: '3.3%', fontSize: '16px' }}
+        className="l6-overlay-input text-center font-bold"
+        style={{ top: '68.3%', left: '75.5%', width: '18.5%', height: '3.3%', fontSize: '15px' }}
       />
 
       {/* ACADEMIC STANDING OVERLAYS */}
@@ -339,7 +339,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('totalScore', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-bold"
-        style={{ top: '74.9%', left: '41.0%', width: '12%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '76.0%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -348,7 +348,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('percentage', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-bold"
-        style={{ top: '74.9%', left: '64.5%', width: '28%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '76.0%', left: '66.5%', width: '26%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -357,7 +357,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('finalGrade', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-bold"
-        style={{ top: '77.8%', left: '41.0%', width: '12%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '79.0%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -366,7 +366,7 @@ export function ReportCardL6A4({
         onChange={e => handleValueChange('remarks', e.target.value)}
         disabled={readOnly}
         className="l6-overlay-input font-bold"
-        style={{ top: '77.8%', left: '62.5%', width: '31%', height: '1.9%', fontSize: '13px' }}
+        style={{ top: '79.0%', left: '64.5%', width: '29%', height: '1.9%', fontSize: '13px' }}
       />
     </div>
   )
