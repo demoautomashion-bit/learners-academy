@@ -221,6 +221,16 @@ export function ReportCardAdvA4({
 
       <input
         type="text"
+        value={values.programLevel || 'Advanced'}
+        onChange={e => handleValueChange('programLevel', e.target.value)}
+        disabled={readOnly}
+        placeholder="Program / Level"
+        className="adv-overlay-input font-medium"
+        style={{ top: '23.0%', left: '46.0%', width: '46%', height: '1.9%', fontSize: '14px' }}
+      />
+
+      <input
+        type="text"
         value={values.dateOfCompletion || ''}
         onChange={e => handleValueChange('dateOfCompletion', e.target.value)}
         disabled={readOnly}
@@ -229,26 +239,15 @@ export function ReportCardAdvA4({
         style={{ top: '25.1%', left: '50.2%', width: '42%', height: '1.9%', fontSize: '14px' }}
       />
 
-      {/* Transcript No: Static TLA-ADV- prefix + editable tail sequence */}
-      <div
-        className="absolute flex items-center font-medium"
+      <input
+        type="text"
+        value={values.transcriptNo || defaultTranscriptNo}
+        onChange={e => handleValueChange('transcriptNo', e.target.value)}
+        disabled={readOnly}
+        placeholder="Transcript No."
+        className="adv-overlay-input font-medium"
         style={{ top: '27.2%', left: '45.0%', width: '47%', height: '1.9%', fontSize: '14px' }}
-      >
-        <span className="text-black select-none pointer-events-none pr-0.5 font-semibold" style={{ fontSize: '14px', lineHeight: 1 }}>
-          TLA-ADV-
-        </span>
-        <input
-          type="text"
-          value={(values.transcriptNo || defaultTranscriptNo).replace(/^TLA-ADV-/i, '')}
-          onChange={e => {
-            const raw = e.target.value
-            handleValueChange('transcriptNo', raw.toUpperCase().startsWith('TLA-ADV-') ? raw : `TLA-ADV-${raw}`)
-          }}
-          disabled={readOnly}
-          className="adv-overlay-input font-medium flex-1 h-full"
-          style={{ fontSize: '14px', padding: '0 2px' }}
-        />
-      </div>
+      />
 
       {/* OBTAINED MARKS OVERLAYS (Centered in 75.5% to 94% cell) */}
       <input
