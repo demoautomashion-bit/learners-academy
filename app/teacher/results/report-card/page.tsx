@@ -285,6 +285,48 @@ function buildCardValues(
   )
 
   if (existingEval) {
+    const scoresObj = (existingEval.scores as Record<string, number>) || {}
+    const normLevel = (course.title || '').toLowerCase().trim()
+    const isL6OrAdv = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel.includes('advanced') || normLevel.includes('adv')
+
+    if (isL6OrAdv && Object.keys(scoresObj).length > 0) {
+      const listeningMarks = scoresObj.listening ?? existingEval.midterm ?? ''
+      const speakingMarks = scoresObj.speaking ?? existingEval.final ?? ''
+      const readingMarks = scoresObj.reading ?? existingEval.attendance ?? ''
+      const writingMarks = scoresObj.writing ?? existingEval.participation ?? ''
+      const grammarMarks = scoresObj.grammar ?? existingEval.discipline ?? ''
+      const attendanceMarks = scoresObj.attendance ?? ''
+      const participationMarks = scoresObj.participation ?? ''
+      const disciplineMarks = scoresObj.discipline ?? ''
+
+      const totalMarks = (Number(listeningMarks) || 0) + (Number(speakingMarks) || 0) + (Number(readingMarks) || 0) + (Number(writingMarks) || 0) + (Number(grammarMarks) || 0) + (Number(attendanceMarks) || 0) + (Number(participationMarks) || 0) + (Number(disciplineMarks) || 0)
+      const pct = (totalMarks / 600) * 100
+      const tlaResult = getTLAGrading(pct)
+
+      return {
+        studentName: student.name,
+        fatherName: student.fatherName || student.guardianName || '',
+        level: course.title,
+        listeningMarks,
+        speakingMarks,
+        readingMarks,
+        writingMarks,
+        grammarMarks,
+        attendanceMarks,
+        participationMarks,
+        disciplineMarks,
+        totalScore: totalMarks,
+        percentage: pct.toFixed(1) + '%',
+        overallResult: tlaResult.isPass ? 'PASS' : 'FAIL',
+        grade: tlaResult.grade,
+        comments: tlaResult.remark,
+        dateOfIssue: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
+          month: 'long', day: 'numeric', year: 'numeric'
+        }),
+        courseDuration: formatDateRange(course.startDate, course.endDate)
+      }
+    }
+
     const totalMarks =
       (existingEval.midterm || 0) + (existingEval.final || 0) +
       (existingEval.attendance || 0) + (existingEval.participation || 0) +
@@ -613,16 +655,35 @@ function ReportCardGeneratorContent() {
 
     setIsSaving(true)
     try {
-      await saveEvaluations(course.id, [{
+      const normLevel = (course.title || cardValues.level || '').toLowerCase().trim()
+      const isL6OrAdv = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel.includes('advanced') || normLevel.includes('adv')
+
+      const evalPayload: any = {
         studentId: student.id,
-        midterm: Number(cardValues.midtermObtained) || 0,
-        final: Number(cardValues.finalObtained) || 0,
-        attendance: Number(cardValues.attendanceObtained) || 0,
-        participation: Number(cardValues.participationObtained) || 0,
-        discipline: Number(cardValues.disciplineObtained) || 0,
-        extra: Number(cardValues.extraCurricularObtained) || 0,
         term: 'Term 1'
-      }])
+      }
+
+      if (isL6OrAdv) {
+        evalPayload.scores = {
+          listening: Number((cardValues as any).listeningMarks) || 0,
+          speaking: Number((cardValues as any).speakingMarks) || 0,
+          reading: Number((cardValues as any).readingMarks) || 0,
+          writing: Number((cardValues as any).writingMarks) || 0,
+          grammar: Number((cardValues as any).grammarMarks) || 0,
+          attendance: Number((cardValues as any).attendanceMarks) || 0,
+          participation: Number((cardValues as any).participationMarks) || 0,
+          discipline: Number((cardValues as any).disciplineMarks) || 0
+        }
+      } else {
+        evalPayload.midterm = Number(cardValues.midtermObtained) || 0
+        evalPayload.final = Number(cardValues.finalObtained) || 0
+        evalPayload.attendance = Number(cardValues.attendanceObtained) || 0
+        evalPayload.participation = Number(cardValues.participationObtained) || 0
+        evalPayload.discipline = Number(cardValues.disciplineObtained) || 0
+        evalPayload.extra = Number(cardValues.extraCurricularObtained) || 0
+      }
+
+      await saveEvaluations(course.id, [evalPayload])
       toast.success('Report card marks synchronized and recorded successfully.')
     } catch {
       toast.error('Failed to save report card marks.')
@@ -647,27 +708,31 @@ function ReportCardGeneratorContent() {
     setActiveDownload('pdf')
     try {
       let dataUrl = ''
-      const cardEl = containerRef.current?.querySelector('.report-card-l6-container, .report-card-adv-container, .report-card-container') as HTMLElement | null
-
-      if (cardEl) {
-        // High-DPI DOM capture with html2canvas for 100% reliable rendering
-        const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
-        dataUrl = domCanvas.toDataURL('image/jpeg', 0.95)
-      } else {
-        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
-        dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-      }
-
       const currentTier = getTierForLevel(cardValues.level || '')
-      const isA5 = currentTier === 'pre-foundation-lvl-5'
+      const normLevel = (cardValues.level || '').toLowerCase().trim()
+      const isL6 = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel === 'level 6'
+      const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
+      const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
 
       if (isA5) {
+        const cardEl = containerRef.current?.querySelector('.report-card-container') as HTMLElement | null
+        if (cardEl) {
+          const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
+          dataUrl = domCanvas.toDataURL('image/jpeg', 0.95)
+        } else {
+          const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+          dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+        }
+
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
         pdf.addImage(dataUrl, 'JPEG', 0, 0, 148, 105)
         pdf.addImage(dataUrl, 'JPEG', 0, 105, 148, 105)
         const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
         pdf.save(`${name}-report-card-a5-2up.pdf`)
       } else {
+        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+        dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
         pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
         const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
@@ -693,11 +758,22 @@ function ReportCardGeneratorContent() {
       let dataUrl = ''
       const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
       const quality = format === 'png' ? undefined : 0.95
-      const cardEl = containerRef.current?.querySelector('.report-card-l6-container, .report-card-adv-container, .report-card-container') as HTMLElement | null
 
-      if (cardEl) {
-        const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
-        dataUrl = domCanvas.toDataURL(mimeType, quality)
+      const currentTier = getTierForLevel(cardValues.level || '')
+      const normLevel = (cardValues.level || '').toLowerCase().trim()
+      const isL6 = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel === 'level 6'
+      const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
+      const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
+
+      if (isA5) {
+        const cardEl = containerRef.current?.querySelector('.report-card-container') as HTMLElement | null
+        if (cardEl) {
+          const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
+          dataUrl = domCanvas.toDataURL(mimeType, quality)
+        } else {
+          const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+          dataUrl = canvas.toDataURL(mimeType, quality)
+        }
       } else {
         const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
         dataUrl = canvas.toDataURL(mimeType, quality)
