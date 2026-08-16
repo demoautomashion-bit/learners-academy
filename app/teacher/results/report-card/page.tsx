@@ -180,43 +180,30 @@ async function renderStudentCanvas(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas 2D not supported')
 
-  const bgSource = isL6 ? "/4.jpg.jpeg" : "/5.jpg.jpeg"
+  // Check for custom template background from DB or default to high-res JPG templates
+  const customTpl = (cardTemplates || []).find((t: any) => t.level === 'lvl-6-lvl-advanced' || t.level === tierId)
+  const customBg = customTpl?.backgroundUrl
+  const bgSource = (customBg && customBg.startsWith('data:image/'))
+    ? customBg
+    : (isL6 ? "/4.jpg.jpeg" : "/5.jpg.jpeg")
 
-  // 1. Draw Template Image Background via same-origin Blob to prevent canvas tainting
-  let objectUrlToClean: string | null = null
+  // 1. Draw Template Background safely
   try {
-    const res = await fetch(bgSource)
-    const blob = await res.blob()
-    objectUrlToClean = URL.createObjectURL(blob)
-
+    const img = new Image()
+    if (!bgSource.startsWith('data:')) {
+      img.crossOrigin = 'anonymous'
+    }
     await new Promise<void>((resolve, reject) => {
-      const img = new Image()
       img.onload = () => {
         ctx.drawImage(img, 0, 0, W, H)
         resolve()
       }
-      img.onerror = reject
-      img.src = objectUrlToClean!
+      img.onerror = (err) => reject(err)
+      img.src = bgSource
     })
   } catch (e) {
-    try {
-      await new Promise<void>((resolve, reject) => {
-        const img = new Image()
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0, W, H)
-          resolve()
-        }
-        img.onerror = reject
-        img.src = bgSource
-      })
-    } catch {
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, W, H)
-    }
-  } finally {
-    if (objectUrlToClean) {
-      URL.revokeObjectURL(objectUrlToClean)
-    }
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, W, H)
   }
 
   // Load font safely
