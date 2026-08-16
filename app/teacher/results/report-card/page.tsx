@@ -289,15 +289,15 @@ function buildCardValues(
     const normLevel = (course.title || '').toLowerCase().trim()
     const isL6OrAdv = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel.includes('advanced') || normLevel.includes('adv')
 
-    if (isL6OrAdv && Object.keys(scoresObj).length > 0) {
-      const listeningMarks = scoresObj.listening ?? existingEval.midterm ?? ''
-      const speakingMarks = scoresObj.speaking ?? existingEval.final ?? ''
-      const readingMarks = scoresObj.reading ?? existingEval.attendance ?? ''
-      const writingMarks = scoresObj.writing ?? existingEval.participation ?? ''
-      const grammarMarks = scoresObj.grammar ?? existingEval.discipline ?? ''
-      const attendanceMarks = scoresObj.attendance ?? ''
-      const participationMarks = scoresObj.participation ?? ''
-      const disciplineMarks = scoresObj.discipline ?? ''
+    if (isL6OrAdv) {
+      const listeningMarks = scoresObj.listening !== undefined ? scoresObj.listening : ''
+      const speakingMarks = scoresObj.speaking !== undefined ? scoresObj.speaking : ''
+      const readingMarks = scoresObj.reading !== undefined ? scoresObj.reading : ''
+      const writingMarks = scoresObj.writing !== undefined ? scoresObj.writing : ''
+      const grammarMarks = scoresObj.grammar !== undefined ? scoresObj.grammar : ''
+      const attendanceMarks = existingEval.attendance !== undefined && existingEval.attendance !== null && existingEval.attendance !== 0 ? existingEval.attendance : (scoresObj.attendance ?? '')
+      const participationMarks = existingEval.participation !== undefined && existingEval.participation !== null && existingEval.participation !== 0 ? existingEval.participation : (scoresObj.participation ?? '')
+      const disciplineMarks = existingEval.discipline !== undefined && existingEval.discipline !== null && existingEval.discipline !== 0 ? existingEval.discipline : (scoresObj.discipline ?? '')
 
       const totalMarks = (Number(listeningMarks) || 0) + (Number(speakingMarks) || 0) + (Number(readingMarks) || 0) + (Number(writingMarks) || 0) + (Number(grammarMarks) || 0) + (Number(attendanceMarks) || 0) + (Number(participationMarks) || 0) + (Number(disciplineMarks) || 0)
       const pct = (totalMarks / 600) * 100
@@ -315,11 +315,11 @@ function buildCardValues(
         attendanceMarks,
         participationMarks,
         disciplineMarks,
-        totalScore: totalMarks,
-        percentage: pct.toFixed(1) + '%',
+        totalScore: totalMarks > 0 ? totalMarks : '',
+        percentage: totalMarks > 0 ? pct.toFixed(1) + '%' : '',
         overallResult: tlaResult.isPass ? 'PASS' : 'FAIL',
-        grade: tlaResult.grade,
-        comments: tlaResult.remark,
+        grade: totalMarks > 0 ? tlaResult.grade : '',
+        comments: totalMarks > 0 ? tlaResult.remark : '',
         dateOfIssue: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
           month: 'long', day: 'numeric', year: 'numeric'
         }),
@@ -664,15 +664,15 @@ function ReportCardGeneratorContent() {
       }
 
       if (isL6OrAdv) {
+        evalPayload.attendance = Number((cardValues as any).attendanceMarks) || 0
+        evalPayload.participation = Number((cardValues as any).participationMarks) || 0
+        evalPayload.discipline = Number((cardValues as any).disciplineMarks) || 0
         evalPayload.scores = {
           listening: Number((cardValues as any).listeningMarks) || 0,
           speaking: Number((cardValues as any).speakingMarks) || 0,
           reading: Number((cardValues as any).readingMarks) || 0,
           writing: Number((cardValues as any).writingMarks) || 0,
-          grammar: Number((cardValues as any).grammarMarks) || 0,
-          attendance: Number((cardValues as any).attendanceMarks) || 0,
-          participation: Number((cardValues as any).participationMarks) || 0,
-          discipline: Number((cardValues as any).disciplineMarks) || 0
+          grammar: Number((cardValues as any).grammarMarks) || 0
         }
       } else {
         evalPayload.midterm = Number(cardValues.midtermObtained) || 0
