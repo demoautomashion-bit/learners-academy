@@ -165,9 +165,10 @@ export function ReportCardL6A4({
           background: rgba(14, 165, 233, 0.04);
           border: 1px dashed rgba(14, 165, 233, 0.3);
           outline: none;
-          color: #000;
+          color: #000000;
           font-family: 'Montserrat', sans-serif;
-          font-weight: 500;
+          font-weight: 700;
+          line-height: 1.2;
           transition: all 0.15s ease;
           border-radius: 2px;
           padding: 0 4px;
@@ -190,6 +191,8 @@ export function ReportCardL6A4({
             border: none !important;
             box-shadow: none !important;
             padding: 0 !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
           }
           .report-card-l6-container {
             box-shadow: none !important;

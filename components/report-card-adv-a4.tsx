@@ -165,9 +165,10 @@ export function ReportCardAdvA4({
           background: rgba(14, 165, 233, 0.04);
           border: 1px dashed rgba(14, 165, 233, 0.3);
           outline: none;
-          color: #000;
+          color: #000000;
           font-family: 'Montserrat', sans-serif;
-          font-weight: 500;
+          font-weight: 700;
+          line-height: 1.2;
           transition: all 0.15s ease;
           border-radius: 2px;
           padding: 0 4px;
@@ -190,6 +191,8 @@ export function ReportCardAdvA4({
             border: none !important;
             box-shadow: none !important;
             padding: 0 !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
           }
           .report-card-adv-container {
             box-shadow: none !important;
@@ -206,7 +209,7 @@ export function ReportCardAdvA4({
         disabled={readOnly}
         placeholder="Enter Student Name"
         className="adv-overlay-input font-bold"
-        style={{ top: '19.8%', left: '36.5%', width: '55.5%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '20.2%', left: '36.5%', width: '55.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -216,7 +219,7 @@ export function ReportCardAdvA4({
         disabled={readOnly}
         placeholder="Enter Father's Name"
         className="adv-overlay-input font-bold"
-        style={{ top: '21.9%', left: '42.5%', width: '49.5%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '22.3%', left: '42.5%', width: '49.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -226,7 +229,7 @@ export function ReportCardAdvA4({
         disabled={readOnly}
         placeholder="Program / Level"
         className="adv-overlay-input font-bold"
-        style={{ top: '23.9%', left: '45.0%', width: '47.0%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '24.4%', left: '45.0%', width: '47.0%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -236,7 +239,7 @@ export function ReportCardAdvA4({
         disabled={readOnly}
         placeholder="e.g. August 2026"
         className="adv-overlay-input font-bold"
-        style={{ top: '25.9%', left: '49.5%', width: '42.5%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '26.5%', left: '49.5%', width: '42.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -246,7 +249,7 @@ export function ReportCardAdvA4({
         disabled={readOnly}
         placeholder="Transcript No."
         className="adv-overlay-input font-bold"
-        style={{ top: '27.9%', left: '43.0%', width: '49.0%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '28.6%', left: '43.0%', width: '49.0%', height: '1.9%', fontSize: '14px' }}
       />
 
       {/* OBTAINED MARKS OVERLAYS (Centered in 75.5% to 94% cell) */}
@@ -256,7 +259,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('listeningMarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '37.4%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
+        style={{ top: '38.0%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
       />
 
       <input
@@ -265,7 +268,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('speakingMarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '41.1%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
+        style={{ top: '41.8%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
       />
 
       <input
@@ -274,7 +277,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('readingMarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '44.9%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
+        style={{ top: '45.5%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
       />
 
       <input
@@ -283,7 +286,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('writingMarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '48.7%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
+        style={{ top: '49.3%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
       />
 
       <input
@@ -292,7 +295,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('grammarMarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '52.5%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
+        style={{ top: '53.1%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
       />
 
       <input
@@ -301,7 +304,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('attendanceMarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '56.3%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
+        style={{ top: '56.9%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
       />
 
       <input
@@ -310,7 +313,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('participationMarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '60.1%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
+        style={{ top: '60.7%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
       />
 
       <input
@@ -319,7 +322,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('disciplineMarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '63.8%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
+        style={{ top: '64.5%', left: '75.5%', width: '18.5%', height: '3.2%', fontSize: '15px' }}
       />
 
       {/* GRAND TOTAL OBTAINED OVERLAY */}
@@ -329,7 +332,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('totalScore', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input text-center font-bold"
-        style={{ top: '67.5%', left: '75.5%', width: '18.5%', height: '3.3%', fontSize: '15px' }}
+        style={{ top: '68.3%', left: '75.5%', width: '18.5%', height: '3.3%', fontSize: '15px' }}
       />
 
       {/* ACADEMIC STANDING OVERLAYS */}
@@ -339,7 +342,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('totalScore', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '74.8%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '76.0%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -348,7 +351,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('percentage', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '74.8%', left: '66.5%', width: '26%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '76.0%', left: '66.5%', width: '26%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -357,7 +360,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('finalGrade', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '77.8%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '79.0%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -366,7 +369,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('remarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '77.8%', left: '64.5%', width: '29%', height: '1.9%', fontSize: '13px' }}
+        style={{ top: '79.0%', left: '64.5%', width: '29%', height: '1.9%', fontSize: '13px' }}
       />
     </div>
   )
