@@ -256,7 +256,7 @@ async function renderStudentCanvas(
 
   // Obtained Marks Table (Column Center X = 84.7%)
   const colCenterX = 84.7
-  const rowStart = 39.6
+  const rowStart = 38.8
   const rowGap = 3.8
 
   drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, rowStart, 25, '700')
