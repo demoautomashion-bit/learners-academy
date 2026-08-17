@@ -285,8 +285,8 @@ async function renderStudentCanvas(
   const calcPct = calcTotalScore > 0 ? ((calcTotalScore / 600) * 100).toFixed(1) + '%' : ''
   const tlaGrade = getTLAGrading(calcTotalScore > 0 ? (calcTotalScore / 600) * 100 : 0)
 
-  const standY1 = 75.2
-  const standY2 = 78.2
+  const standY1 = 74.9
+  const standY2 = 77.9
 
   drawLeftText(displayScore !== '0' ? displayScore : '', 43.5, standY1, 23, '700')
   drawLeftText(v.percentage || calcPct, 66.5, standY1, 23, '700')
