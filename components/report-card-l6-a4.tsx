@@ -209,7 +209,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Enter Student Name"
         className="l6-overlay-input font-bold"
-        style={{ top: '19.8%', left: '39.0%', width: '53.0%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '19.3%', left: '39.0%', width: '53.0%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -219,7 +219,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Enter Father's Name"
         className="l6-overlay-input font-bold"
-        style={{ top: '21.9%', left: '45.5%', width: '46.5%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '21.4%', left: '45.5%', width: '46.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -229,7 +229,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Program / Level"
         className="l6-overlay-input font-bold"
-        style={{ top: '24.0%', left: '48.0%', width: '44.0%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '23.5%', left: '48.0%', width: '44.0%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -239,7 +239,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="e.g. August 2026"
         className="l6-overlay-input font-bold"
-        style={{ top: '26.1%', left: '52.0%', width: '40.0%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '25.6%', left: '52.0%', width: '40.0%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -249,7 +249,7 @@ export function ReportCardL6A4({
         disabled={readOnly}
         placeholder="Transcript No."
         className="l6-overlay-input font-bold"
-        style={{ top: '28.2%', left: '46.5%', width: '45.5%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '27.7%', left: '46.5%', width: '45.5%', height: '1.9%', fontSize: '14px' }}
       />
 
       {/* OBTAINED MARKS OVERLAYS (Centered in 75.5% to 94% cell) */}
