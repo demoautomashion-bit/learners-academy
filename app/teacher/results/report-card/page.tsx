@@ -242,11 +242,11 @@ async function renderStudentCanvas(
 
   // Student Info Overlay Text
   const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', 1)
-  const nameY = 20.2
-  const fatherY = 22.3
-  const progY = 24.4
-  const dateY = 26.5
-  const trY = 28.6
+  const nameY = 19.8
+  const fatherY = 21.9
+  const progY = 24.0
+  const dateY = 26.1
+  const trY = 28.2
 
   drawLeftText(v.studentName || studentName || '', 39.0, nameY, 24, '700')
   drawLeftText(v.fatherName || '', 45.5, fatherY, 24, '700')
