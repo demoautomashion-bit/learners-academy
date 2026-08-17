@@ -42,13 +42,14 @@ export function ReportCardAdvA4({
   cardRef,
   sequenceNumber = 1
 }: AdvancedTranscriptProps) {
+  const defaultDateOfCompletion = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   const defaultTranscriptNo = generateTranscriptNumber('Advanced', sequenceNumber)
 
   const [values, setValues] = useState<AdvancedTranscriptValues>({
     studentName: '',
     fatherName: '',
     programLevel: 'Advanced',
-    dateOfCompletion: '',
+    dateOfCompletion: defaultDateOfCompletion,
     transcriptNo: defaultTranscriptNo,
     listeningMarks: '',
     speakingMarks: '',
@@ -70,10 +71,11 @@ export function ReportCardAdvA4({
       setValues(prev => ({
         ...prev,
         ...initialValues,
+        dateOfCompletion: initialValues.dateOfCompletion || prev.dateOfCompletion || defaultDateOfCompletion,
         transcriptNo: initialValues.transcriptNo || prev.transcriptNo || defaultTranscriptNo
       }))
     }
-  }, [initialValues, defaultTranscriptNo])
+  }, [initialValues, defaultTranscriptNo, defaultDateOfCompletion])
 
   const handleValueChange = <K extends keyof AdvancedTranscriptValues>(key: K, value: AdvancedTranscriptValues[K]) => {
     if (readOnly) return
@@ -345,7 +347,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('totalScore', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '74.9%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '74.0%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -354,7 +356,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('percentage', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '74.9%', left: '66.5%', width: '26%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '74.0%', left: '66.5%', width: '26%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -363,7 +365,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('finalGrade', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '77.9%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
+        style={{ top: '77.0%', left: '43.5%', width: '12%', height: '1.9%', fontSize: '14px' }}
       />
 
       <input
@@ -372,7 +374,7 @@ export function ReportCardAdvA4({
         onChange={e => handleValueChange('remarks', e.target.value)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
-        style={{ top: '77.9%', left: '64.5%', width: '29%', height: '1.9%', fontSize: '13px' }}
+        style={{ top: '77.0%', left: '64.5%', width: '29%', height: '1.9%', fontSize: '13px' }}
       />
     </div>
   )

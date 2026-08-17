@@ -58,7 +58,8 @@ interface StudentStatus {
 async function renderStudentCanvas(
   v: Partial<ReportCardValues>,
   studentName: string,
-  cardTemplates: any[] = []
+  cardTemplates: any[] = [],
+  sequenceNumber: number = 1
 ): Promise<HTMLCanvasElement> {
   const tierId = getTierForLevel(v.level || '')
   const isA5 = tierId === 'pre-foundation-lvl-5'
@@ -241,7 +242,8 @@ async function renderStudentCanvas(
   }
 
   // Student Info Overlay Text
-  const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', 1)
+  const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', sequenceNumber)
+  const defaultDateComp = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   const nameY = 20.2
   const fatherY = 22.3
   const progY = 24.4
@@ -251,7 +253,7 @@ async function renderStudentCanvas(
   drawLeftText(v.studentName || studentName || '', 39.0, nameY, 24, '700')
   drawLeftText(v.fatherName || '', 45.5, fatherY, 24, '700')
   drawLeftText(v.level || (isL6 ? 'Level Six' : 'Advanced'), 48.0, progY, 24, '700')
-  drawLeftText(v.dateOfCompletion || v.dateOfIssue || '', 52.0, dateY, 24, '700')
+  drawLeftText(v.dateOfCompletion || v.dateOfIssue || defaultDateComp, 52.0, dateY, 24, '700')
   drawLeftText((v as any).transcriptNo || defaultTrNo, 46.5, trY, 24, '700')
 
   // Obtained Marks Table (Column Center X = 84.7%)
@@ -306,7 +308,8 @@ function buildCardValues(
   evaluations: any[],
   submissions: any[],
   assessments: any[],
-  formatDateRange: (start: any, end: any) => string
+  formatDateRange: (start: any, end: any) => string,
+  sequenceNumber: number = 1
 ): Partial<ReportCardValues> {
   const existingEval = evaluations.find(
     e => e.studentId === student.id && e.courseId === course.id
@@ -348,6 +351,10 @@ function buildCardValues(
         overallResult: tlaResult.isPass ? 'PASS' : 'FAIL',
         grade: totalMarks > 0 ? tlaResult.grade : '',
         comments: totalMarks > 0 ? tlaResult.remark : '',
+        dateOfCompletion: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
+          month: 'long', day: 'numeric', year: 'numeric'
+        }),
+        transcriptNo: generateTranscriptNumber(course.title || 'Level Six', sequenceNumber),
         dateOfIssue: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
           month: 'long', day: 'numeric', year: 'numeric'
         }),
@@ -742,13 +749,16 @@ function ReportCardGeneratorContent() {
       const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
       const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
 
+      const studentIdx = teacherStudents.findIndex(s => s.id === selectedStudentId)
+      const seqNum = studentIdx >= 0 ? studentIdx + 1 : 1
+
       if (isA5) {
         const cardEl = containerRef.current?.querySelector('.report-card-container') as HTMLElement | null
         if (cardEl) {
           const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
           dataUrl = domCanvas.toDataURL('image/jpeg', 0.95)
         } else {
-          const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+          const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
           dataUrl = canvas.toDataURL('image/jpeg', 0.95)
         }
 
@@ -758,7 +768,7 @@ function ReportCardGeneratorContent() {
         const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
         pdf.save(`${name}-report-card-a5-2up.pdf`)
       } else {
-        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
         dataUrl = canvas.toDataURL('image/jpeg', 0.95)
 
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
@@ -794,17 +804,20 @@ function ReportCardGeneratorContent() {
       const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
       const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
 
+      const studentIdx = teacherStudents.findIndex(s => s.id === selectedStudentId)
+      const seqNum = studentIdx >= 0 ? studentIdx + 1 : 1
+
       if (isA5) {
         const cardEl = containerRef.current?.querySelector('.report-card-container') as HTMLElement | null
         if (cardEl) {
           const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
           dataUrl = domCanvas.toDataURL(mimeType, quality)
         } else {
-          const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+          const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
           dataUrl = canvas.toDataURL(mimeType, quality)
         }
       } else {
-        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates)
+        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
         dataUrl = canvas.toDataURL(mimeType, quality)
       }
 
@@ -843,16 +856,16 @@ function ReportCardGeneratorContent() {
           // Card 1 (Top)
           const pair1 = pairs[i]
           setBulkProgress({ current: i + 1, total: pairs.length })
-          const val1 = buildCardValues(pair1.student, pair1.course, evaluations, submissions, assessments, formatDateRange)
-          const canvas1 = await renderStudentCanvas(val1, pair1.student.name, cardTemplates)
+          const val1 = buildCardValues(pair1.student, pair1.course, evaluations, submissions, assessments, formatDateRange, i + 1)
+          const canvas1 = await renderStudentCanvas(val1, pair1.student.name, cardTemplates, i + 1)
           pdf.addImage(canvas1.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 148, 105)
 
           // Card 2 (Bottom) - If odd count, duplicate card 1 or render student 2
           if (i + 1 < pairs.length) {
             const pair2 = pairs[i + 1]
             setBulkProgress({ current: i + 2, total: pairs.length })
-            const val2 = buildCardValues(pair2.student, pair2.course, evaluations, submissions, assessments, formatDateRange)
-            const canvas2 = await renderStudentCanvas(val2, pair2.student.name, cardTemplates)
+            const val2 = buildCardValues(pair2.student, pair2.course, evaluations, submissions, assessments, formatDateRange, i + 2)
+            const canvas2 = await renderStudentCanvas(val2, pair2.student.name, cardTemplates, i + 2)
             pdf.addImage(canvas2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 105, 148, 105)
           } else {
             // Duplicate single card for 2-up sheet
@@ -867,8 +880,8 @@ function ReportCardGeneratorContent() {
         for (let i = 0; i < pairs.length; i++) {
           const { student, course } = pairs[i]
           setBulkProgress({ current: i + 1, total: pairs.length })
-          const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
-          const canvas = await renderStudentCanvas(values, student.name, cardTemplates)
+          const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
+          const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
           const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
           if (i > 0) pdf.addPage()
           pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
@@ -901,8 +914,8 @@ function ReportCardGeneratorContent() {
       for (let i = 0; i < pairs.length; i++) {
         const { student, course } = pairs[i]
         setBulkProgress({ current: i + 1, total: pairs.length })
-        const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
-        const canvas = await renderStudentCanvas(values, student.name, cardTemplates)
+        const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
+        const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
         const dataUrl = canvas.toDataURL(mimeType, quality)
         const name = student.name.replace(/\s+/g, '-').toLowerCase()
         triggerDownload(dataUrl, `${name}-report-card.${format}`)
@@ -947,9 +960,9 @@ function ReportCardGeneratorContent() {
         const { student, course } = pairs[i]
         setBulkProgress({ current: i + 1, total: pairs.length })
         const values = bulk
-          ? buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange)
+          ? buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
           : cardValues
-        const canvas = await renderStudentCanvas(values, student.name, cardTemplates)
+        const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
         // Convert data URL to blob for zip
         const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
         const base64 = dataUrl.split(',')[1]
