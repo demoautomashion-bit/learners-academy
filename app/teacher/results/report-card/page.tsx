@@ -256,17 +256,15 @@ async function renderStudentCanvas(
 
   // Obtained Marks Table (Column Center X = 84.7%)
   const colCenterX = 84.7
-  const rowStart = 38.8
-  const rowGap = 3.8
 
-  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, rowStart, 25, '700')
-  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, rowStart + rowGap, 25, '700')
-  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, rowStart + rowGap * 2, 25, '700')
-  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, rowStart + rowGap * 3, 25, '700')
-  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, rowStart + rowGap * 4, 25, '700')
-  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, rowStart + rowGap * 5, 25, '700')
-  drawCenterText((v as any).participationMarks ?? '', colCenterX, rowStart + rowGap * 6, 25, '700')
-  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, rowStart + rowGap * 7, 25, '700')
+  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, 38.8, 25, '700')
+  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, 42.6, 25, '700')
+  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, 46.4, 25, '700')
+  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, 50.2, 25, '700')
+  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, 53.8, 25, '700')
+  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, 57.5, 25, '700')
+  drawCenterText((v as any).participationMarks ?? '', colCenterX, 61.2, 25, '700')
+  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, 64.9, 25, '700')
 
   // Grand Total
   const componentsList = [
@@ -281,7 +279,7 @@ async function renderStudentCanvas(
   ]
   const calcTotalScore = componentsList.reduce((sum: number, item) => sum + (parseFloat(String(item)) || 0), 0)
   const displayScore = (v as any).totalScore !== undefined && (v as any).totalScore !== '' ? String((v as any).totalScore) : String(calcTotalScore)
-  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, rowStart + rowGap * 8, 25, '700')
+  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, 68.6, 25, '700')
 
   // Academic Standing
   const calcPct = calcTotalScore > 0 ? ((calcTotalScore / 600) * 100).toFixed(1) + '%' : ''
