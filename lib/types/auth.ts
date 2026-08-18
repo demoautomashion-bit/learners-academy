@@ -8,6 +8,7 @@ export interface User {
   password?: string
   avatar?: string
   employeeId?: string
+  studentId?: string
   enrolledCourses?: string[]
   phone?: string
   createdAt: string

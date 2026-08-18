@@ -67,11 +67,18 @@ export default function AssessmentWorkspacePage() {
     ?.filter(s => enrolledStudentIds.includes(s.id) && !submittedStudentIds.has(s.id))
     .map(s => ({
       id: `pending-${s.id}`,
-      studentId: s.id,
+      studentId: s.studentId || s.id,
       studentName: s.name,
       status: 'not_started',
       isPlaceholder: true
     })) || []
+
+  const getReadableStudentId = (sub: any) => {
+    if (!sub) return ''
+    if (sub.isPlaceholder) return sub.studentId || ''
+    const match = students?.find(st => st.id === sub.studentId || st.studentId === sub.studentId)
+    return match?.studentId || sub.studentId || ''
+  }
   
   if (!assessment) return (
     <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
@@ -188,7 +195,7 @@ export default function AssessmentWorkspacePage() {
                                             </Avatar>
                                             <div className="flex flex-col">
                                                 <span className="font-sans font-normal text-base text-foreground/80">{s.studentName}</span>
-                                                <span className="text-xs text-muted-foreground/60 font-normal  ">{s.studentId}</span>
+                                                <span className="text-xs text-muted-foreground/60 font-normal  ">{getReadableStudentId(s)}</span>
                                             </div>
                                         </div>
                                     </td>
@@ -303,7 +310,7 @@ export default function AssessmentWorkspacePage() {
               <DialogDescription className="text-editorial-meta text-xs">Review student answers and provide feedback.</DialogDescription>
             </div>
             <Badge className="bg-background  text-primary  text-xs font-normal  h-7 px-4">
-              ID: {selectedSubmission?.studentId}
+              ID: {getReadableStudentId(selectedSubmission)}
             </Badge>
           </div>
 

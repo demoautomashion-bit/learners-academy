@@ -21,6 +21,7 @@ function validateToken(token: string): User | null {
       role: payload.role as UserRole,
       name: payload.name || 'User',
       employeeId: payload.employeeId,
+      studentId: payload.studentId,
       phone: payload.phone,
       createdAt: payload.createdAt || new Date().toISOString(),
     }
@@ -263,6 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const user: User = {
       id: studentRecord.id,
+      studentId: studentRecord.studentId || studentRecord.id,
       email: studentRecord.email || '',
       name: studentRecord.name || 'Student',
       role: 'student',
@@ -273,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Ensure "sub" is ALWAYS studentRecord.id to prevent "undefined::assessmentId" seeds
     const token = btoa(JSON.stringify({ 
       sub: user.id, 
+      studentId: user.studentId,
       email: user.email, 
       role: user.role, 
       name: user.name, 
