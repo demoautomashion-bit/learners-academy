@@ -4,6 +4,7 @@ import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import type { Course, ActionResult } from '@/lib/types'
 import { handleDatabaseError } from '../utils/error-handler'
+import { isStudentInCourse } from '../utils/student-matching'
 
 export async function getCourses(): Promise<ActionResult<Course[]>> {
   try {
@@ -24,6 +25,24 @@ export async function addCourse(course: Omit<Course, 'enrolled'>): Promise<Actio
         endDate: new Date(course.endDate)
       } as any 
     })
+
+    // Auto-sync existing matching students to this newly created course
+    const students = await db.student.findMany()
+    const matchingStudents = students.filter(s => isStudentInCourse(s, result))
+    
+    for (const student of matchingStudents) {
+      if (!student.enrolledCourses.includes(result.id)) {
+        await db.student.update({
+          where: { id: student.id },
+          data: {
+            enrolledCourses: {
+              push: result.id
+            }
+          }
+        })
+      }
+    }
+
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {
@@ -70,6 +89,26 @@ export async function updateCourse(id: string, data: Partial<Course>): Promise<A
         ...(data.endDate && { endDate: new Date(data.endDate) })
       } as any
     })
+
+    // If level or timing changed, re-sync matching students
+    if (data.level !== undefined || data.timing !== undefined || data.title !== undefined) {
+      const students = await db.student.findMany()
+      const matchingStudents = students.filter(s => isStudentInCourse(s, result))
+
+      for (const student of matchingStudents) {
+        if (!student.enrolledCourses.includes(result.id)) {
+          await db.student.update({
+            where: { id: student.id },
+            data: {
+              enrolledCourses: {
+                push: result.id
+              }
+            }
+          })
+        }
+      }
+    }
+
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {

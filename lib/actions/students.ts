@@ -175,6 +175,40 @@ export async function updateStudent(id: string, data: Partial<Student>): Promise
         enrolledAt: data.enrolledAt ? new Date(data.enrolledAt) : undefined,
       }
     })
+
+    // Re-evaluate enrollment matches if grade or classTiming changed or if enrolledCourses isn't explicitly provided
+    if (data.grade !== undefined || data.classTiming !== undefined || !data.enrolledCourses) {
+      const allCourses = await db.course.findMany({ where: { status: 'active' } })
+      const matchingCourses = allCourses.filter(c => isStudentInCourse(result, c))
+      const matchingCourseIds = matchingCourses.map(c => c.id)
+
+      const updatedStudent = await db.student.update({
+        where: { id },
+        data: { enrolledCourses: matchingCourseIds }
+      })
+
+      // Ensure FeePayment records exist for matching courses
+      for (const course of matchingCourses) {
+        const existingPayment = await db.feePayment.findUnique({
+          where: { studentId_courseId: { studentId: id, courseId: course.id } }
+        })
+        if (!existingPayment) {
+          await db.feePayment.create({
+            data: {
+              studentId: id,
+              courseId: course.id,
+              totalAmount: course.feeAmount || 0,
+              amountPaid: 0,
+              status: 'Unpaid'
+            }
+          })
+        }
+      }
+
+      revalidatePath('/')
+      return { success: true, data: updatedStudent }
+    }
+
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {

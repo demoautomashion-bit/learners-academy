@@ -57,9 +57,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { joinedAt: 'desc' } 
       })),
       fetchEntity('students', db.student.findMany({ 
-        where: isTeacher ? {
-          enrolledCourses: { hasSome: myCourseIds }
-        } : {},
         orderBy: { enrolledAt: 'desc' } 
       })),
       fetchEntity('courses', db.course.findMany({ 
