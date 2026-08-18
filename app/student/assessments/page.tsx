@@ -167,6 +167,12 @@ export default function StudentAssessmentsPage() {
   const randomizedQuestionsRef = useRef(randomizedQuestions)
   const isSubmittingInProgress = useRef(false)
 
+  const answersRef = useRef(answers)
+
+  useEffect(() => {
+    answersRef.current = answers
+  }, [answers])
+
   useEffect(() => {
     currentQuestionIndexRef.current = currentQuestionIndex
   }, [currentQuestionIndex])
@@ -393,8 +399,8 @@ export default function StudentAssessmentsPage() {
 
     setIsEvaluating(true)
 
-    // Hydrate answers from sessionStorage as a fallback
-    let activeAnswers = { ...answers }
+    // Hydrate answers from answersRef, state, and sessionStorage fallback
+    let activeAnswers = { ...answersRef.current, ...answers }
     if (activeTest?.id) {
       const saved = sessionStorage.getItem(`assessment_answers_${activeTest.id}`)
       if (saved) {
@@ -847,7 +853,7 @@ export default function StudentAssessmentsPage() {
           {['True', 'False'].map(opt => (
             <button
               key={opt}
-              onClick={() => setAnswers({ ...answers, [qId]: opt })}
+              onClick={() => setAnswers(prev => ({ ...prev, [qId]: opt }))}
               className={`rounded-xl border-2 p-4 font-semibold text-sm transition-premium flex items-center justify-center gap-2 ${
                 currentAnswer === opt
                   ? 'border-primary bg-primary/5 text-primary shadow-sm shadow-primary/10'
@@ -953,7 +959,7 @@ export default function StudentAssessmentsPage() {
             placeholder={`Draft your ${q.writingSubType || q.writingGenre || 'writing'} response here...`}
             className="min-h-[280px] sm:min-h-[340px] resize-y text-base p-4 leading-relaxed bg-background/50 border-2 focus:border-primary/40 rounded-xl"
             value={currentAnswer}
-            onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
+            onChange={e => setAnswers(prev => ({ ...prev, [qId]: e.target.value }))}
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="none"
@@ -1007,7 +1013,7 @@ export default function StudentAssessmentsPage() {
                 value={studentPairs[pair.left] || ''}
                 onValueChange={val => {
                   const updated = { ...studentPairs, [pair.left]: val }
-                  setAnswers({ ...answers, [qId]: JSON.stringify(updated) })
+                  setAnswers(prev => ({ ...prev, [qId]: JSON.stringify(updated) }))
                 }}
               >
                 <SelectTrigger className="h-9 text-sm border-2 rounded-xl focus:border-primary/40">
@@ -1030,7 +1036,7 @@ export default function StudentAssessmentsPage() {
       return (
         <RadioGroup
           value={currentAnswer}
-          onValueChange={val => setAnswers({ ...answers, [qId]: val })}
+          onValueChange={val => setAnswers(prev => ({ ...prev, [qId]: val }))}
           className="grid gap-2 sm:grid-cols-2 pt-4"
         >
           {q.options?.map((opt, i) => (
@@ -1041,7 +1047,7 @@ export default function StudentAssessmentsPage() {
                   ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10'
                   : 'border-border hover:border-primary/20 hover:bg-muted/40'
               }`}
-              onClick={() => setAnswers({ ...answers, [qId]: opt })}
+              onClick={() => setAnswers(prev => ({ ...prev, [qId]: opt }))}
             >
               <RadioGroupItem value={opt} id={`opt-${i}`} className="sr-only" />
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${currentAnswer === opt ? 'border-primary' : 'border-muted-foreground/30'}`}>
@@ -1144,7 +1150,7 @@ export default function StudentAssessmentsPage() {
                 placeholder="Write your answer based on the passage above."
                 className="min-h-[140px] text-base p-4 bg-background/50 border-2 focus:border-primary/40 rounded-xl"
                 value={currentAnswer}
-                onChange={e => setAnswers({ ...answers, [qId]: e.target.value })}
+                onChange={e => setAnswers(prev => ({ ...prev, [qId]: e.target.value }))}
                 spellCheck={false}
                 autoCorrect="off"
                 autoCapitalize="none"
