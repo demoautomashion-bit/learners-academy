@@ -418,8 +418,8 @@ export default function StudentAssessmentsPage() {
          const h = adaptiveHistory[i]
          const getPointsForQuestion = (qType: string) => {
             const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
-            if (allocationMap) {
-               return Number(allocationMap[qType]) || 0
+            if (allocationMap && allocationMap[qType] !== undefined && allocationMap[qType] !== null) {
+               return Number(allocationMap[qType]) || 1
             }
             return 1 // Fallback
          }
@@ -428,7 +428,7 @@ export default function StudentAssessmentsPage() {
       })
       const completedTotal = randomizedQuestions.reduce((sum, q) => {
         const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
-        return sum + (allocationMap ? (Number(allocationMap[q.type]) || 0) : 1)
+        return sum + (allocationMap && allocationMap[q.type] !== undefined ? (Number(allocationMap[q.type]) || 1) : 1)
       }, 0)
       const targetLength = activeTest?.questionCount || 10
       const remainingCount = Math.max(0, targetLength - randomizedQuestions.length)
@@ -502,10 +502,12 @@ export default function StudentAssessmentsPage() {
       q.correctAnswer && q.correctAnswer.trim() !== ''
     )
 
+    const normalizeAns = (val: any) => String(val || '').trim().toLowerCase()
+
     const getPointsForQuestion = (qType: string) => {
       const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
-      if (allocationMap) {
-        return Number(allocationMap[qType]) || 0
+      if (allocationMap && allocationMap[qType] !== undefined && allocationMap[qType] !== null) {
+        return Number(allocationMap[qType]) || 1
       }
       return 1 // Fallback
     }
@@ -516,13 +518,13 @@ export default function StudentAssessmentsPage() {
       if (q.type === 'Matching') {
         try {
           const studentPairs = JSON.parse(activeAnswers[q.id] || '{}')
-          const allCorrect = (q.matchPairs || []).every(p => studentPairs[p.left] === p.right)
+          const allCorrect = (q.matchPairs || []).every(p => normalizeAns(studentPairs[p.left]) === normalizeAns(p.right))
           if (allCorrect) totalScore += points
         } catch {}
       } else if (q.type === 'Fill in the Blanks') {
         totalScore += scoreMultiBlank(q, activeAnswers, points)
       } else {
-        if (activeAnswers[q.id] === q.correctAnswer) totalScore += points
+        if (normalizeAns(activeAnswers[q.id]) === normalizeAns(q.correctAnswer)) totalScore += points
       }
     })
 
@@ -535,7 +537,7 @@ export default function StudentAssessmentsPage() {
     // Grade locally-gradable MCQ-style Listening/Reading (exact match, no blanks, has correctAnswer)
     locallyGradable.forEach(q => {
       const points = getPointsForQuestion(q.type)
-      if (activeAnswers[q.id] === q.correctAnswer) totalScore += points
+      if (normalizeAns(activeAnswers[q.id]) === normalizeAns(q.correctAnswer)) totalScore += points
     })
 
     // Grade sub-questions nested under Reading/Listening sets
