@@ -176,6 +176,14 @@ export async function updateStudent(id: string, data: Partial<Student>): Promise
       }
     })
 
+    // Propagate updated name to historical Submission records
+    if (data.name && data.name.trim() !== "") {
+      await db.submission.updateMany({
+        where: { studentId: id },
+        data: { studentName: data.name.trim() }
+      })
+    }
+
     // Re-evaluate enrollment matches if grade or classTiming changed or if enrolledCourses isn't explicitly provided
     if (data.grade !== undefined || data.classTiming !== undefined || !data.enrolledCourses) {
       const allCourses = await db.course.findMany({ where: { status: 'active' } })

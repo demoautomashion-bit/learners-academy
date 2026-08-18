@@ -107,6 +107,25 @@ export async function updateClassFee(courseId: string, feeAmount: number): Promi
       where: { id: courseId },
       data: { feeAmount }
     })
+
+    // Sync existing FeePayment records for this course
+    const existingPayments = await db.feePayment.findMany({
+      where: { courseId }
+    })
+
+    for (const payment of existingPayments) {
+      const netDue = feeAmount - (payment.discount || 0)
+      const status = payment.amountPaid >= netDue ? 'Paid' : payment.amountPaid > 0 ? 'Partial' : 'Unpaid'
+      
+      await db.feePayment.update({
+        where: { id: payment.id },
+        data: {
+          totalAmount: feeAmount,
+          status
+        }
+      })
+    }
+
     revalidatePath('/')
     return { success: true, data: result }
   } catch (error) {

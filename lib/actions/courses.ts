@@ -52,6 +52,19 @@ export async function addCourse(course: Omit<Course, 'enrolled'>): Promise<Actio
 
 export async function removeCourse(id: string): Promise<ActionResult> {
   try {
+    // Strip deleted course ID from enrolled students
+    const enrolledStudents = await db.student.findMany({
+      where: { enrolledCourses: { has: id } }
+    })
+    for (const student of enrolledStudents) {
+      await db.student.update({
+        where: { id: student.id },
+        data: {
+          enrolledCourses: student.enrolledCourses.filter(cId => cId !== id)
+        }
+      })
+    }
+
     // Deep Purge: Clear all academic and financial ties to this class
     await db.$transaction([
       db.evaluation.deleteMany({ where: { courseId: id } }),

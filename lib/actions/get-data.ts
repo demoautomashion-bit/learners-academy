@@ -123,31 +123,47 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       console.error('REGISTRY_VALIDATION_FAILED:', validation.error.format())
     }
 
-    // Capture validated data or fallback to raw if critical failures occur
-    // AND: Apply mandatory string-casting to all identity fields to prevent React crashes
-    const validData = {
-      teachers: (teachers || []).map((t: any) => ({ 
-        ...t, 
-        id: String(t?.id || ''),
-        name: typeof t?.name === 'string' ? t.name : (t?.name ? String(t.name) : 'Teacher'),
-        joinedAt: t?.joinedAt ? new Date(t.joinedAt).toISOString() : new Date().toISOString()
-      })),
-      students: (students || []).map((s: any) => ({ 
-        ...s, 
-        id: String(s?.id || ''),
-        name: typeof s?.name === 'string' ? s.name : (s?.name ? String(s.name) : 'Student'),
-        studentId: typeof s?.studentId === 'string' ? s.studentId : (typeof s?.id === 'string' ? `X-${s.id.slice(0, 5).toUpperCase()}` : 'TBD'),
-        progress: Number(s?.progress) || 0,
-        enrolledCourses: Array.isArray(s?.enrolledCourses) ? s.enrolledCourses : [],
-        enrolledAt: s?.enrolledAt ? new Date(s.enrolledAt).toISOString() : new Date().toISOString()
-      })),
-      courses: (sanitizedCourses || []).map((c: any) => ({
+    const sanitizedStudents = (students || []).map((s: any) => ({ 
+      ...s, 
+      id: String(s?.id || ''),
+      name: typeof s?.name === 'string' ? s.name : (s?.name ? String(s.name) : 'Student'),
+      studentId: typeof s?.studentId === 'string' ? s.studentId : (typeof s?.id === 'string' ? `X-${s.id.slice(0, 5).toUpperCase()}` : 'TBD'),
+      progress: Number(s?.progress) || 0,
+      enrolledCourses: Array.isArray(s?.enrolledCourses) ? s.enrolledCourses : [],
+      enrolledAt: s?.enrolledAt ? new Date(s.enrolledAt).toISOString() : new Date().toISOString()
+    }))
+
+    const sanitizedCoursesList = (sanitizedCourses || []).map((c: any) => {
+      const realEnrolledCount = sanitizedStudents.filter((s: any) => isStudentInCourse(s, c)).length
+      return {
         ...c,
         id: String(c?.id || ''),
         title: typeof c?.title === 'string' ? c.title : (c?.title ? String(c.title) : 'Untitled Course'),
         level: typeof c?.level === 'string' ? c.level : (c?.level ? String(c.level) : 'Foundation'),
-        teacherName: typeof c?.teacherName === 'string' ? c.teacherName : 'Unassigned'
-      })),
+        teacherName: typeof c?.teacherName === 'string' ? c.teacherName : 'Unassigned',
+        enrolled: realEnrolledCount
+      }
+    })
+
+    const sanitizedTeachers = (teachers || []).map((t: any) => {
+      const myCourses = sanitizedCoursesList.filter((c: any) => c.teacherId === t.id)
+      const myStudents = sanitizedStudents.filter((s: any) => myCourses.some((c: any) => isStudentInCourse(s, c)))
+      return {
+        ...t,
+        id: String(t?.id || ''),
+        name: typeof t?.name === 'string' ? t.name : (t?.name ? String(t.name) : 'Teacher'),
+        joinedAt: t?.joinedAt ? new Date(t.joinedAt).toISOString() : new Date().toISOString(),
+        coursesCount: myCourses.length,
+        studentsCount: myStudents.length
+      }
+    })
+
+    // Capture validated data or fallback to raw if critical failures occur
+    // AND: Apply mandatory string-casting to all identity fields to prevent React crashes
+    const validData = {
+      teachers: sanitizedTeachers,
+      students: sanitizedStudents,
+      courses: sanitizedCoursesList,
       submissions: (submissions || []).map((sub: any) => ({
         ...sub,
         id: String(sub?.id || ''),

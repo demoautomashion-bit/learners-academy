@@ -22,10 +22,10 @@ export async function addTimeSlot(data: { startTime: string, endTime: string, la
 
 export async function removeTimeSlot(id: string) {
   try {
-    // Need to unset timeSlotId in courses first (handled by Prisma depending on relation behavior or manually)
+    // Unset timeSlotId and clear timing string for courses mapped to this slot
     await db.course.updateMany({
       where: { timeSlotId: id },
-      data: { timeSlotId: null }
+      data: { timeSlotId: null, timing: "" }
     })
     
     await db.timeSlot.delete({
@@ -41,7 +41,7 @@ export async function removeTimeSlot(id: string) {
 
 export async function addCourseToSlot(courseId: string, slotId: string) {
   try {
-    // If we bind to a time slot, we might optionally want to sync its timing
+    // If we bind to a time slot, sync its timing string
     const slot = await db.timeSlot.findUnique({ where: { id: slotId } })
     
     const timeString = slot ? `${slot.startTime} - ${slot.endTime}` : ''
@@ -65,7 +65,7 @@ export async function removeCourseFromSlot(courseId: string) {
   try {
     const course = await db.course.update({
       where: { id: courseId },
-      data: { timeSlotId: null }
+      data: { timeSlotId: null, timing: "" }
     })
     revalidatePath('/admin')
     return { success: true, data: course }
