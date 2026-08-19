@@ -609,15 +609,16 @@ export default function QuestionLibraryPage() {
                                 </div>
 
                                 {/* Sub-Question Content */}
-                                <Input
-                                  placeholder={`Enter Question #${sIdx + 1} text...`}
+                                <Textarea
+                                  placeholder={`Enter Question #${sIdx + 1} text (supports line breaks and bullet points)...`}
                                   value={sq.content}
                                   onChange={(e) => {
                                     const updated = [...subs]
                                     updated[sIdx].content = e.target.value
                                     setValue('subQuestions', updated)
                                   }}
-                                  className="h-9 text-xs"
+                                  rows={3}
+                                  className="text-xs bg-background/80 font-serif leading-relaxed resize-y p-3"
                                 />
 
                                 {/* MCQ Options */}

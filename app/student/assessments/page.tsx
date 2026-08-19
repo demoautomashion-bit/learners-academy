@@ -1136,7 +1136,7 @@ export default function StudentAssessmentsPage() {
                           {sq.points || (sq.type === 'Subjective' ? 3 : 1)} {sq.points === 1 ? 'Mark' : 'Marks'}
                         </Badge>
                       </div>
-                      <p className="text-base font-serif font-medium text-foreground">{sq.content}</p>
+                      <p className="text-base font-serif font-medium text-foreground whitespace-pre-wrap leading-relaxed">{sq.content}</p>
 
                       {/* Sub MCQ / True-False / True-False-Not-Given / Yes-No-Not-Given */}
                       {(sq.type === 'MCQ' || sq.type === 'True/False' || sq.type === 'True/False/Not Given' || sq.type === 'Yes/No/Not Given') && (
