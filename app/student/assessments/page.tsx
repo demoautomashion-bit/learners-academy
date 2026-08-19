@@ -578,9 +578,31 @@ export default function StudentAssessmentsPage() {
               totalScore += (matchCount / correctChoices.length) * sqPts
             }
           } else if (sq.type === 'Fill in the Blanks') {
-            const allowed = (sq.correctAnswer || '').split(/[\/|]/).map(s => s.trim().toLowerCase())
-            if (allowed.some(alt => alt === sqAns.trim().toLowerCase())) {
-              totalScore += sqPts
+            if ((q.category === 'Reading' || q.category === 'Listening') && sq.content.includes('____')) {
+              // Multi-blank subquestion evaluation: 1 Mark per Blank
+              const blankCount = Math.max(1, (sq.content.match(/_{3,}/g) || []).length)
+              let correctBlanks: string[] = []
+              try {
+                correctBlanks = JSON.parse(sq.correctAnswer || '[]')
+                if (!Array.isArray(correctBlanks)) correctBlanks = [sq.correctAnswer || '']
+              } catch {
+                correctBlanks = (sq.correctAnswer || '').split(';').map(s => s.trim())
+              }
+
+              for (let bIdx = 0; bIdx < blankCount; bIdx++) {
+                const blankKey = `${sqKey}_blank_${bIdx}`
+                const studentAns = (activeAnswers[blankKey] || '').trim().toLowerCase()
+                const allowedVariants = (correctBlanks[bIdx] || '').split(/[\/|]/).map(s => s.trim().toLowerCase())
+                
+                if (studentAns && allowedVariants.some(alt => alt === studentAns)) {
+                  totalScore += 1 // 1 Mark per correct blank
+                }
+              }
+            } else {
+              const allowed = (sq.correctAnswer || '').split(/[\/|]/).map(s => s.trim().toLowerCase())
+              if (allowed.some(alt => alt === sqAns.trim().toLowerCase())) {
+                totalScore += sqPts
+              }
             }
           } else if (sq.type === 'Subjective') {
             const subQObj = {
@@ -1205,9 +1227,73 @@ export default function StudentAssessmentsPage() {
                       )}
 
                       {/* Sub Blanks / Subjective */}
-                      {(sq.type === 'Fill in the Blanks' || sq.type === 'Subjective') && (
+                      {sq.type === 'Fill in the Blanks' ? (
+                        sq.content.includes('____') ? (
+                          <div className="space-y-4 pt-1">
+                            {/* Render prompt text with numbered badges [(1) ____] */}
+                            <div className="p-4 rounded-2xl bg-muted/20 border border-primary/10 font-serif text-base leading-relaxed whitespace-pre-wrap">
+                              {(() => {
+                                const parts = sq.content.split(/_{3,}/)
+                                return parts.map((part, pIdx) => (
+                                  <span key={pIdx}>
+                                    <span>{part}</span>
+                                    {pIdx < parts.length - 1 && (
+                                      <span className="inline-flex items-center justify-center bg-primary/10 text-primary font-sans font-bold text-xs px-2 py-0.5 rounded-lg border border-primary/20 mx-1 align-baseline">
+                                        [({pIdx + 1}) ____]
+                                      </span>
+                                    )}
+                                  </span>
+                                ))
+                              })()}
+                            </div>
+
+                            {/* Order-Wise Numbered Input Sheet (1 Mark per Blank) */}
+                            <div className="bg-background/80 border-2 border-primary/15 rounded-2xl p-4 space-y-3">
+                              <div className="flex items-center justify-between border-b pb-2">
+                                <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                                  <CheckSquare className="w-3.5 h-3.5" /> Order-Wise Answer Sheet ({Math.max(1, (sq.content.match(/_{3,}/g) || []).length)} Blanks — 1 Mark Each)
+                                </span>
+                              </div>
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                {Array.from({ length: Math.max(1, (sq.content.match(/_{3,}/g) || []).length) }).map((_, bIdx) => {
+                                  const blankKey = `${sqKey}_blank_${bIdx}`
+                                  const val = answers[blankKey] || ''
+                                  return (
+                                    <div key={bIdx} className="flex items-center gap-2 bg-muted/20 border p-2.5 rounded-xl">
+                                      <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20">
+                                        #{bIdx + 1}
+                                      </span>
+                                      <div className="flex-1 min-w-0">
+                                        <Label htmlFor={`sq-blank-${blankKey}`} className="text-[9px] uppercase font-bold text-muted-foreground block">
+                                          Blank #{bIdx + 1} Answer (1 Mark)
+                                        </Label>
+                                        <input
+                                          id={`sq-blank-${blankKey}`}
+                                          type="text"
+                                          value={val}
+                                          onChange={(e) => setAnswers(prev => ({ ...prev, [blankKey]: e.target.value }))}
+                                          placeholder={`Answer for Blank #${bIdx + 1}...`}
+                                          className="w-full text-xs font-medium bg-transparent border-none outline-none focus:ring-0 p-0 text-foreground"
+                                        />
+                                      </div>
+                                      {val.trim() && <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <Textarea
+                            placeholder="Type exact answer for the blank..."
+                            value={sqAns}
+                            onChange={(e) => setAnswers(prev => ({ ...prev, [sqKey]: e.target.value }))}
+                            className="min-h-[80px] text-sm bg-background border-2 rounded-xl"
+                          />
+                        )
+                      ) : sq.type === 'Subjective' && (
                         <Textarea
-                          placeholder={sq.type === 'Fill in the Blanks' ? "Type exact answer for the blank..." : "Write your response..."}
+                          placeholder="Write your response..."
                           value={sqAns}
                           onChange={(e) => setAnswers(prev => ({ ...prev, [sqKey]: e.target.value }))}
                           className="min-h-[80px] text-sm bg-background border-2 rounded-xl"

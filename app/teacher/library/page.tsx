@@ -746,8 +746,49 @@ export default function QuestionLibraryPage() {
                                   </div>
                                 )}
 
-                                {/* Correct Answer Key Input */}
-                                {sq.type !== 'True/False' && sq.type !== 'True/False/Not Given' && sq.type !== 'Yes/No/Not Given' && (
+                                {/* Multi-Blank Answer Key Input for Reading/Listening Fill in the Blanks */}
+                                {sq.type === 'Fill in the Blanks' && (selectedCategory === 'Reading' || selectedCategory === 'Listening') && sq.content.includes('____') ? (
+                                  <div className="space-y-2 pt-1 border-t border-primary/10">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                                        Answer Keys ({Math.max(1, (sq.content.match(/_{3,}/g) || []).length)} Blanks Detected — 1 Mark Each)
+                                      </span>
+                                    </div>
+                                    <div className="grid gap-2">
+                                      {Array.from({ length: Math.max(1, (sq.content.match(/_{3,}/g) || []).length) }).map((_, bIdx) => {
+                                        let currentBlanks: string[] = []
+                                        try {
+                                          currentBlanks = JSON.parse(sq.correctAnswer || '[]')
+                                          if (!Array.isArray(currentBlanks)) currentBlanks = [sq.correctAnswer || '']
+                                        } catch {
+                                          currentBlanks = (sq.correctAnswer || '').split(';').map(s => s.trim())
+                                        }
+
+                                        return (
+                                          <div key={bIdx} className="flex items-center gap-2">
+                                            <span className="text-[10px] font-bold text-muted-foreground w-16 shrink-0">
+                                              Blank #{bIdx + 1}:
+                                            </span>
+                                            <Input
+                                              placeholder={`Acceptable answers for Blank #${bIdx + 1} (e.g. Kings / King's)...`}
+                                              value={currentBlanks[bIdx] || ''}
+                                              onChange={(e) => {
+                                                const updated = [...subs]
+                                                const blankCount = Math.max(1, (sq.content.match(/_{3,}/g) || []).length)
+                                                const newBlanks = [...currentBlanks]
+                                                newBlanks[bIdx] = e.target.value
+                                                updated[sIdx].correctAnswer = JSON.stringify(newBlanks.slice(0, blankCount))
+                                                updated[sIdx].points = blankCount // Auto-set 1 Mark per blank
+                                                setValue('subQuestions', updated)
+                                              }}
+                                              className="h-8 text-xs bg-success/5 border-success/20 font-semibold flex-1"
+                                            />
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                ) : sq.type !== 'True/False' && sq.type !== 'True/False/Not Given' && sq.type !== 'Yes/No/Not Given' && (
                                   <Input
                                     placeholder={
                                       sq.type === 'Subjective' ? "Reference Model Answer (for AI evaluation)..." :
