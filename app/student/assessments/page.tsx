@@ -482,27 +482,33 @@ export default function StudentAssessmentsPage() {
       return
     }
 
-    // 1. Auto-graded questions evaluation
-    const autoGraded = randomizedQuestions.filter(q => (AUTO_GRADED_TYPES as readonly string[]).includes(q.type))
+    // 1. Auto-graded questions evaluation (Excluding parent questions that contain sub-questions)
+    const autoGraded = randomizedQuestions.filter(q => 
+      (AUTO_GRADED_TYPES as readonly string[]).includes(q.type) && (!q.subQuestions || q.subQuestions.length === 0)
+    )
 
     const aiTyped = randomizedQuestions.filter(q => (AI_GRADED_TYPES as readonly string[]).includes(q.type))
 
     const alwaysAI = aiTyped.filter(q => q.type === 'Subjective' || q.type === 'Writing' || q.type === 'Speaking')
     const clozeAIType = aiTyped.filter(q =>
-      (q.type === 'Reading' || q.type === 'Listening') && q.content.includes('____')
+      (q.type === 'Reading' || q.type === 'Listening') && 
+      q.content.includes('____') && 
+      (!q.subQuestions || q.subQuestions.length === 0)
     )
     const openAIType = aiTyped.filter(q =>
       (q.type === 'Reading' || q.type === 'Listening') &&
       !q.content.includes('____') &&
-      (!q.correctAnswer || q.correctAnswer.trim() === '')
+      (!q.correctAnswer || q.correctAnswer.trim() === '') &&
+      (!q.subQuestions || q.subQuestions.length === 0)
     )
     const locallyGradable = aiTyped.filter(q =>
       (q.type === 'Reading' || q.type === 'Listening') &&
       !q.content.includes('____') &&
-      q.correctAnswer && q.correctAnswer.trim() !== ''
+      q.correctAnswer && q.correctAnswer.trim() !== '' &&
+      (!q.subQuestions || q.subQuestions.length === 0)
     )
 
-    const normalizeAns = (val: any) => String(val || '').trim().toLowerCase()
+    const normalizeAns = (val: any) => String(val || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
 
     const getPointsForQuestion = (qType: string) => {
       const allocationMap = activeTest?.markAllocation as Record<string, number> | undefined
@@ -708,10 +714,20 @@ export default function StudentAssessmentsPage() {
     })
 
     const rawScore = Math.round(totalScore)
-    const rawTotalMarks = randomizedQuestions.reduce((sum, q) => sum + getPointsForQuestion(q.type), 0) || 100
+    const rawTotalMarks = randomizedQuestions.reduce((sum, q) => {
+      if (q.subQuestions && q.subQuestions.length > 0) {
+        return sum + q.subQuestions.reduce((subSum, sq) => {
+          if (sq.type === 'Fill in the Blanks' && (q.category === 'Reading' || q.category === 'Listening') && sq.content.includes('____')) {
+            return subSum + Math.max(1, (sq.content.match(/_{3,}/g) || []).length)
+          }
+          return subSum + (sq.points || (sq.type === 'Subjective' ? 3 : 1))
+        }, 0)
+      }
+      return sum + getPointsForQuestion(q.type)
+    }, 0) || 100
     
     // Scale out of 100
-    const finalCalculatedScore = Math.round((rawScore / rawTotalMarks) * 100)
+    const finalCalculatedScore = Math.min(100, Math.round((rawScore / rawTotalMarks) * 100))
     const totalMarks = 100
     setTestTotalMarks(totalMarks)
     const percentage = finalCalculatedScore
