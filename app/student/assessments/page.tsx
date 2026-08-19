@@ -65,6 +65,107 @@ function BlankInput({
   );
 }
 
+function canonicalizeIeltsAnswer(val: string): string {
+  const clean = String(val || '').trim().toUpperCase().replace(/^["']|["']$/g, '')
+  if (clean === 'T' || clean === 'TRUE') return 'TRUE'
+  if (clean === 'F' || clean === 'FALSE') return 'FALSE'
+  if (clean === 'NG' || clean === 'NOT GIVEN' || clean === 'NOTGIVEN') return 'NOT GIVEN'
+  if (clean === 'Y' || clean === 'YES') return 'YES'
+  if (clean === 'N' || clean === 'NO') return 'NO'
+  return clean
+}
+
+function parseMultiBlankCorrectAnswers(rawCorrect: string, numBlanks: number): string[][] {
+  const raw = String(rawCorrect || '').trim()
+  if (!raw) return Array.from({ length: numBlanks }, () => [])
+
+  let blankItems: string[] = []
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      blankItems = parsed.map(s => String(s).trim())
+    }
+  } catch {}
+
+  if (blankItems.length === 0) {
+    if (raw.includes(';')) {
+      blankItems = raw.split(';').map(s => s.trim())
+    } else if (raw.includes(',')) {
+      blankItems = raw.split(',').map(s => s.trim())
+    } else {
+      blankItems = [raw]
+    }
+  }
+
+  const result: string[][] = []
+  for (let i = 0; i < numBlanks; i++) {
+    const item = blankItems[i] || (blankItems.length === 1 && numBlanks > 1 ? blankItems[0].split(' ')[i] : '') || ''
+    const variants = item.split(/[\/|;]/).map(s => s.trim().toLowerCase().replace(/^["']|["']$/g, '')).filter(Boolean)
+    result.push(variants)
+  }
+  return result
+}
+
+function evaluateMultiSelect(sqAns: string, rawCorrect: string, options?: string[], sqPts: number = 1, maxSelections?: number): number {
+  let studentChoices: string[] = []
+  try {
+    const parsed = JSON.parse(sqAns)
+    if (Array.isArray(parsed)) studentChoices = parsed.map(s => String(s).trim())
+    else studentChoices = String(sqAns).split(',').map(s => s.trim())
+  } catch {
+    studentChoices = String(sqAns || '').split(',').map(s => s.trim())
+  }
+
+  let correctChoicesRaw: string[] = []
+  try {
+    const parsed = JSON.parse(rawCorrect || '[]')
+    if (Array.isArray(parsed)) correctChoicesRaw = parsed.map(s => String(s).trim())
+    else correctChoicesRaw = String(rawCorrect || '').split(/[,;]/).map(s => s.trim())
+  } catch {
+    correctChoicesRaw = String(rawCorrect || '').split(/[,;]/).map(s => s.trim())
+  }
+
+  studentChoices = studentChoices.map(c => c.replace(/^["']|["']$/g, '')).filter(Boolean)
+  correctChoicesRaw = correctChoicesRaw.map(c => c.replace(/^["']|["']$/g, '')).filter(Boolean)
+
+  if (correctChoicesRaw.length === 0) return 0
+
+  const letterToText: Record<string, string> = {}
+  const textToLetter: Record<string, string> = {}
+  if (options && Array.isArray(options)) {
+    options.forEach((opt, idx) => {
+      const letter = String.fromCharCode(65 + idx)
+      const textClean = opt.trim().toLowerCase().replace(/^["']|["']$/g, '')
+      letterToText[letter] = textClean
+      letterToText[letter.toLowerCase()] = textClean
+      textToLetter[textClean] = letter
+    })
+  }
+
+  const targetKeysSet = new Set<string>()
+  correctChoicesRaw.forEach(choice => {
+    const upper = choice.toUpperCase()
+    targetKeysSet.add(upper)
+    const lower = choice.toLowerCase()
+    targetKeysSet.add(lower)
+    if (letterToText[upper]) targetKeysSet.add(letterToText[upper])
+    if (textToLetter[lower]) targetKeysSet.add(textToLetter[lower])
+  })
+
+  let matchCount = 0
+  studentChoices.forEach(pick => {
+    const upper = pick.toUpperCase()
+    const lower = pick.toLowerCase()
+    const textEquivalent = letterToText[upper] || letterToText[lower]
+    if (targetKeysSet.has(upper) || targetKeysSet.has(lower) || (textEquivalent && targetKeysSet.has(textEquivalent))) {
+      matchCount++
+    }
+  })
+
+  const targetCount = Math.max(1, correctChoicesRaw.length)
+  return (matchCount / targetCount) * sqPts
+}
+
 function scoreMultiBlank(q: Question, answers: Record<string, string>, points: number): number {
   const parts = q.content.split(/_{3,}/)
   const numBlanks = Math.max(1, parts.length - 1)
@@ -529,6 +630,14 @@ export default function StudentAssessmentsPage() {
         } catch {}
       } else if (q.type === 'Fill in the Blanks') {
         totalScore += scoreMultiBlank(q, activeAnswers, points)
+      } else if (q.type === 'MultiSelect') {
+        totalScore += evaluateMultiSelect(activeAnswers[q.id] || '', q.correctAnswer || '', q.options, points)
+      } else if (q.type === 'True/False/Not Given' || q.type === 'Yes/No/Not Given' || q.type === 'True/False') {
+        const studentCanonical = canonicalizeIeltsAnswer(activeAnswers[q.id] || '')
+        const correctCanonical = canonicalizeIeltsAnswer(q.correctAnswer || '')
+        if (studentCanonical && studentCanonical === correctCanonical) {
+          totalScore += points
+        }
       } else {
         if (normalizeAns(activeAnswers[q.id]) === normalizeAns(q.correctAnswer)) totalScore += points
       }
@@ -543,7 +652,11 @@ export default function StudentAssessmentsPage() {
     // Grade locally-gradable MCQ-style Listening/Reading (exact match, no blanks, has correctAnswer)
     locallyGradable.forEach(q => {
       const points = getPointsForQuestion(q.type)
-      if (normalizeAns(activeAnswers[q.id]) === normalizeAns(q.correctAnswer)) totalScore += points
+      const studentCanonical = canonicalizeIeltsAnswer(activeAnswers[q.id] || '')
+      const correctCanonical = canonicalizeIeltsAnswer(q.correctAnswer || '')
+      if ((studentCanonical && studentCanonical === correctCanonical) || (normalizeAns(activeAnswers[q.id]) === normalizeAns(q.correctAnswer))) {
+        totalScore += points
+      }
     })
 
     // Grade sub-questions nested under Reading/Listening sets
@@ -557,54 +670,26 @@ export default function StudentAssessmentsPage() {
           const sqPts = sq.points || (sq.type === 'Subjective' ? 3 : 1)
 
           if (sq.type === 'MCQ' || sq.type === 'True/False' || sq.type === 'True/False/Not Given' || sq.type === 'Yes/No/Not Given') {
+            const studentCanonical = canonicalizeIeltsAnswer(sqAns)
+            const correctCanonical = canonicalizeIeltsAnswer(sq.correctAnswer || '')
             const normalizedStudent = sqAns.trim().toLowerCase().replace(/^["']|["']$/g, '')
             const normalizedCorrect = (sq.correctAnswer || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
-            if (normalizedStudent && normalizedStudent === normalizedCorrect) {
+            if ((studentCanonical && studentCanonical === correctCanonical) || (normalizedStudent && normalizedStudent === normalizedCorrect)) {
               totalScore += sqPts
             }
           } else if (sq.type === 'MultiSelect') {
-            // Check student multi-select answers (stored as comma-separated strings or JSON array)
-            let studentChoices: string[] = []
-            try {
-              studentChoices = JSON.parse(sqAns)
-              if (!Array.isArray(studentChoices)) studentChoices = sqAns.split(',').map(s => s.trim().toUpperCase())
-            } catch {
-              studentChoices = sqAns.split(',').map(s => s.trim().toUpperCase())
-            }
-
-            let correctChoices: string[] = []
-            try {
-              correctChoices = JSON.parse(sq.correctAnswer || '[]')
-              if (!Array.isArray(correctChoices)) correctChoices = (sq.correctAnswer || '').split(',').map(s => s.trim().toUpperCase())
-            } catch {
-              correctChoices = (sq.correctAnswer || '').split(',').map(s => s.trim().toUpperCase())
-            }
-
-            studentChoices = studentChoices.map(c => c.replace(/^["']|["']$/g, '').toUpperCase()).filter(Boolean)
-            correctChoices = correctChoices.map(c => c.replace(/^["']|["']$/g, '').toUpperCase()).filter(Boolean)
-
-            // Award point per matching pick or proportional credit
-            const matchCount = studentChoices.filter(c => correctChoices.includes(c)).length
-            if (correctChoices.length > 0) {
-              totalScore += (matchCount / correctChoices.length) * sqPts
-            }
+            totalScore += evaluateMultiSelect(sqAns, sq.correctAnswer || '', sq.options, sqPts, sq.maxSelections)
           } else if (sq.type === 'Fill in the Blanks') {
             if (sq.content.includes('____')) {
               // Multi-blank subquestion evaluation: 1 Mark per Blank
               const blankCount = Math.max(1, (sq.content.match(/_{3,}/g) || []).length)
-              let correctBlanks: string[] = []
-              try {
-                correctBlanks = JSON.parse(sq.correctAnswer || '[]')
-                if (!Array.isArray(correctBlanks)) correctBlanks = [sq.correctAnswer || '']
-              } catch {
-                correctBlanks = (sq.correctAnswer || '').split(';').map(s => s.trim())
-              }
+              const parsedBlanks = parseMultiBlankCorrectAnswers(sq.correctAnswer || '', blankCount)
 
               for (let bIdx = 0; bIdx < blankCount; bIdx++) {
                 const blankKey = `${sqKey}_blank_${bIdx}`
                 // Fallback lookup: try explicit blank key or flat index
-                const studentAns = (activeAnswers[blankKey] || activeAnswers[`${sqKey}_${bIdx}`] || activeAnswers[`${q.id}_sub_${sq.id}_${bIdx}`] || '').trim().toLowerCase()
-                const allowedVariants = (correctBlanks[bIdx] || '').split(/[\/|;]/).map(s => s.trim().toLowerCase().replace(/^["']|["']$/g, ''))
+                const studentAns = (activeAnswers[blankKey] || activeAnswers[`${sqKey}_${bIdx}`] || activeAnswers[`${q.id}_sub_${sq.id}_${bIdx}`] || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
+                const allowedVariants = parsedBlanks[bIdx] || []
                 
                 if (studentAns && allowedVariants.some(alt => alt === studentAns)) {
                   totalScore += 1 // 1 Mark per correct blank
@@ -809,7 +894,47 @@ export default function StudentAssessmentsPage() {
      const isClozeAI = (q.type === 'Reading' || q.type === 'Listening') && q.content.includes('____')
      const isLocalMCQStyle = (q.type === 'Reading' || q.type === 'Listening') && !q.content.includes('____') && q.correctAnswer && q.correctAnswer.trim() !== ''
 
-     if (isAutoType) {
+     if (q.subQuestions && q.subQuestions.length > 0) {
+        let subScore = 0
+        let totalSubPts = 0
+        q.subQuestions.forEach(sq => {
+          const sqKey = `${q.id}_sub_${sq.id}`
+          const sqAns = answers[sqKey] || ''
+          const sqPts = sq.points || (sq.type === 'Subjective' ? 3 : 1)
+          totalSubPts += sqPts
+
+          if (sq.type === 'MCQ' || sq.type === 'True/False' || sq.type === 'True/False/Not Given' || sq.type === 'Yes/No/Not Given') {
+            const studentCanonical = canonicalizeIeltsAnswer(sqAns)
+            const correctCanonical = canonicalizeIeltsAnswer(sq.correctAnswer || '')
+            const normalizedStudent = sqAns.trim().toLowerCase().replace(/^["']|["']$/g, '')
+            const normalizedCorrect = (sq.correctAnswer || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
+            if ((studentCanonical && studentCanonical === correctCanonical) || (normalizedStudent && normalizedStudent === normalizedCorrect)) {
+              subScore += sqPts
+            }
+          } else if (sq.type === 'MultiSelect') {
+            subScore += evaluateMultiSelect(sqAns, sq.correctAnswer || '', sq.options, sqPts, sq.maxSelections)
+          } else if (sq.type === 'Fill in the Blanks') {
+            if (sq.content.includes('____')) {
+              const blankCount = Math.max(1, (sq.content.match(/_{3,}/g) || []).length)
+              const parsedBlanks = parseMultiBlankCorrectAnswers(sq.correctAnswer || '', blankCount)
+              for (let bIdx = 0; bIdx < blankCount; bIdx++) {
+                const blankKey = `${sqKey}_blank_${bIdx}`
+                const studentAns = (answers[blankKey] || answers[`${sqKey}_${bIdx}`] || answers[`${q.id}_sub_${sq.id}_${bIdx}`] || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
+                const allowedVariants = parsedBlanks[bIdx] || []
+                if (studentAns && allowedVariants.some(alt => alt === studentAns)) {
+                  subScore += (sqPts / blankCount)
+                }
+              }
+            } else {
+              const allowed = (sq.correctAnswer || '').split(/[\/|;]/).map(s => s.trim().toLowerCase().replace(/^["']|["']$/g, ''))
+              if (sqAns && allowed.some(alt => alt === sqAns.trim().toLowerCase().replace(/^["']|["']$/g, ''))) {
+                subScore += sqPts
+              }
+            }
+          }
+        })
+        score = totalSubPts > 0 ? (subScore / totalSubPts) : 0
+     } else if (isAutoType) {
         if (q.type === 'Matching') {
            try {
              const studentPairs = JSON.parse(answer || '{}')
@@ -818,6 +943,12 @@ export default function StudentAssessmentsPage() {
            } catch {}
         } else if (q.type === 'Fill in the Blanks') {
            score = scoreMultiBlank(q, answers, 1)
+        } else if (q.type === 'MultiSelect') {
+           score = evaluateMultiSelect(answer, q.correctAnswer || '', q.options, 1)
+        } else if (q.type === 'True/False/Not Given' || q.type === 'Yes/No/Not Given' || q.type === 'True/False') {
+           const studentCanonical = canonicalizeIeltsAnswer(answer)
+           const correctCanonical = canonicalizeIeltsAnswer(q.correctAnswer || '')
+           if (studentCanonical && studentCanonical === correctCanonical) score = 1
         } else {
            if (answer === q.correctAnswer) score = 1
         }
@@ -826,7 +957,9 @@ export default function StudentAssessmentsPage() {
         score = scoreMultiBlank(q, answers, 1)
      } else if (isLocalMCQStyle) {
         // MCQ-style Reading/Listening with exactAnswer — exact match
-        if (answer === q.correctAnswer) score = 1
+        const studentCanonical = canonicalizeIeltsAnswer(answer)
+        const correctCanonical = canonicalizeIeltsAnswer(q.correctAnswer || '')
+        if ((studentCanonical && studentCanonical === correctCanonical) || answer === q.correctAnswer) score = 1
      } else {
         // Subjective, Writing, open-ended Reading/Listening — always use AI evaluator
         const audit = await evaluateSubjective(q, answer)
