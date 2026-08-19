@@ -34,17 +34,18 @@ import Image from 'next/image'
 
 const subQuestionSchema = z.object({
   id: z.string(),
-  type: z.enum(['MCQ', 'True/False', 'Fill in the Blanks', 'Subjective', 'Matching']),
+  type: z.enum(['MCQ', 'True/False', 'True/False/Not Given', 'Yes/No/Not Given', 'MultiSelect', 'Fill in the Blanks', 'Subjective', 'Matching']),
   content: z.string().min(1, 'Question text required'),
   points: z.number().optional(),
   options: z.array(z.string()).optional(),
   correctAnswer: z.string().optional(),
+  maxSelections: z.number().optional(),
   matchPairs: z.array(z.object({ left: z.string(), right: z.string() })).optional(),
 })
 
 const questionSchema = z.object({
   category: z.string().min(1, 'Required'),
-  type: z.enum(['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening']),
+  type: z.enum(['MCQ', 'Subjective', 'True/False', 'True/False/Not Given', 'Yes/No/Not Given', 'MultiSelect', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening']),
   phase: z.enum(['First Test', 'Last Test', 'Both']),
   content: z.string().min(1, 'Required'),
   options: z.string().optional(),
@@ -64,6 +65,7 @@ const questionSchema = z.object({
   wordLimitMax: z.coerce.number().optional(),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).default('Medium'),
   classLevel: z.string().optional(),
+  isIeltsFormat: z.boolean().optional(),
 })
 
 type QuestionFormValues = z.infer<typeof questionSchema>
@@ -71,15 +73,18 @@ type QuestionFormValues = z.infer<typeof questionSchema>
 const CATEGORIES: QuestionCategory[] = ['Grammar', 'Vocab & Idioms', 'Listening', 'Reading', 'Speaking', 'Writing']
 
 const TYPE_OPTIONS = [
-  { value: 'MCQ',               label: 'Multiple Choice (MCQ)' },
-  { value: 'True/False',        label: 'True / False' },
-  { value: 'Fill in the Blanks',label: 'Fill in the Blanks' },
-  { value: 'Writing',           label: 'Writing Prompt' },
-  { value: 'Speaking',          label: 'Speaking Task' },
-  { value: 'Matching',          label: 'Column Matching' },
-  { value: 'Reading',           label: 'Reading Question' },
-  { value: 'Listening',         label: 'Listening Question' },
-  { value: 'Subjective',        label: 'Subjective (Open)' },
+  { value: 'MCQ',                  label: 'Multiple Choice (MCQ)' },
+  { value: 'True/False',           label: 'True / False' },
+  { value: 'True/False/Not Given', label: 'IELTS True / False / Not Given' },
+  { value: 'Yes/No/Not Given',     label: 'IELTS Yes / No / Not Given' },
+  { value: 'MultiSelect',          label: 'IELTS Multi-Select (Choose X of N)' },
+  { value: 'Fill in the Blanks',   label: 'Fill in the Blanks / Note Completion' },
+  { value: 'Matching',             label: 'Column / Heading Matching' },
+  { value: 'Writing',              label: 'Writing Prompt' },
+  { value: 'Speaking',             label: 'Speaking Task' },
+  { value: 'Reading',              label: 'Reading Question Set' },
+  { value: 'Listening',            label: 'Listening Question Set' },
+  { value: 'Subjective',           label: 'Subjective (Open)' },
 ]
 
 const TYPE_BADGE_COLORS: Record<string, string> = {
@@ -559,24 +564,34 @@ export default function QuestionLibraryPage() {
                                     </div>
 
                                     <Select
-                                      value={sq.type}
-                                      onValueChange={(newType: any) => {
-                                        const updated = [...subs]
-                                        const defaultPts = newType === 'Subjective' ? 3 : 1
-                                        updated[sIdx] = { ...sq, type: newType, points: defaultPts, options: newType === 'MCQ' ? ['', '', '', ''] : sq.options }
-                                        setValue('subQuestions', updated)
-                                      }}
-                                    >
-                                      <SelectTrigger className="h-7 text-[10px] w-32">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="MCQ">Multiple Choice</SelectItem>
-                                        <SelectItem value="True/False">True / False</SelectItem>
-                                        <SelectItem value="Fill in the Blanks">Fill in Blanks</SelectItem>
-                                        <SelectItem value="Subjective">Open Synthesis</SelectItem>
-                                      </SelectContent>
-                                    </Select>
+                                       value={sq.type}
+                                       onValueChange={(newType: any) => {
+                                         const updated = [...subs]
+                                         const defaultPts = newType === 'Subjective' ? 3 : 1
+                                         updated[sIdx] = { 
+                                           ...sq, 
+                                           type: newType, 
+                                           points: defaultPts, 
+                                           options: (newType === 'MCQ' || newType === 'MultiSelect') ? ['', '', '', '', ''] : sq.options,
+                                           maxSelections: newType === 'MultiSelect' ? 2 : undefined
+                                         }
+                                         setValue('subQuestions', updated)
+                                       }}
+                                     >
+                                       <SelectTrigger className="h-7 text-[10px] w-36">
+                                         <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                         <SelectItem value="MCQ">Multiple Choice</SelectItem>
+                                         <SelectItem value="True/False">True / False</SelectItem>
+                                         <SelectItem value="True/False/Not Given">True / False / Not Given</SelectItem>
+                                         <SelectItem value="Yes/No/Not Given">Yes / No / Not Given</SelectItem>
+                                         <SelectItem value="MultiSelect">Multi-Select (Choose X)</SelectItem>
+                                         <SelectItem value="Fill in the Blanks">Fill in Blanks / Note</SelectItem>
+                                         <SelectItem value="Matching">Matching Items</SelectItem>
+                                         <SelectItem value="Subjective">Open Synthesis</SelectItem>
+                                       </SelectContent>
+                                     </Select>
 
                                     <Button
                                       type="button"
@@ -648,11 +663,96 @@ export default function QuestionLibraryPage() {
                                   </div>
                                 )}
 
+                                {/* True/False/Not Given Options */}
+                                {sq.type === 'True/False/Not Given' && (
+                                  <div className="flex gap-4 items-center text-xs pt-1">
+                                    <span className="text-muted-foreground text-[10px]">Correct Answer:</span>
+                                    {['TRUE', 'FALSE', 'NOT GIVEN'].map(tf => (
+                                      <label key={tf} className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                          type="radio"
+                                          name={`tfng_${sq.id}`}
+                                          checked={sq.correctAnswer === tf}
+                                          onChange={() => {
+                                            const updated = [...subs]
+                                            updated[sIdx].correctAnswer = tf
+                                            setValue('subQuestions', updated)
+                                          }}
+                                        />
+                                        <span className="font-semibold">{tf}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Yes/No/Not Given Options */}
+                                {sq.type === 'Yes/No/Not Given' && (
+                                  <div className="flex gap-4 items-center text-xs pt-1">
+                                    <span className="text-muted-foreground text-[10px]">Correct Answer:</span>
+                                    {['YES', 'NO', 'NOT GIVEN'].map(tf => (
+                                      <label key={tf} className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                          type="radio"
+                                          name={`yng_${sq.id}`}
+                                          checked={sq.correctAnswer === tf}
+                                          onChange={() => {
+                                            const updated = [...subs]
+                                            updated[sIdx].correctAnswer = tf
+                                            setValue('subQuestions', updated)
+                                          }}
+                                        />
+                                        <span className="font-semibold">{tf}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* MultiSelect Options & Config */}
+                                {sq.type === 'MultiSelect' && (
+                                  <div className="space-y-2 pt-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-bold text-muted-foreground">Select Max Allowed Answers:</span>
+                                      <input
+                                        type="number"
+                                        min="2"
+                                        max="5"
+                                        value={sq.maxSelections || 2}
+                                        onChange={(e) => {
+                                          const updated = [...subs]
+                                          updated[sIdx].maxSelections = parseInt(e.target.value) || 2
+                                          setValue('subQuestions', updated)
+                                        }}
+                                        className="w-12 h-6 text-xs font-bold border rounded px-1"
+                                      />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {['A', 'B', 'C', 'D', 'E'].map((optKey, oIdx) => (
+                                        <Input
+                                          key={optKey}
+                                          placeholder={`Option ${optKey}`}
+                                          value={(sq.options || [])[oIdx] || ''}
+                                          onChange={(e) => {
+                                            const updated = [...subs]
+                                            const opts = [...(updated[sIdx].options || ['', '', '', '', ''])]
+                                            opts[oIdx] = e.target.value
+                                            updated[sIdx].options = opts
+                                            setValue('subQuestions', updated)
+                                          }}
+                                          className="h-8 text-xs bg-muted/10"
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
                                 {/* Correct Answer Key Input */}
-                                {sq.type !== 'True/False' && (
+                                {sq.type !== 'True/False' && sq.type !== 'True/False/Not Given' && sq.type !== 'Yes/No/Not Given' && (
                                   <Input
                                     placeholder={
-                                      sq.type === 'Subjective' ? "Reference Model Answer (for AI evaluation)..." : "Correct Answer..."
+                                      sq.type === 'Subjective' ? "Reference Model Answer (for AI evaluation)..." :
+                                      sq.type === 'MultiSelect' ? "Correct Answers (comma separated, e.g. B, C)..." :
+                                      sq.type === 'Fill in the Blanks' ? "Acceptable answers (separated by slash, e.g. 125 / $125)..." :
+                                      "Correct Answer..."
                                     }
                                     value={sq.correctAnswer || ''}
                                     onChange={(e) => {
@@ -660,7 +760,7 @@ export default function QuestionLibraryPage() {
                                       updated[sIdx].correctAnswer = e.target.value
                                       setValue('subQuestions', updated)
                                     }}
-                                    className="h-8 text-xs bg-success/5 border-success/20"
+                                    className="h-8 text-xs bg-success/5 border-success/20 font-semibold"
                                   />
                                 )}
                               </div>

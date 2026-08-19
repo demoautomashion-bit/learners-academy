@@ -126,7 +126,7 @@ export interface TimeSlot {
 }
 
 export type QuestionCategory = 'Grammar' | 'Vocab & Idioms' | 'Listening' | 'Reading' | 'Speaking' | 'Writing'
-export type QuestionType = 'MCQ' | 'Subjective' | 'True/False' | 'Fill in the Blanks' | 'Writing' | 'Matching' | 'Reading' | 'Listening' | 'Speaking'
+export type QuestionType = 'MCQ' | 'Subjective' | 'True/False' | 'True/False/Not Given' | 'Yes/No/Not Given' | 'MultiSelect' | 'Fill in the Blanks' | 'Writing' | 'Matching' | 'Reading' | 'Listening' | 'Speaking'
 
 export type WritingGenre = 'Essay' | 'Letter' | 'Application' | 'Precis' | 'Story' | 'Report & Notice'
 
@@ -171,11 +171,12 @@ export const WRITING_SUBTYPES: Record<WritingGenre, string[]> = {
 
 export interface SubQuestion {
   id: string
-  type: 'MCQ' | 'True/False' | 'Fill in the Blanks' | 'Subjective' | 'Matching'
+  type: 'MCQ' | 'True/False' | 'True/False/Not Given' | 'Yes/No/Not Given' | 'MultiSelect' | 'Fill in the Blanks' | 'Subjective' | 'Matching'
   content: string
   points?: number
   options?: string[]
-  correctAnswer?: string
+  correctAnswer?: string // Can be string or JSON stringified array for MultiSelect (e.g. '["A","C"]') or comma/slash separated variants for Blanks
+  maxSelections?: number // For MultiSelect questions (e.g. Choose 2 of 5)
   matchPairs?: { left: string; right: string }[]
 }
 
@@ -205,6 +206,7 @@ export interface Question {
   teacherId?: string
   difficulty?: 'Easy' | 'Medium' | 'Hard'
   classLevel?: string
+  isIeltsFormat?: boolean
 }
 
 export interface ActionResult<T = any> {

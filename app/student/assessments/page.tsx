@@ -550,12 +550,36 @@ export default function StudentAssessmentsPage() {
           const sqAns = activeAnswers[sqKey] || ''
           const sqPts = sq.points || (sq.type === 'Subjective' ? 3 : 1)
 
-          if (sq.type === 'MCQ' || sq.type === 'True/False') {
+          if (sq.type === 'MCQ' || sq.type === 'True/False' || sq.type === 'True/False/Not Given' || sq.type === 'Yes/No/Not Given') {
             if (sqAns.trim().toLowerCase() === (sq.correctAnswer || '').trim().toLowerCase()) {
               totalScore += sqPts
             }
+          } else if (sq.type === 'MultiSelect') {
+            // Check student multi-select answers (stored as comma-separated strings or JSON array)
+            let studentChoices: string[] = []
+            try {
+              studentChoices = JSON.parse(sqAns)
+              if (!Array.isArray(studentChoices)) studentChoices = sqAns.split(',').map(s => s.trim())
+            } catch {
+              studentChoices = sqAns.split(',').map(s => s.trim().toUpperCase())
+            }
+
+            let correctChoices: string[] = []
+            try {
+              correctChoices = JSON.parse(sq.correctAnswer || '[]')
+              if (!Array.isArray(correctChoices)) correctChoices = (sq.correctAnswer || '').split(',').map(s => s.trim().toUpperCase())
+            } catch {
+              correctChoices = (sq.correctAnswer || '').split(',').map(s => s.trim().toUpperCase())
+            }
+
+            // Award point per matching pick or proportional credit
+            const matchCount = studentChoices.filter(c => correctChoices.includes(c.toUpperCase())).length
+            if (correctChoices.length > 0) {
+              totalScore += (matchCount / correctChoices.length) * sqPts
+            }
           } else if (sq.type === 'Fill in the Blanks') {
-            if (sqAns.trim().toLowerCase() === (sq.correctAnswer || '').trim().toLowerCase()) {
+            const allowed = (sq.correctAnswer || '').split(/[\/|]/).map(s => s.trim().toLowerCase())
+            if (allowed.some(alt => alt === sqAns.trim().toLowerCase())) {
               totalScore += sqPts
             }
           } else if (sq.type === 'Subjective') {
@@ -1114,16 +1138,70 @@ export default function StudentAssessmentsPage() {
                       </div>
                       <p className="text-base font-serif font-medium text-foreground">{sq.content}</p>
 
-                      {/* Sub MCQ / True-False */}
-                      {(sq.type === 'MCQ' || sq.type === 'True/False') && (
+                      {/* Sub MCQ / True-False / True-False-Not-Given / Yes-No-Not-Given */}
+                      {(sq.type === 'MCQ' || sq.type === 'True/False' || sq.type === 'True/False/Not Given' || sq.type === 'Yes/No/Not Given') && (
                         <RadioGroup value={sqAns} onValueChange={(val) => setAnswers(prev => ({ ...prev, [sqKey]: val }))} className="space-y-2 pt-1">
-                          {(sq.type === 'True/False' ? ['True', 'False'] : (sq.options || [])).map((opt, oIdx) => (
+                          {(
+                            sq.type === 'True/False' ? ['True', 'False'] : 
+                            sq.type === 'True/False/Not Given' ? ['TRUE', 'FALSE', 'NOT GIVEN'] : 
+                            sq.type === 'Yes/No/Not Given' ? ['YES', 'NO', 'NOT GIVEN'] : 
+                            (sq.options || [])
+                          ).map((opt, oIdx) => (
                             <div key={oIdx} className="flex items-center space-x-3 p-3 rounded-xl border hover:bg-muted/30 cursor-pointer">
                               <RadioGroupItem value={opt} id={`${sqKey}_${oIdx}`} />
                               <Label htmlFor={`${sqKey}_${oIdx}`} className="flex-1 text-sm font-medium cursor-pointer">{opt}</Label>
                             </div>
                           ))}
                         </RadioGroup>
+                      )}
+
+                      {/* Sub MultiSelect */}
+                      {sq.type === 'MultiSelect' && (
+                        <div className="space-y-2 pt-1">
+                          <p className="text-[11px] font-bold text-primary">Select up to {sq.maxSelections || 2} answers:</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {(sq.options || ['A', 'B', 'C', 'D', 'E']).filter(o => o.trim()).map((opt, oIdx) => {
+                              const letter = String.fromCharCode(65 + oIdx)
+                              let currentPicks: string[] = []
+                              try {
+                                currentPicks = JSON.parse(sqAns)
+                                if (!Array.isArray(currentPicks)) currentPicks = sqAns ? sqAns.split(',') : []
+                              } catch {
+                                currentPicks = sqAns ? sqAns.split(',') : []
+                              }
+                              const isChecked = currentPicks.includes(letter)
+
+                              return (
+                                <div
+                                  key={oIdx}
+                                  onClick={() => {
+                                    let newPicks = [...currentPicks]
+                                    if (isChecked) {
+                                      newPicks = newPicks.filter(p => p !== letter)
+                                    } else {
+                                      if (newPicks.length < (sq.maxSelections || 2)) {
+                                        newPicks.push(letter)
+                                      } else {
+                                        toast.info(`You can only select up to ${sq.maxSelections || 2} options`)
+                                        return
+                                      }
+                                    }
+                                    setAnswers(prev => ({ ...prev, [sqKey]: JSON.stringify(newPicks) }))
+                                  }}
+                                  className={cn(
+                                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                                    isChecked ? "bg-primary/10 border-primary/40 font-bold" : "hover:bg-muted/30"
+                                  )}
+                                >
+                                  <div className={cn("w-5 h-5 rounded flex items-center justify-center text-xs font-bold border", isChecked ? "bg-primary text-white border-primary" : "border-muted-foreground/30")}>
+                                    {letter}
+                                  </div>
+                                  <span className="text-sm">{opt}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
                       )}
 
                       {/* Sub Blanks / Subjective */}
