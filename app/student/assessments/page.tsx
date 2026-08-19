@@ -23,7 +23,7 @@ import { generateRandomizedQuestions } from "@/lib/actions/assessments"
 import { submitTestResult as directSubmitTestResult } from "@/lib/actions/submissions"
 import type { AssessmentTemplate, Question, StudentTest } from "@/lib/types"
 
-const AUTO_GRADED_TYPES = ['MCQ', 'True/False', 'Fill in the Blanks', 'Matching'] as const
+const AUTO_GRADED_TYPES = ['MCQ', 'True/False', 'True/False/Not Given', 'Yes/No/Not Given', 'MultiSelect', 'Fill in the Blanks', 'Matching'] as const
 const AI_GRADED_TYPES   = ['Subjective', 'Writing', 'Reading', 'Listening', 'Speaking'] as const
 
 // ── Components ─────────────────────────────────────────────────────────────
@@ -557,7 +557,9 @@ export default function StudentAssessmentsPage() {
           const sqPts = sq.points || (sq.type === 'Subjective' ? 3 : 1)
 
           if (sq.type === 'MCQ' || sq.type === 'True/False' || sq.type === 'True/False/Not Given' || sq.type === 'Yes/No/Not Given') {
-            if (sqAns.trim().toLowerCase() === (sq.correctAnswer || '').trim().toLowerCase()) {
+            const normalizedStudent = sqAns.trim().toLowerCase().replace(/^["']|["']$/g, '')
+            const normalizedCorrect = (sq.correctAnswer || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
+            if (normalizedStudent && normalizedStudent === normalizedCorrect) {
               totalScore += sqPts
             }
           } else if (sq.type === 'MultiSelect') {
@@ -565,7 +567,7 @@ export default function StudentAssessmentsPage() {
             let studentChoices: string[] = []
             try {
               studentChoices = JSON.parse(sqAns)
-              if (!Array.isArray(studentChoices)) studentChoices = sqAns.split(',').map(s => s.trim())
+              if (!Array.isArray(studentChoices)) studentChoices = sqAns.split(',').map(s => s.trim().toUpperCase())
             } catch {
               studentChoices = sqAns.split(',').map(s => s.trim().toUpperCase())
             }
@@ -578,13 +580,16 @@ export default function StudentAssessmentsPage() {
               correctChoices = (sq.correctAnswer || '').split(',').map(s => s.trim().toUpperCase())
             }
 
+            studentChoices = studentChoices.map(c => c.replace(/^["']|["']$/g, '').toUpperCase()).filter(Boolean)
+            correctChoices = correctChoices.map(c => c.replace(/^["']|["']$/g, '').toUpperCase()).filter(Boolean)
+
             // Award point per matching pick or proportional credit
-            const matchCount = studentChoices.filter(c => correctChoices.includes(c.toUpperCase())).length
+            const matchCount = studentChoices.filter(c => correctChoices.includes(c)).length
             if (correctChoices.length > 0) {
               totalScore += (matchCount / correctChoices.length) * sqPts
             }
           } else if (sq.type === 'Fill in the Blanks') {
-            if ((q.category === 'Reading' || q.category === 'Listening') && sq.content.includes('____')) {
+            if (sq.content.includes('____')) {
               // Multi-blank subquestion evaluation: 1 Mark per Blank
               const blankCount = Math.max(1, (sq.content.match(/_{3,}/g) || []).length)
               let correctBlanks: string[] = []
@@ -597,16 +602,17 @@ export default function StudentAssessmentsPage() {
 
               for (let bIdx = 0; bIdx < blankCount; bIdx++) {
                 const blankKey = `${sqKey}_blank_${bIdx}`
-                const studentAns = (activeAnswers[blankKey] || '').trim().toLowerCase()
-                const allowedVariants = (correctBlanks[bIdx] || '').split(/[\/|]/).map(s => s.trim().toLowerCase())
+                // Fallback lookup: try explicit blank key or flat index
+                const studentAns = (activeAnswers[blankKey] || activeAnswers[`${sqKey}_${bIdx}`] || activeAnswers[`${q.id}_sub_${sq.id}_${bIdx}`] || '').trim().toLowerCase()
+                const allowedVariants = (correctBlanks[bIdx] || '').split(/[\/|;]/).map(s => s.trim().toLowerCase().replace(/^["']|["']$/g, ''))
                 
                 if (studentAns && allowedVariants.some(alt => alt === studentAns)) {
                   totalScore += 1 // 1 Mark per correct blank
                 }
               }
             } else {
-              const allowed = (sq.correctAnswer || '').split(/[\/|]/).map(s => s.trim().toLowerCase())
-              if (allowed.some(alt => alt === sqAns.trim().toLowerCase())) {
+              const allowed = (sq.correctAnswer || '').split(/[\/|;]/).map(s => s.trim().toLowerCase().replace(/^["']|["']$/g, ''))
+              if (sqAns && allowed.some(alt => alt === sqAns.trim().toLowerCase().replace(/^["']|["']$/g, ''))) {
                 totalScore += sqPts
               }
             }
