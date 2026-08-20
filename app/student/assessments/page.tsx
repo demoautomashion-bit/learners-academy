@@ -65,6 +65,24 @@ function BlankInput({
   );
 }
 
+function parseCorrectAnswersList(rawCorrect: string): string[] {
+  const raw = String(rawCorrect || '').trim()
+  if (!raw) return []
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      return parsed.map(s => String(s).trim().toLowerCase().replace(/^["']|["']$/g, '')).filter(Boolean)
+    }
+  } catch {}
+
+  if (raw.includes(';') || raw.includes('/') || raw.includes('|') || raw.includes(',')) {
+    return raw.split(/[\/|;,]/).map(s => s.trim().toLowerCase().replace(/^["']|["']$/g, '')).filter(Boolean)
+  }
+
+  return [raw.toLowerCase().replace(/^["']|["']$/g, '')]
+}
+
 function canonicalizeIeltsAnswer(val: string): string {
   const clean = String(val || '').trim().toUpperCase().replace(/^["']|["']$/g, '')
   if (clean === 'T' || clean === 'TRUE') return 'TRUE'
@@ -673,8 +691,8 @@ export default function StudentAssessmentsPage() {
             const studentCanonical = canonicalizeIeltsAnswer(sqAns)
             const correctCanonical = canonicalizeIeltsAnswer(sq.correctAnswer || '')
             const normalizedStudent = sqAns.trim().toLowerCase().replace(/^["']|["']$/g, '')
-            const normalizedCorrect = (sq.correctAnswer || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
-            if ((studentCanonical && studentCanonical === correctCanonical) || (normalizedStudent && normalizedStudent === normalizedCorrect)) {
+            const normalizedCorrectList = parseCorrectAnswersList(sq.correctAnswer || '')
+            if ((studentCanonical && correctCanonical && studentCanonical === correctCanonical) || (normalizedStudent && normalizedCorrectList.includes(normalizedStudent))) {
               totalScore += sqPts
             }
           } else if (sq.type === 'MultiSelect') {
@@ -687,8 +705,15 @@ export default function StudentAssessmentsPage() {
 
               for (let bIdx = 0; bIdx < blankCount; bIdx++) {
                 const blankKey = `${sqKey}_blank_${bIdx}`
-                // Fallback lookup: try explicit blank key or flat index
-                const studentAns = (activeAnswers[blankKey] || activeAnswers[`${sqKey}_${bIdx}`] || activeAnswers[`${q.id}_sub_${sq.id}_${bIdx}`] || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
+                // Fallback lookup: try explicit blank key or flat index variants
+                const studentAns = (
+                  activeAnswers[blankKey] ||
+                  activeAnswers[`${sqKey}_${bIdx}`] ||
+                  activeAnswers[`${q.id}_sub_${sq.id}_${bIdx}`] ||
+                  activeAnswers[`${sqKey}-blank-${bIdx}`] ||
+                  ''
+                ).trim().toLowerCase().replace(/^["']|["']$/g, '')
+                
                 const allowedVariants = parsedBlanks[bIdx] || []
                 
                 if (studentAns && allowedVariants.some(alt => alt === studentAns)) {
@@ -696,8 +721,9 @@ export default function StudentAssessmentsPage() {
                 }
               }
             } else {
-              const allowed = (sq.correctAnswer || '').split(/[\/|;]/).map(s => s.trim().toLowerCase().replace(/^["']|["']$/g, ''))
-              if (sqAns && allowed.some(alt => alt === sqAns.trim().toLowerCase().replace(/^["']|["']$/g, ''))) {
+              const allowedList = parseCorrectAnswersList(sq.correctAnswer || '')
+              const normalizedStudent = sqAns.trim().toLowerCase().replace(/^["']|["']$/g, '')
+              if (normalizedStudent && allowedList.some(alt => alt === normalizedStudent)) {
                 totalScore += sqPts
               }
             }
@@ -938,8 +964,8 @@ export default function StudentAssessmentsPage() {
             const studentCanonical = canonicalizeIeltsAnswer(sqAns)
             const correctCanonical = canonicalizeIeltsAnswer(sq.correctAnswer || '')
             const normalizedStudent = sqAns.trim().toLowerCase().replace(/^["']|["']$/g, '')
-            const normalizedCorrect = (sq.correctAnswer || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
-            if ((studentCanonical && studentCanonical === correctCanonical) || (normalizedStudent && normalizedStudent === normalizedCorrect)) {
+            const normalizedCorrectList = parseCorrectAnswersList(sq.correctAnswer || '')
+            if ((studentCanonical && correctCanonical && studentCanonical === correctCanonical) || (normalizedStudent && normalizedCorrectList.includes(normalizedStudent))) {
               subScore += sqPts
             }
           } else if (sq.type === 'MultiSelect') {
@@ -950,16 +976,27 @@ export default function StudentAssessmentsPage() {
               const parsedBlanks = parseMultiBlankCorrectAnswers(sq.correctAnswer || '', blankCount)
               for (let bIdx = 0; bIdx < blankCount; bIdx++) {
                 const blankKey = `${sqKey}_blank_${bIdx}`
-                const studentAns = (answers[blankKey] || answers[`${sqKey}_${bIdx}`] || answers[`${q.id}_sub_${sq.id}_${bIdx}`] || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
+                const studentAns = (answers[blankKey] || answers[`${sqKey}_${bIdx}`] || answers[`${q.id}_sub_${sq.id}_${bIdx}`] || answers[`${sqKey}-blank-${bIdx}`] || '').trim().toLowerCase().replace(/^["']|["']$/g, '')
                 const allowedVariants = parsedBlanks[bIdx] || []
                 if (studentAns && allowedVariants.some(alt => alt === studentAns)) {
                   subScore += (sqPts / blankCount)
                 }
               }
             } else {
-              const allowed = (sq.correctAnswer || '').split(/[\/|;]/).map(s => s.trim().toLowerCase().replace(/^["']|["']$/g, ''))
-              if (sqAns && allowed.some(alt => alt === sqAns.trim().toLowerCase().replace(/^["']|["']$/g, ''))) {
+              const allowedList = parseCorrectAnswersList(sq.correctAnswer || '')
+              const normalizedStudent = sqAns.trim().toLowerCase().replace(/^["']|["']$/g, '')
+              if (normalizedStudent && allowedList.some(alt => alt === normalizedStudent)) {
                 subScore += sqPts
+              }
+            }
+          } else if (sq.type === 'Subjective') {
+            if (sqAns && sqAns.trim().length > 0) {
+              const allowedList = parseCorrectAnswersList(sq.correctAnswer || '')
+              const normAns = sqAns.trim().toLowerCase()
+              if (allowedList.some(alt => normAns.includes(alt))) {
+                subScore += sqPts
+              } else {
+                subScore += (sqPts * 0.6)
               }
             }
           }
@@ -1080,13 +1117,17 @@ export default function StudentAssessmentsPage() {
       )
     }
 
-    // True / False
-    if (q.type === 'True/False') {
+    // True / False, True / False / Not Given, Yes / No / Not Given
+    if (q.type === 'True/False' || q.type === 'True/False/Not Given' || q.type === 'Yes/No/Not Given') {
+      const options = q.type === 'True/False' ? ['True', 'False'] :
+                      q.type === 'True/False/Not Given' ? ['TRUE', 'FALSE', 'NOT GIVEN'] :
+                      ['YES', 'NO', 'NOT GIVEN']
       return (
-        <div className="grid grid-cols-2 gap-3 pt-4">
-          {['True', 'False'].map(opt => (
+        <div className="grid grid-cols-3 gap-3 pt-4 sm:grid-cols-3">
+          {options.map(opt => (
             <button
               key={opt}
+              type="button"
               onClick={() => setAnswers(prev => ({ ...prev, [qId]: opt }))}
               className={`rounded-xl border-2 p-4 font-semibold text-sm transition-premium flex items-center justify-center gap-2 ${
                 currentAnswer === opt
@@ -1094,13 +1135,59 @@ export default function StudentAssessmentsPage() {
                   : 'border-border text-foreground/70 hover:border-primary/30 hover:bg-muted/50'
               }`}
             >
-              {opt === 'True'
+              {opt === 'True' || opt === 'TRUE' || opt === 'YES'
                 ? <CheckCircle className={`w-4 h-4 ${currentAnswer === opt ? 'text-primary' : 'text-muted-foreground/40'}`} />
                 : <XCircle    className={`w-4 h-4 ${currentAnswer === opt ? 'text-primary' : 'text-muted-foreground/40'}`} />
               }
               {opt}
             </button>
           ))}
+        </div>
+      )
+    }
+
+    // MultiSelect (Top Level)
+    if (q.type === 'MultiSelect') {
+      const optionsList = q.options || ['Option A', 'Option B', 'Option C', 'Option D']
+      let currentPicks: string[] = []
+      try {
+        currentPicks = JSON.parse(currentAnswer)
+        if (!Array.isArray(currentPicks)) currentPicks = currentAnswer ? currentAnswer.split(',') : []
+      } catch {
+        currentPicks = currentAnswer ? currentAnswer.split(',') : []
+      }
+      return (
+        <div className="space-y-3 pt-4">
+          <p className="text-xs font-bold text-primary">Select your answers:</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {optionsList.map((opt, oIdx) => {
+              const letter = String.fromCharCode(65 + oIdx)
+              const isChecked = currentPicks.includes(letter) || currentPicks.includes(opt)
+              return (
+                <div
+                  key={oIdx}
+                  onClick={() => {
+                    let newPicks = [...currentPicks]
+                    if (isChecked) {
+                      newPicks = newPicks.filter(p => p !== letter && p !== opt)
+                    } else {
+                      newPicks.push(letter)
+                    }
+                    setAnswers(prev => ({ ...prev, [qId]: JSON.stringify(newPicks) }))
+                  }}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                    isChecked ? "bg-primary/10 border-primary/40 font-bold text-primary" : "hover:bg-muted/30"
+                  )}
+                >
+                  <div className={cn("w-5 h-5 rounded flex items-center justify-center text-xs font-bold border", isChecked ? "bg-primary text-white border-primary" : "border-muted-foreground/30")}>
+                    {letter}
+                  </div>
+                  <span className="text-sm">{opt}</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )
     }

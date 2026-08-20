@@ -1088,7 +1088,7 @@ export default function QuestionLibraryPage() {
                     </Field>
                   )}
 
-                  {(selectedType === 'Subjective' || selectedType === 'Writing' || ((selectedType === 'Reading' || selectedType === 'Listening') && !(watch('content') || '').includes('____'))) && (
+                  {(selectedType === 'Subjective' || selectedType === 'Writing') && (
                     <Field>
                       <FieldLabel className="text-xs flex items-center gap-1.5">
                         Reference / Expected Answer Key
@@ -1101,8 +1101,6 @@ export default function QuestionLibraryPage() {
                         placeholder={
                           selectedType === 'Writing'
                             ? 'Describe the key points, arguments, and structure expected in a full mark answer...'
-                            : selectedType === 'Reading' || selectedType === 'Listening'
-                            ? 'Describe the key information from the passage/audio students should reference...'
                             : 'Describe the key concepts, facts, and terminology expected in a correct answer...'
                         }
                       />
