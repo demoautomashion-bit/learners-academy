@@ -28,9 +28,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
-import { toast } from 'sonner'
-import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen, Check, Play, Pause, FileText, CheckSquare } from 'lucide-react'
+import { Plus, Search, Trash2, Edit, X, Library as LibraryIcon, Volume2, BookOpen, Check, Play, Pause, FileText, CheckSquare, Sparkles, UploadCloud, Loader2, Square } from 'lucide-react'
 import Image from 'next/image'
+
+interface ParsedImportQuestion extends Question {
+  selected: boolean
+}
 
 const subQuestionSchema = z.object({
   id: z.string(),
@@ -129,6 +132,113 @@ export default function QuestionLibraryPage() {
     { left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' },
   ])
   const [blankAnswers, setBlankAnswers] = useState<string[]>([])
+
+  // Smart AI Document Importer State
+  const [isImportOpen, setIsImportOpen] = useState(false)
+  const [importText, setImportText] = useState('')
+  const [isExtracting, setIsExtracting] = useState(false)
+  const [parsedQuestions, setParsedQuestions] = useState<ParsedImportQuestion[]>([])
+  const [importStep, setImportStep] = useState<'upload' | 'preview'>('upload')
+  const [isSavingBatch, setIsSavingBatch] = useState(false)
+
+  const handleRunAIExtraction = async () => {
+    if (!importText || importText.trim().length === 0) {
+      toast.error('Please paste text or select a file first.')
+      return
+    }
+
+    setIsExtracting(true)
+    try {
+      const response = await fetch('/api/teacher/import-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: importText,
+          defaultClassLevel: levelFilter || teacherLevels[0] || 'Level 1',
+          defaultPhase: phaseFilter !== 'all' ? phaseFilter : 'First Test',
+          defaultCategory: activeTab
+        })
+      })
+
+      const data = await response.json()
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Failed to parse document')
+      }
+
+      if (!data.questions || data.questions.length === 0) {
+        toast.error('No questions could be extracted from this text.')
+        return
+      }
+
+      const formatted: ParsedImportQuestion[] = data.questions.map((q: any, idx: number) => ({
+        id: `import_${Date.now()}_${idx}`,
+        category: q.category || activeTab,
+        type: q.type || 'MCQ',
+        phase: q.phase || 'First Test',
+        difficulty: q.difficulty || 'Medium',
+        classLevel: q.classLevel || levelFilter || teacherLevels[0] || 'Level 1',
+        content: q.content || '',
+        options: q.options || (q.type === 'MCQ' ? ['Option A', 'Option B', 'Option C', 'Option D'] : undefined),
+        correctAnswer: q.correctAnswer || '',
+        evaluationCriteria: q.evaluationCriteria || '',
+        writingGenre: q.writingGenre || undefined,
+        wordLimitMin: q.wordLimitMin || undefined,
+        wordLimitMax: q.wordLimitMax || undefined,
+        matchPairs: q.matchPairs || undefined,
+        selected: true
+      }))
+
+      setParsedQuestions(formatted)
+      setImportStep('preview')
+      toast.success(`Successfully extracted ${formatted.length} questions!`)
+    } catch (err: any) {
+      console.error('Extraction error:', err)
+      toast.error(err?.message || 'Error extracting questions. Please try again.')
+    } finally {
+      setIsExtracting(false)
+    }
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const content = event.target?.result as string
+      if (content) {
+        setImportText(content)
+        toast.info(`Loaded file: ${file.name}`)
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  const handleBatchSave = async () => {
+    const selected = parsedQuestions.filter(q => q.selected)
+    if (selected.length === 0) {
+      toast.error('Please select at least one question to import.')
+      return
+    }
+
+    setIsSavingBatch(true)
+    try {
+      for (const item of selected) {
+        const { selected: _, id: __, ...itemData } = item
+        await addQuestion(itemData as Question)
+      }
+      toast.success(`Successfully added ${selected.length} questions to your library!`)
+      setIsImportOpen(false)
+      setImportStep('upload')
+      setImportText('')
+      setParsedQuestions([])
+    } catch (err: any) {
+      console.error('Batch save error:', err)
+      toast.error('Failed to import questions.')
+    } finally {
+      setIsSavingBatch(false)
+    }
+  }
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } =
     useForm<QuestionFormValues>({
@@ -327,13 +437,300 @@ export default function QuestionLibraryPage() {
           </p>
         </div>
 
-        <Dialog open={isOpen} onOpenChange={(o) => { if (!o) handleClose(); else setIsOpen(true) }}>
-          <DialogTrigger asChild>
-            <Button className="hover-lift  ">
-              <Plus className="w-4 h-4 mr-2" />
-              <span className="text-xs   font-normal">Add Question</span>
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Smart AI Document Importer Button */}
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setImportStep('upload')
+              setIsImportOpen(true)
+            }} 
+            className="hover-lift border-primary/20 bg-primary/5 text-primary gap-1.5 h-10 rounded-xl"
+          >
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-xs font-medium">Import Document</span>
+          </Button>
+
+          {/* AI Import Modal Dialog */}
+          <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+            <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-2xl">
+              <DialogHeader className="bg-muted/10 border-b p-6 text-left">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-xl font-serif font-medium">
+                      Smart AI Document Importer
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                      Upload a test document (.docx, .pdf, .txt, .csv) or paste exam text to automatically extract and format questions into your bank.
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              {importStep === 'upload' ? (
+                <div className="p-6 space-y-4">
+                  <div className="border-2 border-dashed border-primary/20 hover:border-primary/40 transition-colors rounded-2xl p-6 text-center bg-primary/5 space-y-3">
+                    <UploadCloud className="w-10 h-10 mx-auto text-primary/60" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Upload Test Document or File</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Supports .txt, .csv, .docx, .pdf text files</p>
+                    </div>
+                    <label className="inline-flex cursor-pointer">
+                      <input 
+                        type="file" 
+                        accept=".txt,.csv,.doc,.docx,.pdf" 
+                        onChange={handleFileUpload}
+                        className="hidden" 
+                      />
+                      <span className="px-4 py-2 text-xs font-medium bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity">
+                        Choose File
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="relative flex items-center gap-2 my-2">
+                    <div className="flex-1 border-t"></div>
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">or paste text directly</span>
+                    <div className="flex-1 border-t"></div>
+                  </div>
+
+                  <Textarea 
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                    rows={7}
+                    placeholder="Paste raw exam text, multiple choice questions, or writing prompts here... e.g.:&#10;1. Which word is a noun?&#10;A) Run B) Quick C) Happiness D) Gently&#10;Answer: C"
+                    className="text-xs font-mono resize-none rounded-xl"
+                  />
+
+                  <DialogFooter className="pt-2 flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsImportOpen(false)} className="rounded-xl text-xs">
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleRunAIExtraction} 
+                      disabled={isExtracting || !importText.trim()}
+                      className="rounded-xl text-xs gap-2"
+                    >
+                      {isExtracting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
+                          <span>AI Extracting Questions...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 text-primary-foreground" />
+                          <span>Extract & Structure Questions</span>
+                        </>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </div>
+              ) : (
+                <div className="p-6 space-y-4">
+                  {/* Master Controls Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-muted/20 rounded-xl border">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-xs gap-1.5 font-medium px-2"
+                        onClick={() => {
+                          const allSelected = parsedQuestions.every(q => q.selected)
+                          setParsedQuestions(prev => prev.map(q => ({ ...q, selected: !allSelected })))
+                        }}
+                      >
+                        {parsedQuestions.every(q => q.selected) ? (
+                          <CheckSquare className="w-4 h-4 text-primary" />
+                        ) : (
+                          <Square className="w-4 h-4 text-muted-foreground" />
+                        )}
+                        <span>
+                          {parsedQuestions.every(q => q.selected) ? 'Deselect All' : 'Select All'}
+                        </span>
+                      </Button>
+
+                      <Badge variant="secondary" className="text-xs font-semibold bg-primary/10 text-primary border-none">
+                        {parsedQuestions.filter(q => q.selected).length} of {parsedQuestions.length} Selected
+                      </Badge>
+                    </div>
+
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setImportStep('upload')}
+                      className="text-xs text-muted-foreground hover:text-foreground h-8"
+                    >
+                      ← Edit Text / Upload Again
+                    </Button>
+                  </div>
+
+                  {/* Extracted Questions Preview List */}
+                  <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-1 premium-scrollbar">
+                    {parsedQuestions.map((q, idx) => (
+                      <div 
+                        key={q.id} 
+                        className={`p-4 border rounded-xl space-y-3 transition-all ${
+                          q.selected ? 'bg-card border-primary/20 shadow-xs' : 'bg-muted/20 opacity-60 border-dashed'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2 flex-wrap flex-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setParsedQuestions(prev => prev.map(item => item.id === q.id ? { ...item, selected: !item.selected } : item))
+                              }}
+                              className="focus:outline-hidden"
+                            >
+                              {q.selected ? (
+                                <CheckSquare className="w-4 h-4 text-primary" />
+                              ) : (
+                                <Square className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </button>
+
+                            <Select 
+                              value={q.type} 
+                              onValueChange={(val) => {
+                                setParsedQuestions(prev => prev.map(item => item.id === q.id ? { ...item, type: val as any } : item))
+                              }}
+                            >
+                              <SelectTrigger className="h-6 text-[10px] w-24 bg-muted/30 border-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {['MCQ', 'True/False', 'Matching', 'Fill in the Blanks', 'Subjective', 'Writing'].map(t => (
+                                  <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Select 
+                              value={q.difficulty || 'Medium'} 
+                              onValueChange={(val) => {
+                                setParsedQuestions(prev => prev.map(item => item.id === q.id ? { ...item, difficulty: val as any } : item))
+                              }}
+                            >
+                              <SelectTrigger className="h-6 text-[10px] w-20 bg-muted/30 border-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Easy" className="text-xs">Easy</SelectItem>
+                                <SelectItem value="Medium" className="text-xs">Medium</SelectItem>
+                                <SelectItem value="Hard" className="text-xs">Hard</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Select 
+                              value={q.phase || 'First Test'} 
+                              onValueChange={(val) => {
+                                setParsedQuestions(prev => prev.map(item => item.id === q.id ? { ...item, phase: val as any } : item))
+                              }}
+                            >
+                              <SelectTrigger className="h-6 text-[10px] w-24 bg-muted/30 border-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="First Test" className="text-xs">First Test</SelectItem>
+                                <SelectItem value="Last Test" className="text-xs">Last Test</SelectItem>
+                                <SelectItem value="Both" className="text-xs">Both</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-6 h-6 text-destructive/70 hover:text-destructive"
+                            onClick={() => {
+                              setParsedQuestions(prev => prev.filter(item => item.id !== q.id))
+                            }}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+
+                        {/* Editable Question Content Prompt */}
+                        <Textarea
+                          value={q.content}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setParsedQuestions(prev => prev.map(item => item.id === q.id ? { ...item, content: val } : item))
+                          }}
+                          rows={2}
+                          className="text-xs resize-none bg-muted/10 border-primary/5 rounded-lg"
+                        />
+
+                        {/* Options / Answer Keys Preview */}
+                        {q.type === 'MCQ' && q.options && (
+                          <div className="grid grid-cols-2 gap-1.5 pt-1">
+                            {q.options.map((opt, oIdx) => (
+                              <Input
+                                key={oIdx}
+                                value={opt}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setParsedQuestions(prev => prev.map(item => {
+                                    if (item.id !== q.id) return item
+                                    const opts = [...(item.options || [])]
+                                    opts[oIdx] = val
+                                    return { ...item, options: opts }
+                                  }))
+                                }}
+                                className={`h-7 text-xs ${opt === q.correctAnswer ? 'border-success/40 bg-success/5 font-medium' : 'bg-muted/10'}`}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        {q.evaluationCriteria && (
+                          <div className="text-[11px] p-2 bg-primary/5 border border-primary/10 rounded-lg space-y-1">
+                            <span className="font-bold text-primary block text-[10px] uppercase">AI Evaluation Rubric:</span>
+                            <p className="text-foreground/80 leading-normal">{q.evaluationCriteria}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <DialogFooter className="pt-2 flex justify-between items-center border-t">
+                    <Button variant="outline" onClick={() => setIsImportOpen(false)} className="rounded-xl text-xs">
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleBatchSave} 
+                      disabled={isSavingBatch || parsedQuestions.filter(q => q.selected).length === 0}
+                      className="rounded-xl text-xs gap-2"
+                    >
+                      {isSavingBatch ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
+                          <span>Importing Questions...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4 text-primary-foreground" />
+                          <span>Confirm & Import Selected ({parsedQuestions.filter(q => q.selected).length})</span>
+                        </>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isOpen} onOpenChange={(o) => { if (!o) handleClose(); else setIsOpen(true) }}>
+            <DialogTrigger asChild>
+              <Button className="hover-lift rounded-xl h-10">
+                <Plus className="w-4 h-4 mr-2" />
+                <span className="text-xs font-normal">Add Question</span>
+              </Button>
+            </DialogTrigger>
 
           <DialogContent className="max-w-xl p-0 overflow-hidden   ">
             <DialogHeader className="bg-muted/5 border-b  p-6 text-left items-start">
@@ -1129,6 +1526,7 @@ export default function QuestionLibraryPage() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-[1fr_200px] items-stretch">
