@@ -114,6 +114,8 @@ export default function QuestionLibraryPage() {
   }, [courses, user?.id])
 
   const [levelFilter, setLevelFilter] = useState<string>('')
+  const [difficultyFilter, setDifficultyFilter] = useState<string>('all')
+  const [phaseFilter, setPhaseFilter] = useState<string>('all')
 
   useEffect(() => {
     if (teacherLevels.length > 0 && !levelFilter) {
@@ -145,8 +147,10 @@ export default function QuestionLibraryPage() {
   const filteredQuestions = (questions || []).filter((q: Question) => {
     const categoryMatch = q.category === activeTab
     const searchMatch = (q.content || '').toLowerCase().includes(searchQuery.toLowerCase())
-    const levelMatch = q.classLevel === levelFilter
-    return categoryMatch && searchMatch && levelMatch
+    const levelMatch = !levelFilter || q.classLevel === levelFilter
+    const difficultyMatch = difficultyFilter === 'all' || (q.difficulty || 'Medium') === difficultyFilter
+    const phaseMatch = phaseFilter === 'all' || q.phase === phaseFilter || (q.phase === 'Both' && (phaseFilter === 'First Test' || phaseFilter === 'Last Test'))
+    return categoryMatch && searchMatch && levelMatch && difficultyMatch && phaseMatch
   })
 
   const classBasedStats = useMemo(() => {
@@ -1136,41 +1140,65 @@ export default function QuestionLibraryPage() {
               ))}
             </TabsList>
 
-            <div className="mt-6 flex flex-col md:flex-row gap-4 items-stretch">
-              <div className="relative flex-1 group">
+            <div className="mt-6 flex flex-col lg:flex-row gap-3 items-stretch">
+              <div className="relative flex-1 group min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40 transition-premium" />
                 <Input placeholder={`Search in ${activeTab}...`} value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-12     text-sm transition-premium focus:ring-1 focus:ring-primary/20" />
+                  onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-11 text-sm transition-premium focus:ring-1 focus:ring-primary/20 rounded-xl" />
               </div>
-              <Select value={levelFilter} onValueChange={setLevelFilter}>
-                <SelectTrigger className="h-12 md:w-56 text-xs bg-muted/10 border-primary/5 rounded-xl">
-                  <SelectValue placeholder={teacherLevels.length > 0 ? "Select Level" : "No Classes Assigned"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {teacherLevels.map(level => (
-                    <SelectItem key={level} value={level} className="text-xs">{level}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-12 border-destructive/20 text-destructive hover:bg-destructive/10 shrink-0 shadow-sm rounded-xl">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear Bank
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => setDeletePhase('First Test')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
-                    Delete First Test blocks
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDeletePhase('Last Test')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
-                    Delete Last Test blocks
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDeletePhase('Both')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
-                    Delete All blocks
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
+                <Select value={levelFilter} onValueChange={setLevelFilter}>
+                  <SelectTrigger className="h-11 w-full sm:w-40 text-xs bg-muted/10 border-primary/5 rounded-xl shrink-0">
+                    <SelectValue placeholder={teacherLevels.length > 0 ? "Select Level" : "No Classes"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teacherLevels.map(level => (
+                      <SelectItem key={level} value={level} className="text-xs">{level}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                  <SelectTrigger className="h-11 w-full sm:w-36 text-xs bg-muted/10 border-primary/5 rounded-xl shrink-0">
+                    <SelectValue placeholder="Difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs font-medium">All Difficulties</SelectItem>
+                    <SelectItem value="Easy" className="text-xs">Easy</SelectItem>
+                    <SelectItem value="Medium" className="text-xs">Medium</SelectItem>
+                    <SelectItem value="Hard" className="text-xs">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={phaseFilter} onValueChange={setPhaseFilter}>
+                  <SelectTrigger className="h-11 w-full sm:w-36 text-xs bg-muted/10 border-primary/5 rounded-xl shrink-0">
+                    <SelectValue placeholder="Test Phase" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs font-medium">All Tests</SelectItem>
+                    <SelectItem value="First Test" className="text-xs">First Test</SelectItem>
+                    <SelectItem value="Last Test" className="text-xs">Last Test</SelectItem>
+                    <SelectItem value="Both" className="text-xs">Both Tests</SelectItem>
+                  </SelectContent>
+                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="h-11 border-destructive/20 text-destructive hover:bg-destructive/10 shrink-0 shadow-sm rounded-xl px-3 text-xs">
+                      <Trash2 className="w-4 h-4 mr-1.5" />
+                      Clear Bank
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem onClick={() => setDeletePhase('First Test')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                      Delete First Test blocks
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDeletePhase('Last Test')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                      Delete Last Test blocks
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDeletePhase('Both')} className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                      Delete All blocks
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
 
             <AlertDialog open={!!deletePhase} onOpenChange={(open) => !open && setDeletePhase(null)}>
