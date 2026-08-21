@@ -1134,39 +1134,38 @@ export default function QuestionLibraryPage() {
       <div className="grid gap-6 md:grid-cols-[1fr_200px] items-stretch">
         <div className="space-y-4">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
-            {/* Mobile Category Select Dropdown */}
-            <div className="md:hidden w-full mb-3">
-              <Select value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
-                <SelectTrigger className="h-11 w-full text-xs font-medium bg-card border-primary/10 rounded-xl shadow-sm">
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="text-muted-foreground font-normal">Category:</span>
-                    <SelectValue>{activeTab}</SelectValue>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES?.map(cat => (
-                    <SelectItem key={cat} value={cat} className="text-xs font-medium">{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Desktop Category Tabs */}
-            <TabsList className="hidden md:flex border p-1 w-full justify-start overflow-x-auto no-scrollbar h-12">
-              {CATEGORIES?.map(cat => (
-                <TabsTrigger key={cat} value={cat} className="flex-1 md:flex-none h-10 px-6 text-xs font-normal data-[state=active]:bg-card data-[state=active]:shadow-sm transition-premium">{cat}</TabsTrigger>
-              ))}
-            </TabsList>
-
-            <div className="mt-6 flex flex-col lg:flex-row gap-3 items-stretch">
-              <div className="relative flex-1 group min-w-[200px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40 transition-premium" />
-                <Input placeholder={`Search in ${activeTab}...`} value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-11 text-sm transition-premium focus:ring-1 focus:ring-primary/20 rounded-xl" />
+            {/* 2-Tier Responsive Control Toolbar */}
+            <div className="mt-4 space-y-3">
+              {/* Row 1: Primary Scope (Search + Category Select) */}
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+                <div className="relative flex-1 group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40 transition-premium" />
+                  <Input 
+                    placeholder={`Search in ${activeTab}...`} 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)} 
+                    className="pl-9 h-11 text-sm transition-premium focus:ring-1 focus:ring-primary/20 rounded-xl" 
+                  />
+                </div>
+                <Select value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
+                  <SelectTrigger className="h-11 w-full sm:w-52 text-xs font-medium bg-card border-primary/10 rounded-xl shadow-sm shrink-0">
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="text-muted-foreground font-normal">Category:</span>
+                      <SelectValue>{activeTab}</SelectValue>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES?.map(cat => (
+                      <SelectItem key={cat} value={cat} className="text-xs font-medium">{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
+
+              {/* Row 2: Secondary Attribute Refinement Filters & Clear Bank */}
+              <div className="flex flex-wrap items-center gap-2">
                 <Select value={levelFilter} onValueChange={setLevelFilter}>
-                  <SelectTrigger className="h-11 w-full sm:w-40 text-xs bg-muted/10 border-primary/5 rounded-xl shrink-0">
+                  <SelectTrigger className="h-11 flex-1 sm:flex-none sm:w-44 text-xs bg-muted/10 border-primary/5 rounded-xl">
                     <SelectValue placeholder={teacherLevels.length > 0 ? "Select Level" : "No Classes"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -1176,7 +1175,7 @@ export default function QuestionLibraryPage() {
                   </SelectContent>
                 </Select>
                 <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-                  <SelectTrigger className="h-11 w-full sm:w-36 text-xs bg-muted/10 border-primary/5 rounded-xl shrink-0">
+                  <SelectTrigger className="h-11 flex-1 sm:flex-none sm:w-36 text-xs bg-muted/10 border-primary/5 rounded-xl">
                     <SelectValue placeholder="Difficulty" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1187,7 +1186,7 @@ export default function QuestionLibraryPage() {
                   </SelectContent>
                 </Select>
                 <Select value={phaseFilter} onValueChange={setPhaseFilter}>
-                  <SelectTrigger className="h-11 w-full sm:w-36 text-xs bg-muted/10 border-primary/5 rounded-xl shrink-0">
+                  <SelectTrigger className="h-11 flex-1 sm:flex-none sm:w-36 text-xs bg-muted/10 border-primary/5 rounded-xl">
                     <SelectValue placeholder="Test Phase" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1199,7 +1198,7 @@ export default function QuestionLibraryPage() {
                 </Select>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="h-11 border-destructive/20 text-destructive hover:bg-destructive/10 shrink-0 shadow-sm rounded-xl px-3 text-xs">
+                    <Button variant="outline" className="h-11 border-destructive/20 text-destructive hover:bg-destructive/10 shrink-0 shadow-sm rounded-xl px-3 text-xs ml-auto">
                       <Trash2 className="w-4 h-4 mr-1.5" />
                       Clear Bank
                     </Button>
