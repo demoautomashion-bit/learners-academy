@@ -1134,9 +1134,27 @@ export default function QuestionLibraryPage() {
       <div className="grid gap-6 md:grid-cols-[1fr_200px] items-stretch">
         <div className="space-y-4">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
-            <TabsList className="  border  p-1 w-full justify-start overflow-x-auto no-scrollbar h-12 ">
+            {/* Mobile Category Select Dropdown */}
+            <div className="md:hidden w-full mb-3">
+              <Select value={activeTab} onValueChange={(v) => setActiveTab(v as QuestionCategory)}>
+                <SelectTrigger className="h-11 w-full text-xs font-medium bg-card border-primary/10 rounded-xl shadow-sm">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="text-muted-foreground font-normal">Category:</span>
+                    <SelectValue>{activeTab}</SelectValue>
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES?.map(cat => (
+                    <SelectItem key={cat} value={cat} className="text-xs font-medium">{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Desktop Category Tabs */}
+            <TabsList className="hidden md:flex border p-1 w-full justify-start overflow-x-auto no-scrollbar h-12">
               {CATEGORIES?.map(cat => (
-                <TabsTrigger key={cat} value={cat} className="flex-1 md:flex-none h-10 px-6 text-xs   font-normal  data-[state=active]:bg-card data-[state=active]:shadow-sm transition-premium">{cat}</TabsTrigger>
+                <TabsTrigger key={cat} value={cat} className="flex-1 md:flex-none h-10 px-6 text-xs font-normal data-[state=active]:bg-card data-[state=active]:shadow-sm transition-premium">{cat}</TabsTrigger>
               ))}
             </TabsList>
 
@@ -1240,8 +1258,86 @@ export default function QuestionLibraryPage() {
                 filteredQuestions.map(q => (
                   <motion.div key={q.id} variants={STAGGER_ITEM}>
                     <Card className="glass-1 overflow-hidden hover-lift transition-premium flex flex-col rounded-2xl shadow-premium hover:translate-y-[-2px] h-full">
-                      <div className="p-6">
-                        <div className="flex justify-between items-start gap-6">
+                      <div className="p-4 sm:p-6">
+                        {/* Mobile Streamlined View */}
+                        <div className="md:hidden space-y-3">
+                          <div className="flex justify-between items-center gap-2">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <Badge variant="outline" className={`text-xs px-2 h-5 font-normal border-none ${TYPE_BADGE_COLORS[q.type] || ''}`}>
+                                {q.type}
+                              </Badge>
+                              <Badge variant="outline" className={`text-xs px-2 h-5 font-normal border-none ${
+                                q.difficulty === 'Easy' ? 'bg-success/5 text-success' : 
+                                q.difficulty === 'Hard' ? 'bg-destructive/5 text-destructive' : 
+                                'bg-warning/5 text-warning'
+                              }`}>
+                                {q.difficulty || 'Medium'}
+                              </Badge>
+                              {q.classLevel && (
+                                <Badge variant="outline" className="text-xs px-2 h-5 font-bold border-primary/10 text-primary/80">
+                                  {q.classLevel}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="flex gap-1 items-center shrink-0">
+                              {!q.isApproved && !requiresReview && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-7 px-2 border-success/30 hover:bg-success/10 text-[11px] gap-1"
+                                  onClick={() => { approveQuestion(q.id, true); toast.success('Question Approved') }}
+                                >
+                                  <Check className="w-3 h-3 text-success" />
+                                </Button>
+                              )}
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="w-7 h-7 hover:bg-muted"
+                                onClick={() => handleEdit(q)}
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="w-7 h-7 hover:bg-destructive/10 text-destructive/70"
+                                onClick={() => { deleteQuestion(q.id); toast.success('Question removed') }}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          <p className="text-sm text-foreground/90 font-sans leading-relaxed line-clamp-3">{q.content}</p>
+
+                          {(q.passageText || q.audioUrl || q.writingGenre || q.phase) && (
+                            <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                              <Badge variant="secondary" className="text-[10px] px-1.5 h-4 font-normal bg-muted/40 text-muted-foreground">
+                                {q.phase}
+                              </Badge>
+                              {q.type === 'Writing' && q.writingGenre && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 h-4 font-normal border-primary/20 bg-primary/5 text-primary">
+                                  {q.writingGenre}
+                                </Badge>
+                              )}
+                              {q.passageText && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 h-4 font-normal text-primary/70 gap-1">
+                                  <BookOpen className="w-2.5 h-2.5" /> Passage
+                                </Badge>
+                              )}
+                              {q.audioUrl && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 h-4 font-normal text-primary/70 gap-1">
+                                  <Volume2 className="w-2.5 h-2.5" /> Audio
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Desktop Full View */}
+                        <div className="hidden md:flex justify-between items-start gap-6">
                           <div className="space-y-3 flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <Badge variant="outline" className={`text-xs px-2 h-5 font-normal   border-none ${TYPE_BADGE_COLORS[q.type] || ''}`}>
