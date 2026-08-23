@@ -348,7 +348,8 @@ export default function StudentAssessmentsPage() {
       setIsTestEngineOpen(true)
       setCurrentQuestionIndex(0)
       
-      const savedAnswers = sessionStorage.getItem(`assessment_answers_${assessment.id}`)
+      const storageKey = `assessment_answers_${user?.id || 'guest'}_${assessment.id}`
+      const savedAnswers = sessionStorage.getItem(storageKey)
       let initialAnswers: Record<string, string> = {}
       if (savedAnswers) {
         try { initialAnswers = JSON.parse(savedAnswers) } catch (e) {}
@@ -381,10 +382,11 @@ export default function StudentAssessmentsPage() {
   useEffect(() => {
     if (activeTest?.id && Object.keys(answers).length > 0) {
       try {
-        sessionStorage.setItem(`assessment_answers_${activeTest.id}`, JSON.stringify(answers))
+        const storageKey = `assessment_answers_${user?.id || 'guest'}_${activeTest.id}`
+        sessionStorage.setItem(storageKey, JSON.stringify(answers))
       } catch (e) {}
     }
-  }, [answers, activeTest?.id])
+  }, [answers, activeTest?.id, user?.id])
 
   // ── Auto-play audio for Listening questions ────────────────────────────────
   useEffect(() => {
@@ -587,7 +589,7 @@ export default function StudentAssessmentsPage() {
                  // Only clear the session after the DB confirms success
                  sessionStorage.removeItem('current_assessment_code')
                  sessionStorage.removeItem('current_assessment_data')
-                 if (activeTest?.id) sessionStorage.removeItem(`assessment_answers_${activeTest.id}`)
+                 if (activeTest?.id) sessionStorage.removeItem(`assessment_answers_${user.id}_${activeTest.id}`)
               } else {
                  setSubmitError("The server is under heavy load. Your score is displayed below — please inform your teacher to check the registry, or try refreshing this page.")
               }
@@ -896,14 +898,6 @@ export default function StudentAssessmentsPage() {
     })
     setFinalScore(finalCalculatedScore)
 
-    // Stop evaluating and show results instantly
-    setIsEvaluating(false)
-    setShowResult(true)
-    if (document.exitFullscreen) document.exitFullscreen().catch(() => {})
-    if (isAuto) toast.error("Assessment auto-submitted due to proctoring violations.", {
-      style: { backgroundColor: 'oklch(0.577 0.245 27.325)', color: 'white' },
-    })
-
     if (activeTest && user) {
       setIsSubmitting(true)
       setSubmitError(null)
@@ -924,10 +918,9 @@ export default function StudentAssessmentsPage() {
         }
         const saved = await submitWithRetry(() => directSubmitTestResult(submissionPayload, activeTest?.title || 'Test'))
         if (saved) {
-          // Only clear session after confirmed DB success — prevents silent data loss
           sessionStorage.removeItem('current_assessment_code')
           sessionStorage.removeItem('current_assessment_data')
-          if (activeTest?.id) sessionStorage.removeItem(`assessment_answers_${activeTest.id}`)
+          if (activeTest?.id) sessionStorage.removeItem(`assessment_answers_${user.id}_${activeTest.id}`)
         } else {
           setSubmitError("The server is under heavy load. Your score is displayed below — please inform your teacher to check the registry, or try refreshing this page.")
         }
@@ -938,6 +931,13 @@ export default function StudentAssessmentsPage() {
         setIsSubmitting(false)
       }
     }
+
+    setIsEvaluating(false)
+    setShowResult(true)
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {})
+    if (isAuto) toast.error("Assessment auto-submitted due to proctoring violations.", {
+      style: { backgroundColor: 'oklch(0.577 0.245 27.325)', color: 'white' },
+    })
   }
 
   const handleAdaptiveSubmit = async () => {

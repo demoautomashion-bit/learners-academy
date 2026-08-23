@@ -28,11 +28,18 @@ async function syncSubmissionToEvaluation(
       select: { courseIds: true, id: true, nature: true, title: true, phase: true, evaluationCategory: true }
     })
 
-    const student = await db.student.findUnique({
-      where: { id: studentId }
+    const student = await db.student.findFirst({
+      where: {
+        OR: [
+          { id: studentId },
+          { studentId: studentId }
+        ]
+      }
     })
 
     if (!student) return
+
+    const canonicalStudentId = student.id
 
     // 1. Identify Target Courses (3-tier fallback matching)
     let targetCourseIds: string[] = []
@@ -86,7 +93,7 @@ async function syncSubmissionToEvaluation(
       const existingEval = await db.evaluation.findUnique({
         where: {
           studentId_courseId_term: {
-            studentId,
+            studentId: canonicalStudentId,
             courseId,
             term: "Term 1"
           }
@@ -107,7 +114,7 @@ async function syncSubmissionToEvaluation(
         scores: updatedScoresObj
       }
       let createData: Record<string, any> = {
-        studentId,
+        studentId: canonicalStudentId,
         courseId,
         term: "Term 1",
         scores: updatedScoresObj
@@ -133,7 +140,7 @@ async function syncSubmissionToEvaluation(
       await db.evaluation.upsert({
         where: {
           studentId_courseId_term: {
-            studentId,
+            studentId: canonicalStudentId,
             courseId,
             term: "Term 1"
           }

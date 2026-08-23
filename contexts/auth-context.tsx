@@ -209,6 +209,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // Clear persistence and simulate logout
       sessionStorage.removeItem(AUTH_STORAGE_KEY)
+      // Purge any residual student assessment draft answers
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('assessment_answers_')) {
+          sessionStorage.removeItem(key)
+        }
+      })
       
       router.push('/auth/login')
       
@@ -261,6 +267,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast.error("Identity Verification Failed", { description: "Institutional record missing unique fingerprint." })
       return
     }
+
+    // Purge any residual draft answers from previous sessions on this browser
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('assessment_answers_')) {
+        sessionStorage.removeItem(key)
+      }
+    })
 
     const user: User = {
       id: studentRecord.id,

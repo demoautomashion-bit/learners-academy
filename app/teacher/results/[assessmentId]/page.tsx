@@ -62,9 +62,24 @@ export default function AssessmentWorkspacePage() {
     ?.filter(e => relevantCourseIds.includes(e.courseId))
     .map(e => e.studentId) || []
 
-  const submittedStudentIds = new Set(assessmentSubmissions.map(s => s.studentId))
+  const submittedStudentIdSet = new Set<string>()
+  assessmentSubmissions.forEach(sub => {
+    if (sub.studentId) submittedStudentIdSet.add(sub.studentId)
+    const matchedSt = students?.find(st => st.id === sub.studentId || st.studentId === sub.studentId)
+    if (matchedSt) {
+      submittedStudentIdSet.add(matchedSt.id)
+      if (matchedSt.studentId) submittedStudentIdSet.add(matchedSt.studentId)
+    }
+  })
+
   const pendingCandidates = students
-    ?.filter(s => enrolledStudentIds.includes(s.id) && !submittedStudentIds.has(s.id))
+    ?.filter(s => {
+      const isEnrolled = enrolledStudentIds.includes(s.id) || enrolledStudentIds.includes(s.studentId || '') || (
+        relevantCourseIds.length === 0 && (s.enrolledCourses || []).some(c => assessment?.classLevels.includes(c))
+      )
+      const hasSubmitted = submittedStudentIdSet.has(s.id) || (s.studentId ? submittedStudentIdSet.has(s.studentId) : false)
+      return isEnrolled && !hasSubmitted
+    })
     .map(s => ({
       id: `pending-${s.id}`,
       studentId: s.studentId || s.id,
