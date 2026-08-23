@@ -101,9 +101,45 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
   'Subjective':         'border-muted-foreground/20 bg-muted/30 text-muted-foreground',
 }
 
+const ensureStringArray = (val: any): string[] => {
+  if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean)
+  if (typeof val === 'string' && val.trim().length > 0) {
+    try {
+      const parsed = JSON.parse(val)
+      if (Array.isArray(parsed)) return parsed.map(s => String(s).trim()).filter(Boolean)
+    } catch {
+      return val.split(',').map(s => s.trim()).filter(Boolean)
+    }
+  }
+  return []
+}
+
+const ensureMatchPairs = (val: any): { left: string; right: string }[] => {
+  if (Array.isArray(val)) {
+    return val.filter(item => item && typeof item === 'object').map(item => ({
+      left: String(item.left || '').trim(),
+      right: String(item.right || '').trim()
+    }))
+  }
+  if (typeof val === 'string' && val.trim().length > 0) {
+    try {
+      const parsed = JSON.parse(val)
+      if (Array.isArray(parsed)) {
+        return parsed.filter(item => item && typeof item === 'object').map(item => ({
+          left: String(item.left || '').trim(),
+          right: String(item.right || '').trim()
+        }))
+      }
+    } catch {
+      return []
+    }
+  }
+  return []
+}
+
 export default function QuestionLibraryPage() {
   const { user } = useAuth()
-  const { questions, addQuestion, updateQuestion, deleteQuestion, deleteQuestionsByPhase, isInitialized, teachers, approveQuestion, audioFiles, courses } = useData()
+  const { questions, addQuestion, bulkAddQuestions, updateQuestion, deleteQuestion, deleteQuestionsByPhase, isInitialized, teachers, approveQuestion, audioFiles, courses } = useData()
   
   const currentTeacher = teachers.find(t => t.id === user?.id)
   const requiresReview = currentTeacher?.requiresReview ?? true
@@ -223,10 +259,18 @@ export default function QuestionLibraryPage() {
 
     setIsSavingBatch(true)
     try {
-      for (const item of selected) {
+      const preparedQuestions: Question[] = selected.map(item => {
         const { selected: _, id: __, ...itemData } = item
-        await addQuestion(itemData as Question)
-      }
+        return {
+          ...itemData,
+          teacherId: user?.id || itemData.teacherId,
+          isApproved: !requiresReview,
+          options: ensureStringArray(itemData.options),
+          matchPairs: ensureMatchPairs(itemData.matchPairs)
+        } as Question
+      })
+
+      await bulkAddQuestions(preparedQuestions)
       toast.success(`Successfully added ${selected.length} questions to your library!`)
       setIsImportOpen(false)
       setImportStep('upload')
@@ -1783,30 +1827,38 @@ export default function QuestionLibraryPage() {
 
                             <p className="text-sm text-foreground/80 leading-relaxed font-sans font-normal">{q.content}</p>
 
-                            {q.type === 'Matching' && q.matchPairs && (
-                              <div className="space-y-1">
-                                {(q.matchPairs as { left: string; right: string }[]).slice(0, 3).map((pair, i) => (
-                                  <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-xs">{pair.left}</span>
-                                    <span className="text-muted-foreground/30 ">::</span>
-                                    <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-xs">{pair.right}</span>
-                                  </div>
-                                ))}
-                                {(q.matchPairs as any[]).length > 3 && (
-                                  <p className="text-xs text-muted-foreground/50">+{(q.matchPairs as any[]).length - 3} more pairs</p>
-                                )}
-                              </div>
-                            )}
+                            {q.type === 'Matching' && (() => {
+                               const pairs = ensureMatchPairs(q.matchPairs)
+                               if (pairs.length === 0) return null
+                               return (
+                                 <div className="space-y-1">
+                                   {pairs.slice(0, 3).map((pair, i) => (
+                                     <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                                       <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-xs">{pair.left}</span>
+                                       <span className="text-muted-foreground/30 ">::</span>
+                                       <span className="font-sans bg-muted px-1.5 py-0.5 rounded text-xs">{pair.right}</span>
+                                     </div>
+                                   ))}
+                                   {pairs.length > 3 && (
+                                     <p className="text-xs text-muted-foreground/50">+{pairs.length - 3} more pairs</p>
+                                   )}
+                                 </div>
+                               )
+                             })()}
 
-                            {q.type === 'MCQ' && q.options && (
-                              <div className="flex flex-wrap gap-1">
-                                {q.options?.map((opt, i) => (
-                                  <span key={i} className={`text-xs px-2 py-0.5  font-medium ${opt === q.correctAnswer ? 'bg-success/10 text-success ring-1 ring-success/20' : 'bg-muted text-muted-foreground'}`}>
-                                    {opt}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                             {q.type === 'MCQ' && (() => {
+                               const opts = ensureStringArray(q.options)
+                               if (opts.length === 0) return null
+                               return (
+                                 <div className="flex flex-wrap gap-1">
+                                   {opts.map((opt, i) => (
+                                     <span key={i} className={`text-xs px-2 py-0.5  font-medium ${opt === q.correctAnswer ? 'bg-success/10 text-success ring-1 ring-success/20' : 'bg-muted text-muted-foreground'}`}>
+                                       {opt}
+                                     </span>
+                                   ))}
+                                 </div>
+                               )
+                             })()}
 
                             {q.imageUrl && (
                               <div className="relative w-full h-24  overflow-hidden border  mt-1">

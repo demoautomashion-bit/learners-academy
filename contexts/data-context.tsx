@@ -12,7 +12,7 @@ import type {
 import { getTeachers, addTeacher as dbAddTeacher, removeTeacher as dbRemoveTeacher, updateTeacherStatus as dbUpdateTeacherStatus, updateTeacherReviewFlag as dbUpdateTeacherReviewFlag, updateTeacher as dbUpdateTeacher, deleteAllTeachers as dbDeleteAllTeachers } from '@/lib/actions/teachers'
 import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemoveStudent, updateStudentStatus as dbUpdateStudentStatus, updateStudent as dbUpdateStudent, updateStudentSuccessMetrics as dbUpdateStudentSuccessMetrics, deleteAllStudents as dbDeleteAllStudents } from '@/lib/actions/students'
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse, deleteAllCourses as dbDeleteAllCourses } from '@/lib/actions/courses'
-import { getQuestions, addQuestion as dbAddQuestion, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion, deleteQuestionsByPhase as dbDeleteQuestionsByPhase } from '@/lib/actions/questions'
+import { getQuestions, addQuestion as dbAddQuestion, bulkAddQuestions as dbBulkAddQuestions, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion, deleteQuestionsByPhase as dbDeleteQuestionsByPhase } from '@/lib/actions/questions'
 import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction, updateAssessmentStatus as dbUpdateAssessmentStatus, deleteAssessmentsByPhase as dbDeleteAssessmentsByPhase } from '@/lib/actions/assessments'
 import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
 import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount, deleteAllFeePayments as dbDeleteAllFeePayments } from '@/lib/actions/fees'
@@ -66,6 +66,7 @@ interface DataContextType {
   gradeSubmission: (id: string, grade: number, feedback: string) => Promise<void>
   updateCourseProgress: (courseId: string, progress: number) => void
   addQuestion: (question: Question) => Promise<void>
+  bulkAddQuestions: (questions: Question[]) => Promise<void>
   deleteQuestion: (id: string) => Promise<void>
   deleteQuestionsByPhase: (phase: 'First Test' | 'Last Test' | 'Both', classLevel?: string) => Promise<void>
   updateQuestion: (id: string, question: Partial<Question>) => Promise<void>
@@ -320,6 +321,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateCourse = useCallback((id: string, d: any) => executeAction(() => dbUpdateCourse(id, d), "Curriculum updated"), [executeAction])
   const updateCourseProgress = useCallback((id: string, p: number) => setCourses(prev => prev.map(c => c.id === id ? { ...c, enrolled: p } : c)), [])
   const addQuestion = useCallback((q: Question) => executeAction(() => dbAddQuestion(q), "Block added"), [executeAction])
+  const bulkAddQuestions = useCallback((qs: Question[]) => executeAction(() => dbBulkAddQuestions(qs), `${qs.length} blocks imported`), [executeAction])
   const deleteQuestion = useCallback((id: string) => executeAction(() => dbDeleteQuestion(id, user?.role === 'teacher' ? user?.id : undefined), "Block removed"), [executeAction, user?.id, user?.role])
   const deleteQuestionsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both', classLevel?: string) => executeAction(() => dbDeleteQuestionsByPhase(user?.id || '', phase, classLevel), "Bank cleared"), [executeAction, user?.id])
   const updateQuestion = useCallback((id: string, d: any) => executeAction(() => dbUpdateQuestion(id, d, user?.role === 'teacher' ? user?.id : undefined), "Block updated"), [executeAction, user?.id, user?.role])
@@ -400,7 +402,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   return (
     <DataContext.Provider value={{
       teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, announcements, cardTemplates, isInitialized, isLoading, errorMsg,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, addAnnouncement, saveCardTemplate, deleteCardTemplate, resetToDefaults: () => {}, refresh, retryConnection,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, bulkAddQuestions, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, addAnnouncement, saveCardTemplate, deleteCardTemplate, resetToDefaults: () => {}, refresh, retryConnection,
       deleteAllStudents, deleteAllCourses, deleteAllTimeSlots, deleteAllFeePayments, deleteAllEconomicsLogs, deleteAllTeachers,
     }}>
       {children}

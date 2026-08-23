@@ -50,6 +50,57 @@ export async function addQuestion(question: Omit<Question, 'id'>): Promise<Actio
   }
 }
 
+export async function bulkAddQuestions(questions: Omit<Question, 'id'>[]): Promise<ActionResult<{ count: number }>> {
+  try {
+    const records = questions.map(q => {
+      let optionsArray: string[] = []
+      if (Array.isArray(q.options)) {
+        optionsArray = q.options.map(s => String(s).trim())
+      } else if (typeof q.options === 'string') {
+        try {
+          const parsed = JSON.parse(q.options)
+          if (Array.isArray(parsed)) optionsArray = parsed.map(s => String(s).trim())
+          else optionsArray = String(q.options).split(',').map(s => s.trim())
+        } catch {
+          optionsArray = String(q.options).split(',').map(s => s.trim())
+        }
+      }
+
+      return {
+        category: q.category,
+        type: q.type,
+        content: q.content,
+        options: optionsArray,
+        correctAnswer: q.correctAnswer || '',
+        imageUrl: q.imageUrl || null,
+        phase: q.phase,
+        passageText: q.passageText || null,
+        passageTitle: q.passageTitle || null,
+        speakingTitle: q.speakingTitle || null,
+        prepTimeSeconds: q.prepTimeSeconds || null,
+        speakingTimeSeconds: q.speakingTimeSeconds || null,
+        subQuestions: q.subQuestions ? (q.subQuestions as any) : undefined,
+        audioUrl: q.audioUrl || null,
+        matchPairs: q.matchPairs ? (q.matchPairs as any) : undefined,
+        isApproved: q.isApproved ?? false,
+        teacherId: q.teacherId || null,
+        difficulty: q.difficulty || "Medium",
+        classLevel: q.classLevel || null
+      }
+    })
+
+    const result = await db.question.createMany({
+      data: records
+    })
+
+    revalidatePath('/')
+    return { success: true, data: { count: result.count } }
+  } catch (error) {
+    console.error('DATABASE_ERROR [bulkAddQuestions]:', error)
+    return { success: false, error: 'Bulk question import failed' }
+  }
+}
+
 export async function deleteQuestion(id: string, teacherId?: string): Promise<ActionResult> {
   try {
     // Security Audit: Verify ownership before purge
