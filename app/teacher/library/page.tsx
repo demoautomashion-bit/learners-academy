@@ -175,6 +175,7 @@ export default function QuestionLibraryPage() {
   const [isExtracting, setIsExtracting] = useState(false)
   const [parsedQuestions, setParsedQuestions] = useState<ParsedImportQuestion[]>([])
   const [importStep, setImportStep] = useState<'upload' | 'preview'>('upload')
+  const [importFileName, setImportFileName] = useState<string | null>(null)
   const [isSavingBatch, setIsSavingBatch] = useState(false)
 
   const handleRunAIExtraction = async () => {
@@ -248,8 +249,10 @@ export default function QuestionLibraryPage() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
 
+    setImportFileName(file.name)
     const fileName = file.name.toLowerCase()
     const isBinaryDocument = fileName.endsWith('.pdf') || fileName.endsWith('.docx') || fileName.endsWith('.doc')
 
@@ -592,7 +595,22 @@ export default function QuestionLibraryPage() {
                 </div>
               </DialogHeader>
 
-              {importStep === 'upload' ? (
+              {isExtracting ? (
+                <div className="p-12 text-center space-y-4">
+                  <div className="p-4 rounded-2xl bg-primary/10 text-primary w-16 h-16 mx-auto flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-serif font-medium text-foreground">Extracting Questions from Document</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {importFileName ? `Processing "${importFileName}"...` : 'AI is analyzing your text and structuring questions...'}
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/60 italic">
+                    Please wait while questions, option choices, and rubrics are extracted.
+                  </p>
+                </div>
+              ) : importStep === 'upload' ? (
                 <div className="p-6 space-y-4">
                   <div className="border-2 border-dashed border-primary/20 hover:border-primary/40 transition-colors rounded-2xl p-6 text-center bg-primary/5 space-y-3">
                     <UploadCloud className="w-10 h-10 mx-auto text-primary/60" />
