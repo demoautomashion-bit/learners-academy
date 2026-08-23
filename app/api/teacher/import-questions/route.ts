@@ -3,6 +3,9 @@ import OpenAI from 'openai'
 import pdfParse from 'pdf-parse'
 import mammoth from 'mammoth'
 
+export const maxDuration = 60
+export const dynamic = 'force-dynamic'
+
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }) : null
@@ -136,7 +139,7 @@ Return strictly valid JSON in this exact JSON format:
 
 Document/Exam Text to Process:
 """
-${text.slice(0, 20000)}
+${text.slice(0, 10000)}
 """`
 
     const completion = await openai.chat.completions.create({

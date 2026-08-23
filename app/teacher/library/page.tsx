@@ -184,10 +184,14 @@ export default function QuestionLibraryPage() {
     }
 
     setIsExtracting(true)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 25000)
+
     try {
       const response = await fetch('/api/teacher/import-questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           text: importText,
           defaultClassLevel: levelFilter || teacherLevels[0] || 'Level 1',
@@ -195,6 +199,8 @@ export default function QuestionLibraryPage() {
           defaultCategory: activeTab
         })
       })
+
+      clearTimeout(timeoutId)
 
       const data = await response.json()
       if (!response.ok || data.error) {
@@ -214,13 +220,13 @@ export default function QuestionLibraryPage() {
         difficulty: q.difficulty || 'Medium',
         classLevel: q.classLevel || levelFilter || teacherLevels[0] || 'Level 1',
         content: q.content || '',
-        options: q.options || (q.type === 'MCQ' ? ['Option A', 'Option B', 'Option C', 'Option D'] : undefined),
+        options: ensureStringArray(q.options),
         correctAnswer: q.correctAnswer || '',
         evaluationCriteria: q.evaluationCriteria || '',
         writingGenre: q.writingGenre || undefined,
         wordLimitMin: q.wordLimitMin || undefined,
         wordLimitMax: q.wordLimitMax || undefined,
-        matchPairs: q.matchPairs || undefined,
+        matchPairs: ensureMatchPairs(q.matchPairs),
         selected: true
       }))
 
@@ -228,8 +234,13 @@ export default function QuestionLibraryPage() {
       setImportStep('preview')
       toast.success(`Successfully extracted ${formatted.length} questions!`)
     } catch (err: any) {
+      clearTimeout(timeoutId)
       console.error('Extraction error:', err)
-      toast.error(err?.message || 'Error extracting questions. Please try again.')
+      if (err.name === 'AbortError') {
+        toast.error('Document processing timed out (exceeded 25s limit). Please try uploading a shorter section of the file.')
+      } else {
+        toast.error(err?.message || 'Error extracting questions. Please try again.')
+      }
     } finally {
       setIsExtracting(false)
     }
@@ -245,6 +256,10 @@ export default function QuestionLibraryPage() {
     if (isBinaryDocument) {
       setIsExtracting(true)
       toast.info(`Extracting text from ${file.name}...`)
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 25000)
+
       try {
         const formData = new FormData()
         formData.append('file', file)
@@ -255,7 +270,10 @@ export default function QuestionLibraryPage() {
         const response = await fetch('/api/teacher/import-questions', {
           method: 'POST',
           body: formData,
+          signal: controller.signal,
         })
+
+        clearTimeout(timeoutId)
 
         const data = await response.json()
         if (!response.ok || data.error) {
