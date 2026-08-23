@@ -48,8 +48,9 @@ export default function ResultsPage() {
 
   const teacherAssessments = assessments?.filter(a => {
     const isOwner = a.submittedByTeacherId === user?.id
-    const isAssignedLevel = a.classLevels.some(level => myCourses.some(c => c.title === level))
-    return isOwner || isAssignedLevel
+    const isAssignedCourse = (a.courseIds || []).some(cid => myCourses.some(c => c.id === cid))
+    const isAssignedLevel = (a.classLevels || []).some(level => myCourses.some(c => c.title === level))
+    return isOwner || isAssignedCourse || isAssignedLevel
   }) || []
 
   const filteredAssessments = teacherAssessments.filter(assessment => {
@@ -57,12 +58,11 @@ export default function ResultsPage() {
     const matchesPhase = phaseFilter === 'all' || assessment.phase === phaseFilter
     
     const selectedCourse = myCourses.find(c => c.id === classFilter)
-    const matchesClass = classFilter === 'all' || assessment.classLevels.includes(selectedCourse?.title || '')
+    const matchesClass = classFilter === 'all' || 
+      (assessment.courseIds || []).includes(classFilter) || 
+      (selectedCourse && (assessment.classLevels || []).includes(selectedCourse.title))
     
-    // Only show assessments that have submissions
-    const hasSubmissions = submissions?.some(s => s.assignmentId === assessment.id)
-    
-    return matchesSearch && matchesPhase && matchesClass && hasSubmissions
+    return matchesSearch && matchesPhase && matchesClass
   })
 
   const allSubmissions = submissions?.filter(s => {

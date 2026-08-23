@@ -157,14 +157,27 @@ async function syncSubmissionToEvaluation(
 export async function submitTestResult(result: StudentTest, assignmentTitle: string): Promise<ActionResult<Submission>> {
   try {
     const evaluationCategory = result.evaluationCategory || 'None'
+
+    // Resolve target student to obtain canonical DB primary key (CUID)
+    const student = await db.student.findFirst({
+      where: {
+        OR: [
+          { id: result.studentId },
+          { studentId: result.studentId }
+        ]
+      }
+    })
+
+    const targetStudentId = student?.id || result.studentId
+    const targetStudentName = student?.name || result.studentName
     
-    // 1. Create the submission record
+    // 1. Create the submission record using canonical Student ID
     const res = await db.submission.create({
       data: {
         assignmentId: result.templateId,
         assignmentTitle,
-        studentId: result.studentId,
-        studentName: result.studentName,
+        studentId: targetStudentId,
+        studentName: targetStudentName,
         status: 'graded',
         grade: result.score,
         randomizedQuestions: result.randomizedQuestions as any,
@@ -176,7 +189,7 @@ export async function submitTestResult(result: StudentTest, assignmentTitle: str
     })
 
     // 2. Automated Sync with Evaluation Sheet & Skill JSON
-    await syncSubmissionToEvaluation(result.studentId, result.templateId, assignmentTitle, result.score || 0, evaluationCategory)
+    await syncSubmissionToEvaluation(targetStudentId, result.templateId, assignmentTitle, result.score || 0, evaluationCategory)
 
     return { success: true, data: res as unknown as Submission }
   } catch (error) {
