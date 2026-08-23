@@ -235,19 +235,79 @@ export default function QuestionLibraryPage() {
     }
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const content = event.target?.result as string
-      if (content) {
-        setImportText(content)
-        toast.info(`Loaded file: ${file.name}`)
+    const fileName = file.name.toLowerCase()
+    const isBinaryDocument = fileName.endsWith('.pdf') || fileName.endsWith('.docx') || fileName.endsWith('.doc')
+
+    if (isBinaryDocument) {
+      setIsExtracting(true)
+      toast.info(`Extracting text from ${file.name}...`)
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('defaultClassLevel', levelFilter || teacherLevels[0] || 'Level 1')
+        formData.append('defaultPhase', phaseFilter !== 'all' ? phaseFilter : 'First Test')
+        formData.append('defaultCategory', activeTab)
+
+        const response = await fetch('/api/teacher/import-questions', {
+          method: 'POST',
+          body: formData,
+        })
+
+        const data = await response.json()
+        if (!response.ok || data.error) {
+          throw new Error(data.error || 'Failed to extract questions from document')
+        }
+
+        if (!data.questions || data.questions.length === 0) {
+          toast.error('No questions could be extracted from this document.')
+          return
+        }
+
+        const formatted: ParsedImportQuestion[] = data.questions.map((q: any, idx: number) => ({
+          id: `import_${Date.now()}_${idx}`,
+          category: q.category || activeTab,
+          type: q.type || 'MCQ',
+          phase: q.phase || 'First Test',
+          difficulty: q.difficulty || 'Medium',
+          classLevel: q.classLevel || levelFilter || teacherLevels[0] || 'Level 1',
+          content: q.content || '',
+          options: ensureStringArray(q.options),
+          correctAnswer: q.correctAnswer || '',
+          evaluationCriteria: q.evaluationCriteria || '',
+          writingGenre: q.writingGenre || undefined,
+          wordLimitMin: q.wordLimitMin || undefined,
+          wordLimitMax: q.wordLimitMax || undefined,
+          matchPairs: ensureMatchPairs(q.matchPairs),
+          selected: true
+        }))
+
+        setParsedQuestions(formatted)
+        setImportStep('preview')
+        if (data.extractedTextSnippet) {
+          setImportText(data.extractedTextSnippet)
+        }
+        toast.success(`Successfully extracted ${formatted.length} questions from ${file.name}!`)
+      } catch (err: any) {
+        console.error('File extraction error:', err)
+        toast.error(err?.message || 'Error extracting document questions.')
+      } finally {
+        setIsExtracting(false)
       }
+    } else {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const content = event.target?.result as string
+        if (content) {
+          setImportText(content)
+          toast.info(`Loaded text file: ${file.name}`)
+        }
+      }
+      reader.readAsText(file)
     }
-    reader.readAsText(file)
   }
 
   const handleBatchSave = async () => {

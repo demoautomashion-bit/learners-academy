@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import pdfParse from 'pdf-parse'
+import mammoth from 'mammoth'
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -14,11 +16,57 @@ export async function POST(req: Request) {
       )
     }
 
-    const { text, defaultClassLevel, defaultPhase, defaultCategory } = await req.json()
+    let text = ''
+    let defaultClassLevel = 'Level 1'
+    let defaultPhase = 'First Test'
+    let defaultCategory = 'Grammar'
 
-    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+    const contentType = req.headers.get('content-type') || ''
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData()
+      const file = formData.get('file') as File | null
+      defaultClassLevel = (formData.get('defaultClassLevel') as string) || 'Level 1'
+      defaultPhase = (formData.get('defaultPhase') as string) || 'First Test'
+      defaultCategory = (formData.get('defaultCategory') as string) || 'Grammar'
+
+      if (file) {
+        const buffer = Buffer.from(await file.arrayBuffer())
+        const fileName = (file.name || '').toLowerCase()
+
+        if (fileName.endsWith('.pdf')) {
+          try {
+            const pdfData = await pdfParse(buffer)
+            text = pdfData.text || ''
+          } catch (err) {
+            console.error('[ImportQuestions] PDF Parse error:', err)
+          }
+        } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+          try {
+            const docxData = await mammoth.extractRawText({ buffer })
+            text = docxData.value || ''
+          } catch (err) {
+            console.error('[ImportQuestions] Docx Parse error:', err)
+          }
+        } else {
+          // Plain text fallback
+          text = buffer.toString('utf-8')
+        }
+      }
+    } else {
+      const body = await req.json()
+      text = body.text || ''
+      defaultClassLevel = body.defaultClassLevel || 'Level 1'
+      defaultPhase = body.defaultPhase || 'First Test'
+      defaultCategory = body.defaultCategory || 'Grammar'
+    }
+
+    // Clean up null/replacement characters if any remain
+    text = text.replace(/\0/g, '').replace(/\uFFFD/g, ' ').trim()
+
+    if (!text || text.length === 0) {
       return NextResponse.json(
-        { error: 'Please provide document or exam text to import.' },
+        { error: 'No readable text could be extracted from the document or input provided.' },
         { status: 400 }
       )
     }
@@ -27,9 +75,9 @@ export async function POST(req: Request) {
 Analyze the following document/test text and extract ALL questions into a structured JSON array under the key "questions".
 
 Context Defaults (use if not explicitly specified in the text):
-- Class Level: "${defaultClassLevel || 'Level 1'}"
-- Test Phase: "${defaultPhase || 'First Test'}"
-- Category: "${defaultCategory || 'Grammar'}"
+- Class Level: "${defaultClassLevel}"
+- Test Phase: "${defaultPhase}"
+- Category: "${defaultCategory}"
 
 CRITICAL FORMATTING & EXTRACTION RULES:
 1. Question Content:
@@ -63,7 +111,7 @@ CRITICAL FORMATTING & EXTRACTION RULES:
    - 'difficulty': Assess complexity as "Easy", "Medium", or "Hard".
    - 'phase': Determine if question belongs to "First Test" (formative/mid-term), "Last Test" (final/summative), or "Both".
    - 'category': Assign one of: "Grammar", "Vocabulary", "Reading", "Writing", "Listening", "Speaking".
-   - 'classLevel': Assign the class level string (e.g., "${defaultClassLevel || 'Level 1'}").
+   - 'classLevel': Assign the class level string (e.g., "${defaultClassLevel}").
 
 Return strictly valid JSON in this exact JSON format:
 {
@@ -88,7 +136,7 @@ Return strictly valid JSON in this exact JSON format:
 
 Document/Exam Text to Process:
 """
-${text.slice(0, 15000)}
+${text.slice(0, 20000)}
 """`
 
     const completion = await openai.chat.completions.create({
@@ -106,7 +154,7 @@ ${text.slice(0, 15000)}
 
     const questions = Array.isArray(parsed.questions) ? parsed.questions : []
 
-    return NextResponse.json({ questions })
+    return NextResponse.json({ questions, extractedTextSnippet: text.slice(0, 300) })
   } catch (error: any) {
     console.error('[ImportQuestions] Error parsing document:', error)
     return NextResponse.json(
