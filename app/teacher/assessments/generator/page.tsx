@@ -348,8 +348,6 @@ export default function AssessmentGeneratorPage() {
                                   </Select>
                               </div>
                            </div>
-                          <div className={cn("grid grid-cols-1 gap-8", isAdvanced ? "md:grid-cols-3" : "md:grid-cols-2")}>
-                             <div className="space-y-3">
 
                           <div className="space-y-4 pt-2">
                              <div className="flex items-center justify-between">
@@ -431,7 +429,7 @@ export default function AssessmentGeneratorPage() {
                            </div>
                        </div>
 
-                       <div className="space-y-8 pt-10 border-t border-primary/5">
+                        <div className="space-y-8 pt-10 border-t border-primary/5">
                         <div className="flex flex-col gap-2">
                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-primary/60">
                               <div className="flex items-center gap-3">
