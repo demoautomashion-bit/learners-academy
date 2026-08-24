@@ -1627,6 +1627,7 @@ export default function StudentAssessmentsPage() {
     // Listening — Integrated Audio Player, Passage with Numbered Blank Slots & Order-Wise Response Sheet
     if (q.type === 'Listening') {
       const isCloze = q.content.includes('____')
+      const hasSubQuestions = q.subQuestions && q.subQuestions.length > 0
       const blankMatches = q.content.match(/_{3,}/g) || []
       const blankCount = Math.max(1, blankMatches.length)
       const parts = q.content.split(/_{3,}/)
@@ -1644,7 +1645,11 @@ export default function StudentAssessmentsPage() {
                   <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary font-bold text-[10px] uppercase tracking-wider px-2 py-0.5">
                     Auditory Exercise
                   </Badge>
-                  {isCloze && (
+                  {hasSubQuestions ? (
+                    <Badge variant="secondary" className="text-[10px] font-medium bg-muted">
+                      {q.subQuestions?.length} Sub-Questions
+                    </Badge>
+                  ) : isCloze && (
                     <Badge variant="secondary" className="text-[10px] font-medium bg-muted">
                       {blankCount} {blankCount === 1 ? 'Blank' : 'Order-Wise Blanks'}
                     </Badge>
@@ -1665,71 +1670,175 @@ export default function StudentAssessmentsPage() {
             )}
           </div>
 
-          {isCloze ? (
-            <div className="space-y-6">
-              {/* Passage text with clear numbered slots */}
-              <div className="bg-muted/30 border border-primary/10 p-6 sm:p-8 rounded-3xl space-y-3 shadow-inner">
-                <p className="text-editorial-label text-[10px] uppercase tracking-widest text-primary/80 font-bold flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5" /> Passage Transcript (Read while listening):
-                </p>
-                <div className="font-serif text-lg sm:text-xl leading-relaxed text-foreground/90 flex flex-wrap items-baseline gap-x-2 gap-y-3 pt-2">
-                  {parts.map((part, i) => (
-                    <span key={i} className="inline flex-wrap items-baseline">
-                      <span>{part}</span>
-                      {i < parts.length - 1 && (
-                        <span className="inline-flex items-center justify-center bg-primary/10 text-primary font-sans font-bold text-xs px-2.5 py-1 rounded-lg border border-primary/20 mx-1 align-baseline shadow-xs">
-                          [{i + 1}] ____
-                        </span>
-                      )}
-                    </span>
-                  ))}
-                </div>
+          {hasSubQuestions ? (
+            <div className="space-y-6 pt-2">
+              <div className="flex items-center justify-between border-b pb-3">
+                <h4 className="font-serif text-lg font-bold text-foreground">Listening Sub-Questions ({q.subQuestions?.length})</h4>
+                <Badge variant="outline" className="text-[10px] uppercase">Listening Question Set</Badge>
               </div>
 
-              {/* Dedicated Order-Wise Numbered Response Sheet */}
-              <div className="bg-background/80 border-2 border-primary/20 rounded-3xl p-6 sm:p-8 space-y-4 shadow-md">
-                <div className="flex items-center justify-between border-b border-primary/10 pb-3">
-                  <div className="flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4 text-primary" />
-                    <h5 className="font-serif font-bold text-sm text-foreground">
-                      Order-Wise Answer Sheet ({blankCount} {blankCount === 1 ? 'Entry' : 'Entries'})
-                    </h5>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-medium">
-                    Type your answer for each numbered blank
-                  </span>
-                </div>
+              <div className="space-y-6">
+                {q.subQuestions?.map((sq, idx) => {
+                  const sqKey = `${qId}_sub_${sq.id}`
+                  const sqAns = answers[sqKey] || ''
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {Array.from({ length: blankCount }).map((_, i) => {
-                    const val = answers[`${qId}-${i}`] || ''
-                    return (
-                      <div key={i} className="flex items-center gap-3 bg-muted/20 border border-border/60 p-3 rounded-2xl transition-all focus-within:border-primary/50 focus-within:bg-background shadow-xs">
-                        <span className="w-8 h-8 rounded-xl bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20">
-                          #{i + 1}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <Label htmlFor={`blank-input-${qId}-${i}`} className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-0.5">
-                            Blank #{i + 1} Answer
-                          </Label>
-                          <input
-                            id={`blank-input-${qId}-${i}`}
-                            type="text"
-                            value={val}
-                            onChange={(e) => setAnswers(prev => ({ ...prev, [`${qId}-${i}`]: e.target.value }))}
-                            placeholder={`Type exact word for Blank #${i + 1}...`}
-                            className="w-full text-sm font-medium bg-transparent border-none outline-none focus:ring-0 p-0 text-foreground placeholder:text-muted-foreground/40"
-                          />
-                        </div>
-                        {val.trim() && (
-                          <CheckCircle className="w-4 h-4 text-success shrink-0" />
-                        )}
+                  return (
+                    <div key={sq.id} className="p-6 border-2 border-primary/10 rounded-3xl bg-background/60 space-y-4 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase text-primary">Question #{idx + 1} ({sq.type})</span>
+                        <Badge variant="secondary" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">
+                          {sq.points || (sq.type === 'Subjective' ? 3 : 1)} {sq.points === 1 ? 'Mark' : 'Marks'}
+                        </Badge>
                       </div>
-                    )
-                  })}
-                </div>
+                      <p className="text-base font-serif font-medium text-foreground whitespace-pre-wrap leading-relaxed">{sq.content}</p>
+
+                      {/* Sub MCQ / True-False / True-False-Not-Given / Yes-No-Not-Given */}
+                      {(sq.type === 'MCQ' || sq.type === 'True/False' || sq.type === 'True/False/Not Given' || sq.type === 'Yes/No/Not Given') && (
+                        <RadioGroup value={sqAns} onValueChange={(val) => setAnswers(prev => ({ ...prev, [sqKey]: val }))} className="space-y-2 pt-1">
+                          {(
+                            sq.type === 'True/False' ? ['True', 'False'] : 
+                            sq.type === 'True/False/Not Given' ? ['TRUE', 'FALSE', 'NOT GIVEN'] : 
+                            sq.type === 'Yes/No/Not Given' ? ['YES', 'NO', 'NOT GIVEN'] : 
+                            (sq.options || [])
+                          ).map((opt, oIdx) => (
+                            <div key={oIdx} className="flex items-center space-x-3 p-3 rounded-xl border hover:bg-muted/30 cursor-pointer">
+                              <RadioGroupItem value={opt} id={`${sqKey}_${oIdx}`} />
+                              <Label htmlFor={`${sqKey}_${oIdx}`} className="flex-1 text-sm font-medium cursor-pointer">{opt}</Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      )}
+
+                      {/* Sub MultiSelect */}
+                      {sq.type === 'MultiSelect' && (
+                        <div className="space-y-2 pt-1">
+                          <p className="text-[11px] font-bold text-primary">Select up to {sq.maxSelections || 2} answers:</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {(sq.options || ['A', 'B', 'C', 'D', 'E']).filter(o => o.trim()).map((opt, oIdx) => {
+                              const letter = String.fromCharCode(65 + oIdx)
+                              let currentPicks: string[] = []
+                              try {
+                                currentPicks = JSON.parse(sqAns)
+                                if (!Array.isArray(currentPicks)) currentPicks = sqAns ? sqAns.split(',') : []
+                              } catch {
+                                currentPicks = sqAns ? sqAns.split(',') : []
+                              }
+                              const isChecked = currentPicks.includes(letter)
+
+                              return (
+                                <div
+                                  key={oIdx}
+                                  onClick={() => {
+                                    let newPicks = [...currentPicks]
+                                    if (isChecked) {
+                                      newPicks = newPicks.filter(p => p !== letter)
+                                    } else {
+                                      if (newPicks.length < (sq.maxSelections || 2)) {
+                                        newPicks.push(letter)
+                                      } else {
+                                        toast.info(`You can only select up to ${sq.maxSelections || 2} options`)
+                                        return
+                                      }
+                                    }
+                                    setAnswers(prev => ({ ...prev, [sqKey]: JSON.stringify(newPicks) }))
+                                  }}
+                                  className={cn(
+                                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                                    isChecked ? "bg-primary/10 border-primary/40 font-bold" : "hover:bg-muted/30"
+                                  )}
+                                >
+                                  <div className={cn("w-5 h-5 rounded flex items-center justify-center text-xs font-bold border", isChecked ? "bg-primary text-white border-primary" : "border-muted-foreground/30")}>
+                                    {letter}
+                                  </div>
+                                  <span className="text-sm">{opt}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sub Blanks / Subjective */}
+                      {sq.type === 'Fill in the Blanks' ? (
+                        sq.content.includes('____') ? (
+                          <div className="space-y-4 pt-1">
+                            <div className="p-4 rounded-2xl bg-muted/20 border border-primary/10 font-serif text-base leading-relaxed whitespace-pre-wrap">
+                              {(() => {
+                                const parts = sq.content.split(/_{3,}/)
+                                return parts.map((part, pIdx) => (
+                                  <span key={pIdx}>
+                                    <span>{part}</span>
+                                    {pIdx < parts.length - 1 && (
+                                      <span className="inline-flex items-center justify-center bg-primary/10 text-primary font-sans font-bold text-xs px-2 py-0.5 rounded-lg border border-primary/20 mx-1 align-baseline">
+                                        [({pIdx + 1}) ____]
+                                      </span>
+                                    )}
+                                  </span>
+                                ))
+                              })()}
+                            </div>
+
+                            <div className="bg-background/80 border-2 border-primary/15 rounded-2xl p-4 space-y-3">
+                              <div className="flex items-center justify-between border-b pb-2">
+                                <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                                  <CheckSquare className="w-3.5 h-3.5" /> Order-Wise Answer Sheet ({Math.max(1, (sq.content.match(/_{3,}/g) || []).length)} Blanks — 1 Mark Each)
+                                </span>
+                              </div>
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                {Array.from({ length: Math.max(1, (sq.content.match(/_{3,}/g) || []).length) }).map((_, bIdx) => {
+                                  const blankKey = `${sqKey}_blank_${bIdx}`
+                                  const val = answers[blankKey] || ''
+                                  return (
+                                    <div key={bIdx} className="flex items-center gap-2 bg-muted/20 border p-2.5 rounded-xl">
+                                      <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20">
+                                        #{bIdx + 1}
+                                      </span>
+                                      <div className="flex-1 min-w-0">
+                                        <Label htmlFor={`sq-blank-${blankKey}`} className="text-[9px] uppercase font-bold text-muted-foreground block">
+                                          Blank #{bIdx + 1} Answer (1 Mark)
+                                        </Label>
+                                        <input
+                                          id={`sq-blank-${blankKey}`}
+                                          type="text"
+                                          value={val}
+                                          onChange={(e) => setAnswers(prev => ({ ...prev, [blankKey]: e.target.value }))}
+                                          placeholder={`Answer for Blank #${bIdx + 1}...`}
+                                          className="w-full text-xs font-medium bg-transparent border-none outline-none focus:ring-0 p-0 text-foreground"
+                                        />
+                                      </div>
+                                      {val.trim() && <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <Textarea
+                            placeholder="Type exact answer for the blank..."
+                            value={sqAns}
+                            onChange={(e) => setAnswers(prev => ({ ...prev, [sqKey]: e.target.value }))}
+                            className="min-h-[80px] text-sm bg-background border-2 rounded-xl"
+                          />
+                        )
+                      ) : sq.type === 'Subjective' && (
+                        <Textarea
+                          placeholder="Write your response..."
+                          value={sqAns}
+                          onChange={(e) => setAnswers(prev => ({ ...prev, [sqKey]: e.target.value }))}
+                          className="min-h-[80px] text-sm bg-background border-2 rounded-xl"
+                        />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
+          ) : isCloze ? (
+             <div className="bg-background/40 p-6 rounded-[2rem] border border-primary/5">
+                <p className="text-editorial-label text-[10px] uppercase tracking-widest text-muted-foreground/40 mb-4">Task: Gap-Fill Analysis</p>
+                {renderClozeInput(q.content, qId)}
+             </div>
           ) : (
             <div className="space-y-3">
               <Label className="text-editorial-label text-xs">Your Listening Response</Label>
