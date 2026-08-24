@@ -96,7 +96,7 @@ export interface Submission {
   answers?: Record<string, string>
   aiFeedback?: string
   aiJustification?: string
-  evaluationCategory?: 'Midterm' | 'Final' | 'None'
+  evaluationCategory?: 'Midterm' | 'Final' | 'Listening' | 'Speaking' | 'Reading' | 'Writing' | 'Grammar' | 'None' | string
 }
 
 export interface DashboardStats {
@@ -233,7 +233,7 @@ export interface AssessmentTemplate {
   submittedByTeacherId?: string
   submittedByTeacherName?: string
   isAdaptive?: boolean
-  evaluationCategory?: 'Midterm' | 'Final' | 'None'
+  evaluationCategory?: 'Midterm' | 'Final' | 'Listening' | 'Speaking' | 'Reading' | 'Writing' | 'Grammar' | 'None' | string
 }
 
 export interface StudentTest {

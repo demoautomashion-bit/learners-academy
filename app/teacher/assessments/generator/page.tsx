@@ -35,18 +35,17 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { generateSecureToken } from '@/lib/utils'
 import { AssessmentSkeleton } from '@/components/dashboard-skeleton'
 import { AssessmentTemplate, QuestionType } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { isAdvancedOrSpecialCourse } from '@/lib/utils/card-tiers'
 
 const assessmentSchema = z.object({
   title: z.string().min(5, 'Test title must be formal and descriptive'),
-  phase: z.enum(['First Test', 'Last Test']),
+  phase: z.string().min(1, 'Please select test period'),
   courseId: z.string().min(1, 'Please select a target course'), 
   classLevel: z.string().optional(),
   nature: z.enum(['MCQ', 'Subjective', 'Mixed', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening']),
@@ -66,10 +65,11 @@ const assessmentSchema = z.object({
   questionCount: z.coerce.number().min(1, 'Count must be at least 1').max(100, 'Max 100 questions'),
   accessCode: z.string().min(5, 'Access code is required').regex(/^[A-Z0-9-]+$/, 'Letters, numbers, and hyphens only'),
   isAdaptive: z.boolean().default(false),
-  evaluationCategory: z.enum(['Midterm', 'Final', 'None']).default('None'),
+  evaluationCategory: z.string().default('None'),
 })
 
 type AssessmentFormValues = z.infer<typeof assessmentSchema>
+
 
 export default function AssessmentGeneratorPage() {
   const router = useRouter()
@@ -112,7 +112,6 @@ export default function AssessmentGeneratorPage() {
   })
 
   // Seed access code client-side only to avoid SSR hydration mismatch
-  // (Math.random() produces different values on server vs client)
   useEffect(() => {
     setValue('accessCode', generateSecureToken())
   }, [])
@@ -121,9 +120,19 @@ export default function AssessmentGeneratorPage() {
   const watchNature = watch('nature')
   const watchAlloc = watch('markAllocation')
   const watchPhase = watch('phase')
+  const watchCourseId = watch('courseId')
+  const watchTotalMarks = watch('totalMarks')
+
+  const selectedCourse = useMemo(() => {
+    return courses?.find(c => c.id === watchCourseId)
+  }, [courses, watchCourseId])
+
+  const isAdvanced = useMemo(() => {
+    return isAdvancedOrSpecialCourse(selectedCourse?.level || selectedCourse?.title)
+  }, [selectedCourse])
 
   const availableBlocks = useMemo(() => {
-     return questions?.filter(q => q.phase === watchPhase || q.phase === 'Both')
+    return questions?.filter(q => q.phase === watchPhase || q.phase === 'Both' || (watchPhase !== 'First Test' && watchPhase !== 'Last Test'))
   }, [questions, watchPhase])
 
   const classStats = useMemo(() => {
@@ -156,16 +165,18 @@ export default function AssessmentGeneratorPage() {
       return
     }
 
-    const selectedCourse = courses.find(c => c.id === data.courseId)
+    const targetTotalMarks = isAdvanced && data.totalMarks
+      ? Number(data.totalMarks)
+      : (totalCalculatedMarks > 0 ? totalCalculatedMarks : (data.totalMarks || 100))
 
     const newAssessment: AssessmentTemplate = {
       id: `test-${Date.now()}`,
       title: data.title,
-      phase: data.phase,
+      phase: data.phase as any,
       courseIds: [data.courseId], // ID-based linking
       classLevels: [selectedCourse?.title || 'Unknown'], // Fallback for display
       nature: data.nature,
-      totalMarks: totalCalculatedMarks > 0 ? totalCalculatedMarks : (data.totalMarks || 100),
+      totalMarks: targetTotalMarks,
       markAllocation: data.markAllocation,
       durationMinutes: data.duration,
       questionCount: data.questionCount,
@@ -253,24 +264,25 @@ export default function AssessmentGeneratorPage() {
                              {errors.title && <p className="text-xs text-destructive font-medium mt-2 ml-1">{errors.title.message}</p>}
                           </div>
  
-                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                               <div className="space-y-3">
                                  <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Test Period</label>
-                                 <div className="grid grid-cols-2 gap-3 p-1.5 bg-muted/10 border border-primary/5 rounded-2xl">
-                                     {['First Test', 'Last Test'].map(p => (
-                                         <button
-                                             key={p}
-                                             type="button"
-                                             onClick={() => setValue('phase', p as any)}
-                                             className={cn(
-                                                 "h-11 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all",
-                                                 watchPhase === p ? "bg-primary text-white shadow-lg" : "text-muted-foreground/60 hover:text-foreground hover:bg-primary/5"
-                                             )}
-                                         >
-                                             {p === 'First Test' ? 'Mid-Term' : 'Final-Term'}
-                                         </button>
-                                     ))}
-                                 </div>
+                                 <Select value={watchPhase || 'First Test'} onValueChange={(val) => setValue('phase', val as any)}>
+                                    <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
+                                       <SelectValue placeholder="Select Period" />
+                                    </SelectTrigger>
+                                    <SelectContent className="glass-2 border-primary/5 rounded-2xl">
+                                       <SelectItem value="First Test" className="rounded-xl py-3 text-sm">Mid-Term (First Test)</SelectItem>
+                                       <SelectItem value="Last Test" className="rounded-xl py-3 text-sm">Final-Term (Last Test)</SelectItem>
+                                       {isAdvanced && (
+                                          <>
+                                             <SelectItem value="Monthly Test" className="rounded-xl py-3 text-sm">Monthly Test</SelectItem>
+                                             <SelectItem value="Module Assessment" className="rounded-xl py-3 text-sm">Module Assessment</SelectItem>
+                                             <SelectItem value="Special Exam" className="rounded-xl py-3 text-sm">Special Exam</SelectItem>
+                                          </>
+                                       )}
+                                    </SelectContent>
+                                 </Select>
                               </div>
                               <div className="space-y-3">
                                  <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Assigned Group</label>
@@ -296,11 +308,20 @@ export default function AssessmentGeneratorPage() {
                                        <SelectItem value="None" className="rounded-xl py-3 text-sm">Standalone (None)</SelectItem>
                                        <SelectItem value="Midterm" className="rounded-xl py-3 text-sm text-primary font-bold">Midterm Column</SelectItem>
                                        <SelectItem value="Final" className="rounded-xl py-3 text-sm text-primary font-bold">Final Test Column</SelectItem>
+                                       {isAdvanced && (
+                                          <>
+                                             <SelectItem value="Listening" className="rounded-xl py-3 text-sm text-indigo-500 font-semibold">Listening Marks</SelectItem>
+                                             <SelectItem value="Speaking" className="rounded-xl py-3 text-sm text-emerald-500 font-semibold">Speaking Marks</SelectItem>
+                                             <SelectItem value="Reading" className="rounded-xl py-3 text-sm text-amber-500 font-semibold">Reading Marks</SelectItem>
+                                             <SelectItem value="Writing" className="rounded-xl py-3 text-sm text-rose-500 font-semibold">Writing Marks</SelectItem>
+                                             <SelectItem value="Grammar" className="rounded-xl py-3 text-sm text-purple-500 font-semibold">Grammar Marks</SelectItem>
+                                          </>
+                                       )}
                                     </SelectContent>
                                   </Select>
                               </div>
                            </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className={cn("grid grid-cols-1 gap-8", isAdvanced ? "md:grid-cols-3" : "md:grid-cols-2")}>
                              <div className="space-y-3">
                                 <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Question Format</label>
                                 <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
@@ -335,6 +356,23 @@ export default function AssessmentGeneratorPage() {
                                    </div>
                                 </div>
                              </div>
+                             {isAdvanced && (
+                                <div className="space-y-3">
+                                   <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Total Target Marks</label>
+                                   <div className="relative">
+                                      <Input 
+                                         type="number"
+                                         {...register('totalMarks', { valueAsNumber: true })}
+                                         placeholder="100"
+                                         className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 font-sans text-sm focus:ring-1 focus:ring-primary/20"
+                                      />
+                                      <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none opacity-20">
+                                         <Target className="w-3.5 h-3.5 text-primary" />
+                                         <span className="text-[10px] font-bold uppercase tracking-widest">Target</span>
+                                      </div>
+                                   </div>
+                                </div>
+                             )}
                           </div>
                        </div>
 
@@ -353,12 +391,14 @@ export default function AssessmentGeneratorPage() {
                                  <Badge 
                                    className={cn(
                                      "px-3 py-1 font-mono text-xs font-semibold rounded-full transition-all border",
-                                     totalCalculatedMarks === 100 
-                                       ? "bg-success/10 text-success border-success/30 shadow-[0_0_10px_rgba(34,197,94,0.1)] animate-pulse" 
-                                       : "bg-warning/10 text-warning border-warning/30"
+                                     isAdvanced
+                                       ? "bg-primary/10 text-primary border-primary/30"
+                                       : totalCalculatedMarks === 100 
+                                         ? "bg-success/10 text-success border-success/30 shadow-[0_0_10px_rgba(34,197,94,0.1)] animate-pulse" 
+                                         : "bg-warning/10 text-warning border-warning/30"
                                    )}
                                  >
-                                   {totalCalculatedMarks} / 100
+                                   {totalCalculatedMarks} / {isAdvanced ? (watchTotalMarks || 100) : 100}
                                  </Badge>
                               </div>
                            </div>
