@@ -26,6 +26,7 @@ import {
   Terminal, 
   FileText, 
   Target, 
+  Check,
   CheckCircle2, 
   AlertCircle,
   BrainCircuit,
