@@ -17,6 +17,12 @@ export async function getQuestions(teacherId?: string): Promise<ActionResult<Que
   }
 }
 
+function toOptionalInt(val: any): number | null {
+  if (val === null || val === undefined || val === '') return null
+  const num = Number(val)
+  return isNaN(num) ? null : Math.round(num)
+}
+
 export async function addQuestion(question: Omit<Question, 'id'>): Promise<ActionResult<Question>> {
   try {
     const result = await db.question.create({
@@ -31,9 +37,9 @@ export async function addQuestion(question: Omit<Question, 'id'>): Promise<Actio
         passageText: question.passageText,
         passageTitle: question.passageTitle,
         speakingTitle: question.speakingTitle,
-        prepTimeSeconds: question.prepTimeSeconds,
-        speakingMinTimeSeconds: question.speakingMinTimeSeconds,
-        speakingTimeSeconds: question.speakingTimeSeconds,
+        prepTimeSeconds: toOptionalInt(question.prepTimeSeconds),
+        speakingMinTimeSeconds: toOptionalInt(question.speakingMinTimeSeconds),
+        speakingTimeSeconds: toOptionalInt(question.speakingTimeSeconds),
         subQuestions: question.subQuestions as any,
         audioUrl: question.audioUrl,
         matchPairs: question.matchPairs as any,
@@ -78,9 +84,9 @@ export async function bulkAddQuestions(questions: Omit<Question, 'id'>[]): Promi
         passageText: q.passageText || null,
         passageTitle: q.passageTitle || null,
         speakingTitle: q.speakingTitle || null,
-        prepTimeSeconds: q.prepTimeSeconds || null,
-        speakingMinTimeSeconds: q.speakingMinTimeSeconds || null,
-        speakingTimeSeconds: q.speakingTimeSeconds || null,
+        prepTimeSeconds: toOptionalInt(q.prepTimeSeconds),
+        speakingMinTimeSeconds: toOptionalInt(q.speakingMinTimeSeconds),
+        speakingTimeSeconds: toOptionalInt(q.speakingTimeSeconds),
         subQuestions: q.subQuestions ? (q.subQuestions as any) : undefined,
         audioUrl: q.audioUrl || null,
         matchPairs: q.matchPairs ? (q.matchPairs as any) : undefined,
