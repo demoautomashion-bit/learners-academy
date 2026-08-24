@@ -362,7 +362,7 @@ export default function QuestionLibraryPage() {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } =
     useForm<QuestionFormValues>({
       resolver: zodResolver(questionSchema),
-      defaultValues: { type: 'MCQ', phase: 'Both', difficulty: 'Medium' },
+      defaultValues: { category: activeTab || 'Grammar', type: 'MCQ', phase: 'Both', difficulty: 'Medium' },
     })
   
   const [playingPreview, setPlayingPreview] = useState(false)
@@ -404,7 +404,7 @@ export default function QuestionLibraryPage() {
     setIsOpen(false)
     setEditingQuestion(null)
     reset({
-      category: activeTab,
+      category: activeTab || 'Grammar',
       type: 'MCQ',
       phase: 'Both',
       difficulty: 'Medium',
@@ -494,7 +494,7 @@ export default function QuestionLibraryPage() {
 
     const questionData: Question = {
       id: editingQuestion ? editingQuestion.id : Math.random().toString(36).substr(2, 9),
-      category: data.category as QuestionCategory,
+      category: (data.category || activeTab || 'Grammar') as QuestionCategory,
       type: data.type as any,
       content: data.content,
       phase: data.phase,

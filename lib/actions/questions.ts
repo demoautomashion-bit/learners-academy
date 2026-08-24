@@ -51,9 +51,9 @@ export async function addQuestion(question: Omit<Question, 'id'>): Promise<Actio
     })
     revalidatePath('/')
     return { success: true, data: result }
-  } catch (error) {
+  } catch (error: any) {
     console.error('DATABASE_ERROR [addQuestion]:', error)
-    return { success: false, error: 'Pedagogical block synthesis failed' }
+    return { success: false, error: error?.message || 'Pedagogical block synthesis failed' }
   }
 }
 
