@@ -198,6 +198,7 @@ export interface Question {
   writingSubType?: string
   speakingTitle?: string
   prepTimeSeconds?: number
+  speakingMinTimeSeconds?: number
   speakingTimeSeconds?: number
   evaluationCriteria?: string
   wordLimitMin?: number

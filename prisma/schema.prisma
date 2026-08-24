@@ -228,9 +228,10 @@ model Question {
   classLevel          String?
   subQuestions        Json?
   passageTitle        String?
-  speakingTitle       String?
-  prepTimeSeconds     Int?
-  speakingTimeSeconds Int?
+  speakingTitle          String?
+  prepTimeSeconds        Int?
+  speakingMinTimeSeconds Int?
+  speakingTimeSeconds    Int?
 }
 
 model AssessmentTemplate {

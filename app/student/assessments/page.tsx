@@ -787,6 +787,11 @@ export default function StudentAssessmentsPage() {
       try {
         if (q.type === 'Speaking') {
           const liveTranscript = (activeAnswers[`${q.id}_transcript`] || "").trim()
+          const durationSec = Number(activeAnswers[`${q.id}_duration`]) || 0
+          const minSec = q.speakingMinTimeSeconds || 0
+          const isUnderMinTime = durationSec > 0 && minSec > 0 && durationSec < minSec
+
+          let resultAudit: { score: number; feedback: string; justification: string } | null = null
 
           // Tier 1 Priority: Audio Recording -> OpenAI Whisper API
           if (studentAns.startsWith('data:audio')) {
@@ -804,7 +809,7 @@ export default function StudentAssessmentsPage() {
               if (apiRes.ok) {
                 const data = await apiRes.json()
                 if (typeof data.score === 'number' && data.score > 0) {
-                  return {
+                  resultAudit = {
                     score: data.score,
                     feedback: data.feedback || 'Speaking audio evaluation completed.',
                     justification: data.transcript ? `Speech Transcript (Whisper): "${data.transcript}". ${data.justification || ''}` : (data.justification || 'Evaluated via Whisper & AI.')
@@ -817,24 +822,40 @@ export default function StudentAssessmentsPage() {
           }
 
           // Tier 2 Fallback: Live Browser Speech-to-Text Transcript
-          if (liveTranscript && liveTranscript.length >= 3) {
+          if (!resultAudit && liveTranscript && liveTranscript.length >= 3) {
             console.log(`[Speaking Evaluation] Using live browser transcript fallback: "${liveTranscript}"`)
             const transcriptAudit = await evaluateSubjective(q, liveTranscript)
-            return {
+            resultAudit = {
               score: Math.max(0.6, transcriptAudit.score),
               feedback: transcriptAudit.feedback || "Spoken response evaluated using browser transcript.",
               justification: `Evaluated using live spoken transcript: "${liveTranscript}". ${transcriptAudit.justification || ''}`
             }
           }
 
-          // Tier 3 Fallback: Audio Stream Presence Safety Net (Prevents 0 marks if audio recorded)
-          if (studentAns.startsWith('data:audio') && studentAns.length > 3000) {
-            return {
+          // Tier 3 Fallback: Audio Stream Presence Safety Net
+          if (!resultAudit && studentAns.startsWith('data:audio') && studentAns.length > 3000) {
+            resultAudit = {
               score: 0.75,
               feedback: "Speech response recorded successfully.",
               justification: "Audio stream captured and verified. Partial completion credit awarded."
             }
           }
+
+          if (!resultAudit) {
+            const fallbackAudit = await evaluateSubjective(q, studentAns)
+            resultAudit = {
+              score: fallbackAudit.score,
+              feedback: fallbackAudit.feedback || "Speech response recorded.",
+              justification: fallbackAudit.justification || "Evaluated by institutional AI auditor."
+            }
+          }
+
+          if (isUnderMinTime && resultAudit) {
+            resultAudit.score = Number((resultAudit.score * 0.5).toFixed(2))
+            resultAudit.justification += ` (Penalty applied: speaking duration ${durationSec}s was below minimum required time of ${minSec}s — 50% mark deduction).`
+          }
+
+          return resultAudit
         }
         return await evaluateSubjective(q, studentAns)
       } catch (err) {
@@ -1734,6 +1755,7 @@ export default function StudentAssessmentsPage() {
     if (q.type === 'Speaking') {
       const topicTitle = q.speakingTitle || q.content || 'Spoken English Evaluation'
       const prepTime = q.prepTimeSeconds || 30
+      const speakMinTime = q.speakingMinTimeSeconds || 30
       const speakTime = q.speakingTimeSeconds || 60
       const isCurrentlyRecording = activeRecordingId === qId
 
@@ -1799,7 +1821,12 @@ export default function StudentAssessmentsPage() {
             const reader = new FileReader()
             reader.readAsDataURL(audioBlob)
             reader.onloadend = () => {
-              setAnswers(prev => ({ ...prev, [qId]: reader.result as string }))
+              const actualDuration = Math.max(1, speakTime - recordingSecondsLeft)
+              setAnswers(prev => ({
+                ...prev,
+                [qId]: reader.result as string,
+                [`${qId}_duration`]: String(actualDuration)
+              }))
               toast.success('Speech response recorded successfully!')
             }
             if (mediaStreamRef.current) {
@@ -1849,10 +1876,14 @@ export default function StudentAssessmentsPage() {
                   {topicTitle}
                 </h3>
               </div>
-              <div className="flex items-center gap-3 self-start sm:self-auto">
+              <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
                 <div className="text-left sm:text-right bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
                   <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground block">Prep Time</span>
                   <span className="text-xs font-bold text-primary">{prepTime}s</span>
+                </div>
+                <div className="text-left sm:text-right bg-warning/5 px-3 py-1.5 rounded-xl border border-warning/20">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground block">Min Time</span>
+                  <span className="text-xs font-bold text-warning">{speakMinTime}s</span>
                 </div>
                 <div className="text-left sm:text-right bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
                   <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground block">Speak Max</span>

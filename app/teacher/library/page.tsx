@@ -420,6 +420,10 @@ export default function QuestionLibraryPage() {
       imageUrl: '',
       passageText: '',
       audioUrl: '',
+      speakingTitle: '',
+      prepTimeSeconds: undefined,
+      speakingMinTimeSeconds: undefined,
+      speakingTimeSeconds: undefined,
       writingGenre: undefined,
       writingSubType: undefined,
       evaluationCriteria: '',
@@ -445,6 +449,7 @@ export default function QuestionLibraryPage() {
     setValue('passageTitle', q.passageTitle || '')
     setValue('speakingTitle', q.speakingTitle || '')
     setValue('prepTimeSeconds', q.prepTimeSeconds || 30)
+    setValue('speakingMinTimeSeconds', q.speakingMinTimeSeconds || 30)
     setValue('speakingTimeSeconds', q.speakingTimeSeconds || 60)
     setValue('subQuestions', q.subQuestions || [])
     setValue('audioUrl', q.audioUrl || '')
@@ -957,27 +962,39 @@ export default function QuestionLibraryPage() {
                         />
                       </Field>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <Field>
-                          <FieldLabel className="text-xs opacity-70 font-semibold">Preparation Time (Seconds)</FieldLabel>
+                          <FieldLabel className="text-xs opacity-70 font-semibold">Prep Time (Sec)</FieldLabel>
                           <Input
                             type="number"
                             min={0}
                             max={300}
                             defaultValue={30}
-                            {...register('prepTimeSeconds')}
+                            {...register('prepTimeSeconds', { valueAsNumber: true })}
                             className="h-9 text-xs"
                             placeholder="30"
                           />
                         </Field>
                         <Field>
-                          <FieldLabel className="text-xs opacity-70 font-semibold">Speaking Time Limit (Seconds)</FieldLabel>
+                          <FieldLabel className="text-xs opacity-70 font-semibold">Min Speaking Time (Sec)</FieldLabel>
+                          <Input
+                            type="number"
+                            min={5}
+                            max={600}
+                            defaultValue={30}
+                            {...register('speakingMinTimeSeconds', { valueAsNumber: true })}
+                            className="h-9 text-xs"
+                            placeholder="30"
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel className="text-xs opacity-70 font-semibold">Max Speaking Time (Sec)</FieldLabel>
                           <Input
                             type="number"
                             min={10}
                             max={600}
                             defaultValue={60}
-                            {...register('speakingTimeSeconds')}
+                            {...register('speakingTimeSeconds', { valueAsNumber: true })}
                             className="h-9 text-xs"
                             placeholder="60"
                           />
