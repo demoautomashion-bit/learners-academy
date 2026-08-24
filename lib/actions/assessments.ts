@@ -56,6 +56,7 @@ export async function publishAssessment(assessment: Omit<AssessmentTemplate, 'id
         submittedByTeacherName: assessment.submittedByTeacherName,
         isAdaptive: assessment.isAdaptive || false,
         evaluationCategory: (assessment as any).evaluationCategory || 'None',
+        allowedTypes: assessment.allowedTypes || [],
         createdAt: new Date()
       } 
     })
@@ -250,7 +251,11 @@ export async function generateRandomizedQuestions(studentId: string, assessmentI
               { phase: 'Both' }
             ]
           },
-          ...(assessment.nature !== 'Mixed' ? [{ type: assessment.nature }] : [])
+          ...(assessment.allowedTypes && assessment.allowedTypes.length > 0
+            ? [{ type: { in: assessment.allowedTypes } }]
+            : assessment.nature !== 'Mixed'
+              ? [{ type: assessment.nature }]
+              : [])
         ]
       }
     })

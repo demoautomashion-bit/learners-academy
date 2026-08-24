@@ -113,6 +113,26 @@ export default function AssessmentGeneratorPage() {
     }
   })
 
+  const ALL_QUESTION_TYPES = ['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening']
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(ALL_QUESTION_TYPES)
+
+  const toggleQuestionType = (type: string) => {
+    setSelectedTypes(prev => {
+      if (prev.includes(type)) {
+        if (prev.length === 1) {
+          toast.error("At least one question format must be selected.")
+          return prev
+        }
+        return prev.filter(t => t !== type)
+      } else {
+        return [...prev, type]
+      }
+    })
+  }
+
+  const selectAllTypes = () => setSelectedTypes(ALL_QUESTION_TYPES)
+  const clearAllTypes = () => setSelectedTypes(['MCQ'])
+
   // Seed access code client-side only to avoid SSR hydration mismatch
   useEffect(() => {
     setValue('accessCode', generateSecureToken())
@@ -151,15 +171,17 @@ export default function AssessmentGeneratorPage() {
   const watchQuestionCount = watch('questionCount') || 10
   const totalCalculatedMarks = useMemo(() => {
     if (!watchAlloc) return 0;
-    if (watchNature === 'Mixed') {
-      const vals = Object.values(watchAlloc).map(v => Number(v) || 0)
+    const activeCount = selectedTypes.length
+    if (activeCount > 1) {
+      const vals = selectedTypes.map(t => Number(watchAlloc[t as keyof typeof watchAlloc]) || 0)
       const validVals = vals.filter(v => v > 0)
       const avgMark = validVals.length > 0 ? vals.reduce((a, b) => a + b, 0) / validVals.length : 0
       return Math.round(avgMark * watchQuestionCount)
-    } else {
-      return (Number(watchAlloc[watchNature as keyof typeof watchAlloc]) || 0) * watchQuestionCount;
+    } else if (activeCount === 1) {
+      return (Number(watchAlloc[selectedTypes[0] as keyof typeof watchAlloc]) || 0) * watchQuestionCount;
     }
-  }, [watchAlloc, watchNature, watchQuestionCount])
+    return 0
+  }, [watchAlloc, selectedTypes, watchQuestionCount])
 
   const onSubmit = async (data: AssessmentFormValues) => {
     if (availableBlocks.length === 0) {
@@ -171,13 +193,16 @@ export default function AssessmentGeneratorPage() {
       ? Number(data.totalMarks)
       : (totalCalculatedMarks > 0 ? totalCalculatedMarks : (data.totalMarks || 100))
 
+    const derivedNature = selectedTypes.length === 1 ? selectedTypes[0] as any : 'Mixed'
+
     const newAssessment: AssessmentTemplate = {
       id: `test-${Date.now()}`,
       title: data.title,
       phase: data.phase as any,
       courseIds: [data.courseId], // ID-based linking
       classLevels: [selectedCourse?.title || 'Unknown'], // Fallback for display
-      nature: data.nature,
+      nature: derivedNature,
+      allowedTypes: selectedTypes,
       totalMarks: targetTotalMarks,
       markAllocation: data.markAllocation,
       durationMinutes: data.duration,
@@ -325,57 +350,85 @@ export default function AssessmentGeneratorPage() {
                            </div>
                           <div className={cn("grid grid-cols-1 gap-8", isAdvanced ? "md:grid-cols-3" : "md:grid-cols-2")}>
                              <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Question Format</label>
-                                <Select defaultValue="Mixed" onValueChange={(val) => setValue('nature', val as any)}>
-                                   <SelectTrigger className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 text-sm font-medium focus:ring-1 focus:ring-primary/20">
-                                      <SelectValue placeholder="Select Format" />
-                                   </SelectTrigger>
-                                   <SelectContent className="glass-2 border-primary/5 rounded-2xl max-h-[300px]">
-                                      <SelectItem value="Mixed" className="rounded-xl py-3">Comprehensive (Mixed)</SelectItem>
-                                      <SelectItem value="MCQ" className="rounded-xl py-3">Objective (MCQ)</SelectItem>
-                                      <SelectItem value="Subjective" className="rounded-xl py-3">Subjective</SelectItem>
-                                      <SelectItem value="True/False" className="rounded-xl py-3">True/False</SelectItem>
-                                      <SelectItem value="Fill in the Blanks" className="rounded-xl py-3">Cloze (Blanks)</SelectItem>
-                                      <SelectItem value="Matching" className="rounded-xl py-3">Matching</SelectItem>
-                                      <SelectItem value="Writing" className="rounded-xl py-3">Essay / Writing</SelectItem>
-                                      <SelectItem value="Speaking" className="rounded-xl py-3">Speaking Task</SelectItem>
-                                      <SelectItem value="Reading" className="rounded-xl py-3">Reading Comprehension</SelectItem>
-                                      <SelectItem value="Listening" className="rounded-xl py-3">Listening Audio</SelectItem>
-                                   </SelectContent>
-                                </Select>
-                             </div>
-                             <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Number of Questions</label>
-                                <div className="relative">
-                                   <Input 
-                                      type="number"
-                                      {...register('questionCount', { valueAsNumber: true })}
-                                      className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 font-sans text-sm focus:ring-1 focus:ring-primary/20"
-                                   />
-                                   <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none opacity-20">
-                                      <Zap className="w-3.5 h-3.5 text-primary" />
-                                      <span className="text-[10px] font-bold uppercase tracking-widest">Questions</span>
-                                   </div>
+
+                          <div className="space-y-4 pt-2">
+                             <div className="flex items-center justify-between">
+                                <div>
+                                   <label className="text-xs font-bold uppercase tracking-widest opacity-40">Allowed Question Formats</label>
+                                   <p className="text-xs text-muted-foreground mt-0.5">Select which question formats to include (or uncheck formats to exclude)</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                   <Button type="button" variant="outline" size="sm" onClick={selectAllTypes} className="h-8 text-xs rounded-xl border-primary/20 hover:bg-primary/10">
+                                      Select All
+                                   </Button>
+                                   <Button type="button" variant="ghost" size="sm" onClick={clearAllTypes} className="h-8 text-xs rounded-xl opacity-60 hover:opacity-100">
+                                      Reset
+                                   </Button>
                                 </div>
                              </div>
-                             {isAdvanced && (
-                                <div className="space-y-3">
-                                   <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Total Target Marks</label>
-                                   <div className="relative">
-                                      <Input 
-                                         type="number"
-                                         {...register('totalMarks', { valueAsNumber: true })}
-                                         placeholder="100"
-                                         className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 font-sans text-sm focus:ring-1 focus:ring-primary/20"
-                                      />
-                                      <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none opacity-20">
-                                         <Target className="w-3.5 h-3.5 text-primary" />
-                                         <span className="text-[10px] font-bold uppercase tracking-widest">Target</span>
+
+                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-2.5">
+                                {ALL_QUESTION_TYPES.map(type => {
+                                   const isSelected = selectedTypes.includes(type)
+                                   return (
+                                      <div
+                                         key={type}
+                                         onClick={() => toggleQuestionType(type)}
+                                         className={cn(
+                                            "flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all cursor-pointer select-none text-center gap-1.5",
+                                            isSelected 
+                                               ? "border-primary bg-primary/10 shadow-sm shadow-primary/10 font-bold text-foreground" 
+                                               : "border-border/60 bg-muted/20 opacity-40 hover:opacity-70 hover:border-primary/20"
+                                         )}
+                                      >
+                                         <div className="flex items-center justify-between w-full">
+                                            <span className="text-[9px] uppercase tracking-wider font-extrabold text-muted-foreground truncate">{type}</span>
+                                            <div className={cn(
+                                               "w-3.5 h-3.5 rounded-md border flex items-center justify-center text-[10px] shrink-0 transition-colors",
+                                               isSelected ? "bg-primary text-primary-foreground border-primary" : "border-muted-foreground/30"
+                                            )}>
+                                               {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                            </div>
+                                         </div>
                                       </div>
-                                   </div>
-                                </div>
-                             )}
+                                   )
+                                })}
+                             </div>
                           </div>
+
+                          <div className={cn("grid grid-cols-1 gap-8 pt-4", isAdvanced ? "md:grid-cols-2" : "md:grid-cols-2")}>
+                              <div className="space-y-3">
+                                 <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Number of Questions</label>
+                                 <div className="relative">
+                                    <Input 
+                                       type="number"
+                                       {...register('questionCount', { valueAsNumber: true })}
+                                       className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 font-sans text-sm focus:ring-1 focus:ring-primary/20"
+                                    />
+                                    <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none opacity-20">
+                                       <Zap className="w-3.5 h-3.5 text-primary" />
+                                       <span className="text-[10px] font-bold uppercase tracking-widest">Questions</span>
+                                    </div>
+                                 </div>
+                              </div>
+                              {isAdvanced && (
+                                 <div className="space-y-3">
+                                    <label className="text-xs font-bold uppercase tracking-widest opacity-30 ml-1">Total Target Marks</label>
+                                    <div className="relative">
+                                       <Input 
+                                          type="number"
+                                          {...register('totalMarks', { valueAsNumber: true })}
+                                          placeholder="100"
+                                          className="h-14 bg-muted/5 border-primary/5 rounded-2xl px-8 font-sans text-sm focus:ring-1 focus:ring-primary/20"
+                                       />
+                                       <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none opacity-20">
+                                          <Target className="w-3.5 h-3.5 text-primary" />
+                                          <span className="text-[10px] font-bold uppercase tracking-widest">Target</span>
+                                       </div>
+                                    </div>
+                                 </div>
+                              )}
+                           </div>
                        </div>
 
                        <div className="space-y-8 pt-10 border-t border-primary/5">
@@ -384,8 +437,8 @@ export default function AssessmentGeneratorPage() {
                               <div className="flex items-center gap-3">
                                  <Boxes className="w-5 h-5" />
                                  <h3 className="font-serif text-xl font-medium text-foreground/80">Marks Per Question</h3>
-                                 {watchNature === 'Mixed' && (
-                                   <span className="text-[10px] text-muted-foreground opacity-60 ml-2">(Estimated Total: ~{totalCalculatedMarks} based on average draw)</span>
+                                 {selectedTypes.length > 1 && (
+                                   <span className="text-[10px] text-muted-foreground opacity-60 ml-2">(Estimated Total: ~{totalCalculatedMarks} based on {selectedTypes.length} active formats)</span>
                                  )}
                               </div>
                               <div className="flex items-center gap-2">
@@ -407,7 +460,8 @@ export default function AssessmentGeneratorPage() {
                            <div className="flex h-2 w-full rounded-full overflow-hidden bg-muted/10 border border-primary/5">
                               {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening'].map((type, i) => {
                                  const val = Number(watchAlloc?.[type as keyof typeof watchAlloc]) || 0
-                                 const expectedTypeQuestions = watchNature === 'Mixed' ? watchQuestionCount / 9 : watchQuestionCount
+                                 const isSelected = selectedTypes.includes(type)
+                                 const expectedTypeQuestions = isSelected ? (watchQuestionCount / selectedTypes.length) : 0
                                  const totalTypeMarks = val * expectedTypeQuestions
                                  const width = totalCalculatedMarks > 0 ? (totalTypeMarks / totalCalculatedMarks) * 100 : 0
                                  const colors = ['bg-primary', 'bg-indigo-400', 'bg-success', 'bg-amber-400', 'bg-destructive', 'bg-emerald-400', 'bg-purple-400', 'bg-cyan-400', 'bg-pink-400']
@@ -424,13 +478,14 @@ export default function AssessmentGeneratorPage() {
 
                         <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-9 gap-3">
                            {['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Writing', 'Speaking', 'Matching', 'Reading', 'Listening'].map(type => {
-                              const isDisabled = watchNature !== 'Mixed' && watchNature !== type
+                              const isDisabled = !selectedTypes.includes(type)
                               return (
                                  <div key={type} className={cn("space-y-2 transition-all", isDisabled && "opacity-20 pointer-events-none grayscale")}>
                                     <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block text-center truncate">{type}</label>
                                     <Input 
                                        type="number"
                                        {...register(`markAllocation.${type}` as any, { valueAsNumber: true })}
+                                       disabled={isDisabled}
                                        className="h-11 bg-muted/5 border-primary/5 rounded-xl text-center font-sans focus:ring-primary/20 text-xs font-semibold"
                                     />
                                  </div>

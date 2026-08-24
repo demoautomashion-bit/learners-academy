@@ -253,6 +253,7 @@ model AssessmentTemplate {
   submittedByTeacherName String?
   isAdaptive             Boolean  @default(false)
   evaluationCategory     String?
+  allowedTypes           String[] @default([])
 }
 
 model ActivityLog {

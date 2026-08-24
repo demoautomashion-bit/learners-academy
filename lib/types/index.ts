@@ -235,6 +235,7 @@ export interface AssessmentTemplate {
   submittedByTeacherName?: string
   isAdaptive?: boolean
   evaluationCategory?: 'Midterm' | 'Final' | 'Listening' | 'Speaking' | 'Reading' | 'Writing' | 'Grammar' | 'None' | string
+  allowedTypes?: string[]
 }
 
 export interface StudentTest {
