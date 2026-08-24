@@ -152,15 +152,9 @@ export default function QuestionLibraryPage() {
     return Array.from(new Set(myCourses.map(c => c.level))).sort()
   }, [courses, user?.id])
 
-  const [levelFilter, setLevelFilter] = useState<string>('')
+  const [levelFilter, setLevelFilter] = useState<string>('all')
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all')
   const [phaseFilter, setPhaseFilter] = useState<string>('all')
-
-  useEffect(() => {
-    if (teacherLevels.length > 0 && !levelFilter) {
-      setLevelFilter(teacherLevels[0])
-    }
-  }, [teacherLevels, levelFilter])
   const [isOpen, setIsOpen] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
   const [deletePhase, setDeletePhase] = useState<'First Test' | 'Last Test' | 'Both' | null>(null)
@@ -382,7 +376,7 @@ export default function QuestionLibraryPage() {
   const filteredQuestions = (questions || []).filter((q: Question) => {
     const categoryMatch = q.category === activeTab
     const searchMatch = (q.content || '').toLowerCase().includes(searchQuery.toLowerCase())
-    const levelMatch = !levelFilter || q.classLevel === levelFilter
+    const levelMatch = levelFilter === 'all' || !levelFilter || q.classLevel === levelFilter
     const difficultyMatch = difficultyFilter === 'all' || (q.difficulty || 'Medium') === difficultyFilter
     const phaseMatch = phaseFilter === 'all' || q.phase === phaseFilter || (q.phase === 'Both' && (phaseFilter === 'First Test' || phaseFilter === 'Last Test'))
     return categoryMatch && searchMatch && levelMatch && difficultyMatch && phaseMatch
@@ -1710,9 +1704,14 @@ export default function QuestionLibraryPage() {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES?.map(cat => (
-                      <SelectItem key={cat} value={cat} className="text-xs font-medium">{cat}</SelectItem>
-                    ))}
+                    {CATEGORIES?.map(cat => {
+                      const catCount = (questions || []).filter(q => q.category === cat).length
+                      return (
+                        <SelectItem key={cat} value={cat} className="text-xs font-medium">
+                          {cat} ({catCount})
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -1721,9 +1720,10 @@ export default function QuestionLibraryPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <Select value={levelFilter} onValueChange={setLevelFilter}>
                   <SelectTrigger className="h-11 flex-1 sm:flex-none sm:w-44 text-xs bg-muted/10 border-primary/5 rounded-xl">
-                    <SelectValue placeholder={teacherLevels.length > 0 ? "Select Level" : "No Classes"} />
+                    <SelectValue placeholder="Select Level" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all" className="text-xs font-medium">All Class Levels</SelectItem>
                     {teacherLevels.map(level => (
                       <SelectItem key={level} value={level} className="text-xs">{level}</SelectItem>
                     ))}

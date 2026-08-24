@@ -7,7 +7,7 @@ import type { Question, ActionResult } from '@/lib/types'
 export async function getQuestions(teacherId?: string): Promise<ActionResult<Question[]>> {
   try {
     const data = await db.question.findMany({ 
-      where: teacherId ? { teacherId } : {},
+      where: teacherId ? { OR: [{ teacherId }, { teacherId: null }] } : {},
       orderBy: { id: 'desc' } 
     })
     return { success: true, data }

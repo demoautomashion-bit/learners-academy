@@ -71,7 +71,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { submittedAt: 'desc' } 
       })),
       fetchEntity('questions', db.question.findMany({ 
-        where: isTeacher ? { teacherId: userId } : {},
+        where: isTeacher ? { OR: [{ teacherId: userId }, { teacherId: null }] } : {},
         orderBy: { category: 'asc' } 
       })),
       fetchEntity('assessments', db.assessmentTemplate.findMany({ 
