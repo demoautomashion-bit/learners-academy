@@ -45,6 +45,7 @@ import { AssessmentSkeleton } from '@/components/dashboard-skeleton'
 import { AssessmentTemplate, QuestionType } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { isAdvancedOrSpecialCourse } from '@/lib/utils/card-tiers'
+import { normalizeAcademicLevel } from '@/lib/utils/normalization'
 
 const assessmentSchema = z.object({
   title: z.string().min(5, 'Test title must be formal and descriptive'),
@@ -154,20 +155,33 @@ export default function AssessmentGeneratorPage() {
     return isAdvancedOrSpecialCourse(selectedCourse?.level || selectedCourse?.title)
   }, [selectedCourse])
 
+  const getNormalizedLevelName = (rawLevel?: string) => {
+    if (!rawLevel) return 'Unassigned'
+    const norm = normalizeAcademicLevel(rawLevel)
+    if (!norm) return rawLevel
+    if (/^\d+$/.test(norm)) return `Level ${norm}`
+    return rawLevel.charAt(0).toUpperCase() + rawLevel.slice(1)
+  }
+
   const availableBlocks = useMemo(() => {
-    return questions?.filter(q => q.phase === watchPhase || q.phase === 'Both' || (watchPhase !== 'First Test' && watchPhase !== 'Last Test'))
+    return questions?.filter(q => q.phase === watchPhase || q.phase === 'Both' || (watchPhase !== 'First Test' && watchPhase !== 'Last Test')) || []
   }, [questions, watchPhase])
 
   const classStats = useMemo(() => {
-    const stats: Record<string, { total: number; types: Record<string, number> }> = {}
-    availableBlocks.forEach(q => {
-       const level = q.classLevel || 'Unassigned'
-       if (!stats[level]) stats[level] = { total: 0, types: {} }
+    const stats: Record<string, { total: number; activeTotal: number; types: Record<string, number> }> = {}
+    questions?.forEach(q => {
+       const level = getNormalizedLevelName(q.classLevel)
+       if (!stats[level]) stats[level] = { total: 0, activeTotal: 0, types: {} }
        stats[level].total++
-       stats[level].types[q.type] = (stats[level].types[q.type] || 0) + 1
+       
+       const isPhaseActive = q.phase === watchPhase || q.phase === 'Both' || (watchPhase !== 'First Test' && watchPhase !== 'Last Test')
+       if (isPhaseActive) {
+          stats[level].activeTotal++
+          stats[level].types[q.type] = (stats[level].types[q.type] || 0) + 1
+       }
     })
     return stats
-  }, [availableBlocks])
+  }, [questions, watchPhase])
 
   const watchQuestionCount = watch('questionCount') || 10
   const totalCalculatedMarks = useMemo(() => {
@@ -578,9 +592,14 @@ export default function AssessmentGeneratorPage() {
                    <div className="space-y-4">
                       <div className="flex items-baseline justify-between mb-2">
                          <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-30">Questions Available</span>
-                         <span className="text-4xl font-sans font-light">{availableBlocks.length}</span>
+                         <div className="text-right">
+                            <span className="text-4xl font-sans font-light">{availableBlocks.length}</span>
+                            {questions && questions.length > availableBlocks.length && (
+                               <span className="text-xs text-muted-foreground ml-2 opacity-50">/ {questions.length} total</span>
+                            )}
+                         </div>
                       </div>
-                      <Progress value={Math.min((availableBlocks.length / 50) * 100, 100)} className="h-1.5 bg-primary/5" />
+                      <Progress value={Math.min((availableBlocks.length / Math.max(questions?.length || 1, 1)) * 100, 100)} className="h-1.5 bg-primary/5" />
                       <p className="text-[11px] text-muted-foreground leading-relaxed opacity-60">
                          {availableBlocks.length < (watch('questionCount') || 0) ? 
                             "Insufficient question bank for current settings." : 
@@ -593,7 +612,9 @@ export default function AssessmentGeneratorPage() {
                          <div key={level} className="space-y-3 pt-4 first:pt-0 border-t first:border-t-0">
                             <div className="flex justify-between items-center">
                                <h4 className="text-[10px] uppercase tracking-widest font-black text-primary/60">{level}</h4>
-                               <Badge variant="outline" className="text-[9px] h-4 bg-primary/5 border-none font-bold">{data.total} Units</Badge>
+                               <Badge variant="outline" className="text-[9px] h-4 bg-primary/5 border-none font-bold">
+                                  {data.total} Units {data.activeTotal !== data.total ? `(${data.activeTotal} active)` : ''}
+                               </Badge>
                             </div>
                             <div className="grid gap-2">
                                {Object.entries(data.types).map(([type, count]) => (
