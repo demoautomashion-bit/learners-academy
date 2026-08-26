@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/auth-context'
 import { DataProvider } from '@/contexts/data-context'
@@ -54,6 +55,7 @@ export default function RootLayout({
         </AuthProvider>
         <Toaster position="top-right" richColors />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
