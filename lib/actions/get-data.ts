@@ -21,23 +21,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
 
   try {
     const isTeacher = role === 'teacher' && userId
-    let myCourseIds: string[] = []
-    let myAssessmentIds: string[] = []
-    
-    if (isTeacher) {
-      const [myCourses, myAssessments] = await Promise.all([
-        db.course.findMany({ 
-          where: { teacherId: userId }, 
-          select: { id: true } 
-        }),
-        db.assessmentTemplate.findMany({
-          where: { submittedByTeacherId: userId },
-          select: { id: true }
-        })
-      ])
-      myCourseIds = myCourses.map(c => c.id)
-      myAssessmentIds = myAssessments.map(a => a.id)
-    }
 
     const [
       teachers,
@@ -65,9 +48,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       })),
       fetchEntity('timeSlots', db.timeSlot.findMany({ orderBy: { createdAt: 'asc' } })),
       fetchEntity('submissions', db.submission.findMany({ 
-        where: isTeacher ? {
-          assignmentId: { in: myAssessmentIds }
-        } : {},
         orderBy: { submittedAt: 'desc' } 
       })),
       fetchEntity('questions', db.question.findMany({ 
@@ -97,9 +77,7 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { date: 'desc' },
         include: { teacher: { select: { id: true, name: true, employeeId: true } } }
       })),
-      fetchEntity('evaluations', db.evaluation.findMany({
-        where: isTeacher ? { courseId: { in: myCourseIds } } : {}
-      }))
+      fetchEntity('evaluations', db.evaluation.findMany({}))
     ])
 
     // Data Transformation: Ensure numeric fields are populated correctly

@@ -15,7 +15,7 @@ const DateSchema = z.union([z.date(), z.string().datetime(), z.string()]).transf
 export const TeacherSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.string().optional().or(z.literal('')).catch(''),
   phone: z.string().optional().default('N/A'),
   employeeId: z.string(),
   subjects: z.array(z.string()).default([]),
@@ -28,7 +28,7 @@ export const TeacherSchema = z.object({
 export const StudentSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.string().optional().or(z.literal('')).catch(''),
   phone: z.string().optional().default('N/A'),
   enrolledCourses: z.array(z.string()).default([]),
   status: z.enum(['active', 'inactive', 'graduated']).catch('active'),
@@ -57,8 +57,8 @@ export const SubmissionSchema = z.object({
   studentId: z.string(),
   studentName: z.string(),
   submittedAt: DateSchema,
-  status: z.enum(['pending', 'graded', 'late']).default('pending'),
-  grade: z.number().optional(),
+  status: z.enum(['pending', 'graded', 'late']).catch('pending'),
+  grade: z.union([z.number(), z.string().transform(v => parseFloat(v) || undefined), z.null()]).optional().catch(undefined),
 })
 
 export const RegistrySchema = z.object({

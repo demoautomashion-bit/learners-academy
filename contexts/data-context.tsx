@@ -246,10 +246,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error('[DataProvider] SYNC_FAILURE:', err)
       
-      if (retryCountRef.current < 2) {
+      if (retryCountRef.current < 1) {
         retryCountRef.current++
-        console.log(`[DataProvider] Attempting automated recovery (${retryCountRef.current}/2)...`)
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        console.log(`[DataProvider] Attempting automated recovery (${retryCountRef.current}/1)...`)
+        await new Promise(resolve => setTimeout(resolve, 300))
         isRefreshingRef.current = false // Allow the retry call to proceed
         return refresh()
       }
