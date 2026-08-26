@@ -21,8 +21,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
 
   try {
     const isTeacher = role === 'teacher' && userId
-    let myCourseIds: string[] = []
-    let myAssessmentIds: string[] = []
 
     const [
       teachers,
