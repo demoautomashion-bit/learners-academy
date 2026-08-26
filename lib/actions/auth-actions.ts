@@ -9,48 +9,75 @@ function generateSessionToken(payload: any): string {
   return btoa(JSON.stringify({ ...payload, exp: Date.now() + 24 * 60 * 60 * 1000 }))
 }
 
+async function withDbRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 500): Promise<T> {
+  let lastError: any
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn()
+    } catch (err) {
+      lastError = err
+      console.warn(`[DB Query Retry] Attempt ${i + 1} failed. Retrying in ${delayMs}ms...`)
+      if (i < retries) await new Promise(r => setTimeout(r, delayMs))
+    }
+  }
+  throw lastError
+}
+
 export async function loginAction(credentials: LoginCredentials): Promise<AuthSession> {
   const email = credentials.email.toLowerCase().trim()
   const { password } = credentials
   let selectedRole = credentials.role
 
   try {
-    let dbUser: any = null
-    let detectedRole = selectedRole
+    const userResult = await withDbRetry(async () => {
+      // Execute parallel queries across Admin, Teacher, and Student collections to prevent slow sequential waterfall & cold-start timeouts
+      const [adminRes, teacherRes, studentRes] = await Promise.allSettled([
+        db.admin.findUnique({ where: { email } }),
+        db.teacher.findUnique({ where: { email } }),
+        db.student.findFirst({ where: { email } })
+      ])
 
-    // 1. Prioritized Search: Try designated role first
-    if (selectedRole === 'admin') {
-      dbUser = await db.admin.findUnique({ where: { email } })
-      if (!dbUser || dbUser.password !== password) dbUser = null
-    } else if (selectedRole === 'teacher') {
-      dbUser = await db.teacher.findUnique({ where: { email } })
-      if (!dbUser || dbUser.employeePassword !== password) dbUser = null
-    } else if (selectedRole === 'student') {
-      dbUser = await db.student.findFirst({ where: { email } })
-      if (!dbUser || (dbUser.password !== password && dbUser.studentId !== password)) dbUser = null
-    }
+      const adminUser = adminRes.status === 'fulfilled' ? adminRes.value : null
+      const teacherUser = teacherRes.status === 'fulfilled' ? teacherRes.value : null
+      const studentUser = studentRes.status === 'fulfilled' ? studentRes.value : null
 
-    // 2. Fallback Search (Agnostic): Search other institutional roles if primary fails
-    if (!dbUser) {
-      // Try Admin
-      dbUser = await db.admin.findUnique({ where: { email } })
-      if (dbUser && dbUser.password === password) {
+      let dbUser: any = null
+      let detectedRole = selectedRole
+
+      // 1. Check selected role first
+      if (selectedRole === 'admin' && adminUser && adminUser.password === password) {
+        dbUser = adminUser
         detectedRole = 'admin'
-      } else {
-        dbUser = null
-        // Try Teacher
-        dbUser = await db.teacher.findUnique({ where: { email } })
-        if (dbUser && dbUser.employeePassword === password) {
+      } else if (selectedRole === 'teacher' && teacherUser && teacherUser.employeePassword === password) {
+        dbUser = teacherUser
+        detectedRole = 'teacher'
+      } else if (selectedRole === 'student' && studentUser && (studentUser.password === password || studentUser.studentId === password)) {
+        dbUser = studentUser
+        detectedRole = 'student'
+      }
+
+      // 2. Agnostic fallback across all roles if designated tab role fails
+      if (!dbUser) {
+        if (adminUser && adminUser.password === password) {
+          dbUser = adminUser
+          detectedRole = 'admin'
+        } else if (teacherUser && teacherUser.employeePassword === password) {
+          dbUser = teacherUser
           detectedRole = 'teacher'
-        } else {
-          dbUser = null
+        } else if (studentUser && (studentUser.password === password || studentUser.studentId === password)) {
+          dbUser = studentUser
+          detectedRole = 'student'
         }
       }
-    }
 
-    if (!dbUser) {
-      throw new Error('Invalid institutional credentials. Please verify your email and portal password.')
-    }
+      if (!dbUser) {
+        throw new Error('Invalid institutional credentials. Please verify your email and portal password.')
+      }
+
+      return { dbUser, detectedRole }
+    })
+
+    const { dbUser, detectedRole } = userResult
 
     const user: User = {
       id: dbUser.id,
@@ -60,7 +87,7 @@ export async function loginAction(credentials: LoginCredentials): Promise<AuthSe
       avatar: dbUser.avatar || undefined,
       employeeId: dbUser.employeeId || undefined,
       phone: dbUser.phone || undefined,
-      createdAt: dbUser.createdAt ? dbUser.createdAt.toISOString() : new Date().toISOString(),
+      createdAt: dbUser.createdAt ? (typeof dbUser.createdAt === 'string' ? dbUser.createdAt : dbUser.createdAt.toISOString()) : new Date().toISOString(),
     }
 
     const token = generateSessionToken({ 

@@ -34,13 +34,12 @@ function LoginContent() {
     setIsLoading(true)
     
     try {
-      if (password.length < 8) {
-        throw new Error('Institutional policy requires a password of at least 8 characters.')
+      if (!password.trim()) {
+        throw new Error('Please enter your password.')
       }
       
       await login({ email, password, role })
       toast.success('Successfully logged in')
-      // Redirect is handled by AuthProvider
     } catch (error: any) {
       toast.error('Login Failed', {
         description: error.message || 'Please check your credentials.'

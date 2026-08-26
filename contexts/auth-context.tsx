@@ -153,6 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, isLoading: true }))
     
     try {
+      // Clear old session storage to prevent stale role mismatches
+      sessionStorage.removeItem(AUTH_STORAGE_KEY)
+
       const session = await loginAction(credentials)
       
       // Store in sessionStorage
@@ -162,14 +165,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         expiresAt: session.expiresAt,
       }))
 
+      const updatedUser = session.user ? { ...session.user, name: session.user.name || 'User' } : null
+
       setState({
-        user: session.user ? { ...session.user, name: session.user.name || 'User' } : null,
+        user: updatedUser,
         isAuthenticated: true,
         isLoading: false,
       })
 
-      // Redirect is handled by AuthProvider useEffect
-      // router.push(getRoleRedirectPath(session.user.role))
+      if (updatedUser) {
+        const targetPath = getRoleRedirectPath(updatedUser.role)
+        router.push(targetPath)
+      }
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw error
