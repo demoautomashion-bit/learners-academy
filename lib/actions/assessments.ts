@@ -173,20 +173,21 @@ export async function validateAccessToken(token: string, studentId: string, clas
       }
     }
 
-    // Task 1: Verify enrollment via Course ID OR Class Level matching
+    // Task 1: Verify enrollment strictly via DB Student Record (Course ID or Grade Level)
     const matchesCourseId = (assessment.courseIds && assessment.courseIds.length > 0) &&
       Array.isArray(student.enrolledCourses) &&
       assessment.courseIds.some(cid => student.enrolledCourses.includes(cid))
 
-    const studentLevel = student.grade || className || ''
+    const registeredGrade = student.grade || ''
     const matchesClassLevel = Array.isArray(assessment.classLevels) && (
+      assessment.classLevels.includes(registeredGrade) ||
       assessment.classLevels.includes(className) ||
       assessment.classLevels.some(lvl => {
         const normLvl = normalizeAcademicLevel(lvl)
-        const normStudent = normalizeAcademicLevel(studentLevel)
-        return (normLvl && normStudent && normLvl === normStudent) ||
-               lvl.toLowerCase().includes(studentLevel.toLowerCase()) ||
-               studentLevel.toLowerCase().includes(lvl.toLowerCase())
+        const normGrade = normalizeAcademicLevel(registeredGrade)
+        return (normLvl && normGrade && normLvl === normGrade) ||
+               (normGrade && lvl.toLowerCase().includes(registeredGrade.toLowerCase())) ||
+               (normGrade && registeredGrade.toLowerCase().includes(lvl.toLowerCase()))
       })
     )
 
@@ -195,7 +196,7 @@ export async function validateAccessToken(token: string, studentId: string, clas
     if (!isEnrolled) {
       return {
         success: false,
-        error: `Dossier Error: Student profile "${studentId}" is not authorized for this specific academic block.`
+        error: `Access Denied: Student profile "${student.name} (${studentId})"${registeredGrade ? ` registered in ${registeredGrade}` : ''} is not authorized for this specific academic level (${assessment.classLevels.join(', ')}).`
       }
     }
 

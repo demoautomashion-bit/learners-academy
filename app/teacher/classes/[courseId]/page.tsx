@@ -96,8 +96,10 @@ export default function ClassWorkspacePage() {
     
     const initialGrades: Record<string, any> = {};
     evaluations.filter((e: any) => e.courseId === courseId).forEach((e: any) => {
-      // Merge standard fields with scores JSON fields
-      initialGrades[e.studentId] = {
+      // Find matching student object to get both id and studentId
+      const matchedStudent = students?.find(s => s.id === e.studentId || s.studentId === e.studentId)
+      
+      const gradeObj = {
         midterm: String(e.midterm || ''),
         final: String(e.final || ''),
         attendance: String(e.attendance || ''),
@@ -108,9 +110,18 @@ export default function ClassWorkspacePage() {
           Object.entries(e.scores || {}).map(([k, v]) => [k, String(v || '')])
         ) : {})
       };
+
+      // Index by direct evaluation studentId
+      initialGrades[e.studentId] = gradeObj
+
+      // Index by matched student's alternative IDs
+      if (matchedStudent) {
+        if (matchedStudent.id) initialGrades[matchedStudent.id] = gradeObj
+        if (matchedStudent.studentId) initialGrades[matchedStudent.studentId] = gradeObj
+      }
     });
     setGrades(initialGrades);
-  }, [evaluations, courseId]);
+  }, [evaluations, courseId, students]);
 
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />

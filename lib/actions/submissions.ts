@@ -42,7 +42,7 @@ async function syncSubmissionToEvaluation(
 
     const canonicalStudentId = student.id
 
-    // 1. Identify Target Courses (3-tier fallback matching)
+    // 1. Identify Target Courses (Robust 4-tier fallback matching)
     let targetCourseIds: string[] = []
 
     if (assessment && assessment.courseIds && assessment.courseIds.length > 0) {
@@ -67,6 +67,18 @@ async function syncSubmissionToEvaluation(
     if (targetCourseIds.length === 0) {
       const allCourses = await db.course.findMany()
       targetCourseIds = allCourses.filter(course => isStudentInCourse(student, course)).map(c => c.id)
+      
+      // Level fallback if still no matches
+      if (targetCourseIds.length === 0 && student.grade) {
+        targetCourseIds = allCourses
+          .filter(c => c.level && (c.level.toLowerCase().includes(student.grade!.toLowerCase()) || student.grade!.toLowerCase().includes(c.level.toLowerCase())))
+          .map(c => c.id)
+      }
+      
+      // Global fallback to first active course if student has no course association
+      if (targetCourseIds.length === 0 && allCourses.length > 0) {
+        targetCourseIds = [allCourses[0].id]
+      }
     }
 
     if (targetCourseIds.length === 0) return
@@ -76,10 +88,11 @@ async function syncSubmissionToEvaluation(
     const nature = assessment?.nature || ''
     const title = (assessment?.title || assignmentTitle || '').toLowerCase()
     const phase = assessment?.phase || ''
+    const allowedTypesStr = (assessment?.allowedTypes || []).join(' ').toLowerCase()
 
     // Detect skill key for advanced/professional marksheets
     let skillKey: string | null = null
-    const checkSkillStr = `${evalCategory} ${nature} ${title}`.toLowerCase()
+    const checkSkillStr = `${evalCategory} ${nature} ${title} ${allowedTypesStr}`.toLowerCase()
     if (checkSkillStr.includes('speaking')) skillKey = 'speaking'
     else if (checkSkillStr.includes('listening')) skillKey = 'listening'
     else if (checkSkillStr.includes('reading')) skillKey = 'reading'
@@ -91,15 +104,14 @@ async function syncSubmissionToEvaluation(
     const numericScore = Math.round(Number(score) || 0)
 
     for (const courseId of targetCourseIds) {
-      const existingEval = await db.evaluation.findUnique({
+      const existingEval = await db.evaluation.findFirst({
         where: {
-          studentId_courseId_term: {
-            studentId: canonicalStudentId,
-            courseId,
-            term: "Term 1"
-          }
+          studentId: canonicalStudentId,
+          courseId
         }
       })
+
+      const targetTerm = existingEval?.term || "Term 1"
 
       const existingScoresObj = (existingEval?.scores && typeof existingEval.scores === 'object')
         ? (existingEval.scores as Record<string, any>)
@@ -111,23 +123,13 @@ async function syncSubmissionToEvaluation(
         updatedScoresObj[skillKey] = numericScore
       }
 
-      // If explicit category scores were provided (e.g. from mixed test containing Writing), sync category marks into evaluation sheet scores object
-      if (categoryScores && typeof categoryScores === 'object') {
-        Object.entries(categoryScores).forEach(([cat, catScore]) => {
-          const lowerCat = cat.toLowerCase()
-          if (['writing', 'speaking', 'reading', 'listening', 'grammar'].includes(lowerCat)) {
-            updatedScoresObj[lowerCat] = Math.round(Number(catScore) || 0)
-          }
-        })
-      }
-
       let updateData: Record<string, any> = {
         scores: updatedScoresObj
       }
       let createData: Record<string, any> = {
         studentId: canonicalStudentId,
         courseId,
-        term: "Term 1",
+        term: targetTerm,
         scores: updatedScoresObj
       }
 
@@ -153,7 +155,7 @@ async function syncSubmissionToEvaluation(
           studentId_courseId_term: {
             studentId: canonicalStudentId,
             courseId,
-            term: "Term 1"
+            term: targetTerm
           }
         },
         update: updateData as any,
