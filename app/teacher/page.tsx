@@ -38,11 +38,14 @@ export default function TeacherDashboard() {
   
   if (!user?.id || !isInitialized) return <DashboardSkeleton />
 
-  const myCourses = courses || []
-  
-  const activeTests = assessments?.filter(a => a.status === 'active') || []
-
-  const pendingSubmissions = submissions?.filter(s => s.status === 'pending') || []
+  const myCourses = courses?.filter(c => c.teacherId === user?.id) || []
+  const myQuestions = questions?.filter(q => q.teacherId === user?.id) || []
+  const myAssessments = assessments?.filter(a => a.submittedByTeacherId === user?.id) || []
+  const activeTests = myAssessments.filter(a => a.status === 'active')
+  const myAssessmentIds = myAssessments.map(a => a.id)
+  const pendingSubmissions = submissions?.filter(s => 
+    s.status === 'pending' && myAssessmentIds.includes(s.assignmentId)
+  ) || []
  
   const stats = [
     {
@@ -54,7 +57,7 @@ export default function TeacherDashboard() {
     },
     {
       title: 'Question Bank',
-      value: questions.length,
+      value: myQuestions.length,
       icon: Library,
       href: '/teacher/library',
       color: 'text-accent',
