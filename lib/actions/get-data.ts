@@ -24,44 +24,24 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
     let myCourseIds: string[] = []
     let myAssessmentIds: string[] = []
 
-    if (isTeacher) {
-      const [myCourses, myAssessments] = await Promise.all([
-        fetchEntity('myCourses', db.course.findMany({ 
-          where: { teacherId: userId }, 
-          select: { id: true } 
-        })),
-        fetchEntity('myAssessments', db.assessmentTemplate.findMany({
-          where: { submittedByTeacherId: userId },
-          select: { id: true }
-        }))
-      ])
-      myCourseIds = (myCourses || []).map((c: any) => c.id)
-      myAssessmentIds = (myAssessments || []).map((a: any) => a.id)
-    }
-
     const [
       teachers,
-      students,
+      rawStudents,
       courses,
       timeSlots,
-      submissions,
+      rawSubmissions,
       questions,
       assessments,
       assignments,
       activities,
       attendance,
-      evaluations
+      rawEvaluations
     ] = await Promise.all([
       fetchEntity('teachers', db.teacher.findMany({ 
         where: isTeacher ? { id: userId } : {},
         orderBy: { joinedAt: 'desc' } 
       })),
       fetchEntity('students', db.student.findMany({ 
-        where: isTeacher ? (
-          myCourseIds.length > 0
-            ? { enrolledCourses: { hasSome: myCourseIds } }
-            : { id: 'none-unassigned-teacher-id' }
-        ) : {},
         orderBy: { enrolledAt: 'desc' } 
       })),
       fetchEntity('courses', db.course.findMany({ 
@@ -70,11 +50,6 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       })),
       fetchEntity('timeSlots', db.timeSlot.findMany({ orderBy: { createdAt: 'asc' } })),
       fetchEntity('submissions', db.submission.findMany({ 
-        where: isTeacher ? (
-          myAssessmentIds.length > 0
-            ? { assignmentId: { in: myAssessmentIds } }
-            : { id: 'none-unassigned-submission-id' }
-        ) : {},
         orderBy: { submittedAt: 'desc' } 
       })),
       fetchEntity('questions', db.question.findMany({ 
@@ -104,14 +79,30 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { date: 'desc' },
         include: { teacher: { select: { id: true, name: true, employeeId: true } } }
       })),
-      fetchEntity('evaluations', db.evaluation.findMany({
-        where: isTeacher ? (
-          myCourseIds.length > 0
-            ? { courseId: { in: myCourseIds } }
-            : { id: 'none-unassigned-evaluation-id' }
-        ) : {}
-      }))
+      fetchEntity('evaluations', db.evaluation.findMany({}))
     ])
+
+    const myCourseIds = (courses || []).map((c: any) => String(c.id))
+    const myAssessmentIds = (assessments || []).map((a: any) => String(a.id))
+
+    // Strict Teacher Data Isolation Post-Filtering
+    const students = isTeacher
+      ? (rawStudents || []).filter((s: any) =>
+          myCourseIds.length > 0 &&
+          (
+            (Array.isArray(s.enrolledCourses) && s.enrolledCourses.some((cid: string) => myCourseIds.includes(String(cid)))) ||
+            (courses || []).some((c: any) => isStudentInCourse(s, c))
+          )
+        )
+      : rawStudents
+
+    const submissions = isTeacher
+      ? (rawSubmissions || []).filter((sub: any) => myAssessmentIds.includes(String(sub.assignmentId)))
+      : rawSubmissions
+
+    const evaluations = isTeacher
+      ? (rawEvaluations || []).filter((ev: any) => myCourseIds.includes(String(ev.courseId)))
+      : rawEvaluations
 
     // Data Transformation: Ensure numeric fields are populated correctly
     const sanitizedCourses = (courses || []).map((c: any) => ({

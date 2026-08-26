@@ -201,8 +201,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       
       const [initRes, econData, audioRes, announcementsData, templatesRes] = await Promise.all([
         getInitialData(user?.id, user?.role as any),
-        getEconomicStats().catch(() => ({ success: false, data: null })),
-        user?.role === 'teacher' ? getTeacherAudioFiles(user.id) : Promise.resolve({ success: true, data: [] }),
+        user?.role === 'admin' ? getEconomicStats().catch(() => ({ success: false, data: null })) : Promise.resolve({ success: true, data: null }),
+        user?.role === 'teacher' && user?.id ? getTeacherAudioFiles(user.id).catch(() => ({ success: true, data: [] })) : Promise.resolve({ success: true, data: [] }),
         getAnnouncements().catch(() => []),
         getCardTemplates().catch(() => ({ success: false, data: [] }))
       ])
@@ -383,18 +383,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         </div>
         <button onClick={retryConnection} className="bg-primary text-white px-6 py-2 rounded-xl text-xs uppercase tracking-widest font-normal hover:bg-primary/90 transition-all shadow-premium mb-3 w-48">Retry Connection</button>
         <button onClick={() => window.location.reload()} className="bg-background text-foreground border border-border px-6 py-2 rounded-xl text-xs uppercase tracking-widest font-normal hover:bg-muted transition-all w-48">Reload Portal</button>
-      </div>
-    )
-  }
-
-  // Stability Guard: Strictly block rendering until data is ready
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="space-y-4 text-center">
-           <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-           <p className="text-[10px] uppercase tracking-widest font-bold opacity-30">Syncing Registry Blocks...</p>
-        </div>
       </div>
     )
   }
