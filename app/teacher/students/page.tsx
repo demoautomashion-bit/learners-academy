@@ -34,8 +34,7 @@ export default function TeacherStudentsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [courseFilter, setCourseFilter] = useState("all")
 
-  if (!user?.id) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  if (!user?.id || !isInitialized) return <DashboardSkeleton />
 
   const teacherCourses = mockCourses?.filter(c => c.teacherId === user?.id) || []
   const teacherCourseIds = teacherCourses.map(c => c.id)

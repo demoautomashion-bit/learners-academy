@@ -41,8 +41,7 @@ export default function ResultsPage() {
   const [phaseFilter, setPhaseFilter] = useState('all')
   const [classFilter, setClassFilter] = useState('all')
 
-  if (!user?.id) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  if (!user?.id || !isInitialized) return <DashboardSkeleton />
 
   const myCourses = courses?.filter(c => c.teacherId === user?.id) || []
 

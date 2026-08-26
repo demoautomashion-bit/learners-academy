@@ -24,8 +24,7 @@ export default function TeacherClassesPage() {
   const { courses: mockCourses, students: mockStudents, isInitialized } = useData()
   const [searchQuery, setSearchQuery] = useState('')
 
-  if (!user?.id) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  if (!user?.id || !isInitialized) return <DashboardSkeleton />
 
   const myCourses = mockCourses?.filter(c => c.teacherId === user?.id) || []
 

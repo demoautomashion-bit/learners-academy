@@ -44,12 +44,13 @@ export default function AssessmentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [deletePhase, setDeletePhase] = useState<'First Test' | 'Last Test' | 'Both' | null>(null)
 
-  if (!user?.id) return null
-  if (!isInitialized) return <AssessmentSkeleton />
+  if (!user?.id || !isInitialized) return <AssessmentSkeleton />
 
-  const filteredAssessments = assessments?.filter(a =>
+  const myAssessments = assessments?.filter(a => a.submittedByTeacherId === user?.id) || []
+
+  const filteredAssessments = myAssessments.filter(a =>
     a.title.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || []
+  )
 
   const handleDelete = (id: string) => {
     removeAssessment(id)

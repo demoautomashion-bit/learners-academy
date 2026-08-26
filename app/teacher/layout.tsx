@@ -129,7 +129,16 @@ export default function TeacherLayout({
 }) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
-  if (!user?.id) return null
+  if (!user?.id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner className="w-8 h-8 text-primary" />
+          <p className="text-xs text-muted-foreground animate-pulse">Loading Teacher Portal...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <SidebarProvider>

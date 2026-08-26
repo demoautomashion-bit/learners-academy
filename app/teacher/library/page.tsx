@@ -374,18 +374,20 @@ export default function QuestionLibraryPage() {
   const correctAnswer = watch('correctAnswer')
 
   const filteredQuestions = (questions || []).filter((q: Question) => {
+    const teacherMatch = q.teacherId === user?.id
     const categoryMatch = q.category === activeTab
     const searchMatch = (q.content || '').toLowerCase().includes(searchQuery.toLowerCase())
     const levelMatch = levelFilter === 'all' || !levelFilter || q.classLevel === levelFilter
     const difficultyMatch = difficultyFilter === 'all' || (q.difficulty || 'Medium') === difficultyFilter
     const phaseMatch = phaseFilter === 'all' || q.phase === phaseFilter || (q.phase === 'Both' && (phaseFilter === 'First Test' || phaseFilter === 'Last Test'))
-    return categoryMatch && searchMatch && levelMatch && difficultyMatch && phaseMatch
+    return teacherMatch && categoryMatch && searchMatch && levelMatch && difficultyMatch && phaseMatch
   })
 
   const classBasedStats = useMemo(() => {
     const stats: Record<string, { total: number; types: Record<string, number> }> = {}
     
-    questions.forEach((q: Question) => {
+    const myQuestions = questions.filter(q => q.teacherId === user?.id)
+    myQuestions.forEach((q: Question) => {
       const level = q.classLevel || 'Unassigned'
       if (!stats[level]) {
         stats[level] = { total: 0, types: {} }
@@ -395,10 +397,9 @@ export default function QuestionLibraryPage() {
     })
     
     return stats
-  }, [questions])
+  }, [questions, user?.id])
 
-  if (!user?.id) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  if (!user?.id || !isInitialized) return <DashboardSkeleton />
 
   const handleClose = () => {
     setIsOpen(false)

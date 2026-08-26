@@ -36,8 +36,7 @@ export default function TeacherDashboard() {
     isInitialized
   } = useData()
   
-  if (!user?.id) return null
-  if (!isInitialized) return <DashboardSkeleton />
+  if (!user?.id || !isInitialized) return <DashboardSkeleton />
 
   const myCourses = courses || []
   

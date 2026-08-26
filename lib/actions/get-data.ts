@@ -57,12 +57,11 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { joinedAt: 'desc' } 
       })),
       fetchEntity('students', db.student.findMany({ 
-        where: isTeacher && myCourseIds.length > 0 ? {
-          OR: [
-            { enrolledCourses: { hasSome: myCourseIds } },
-            { enrolledCourses: { equals: [] } }
-          ]
-        } : {},
+        where: isTeacher ? (
+          myCourseIds.length > 0
+            ? { enrolledCourses: { hasSome: myCourseIds } }
+            : { id: 'none-unassigned-teacher-id' }
+        ) : {},
         orderBy: { enrolledAt: 'desc' } 
       })),
       fetchEntity('courses', db.course.findMany({ 
@@ -71,17 +70,19 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       })),
       fetchEntity('timeSlots', db.timeSlot.findMany({ orderBy: { createdAt: 'asc' } })),
       fetchEntity('submissions', db.submission.findMany({ 
-        where: isTeacher && myAssessmentIds.length > 0 ? {
-          assignmentId: { in: myAssessmentIds }
-        } : {},
+        where: isTeacher ? (
+          myAssessmentIds.length > 0
+            ? { assignmentId: { in: myAssessmentIds } }
+            : { id: 'none-unassigned-submission-id' }
+        ) : {},
         orderBy: { submittedAt: 'desc' } 
       })),
       fetchEntity('questions', db.question.findMany({ 
-        where: isTeacher ? { OR: [{ teacherId: userId }, { teacherId: null }] } : {},
+        where: isTeacher ? { teacherId: userId } : {},
         orderBy: { category: 'asc' } 
       })),
       fetchEntity('assessments', db.assessmentTemplate.findMany({ 
-        where: isTeacher ? { OR: [{ submittedByTeacherId: userId }, { submittedByTeacherId: null }] } : {},
+        where: isTeacher ? { submittedByTeacherId: userId } : {},
         orderBy: { createdAt: 'desc' } 
       })),
       fetchEntity('assignments', db.assignment.findMany({ 
@@ -104,9 +105,11 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         include: { teacher: { select: { id: true, name: true, employeeId: true } } }
       })),
       fetchEntity('evaluations', db.evaluation.findMany({
-        where: isTeacher && myCourseIds.length > 0 ? {
-          courseId: { in: myCourseIds }
-        } : {}
+        where: isTeacher ? (
+          myCourseIds.length > 0
+            ? { courseId: { in: myCourseIds } }
+            : { id: 'none-unassigned-evaluation-id' }
+        ) : {}
       }))
     ])
 
