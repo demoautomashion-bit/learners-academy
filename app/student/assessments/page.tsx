@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { evaluateSubjective } from "@/lib/ai-auditor"
-import { generateRandomizedQuestions } from "@/lib/actions/assessments"
+import { generateRandomizedQuestions, validateAccessToken } from "@/lib/actions/assessments"
 import { submitTestResult as directSubmitTestResult } from "@/lib/actions/submissions"
 import type { AssessmentTemplate, Question, StudentTest } from "@/lib/types"
 

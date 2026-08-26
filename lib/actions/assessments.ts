@@ -199,11 +199,12 @@ export async function validateAccessToken(token: string, studentId: string, clas
       }
     }
 
-    // Task 2: Block Retakes
+    // Task 2: Block Retakes (Airtight multi-alias check)
+    const targetStudentIds = [student.id, student.studentId].filter(Boolean) as string[]
     const existingSubmission = await db.submission.findFirst({
       where: {
-        studentId: student.id,
-        assignmentId: assessment.id
+        assignmentId: assessment.id,
+        studentId: { in: targetStudentIds }
       }
     })
 
@@ -236,11 +237,24 @@ export async function generateRandomizedQuestions(studentId: string, assessmentI
     
     if (!assessment) throw new Error('Assessment registry entry not found')
 
-    // Task 2: Block Retakes (Server-side validation)
+    // Task 2: Block Retakes (Airtight multi-alias check)
+    const targetStudent = await db.student.findFirst({
+      where: {
+        OR: [
+          { id: studentId },
+          { studentId: studentId }
+        ]
+      }
+    })
+
+    const studentIdsToCheck = targetStudent 
+      ? [targetStudent.id, targetStudent.studentId].filter(Boolean) as string[]
+      : [studentId]
+
     const existingSubmission = await db.submission.findFirst({
       where: {
-        studentId: studentId,
-        assignmentId: assessmentId
+        assignmentId: assessmentId,
+        studentId: { in: studentIdsToCheck }
       }
     })
 
