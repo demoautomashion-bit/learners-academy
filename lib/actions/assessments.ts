@@ -3,6 +3,7 @@
 import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { getSeedFromId, createPRNG, shuffleArray } from '@/lib/utils/random'
+import { normalizeAcademicLevel } from '@/lib/utils/normalization'
 import type { AssessmentTemplate, Question, ActionResult } from '@/lib/types'
 
 export async function getAssessments(teacherId?: string): Promise<ActionResult<AssessmentTemplate[]>> {
@@ -172,10 +173,24 @@ export async function validateAccessToken(token: string, studentId: string, clas
       }
     }
 
-    // Task 1: Verify enrollment via ID or legacy Name matching
-    const isEnrolled = (assessment.courseIds && assessment.courseIds.length > 0)
-      ? assessment.courseIds.some(cid => student.enrolledCourses.includes(cid))
-      : assessment.classLevels.includes(className) // Fallback
+    // Task 1: Verify enrollment via Course ID OR Class Level matching
+    const matchesCourseId = (assessment.courseIds && assessment.courseIds.length > 0) &&
+      Array.isArray(student.enrolledCourses) &&
+      assessment.courseIds.some(cid => student.enrolledCourses.includes(cid))
+
+    const studentLevel = student.grade || className || ''
+    const matchesClassLevel = Array.isArray(assessment.classLevels) && (
+      assessment.classLevels.includes(className) ||
+      assessment.classLevels.some(lvl => {
+        const normLvl = normalizeAcademicLevel(lvl)
+        const normStudent = normalizeAcademicLevel(studentLevel)
+        return (normLvl && normStudent && normLvl === normStudent) ||
+               lvl.toLowerCase().includes(studentLevel.toLowerCase()) ||
+               studentLevel.toLowerCase().includes(lvl.toLowerCase())
+      })
+    )
+
+    const isEnrolled = matchesCourseId || matchesClassLevel
 
     if (!isEnrolled) {
       return {
