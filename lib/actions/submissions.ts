@@ -20,7 +20,8 @@ async function syncSubmissionToEvaluation(
   templateId: string,
   assignmentTitle: string,
   score: number,
-  categoryFromSub?: string | null
+  categoryFromSub?: string | null,
+  categoryScores?: Record<string, number>
 ) {
   try {
     const assessment = await db.assessmentTemplate.findUnique({
@@ -110,6 +111,16 @@ async function syncSubmissionToEvaluation(
         updatedScoresObj[skillKey] = numericScore
       }
 
+      // If explicit category scores were provided (e.g. from mixed test containing Writing), sync category marks into evaluation sheet scores object
+      if (categoryScores && typeof categoryScores === 'object') {
+        Object.entries(categoryScores).forEach(([cat, catScore]) => {
+          const lowerCat = cat.toLowerCase()
+          if (['writing', 'speaking', 'reading', 'listening', 'grammar'].includes(lowerCat)) {
+            updatedScoresObj[lowerCat] = Math.round(Number(catScore) || 0)
+          }
+        })
+      }
+
       let updateData: Record<string, any> = {
         scores: updatedScoresObj
       }
@@ -181,7 +192,11 @@ export async function submitTestResult(result: StudentTest, assignmentTitle: str
         status: 'graded',
         grade: result.score,
         randomizedQuestions: result.randomizedQuestions as any,
-        answers: result.answers as any,
+        answers: {
+          ...(result.answers as any),
+          ...(result.categoryScores ? { __categoryScores: result.categoryScores } : {}),
+          ...(result.questionScores ? { __questionScores: result.questionScores } : {})
+        },
         aiFeedback: result.feedback,
         aiJustification: 'AI evaluation complete.',
         evaluationCategory: evaluationCategory,
@@ -189,7 +204,7 @@ export async function submitTestResult(result: StudentTest, assignmentTitle: str
     })
 
     // 2. Automated Sync with Evaluation Sheet & Skill JSON
-    await syncSubmissionToEvaluation(targetStudentId, result.templateId, assignmentTitle, result.score || 0, evaluationCategory)
+    await syncSubmissionToEvaluation(targetStudentId, result.templateId, assignmentTitle, result.score || 0, evaluationCategory, result.categoryScores)
 
     return { success: true, data: res as unknown as Submission }
   } catch (error) {

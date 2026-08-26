@@ -871,17 +871,37 @@ export default function StudentAssessmentsPage() {
     })
     const audits = await Promise.all(auditPromises)
 
-    let aiFeedbackChain = ""
-    let aiJustificationChain = ""
+    const questionScoresMap: Record<string, { score: number; maxPoints: number; feedback: string }> = {}
+    const categoryEarnedMap: Record<string, number> = {}
+    const categoryMaxMap: Record<string, number> = {}
 
     audits.forEach((audit, index) => {
       const q = trueSubjective[index]
       const points = getPointsForQuestion(q.type)
-      totalScore += (audit.score * points)
+      const earned = Number((audit.score * points).toFixed(2))
+      totalScore += earned
       
+      questionScoresMap[q.id] = {
+        score: earned,
+        maxPoints: points,
+        feedback: audit.feedback
+      }
+
+      const categoryName = q.category || q.type || 'General'
+      categoryEarnedMap[categoryName] = (categoryEarnedMap[categoryName] || 0) + earned
+      categoryMaxMap[categoryName] = (categoryMaxMap[categoryName] || 0) + points
+
       const qNumber = randomizedQuestions.findIndex(rq => rq.id === q.id) + 1
       if (audit.feedback.trim()) aiFeedbackChain += `**Q${qNumber}:** ${audit.feedback.trim()}\n\n`
       if (audit.justification.trim()) aiJustificationChain += `**Q${qNumber}:** ${audit.justification.trim()}\n\n`
+    })
+
+    // Compute category percentage scores
+    const categoryScores: Record<string, number> = {}
+    Object.keys(categoryMaxMap).forEach(cat => {
+      if (categoryMaxMap[cat] > 0) {
+        categoryScores[cat] = Math.round((categoryEarnedMap[cat] / categoryMaxMap[cat]) * 100)
+      }
     })
 
     const rawScore = Math.round(totalScore)
@@ -916,6 +936,7 @@ export default function StudentAssessmentsPage() {
     setAiAuditResults({
       feedback: scoreFeedback,
       justification: aiJustificationChain || "Assessment auto-graded by institutional engine.",
+      questionScores: questionScoresMap
     })
     setFinalScore(finalCalculatedScore)
 
@@ -936,6 +957,8 @@ export default function StudentAssessmentsPage() {
           score: finalCalculatedScore,
           feedback: scoreFeedback,
           evaluationCategory: activeTest.evaluationCategory,
+          categoryScores,
+          questionScores: questionScoresMap
         }
         const saved = await submitWithRetry(() => directSubmitTestResult(submissionPayload, activeTest?.title || 'Test'))
         if (saved) {
@@ -2277,11 +2300,38 @@ export default function StudentAssessmentsPage() {
                       ))}
                     </div>
                     {aiAuditResults.feedback && (
-                      <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10 text-left max-h-48 overflow-y-auto premium-scrollbar">
-                        <h4 className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest mb-3 sticky top-0 bg-background/5 backdrop-blur-sm pb-1">
-                          <TrendingUp className="w-4 h-4" /> AI Academic Audit
+                      <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10 text-left max-h-56 overflow-y-auto premium-scrollbar space-y-3">
+                        <h4 className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest sticky top-0 bg-background/80 backdrop-blur-sm pb-1 z-10">
+                          <TrendingUp className="w-4 h-4" /> AI Academic Audit & Feedback
                         </h4>
                         <p className="text-muted-foreground text-sm leading-relaxed italic whitespace-pre-wrap">"{aiAuditResults.feedback}"</p>
+                        
+                        {aiAuditResults.questionScores && Object.keys(aiAuditResults.questionScores).length > 0 && (
+                          <div className="pt-3 border-t border-primary/10 space-y-2">
+                            <p className="text-[10px] uppercase tracking-wider font-bold text-foreground/80">Question Marks & Evaluation Breakdown</p>
+                            {randomizedQuestions.map((q, idx) => {
+                              const qScore = aiAuditResults.questionScores?.[q.id]
+                              const displayType = q.type === 'Writing' ? (q.writingSubType || q.writingGenre || 'Writing') : q.type
+                              return (
+                                <div key={q.id} className="text-xs bg-background/60 p-2.5 rounded-xl border border-border/50 flex items-center justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <span className="font-bold text-foreground">Q{idx + 1}: {displayType}</span>
+                                    <p className="text-[11px] text-muted-foreground truncate">{q.content}</p>
+                                  </div>
+                                  {qScore ? (
+                                    <Badge variant="outline" className="shrink-0 text-xs font-bold bg-primary/10 text-primary border-primary/20">
+                                      {qScore.score} / {qScore.maxPoints} pts
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="secondary" className="shrink-0 text-[10px]">
+                                      Evaluated
+                                    </Badge>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
                     

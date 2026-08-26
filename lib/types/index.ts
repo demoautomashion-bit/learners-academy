@@ -97,6 +97,8 @@ export interface Submission {
   aiFeedback?: string
   aiJustification?: string
   evaluationCategory?: 'Midterm' | 'Final' | 'Listening' | 'Speaking' | 'Reading' | 'Writing' | 'Grammar' | 'None' | string
+  categoryScores?: Record<string, number>
+  questionScores?: Record<string, { score: number; maxPoints: number; feedback: string }>
 }
 
 export interface DashboardStats {
@@ -250,7 +252,9 @@ export interface StudentTest {
   answers: Record<string, string>
   score?: number
   feedback?: string
-  evaluationCategory?: 'Midterm' | 'Final' | 'None'
+  evaluationCategory?: 'Midterm' | 'Final' | 'None' | string
+  categoryScores?: Record<string, number>
+  questionScores?: Record<string, { score: number; maxPoints: number; feedback: string }>
 }
 
 export interface TeacherAttendance {
