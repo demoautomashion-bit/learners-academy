@@ -21,6 +21,23 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
 
   try {
     const isTeacher = role === 'teacher' && userId
+    let myCourseIds: string[] = []
+    let myAssessmentIds: string[] = []
+
+    if (isTeacher) {
+      const [myCourses, myAssessments] = await Promise.all([
+        fetchEntity('myCourses', db.course.findMany({ 
+          where: { teacherId: userId }, 
+          select: { id: true } 
+        })),
+        fetchEntity('myAssessments', db.assessmentTemplate.findMany({
+          where: { submittedByTeacherId: userId },
+          select: { id: true }
+        }))
+      ])
+      myCourseIds = (myCourses || []).map((c: any) => c.id)
+      myAssessmentIds = (myAssessments || []).map((a: any) => a.id)
+    }
 
     const [
       teachers,
@@ -40,6 +57,12 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { joinedAt: 'desc' } 
       })),
       fetchEntity('students', db.student.findMany({ 
+        where: isTeacher && myCourseIds.length > 0 ? {
+          OR: [
+            { enrolledCourses: { hasSome: myCourseIds } },
+            { enrolledCourses: { equals: [] } }
+          ]
+        } : {},
         orderBy: { enrolledAt: 'desc' } 
       })),
       fetchEntity('courses', db.course.findMany({ 
@@ -48,6 +71,9 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       })),
       fetchEntity('timeSlots', db.timeSlot.findMany({ orderBy: { createdAt: 'asc' } })),
       fetchEntity('submissions', db.submission.findMany({ 
+        where: isTeacher && myAssessmentIds.length > 0 ? {
+          assignmentId: { in: myAssessmentIds }
+        } : {},
         orderBy: { submittedAt: 'desc' } 
       })),
       fetchEntity('questions', db.question.findMany({ 
@@ -77,7 +103,11 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { date: 'desc' },
         include: { teacher: { select: { id: true, name: true, employeeId: true } } }
       })),
-      fetchEntity('evaluations', db.evaluation.findMany({}))
+      fetchEntity('evaluations', db.evaluation.findMany({
+        where: isTeacher && myCourseIds.length > 0 ? {
+          courseId: { in: myCourseIds }
+        } : {}
+      }))
     ])
 
     // Data Transformation: Ensure numeric fields are populated correctly
