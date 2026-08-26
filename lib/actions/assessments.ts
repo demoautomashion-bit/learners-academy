@@ -181,7 +181,6 @@ export async function validateAccessToken(token: string, studentId: string, clas
     const registeredGrade = student.grade || ''
     const matchesClassLevel = Array.isArray(assessment.classLevels) && (
       assessment.classLevels.includes(registeredGrade) ||
-      assessment.classLevels.includes(className) ||
       assessment.classLevels.some(lvl => {
         const normLvl = normalizeAcademicLevel(lvl)
         const normGrade = normalizeAcademicLevel(registeredGrade)

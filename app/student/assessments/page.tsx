@@ -314,6 +314,16 @@ export default function StudentAssessmentsPage() {
 
       toast.loading("Shuffling institutional registry blocks...", { id: "test-start" })
       
+      // Step 2: Strict Class Authorization Check
+      const authValidation = await validateAccessToken(assessment.accessCode, user.studentId || user.id, user.grade || '')
+      if (!authValidation.success) {
+        toast.error("Test Authorization Denied", {
+          id: "test-start",
+          description: authValidation.error || "You are not authorized to take this test."
+        })
+        return
+      }
+
       // Step 5: Temporary Debug Audit
       console.log(`[Test Initiation] Attempting secure randomized session for ${user.id} on test ${assessment.id}`)
       
