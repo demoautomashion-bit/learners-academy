@@ -373,20 +373,22 @@ export default function QuestionLibraryPage() {
   const imageUrl = watch('imageUrl')
   const correctAnswer = watch('correctAnswer')
 
-  const filteredQuestions = (questions || []).filter((q: Question) => {
-    const teacherMatch = q.teacherId === user?.id
+  const myQuestions = useMemo(() => {
+    return (questions || []).filter(q => !q.teacherId || q.teacherId === user?.id)
+  }, [questions, user?.id])
+
+  const filteredQuestions = myQuestions.filter((q: Question) => {
     const categoryMatch = q.category === activeTab
     const searchMatch = (q.content || '').toLowerCase().includes(searchQuery.toLowerCase())
     const levelMatch = levelFilter === 'all' || !levelFilter || q.classLevel === levelFilter
     const difficultyMatch = difficultyFilter === 'all' || (q.difficulty || 'Medium') === difficultyFilter
     const phaseMatch = phaseFilter === 'all' || q.phase === phaseFilter || (q.phase === 'Both' && (phaseFilter === 'First Test' || phaseFilter === 'Last Test'))
-    return teacherMatch && categoryMatch && searchMatch && levelMatch && difficultyMatch && phaseMatch
+    return categoryMatch && searchMatch && levelMatch && difficultyMatch && phaseMatch
   })
 
   const classBasedStats = useMemo(() => {
     const stats: Record<string, { total: number; types: Record<string, number> }> = {}
     
-    const myQuestions = questions.filter(q => q.teacherId === user?.id)
     myQuestions.forEach((q: Question) => {
       const level = q.classLevel || 'Unassigned'
       if (!stats[level]) {
@@ -397,7 +399,7 @@ export default function QuestionLibraryPage() {
     })
     
     return stats
-  }, [questions, user?.id])
+  }, [myQuestions])
 
   if (!user?.id || !isInitialized) return <DashboardSkeleton />
 
@@ -532,6 +534,7 @@ export default function QuestionLibraryPage() {
         toast.success('Question updated successfully')
       } else {
         await addQuestion(questionData)
+        if (data.category) setActiveTab(data.category as QuestionCategory)
         toast.success('Question added to your bank')
       }
       handleClose()
@@ -1706,7 +1709,7 @@ export default function QuestionLibraryPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {CATEGORIES?.map(cat => {
-                      const catCount = (questions || []).filter(q => q.category === cat).length
+                      const catCount = myQuestions.filter(q => q.category === cat).length
                       return (
                         <SelectItem key={cat} value={cat} className="text-xs font-medium">
                           {cat} ({catCount})
@@ -2026,7 +2029,7 @@ export default function QuestionLibraryPage() {
             <div className="p-6 space-y-6">
               <div className="flex justify-between items-end">
                 <span className="text-xs font-normal opacity-50">Total Library Blocks</span>
-                <span className="text-3xl font-sans font-normal text-primary">{questions.length}</span>
+                <span className="text-3xl font-sans font-normal text-primary">{myQuestions.length}</span>
               </div>
               
               <div className="space-y-6 max-h-[500px] overflow-y-auto premium-scrollbar pr-2">

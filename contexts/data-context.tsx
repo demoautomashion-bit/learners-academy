@@ -320,11 +320,53 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateCourseStatus = useCallback((id: string, s: any) => executeAction(() => dbUpdateCourseStatus(id, s)), [executeAction])
   const updateCourse = useCallback((id: string, d: any) => executeAction(() => dbUpdateCourse(id, d), "Curriculum updated"), [executeAction])
   const updateCourseProgress = useCallback((id: string, p: number) => setCourses(prev => prev.map(c => c.id === id ? { ...c, enrolled: p } : c)), [])
-  const addQuestion = useCallback((q: Question) => executeAction(() => dbAddQuestion(q), "Block added"), [executeAction])
-  const bulkAddQuestions = useCallback((qs: Question[]) => executeAction(() => dbBulkAddQuestions(qs), `${qs.length} blocks imported`), [executeAction])
-  const deleteQuestion = useCallback((id: string) => executeAction(() => dbDeleteQuestion(id, user?.role === 'teacher' ? user?.id : undefined), "Block removed"), [executeAction, user?.id, user?.role])
-  const deleteQuestionsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both', classLevel?: string) => executeAction(() => dbDeleteQuestionsByPhase(user?.id || '', phase, classLevel), "Bank cleared"), [executeAction, user?.id])
-  const updateQuestion = useCallback((id: string, d: any) => executeAction(() => dbUpdateQuestion(id, d, user?.role === 'teacher' ? user?.id : undefined), "Block updated"), [executeAction, user?.id, user?.role])
+  const addQuestion = useCallback((q: Question) => executeAction(async () => {
+    const res = await dbAddQuestion(q)
+    if (res.success && res.data) {
+      const newItem = { ...res.data, id: String(res.data.id || q.id) }
+      setQuestions(prev => [newItem, ...prev.filter(item => item.id !== newItem.id)])
+    }
+    return res
+  }, "Block added"), [executeAction])
+
+  const bulkAddQuestions = useCallback((qs: Question[]) => executeAction(async () => {
+    const res = await dbBulkAddQuestions(qs)
+    if (res.success && Array.isArray(res.data)) {
+      const newItems = res.data.map((item: any) => ({ ...item, id: String(item.id) }))
+      setQuestions(prev => [...newItems, ...prev.filter(item => !newItems.some((n: any) => n.id === item.id))])
+    }
+    return res
+  }, `${qs.length} blocks imported`), [executeAction])
+
+  const deleteQuestion = useCallback((id: string) => executeAction(async () => {
+    const res = await dbDeleteQuestion(id, user?.role === 'teacher' ? user?.id : undefined)
+    if (res.success) {
+      setQuestions(prev => prev.filter(item => item.id !== id))
+    }
+    return res
+  }, "Block removed"), [executeAction, user?.id, user?.role])
+
+  const deleteQuestionsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both', classLevel?: string) => executeAction(async () => {
+    const res = await dbDeleteQuestionsByPhase(user?.id || '', phase, classLevel)
+    if (res.success) {
+      setQuestions(prev => prev.filter(item => {
+        if (item.teacherId && item.teacherId !== user?.id) return true
+        if (classLevel && item.classLevel !== classLevel) return true
+        if (phase === 'Both') return false
+        return item.phase !== phase
+      }))
+    }
+    return res
+  }, "Bank cleared"), [executeAction, user?.id])
+
+  const updateQuestion = useCallback((id: string, d: any) => executeAction(async () => {
+    const res = await dbUpdateQuestion(id, d, user?.role === 'teacher' ? user?.id : undefined)
+    if (res.success && res.data) {
+      const updatedItem = { ...res.data, id: String(res.data.id || id) }
+      setQuestions(prev => prev.map(item => item.id === id ? updatedItem : item))
+    }
+    return res
+  }, "Block updated"), [executeAction, user?.id, user?.role])
   const publishAssessment = useCallback((a: any) => executeAction(async () => {
     const res = await dbPublishAssessment(a)
     if (res.success && res.data) {
