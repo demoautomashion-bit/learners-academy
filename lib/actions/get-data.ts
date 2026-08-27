@@ -22,6 +22,52 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
   try {
     const isTeacher = role === 'teacher' && userId
 
+    // Multi-Identifier Resolution: Resolve teacher identity across CUID, employeeId, email, and name
+    const teacherRecord = isTeacher ? await db.teacher.findFirst({
+      where: {
+        OR: [
+          { id: userId },
+          { employeeId: userId },
+          { email: userId }
+        ]
+      }
+    }) : null
+
+    const teacherIds = teacherRecord
+      ? [teacherRecord.id, teacherRecord.employeeId, teacherRecord.email, userId].filter(Boolean) as string[]
+      : (userId ? [userId] : [])
+
+    const teacherName = teacherRecord?.name?.trim()
+
+    const courseWhere = isTeacher ? {
+      OR: [
+        { teacherId: { in: teacherIds } },
+        ...(teacherName ? [{ teacherName: { equals: teacherName, mode: 'insensitive' as const } }] : [])
+      ]
+    } : {}
+
+    const assessmentWhere = isTeacher ? {
+      OR: [
+        { submittedByTeacherId: { in: teacherIds } },
+        ...(teacherName ? [{ submittedByTeacherName: { equals: teacherName, mode: 'insensitive' as const } }] : [])
+      ]
+    } : {}
+
+    const questionWhere = isTeacher ? {
+      teacherId: { in: teacherIds }
+    } : {}
+
+    const assignmentWhere = isTeacher ? {
+      teacherId: { in: teacherIds }
+    } : {}
+
+    const attendanceWhere = isTeacher ? {
+      OR: [
+        { teacherId: { in: teacherIds } },
+        ...(teacherName ? [{ teacher: { name: { equals: teacherName, mode: 'insensitive' as const } } }] : [])
+      ]
+    } : {}
+
     const [
       teachers,
       rawStudents,
@@ -36,14 +82,14 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
       rawEvaluations
     ] = await Promise.all([
       fetchEntity('teachers', db.teacher.findMany({ 
-        where: isTeacher ? { id: userId } : {},
+        where: isTeacher ? { OR: [{ id: { in: teacherIds } }, { email: userId }] } : {},
         orderBy: { joinedAt: 'desc' } 
       })),
       fetchEntity('students', db.student.findMany({ 
         orderBy: { enrolledAt: 'desc' } 
       })),
       fetchEntity('courses', db.course.findMany({ 
-        where: isTeacher ? { teacherId: userId } : {},
+        where: courseWhere,
         orderBy: { startDate: 'desc' } 
       })),
       fetchEntity('timeSlots', db.timeSlot.findMany({ orderBy: { createdAt: 'asc' } })),
@@ -51,29 +97,30 @@ export async function getInitialData(userId?: string, role?: 'admin' | 'teacher'
         orderBy: { submittedAt: 'desc' } 
       })),
       fetchEntity('questions', db.question.findMany({ 
-        where: isTeacher ? { teacherId: userId } : {},
+        where: questionWhere,
         orderBy: { category: 'asc' } 
       })),
       fetchEntity('assessments', db.assessmentTemplate.findMany({ 
-        where: isTeacher ? { submittedByTeacherId: userId } : {},
+        where: assessmentWhere,
         orderBy: { createdAt: 'desc' } 
       })),
       fetchEntity('assignments', db.assignment.findMany({ 
-        where: isTeacher ? { teacherId: userId } : {},
+        where: assignmentWhere,
         orderBy: { createdAt: 'desc' } 
       })),
       fetchEntity('activities', db.activityLog.findMany({ 
         where: isTeacher ? { 
           OR: [
             { user: { contains: userId } },
-            { action: { contains: userId } }
+            { action: { contains: userId } },
+            ...(teacherName ? [{ user: { contains: teacherName } }] : [])
           ]
         } : {},
         orderBy: { createdAt: 'desc' }, 
         take: 50 
       })),
       fetchEntity('attendance', db.teacherAttendance.findMany({ 
-        where: isTeacher ? { teacherId: userId } : {},
+        where: attendanceWhere,
         orderBy: { date: 'desc' },
         include: { teacher: { select: { id: true, name: true, employeeId: true } } }
       })),
