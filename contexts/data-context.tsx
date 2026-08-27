@@ -201,7 +201,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const [initRes, econData, audioRes, announcementsData, templatesRes] = await Promise.all([
         getInitialData(user?.id, user?.role as any),
         user?.role === 'admin' ? getEconomicStats().catch(() => ({ success: false, data: null })) : Promise.resolve({ success: true, data: null }),
-        user?.id ? getTeacherAudioFiles(user.id).catch(() => ({ success: true, data: [] })) : Promise.resolve({ success: true, data: [] }),
+        getTeacherAudioFiles().catch(() => ({ success: true, data: [] })),
         getAnnouncements().catch(() => []),
         getCardTemplates().catch(() => ({ success: false, data: [] }))
       ])

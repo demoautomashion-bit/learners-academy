@@ -34,11 +34,10 @@ function sanitizeAudioFile(record: any): AudioFile {
 /**
  * Fetches audio files for a specific teacher from the database.
  */
-export async function getTeacherAudioFiles(teacherId: string, retries = 3): Promise<ActionResult<AudioFile[]>> {
+export async function getTeacherAudioFiles(teacherId?: string, retries = 3): Promise<ActionResult<AudioFile[]>> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const files = await db.audioFile.findMany({
-        where: { teacherId },
         orderBy: { createdAt: 'desc' }
       })
       return { success: true, data: files.map(sanitizeAudioFile) }
