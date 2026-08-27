@@ -49,6 +49,7 @@ export default function AssessmentWorkspacePage() {
   const [isGradeOpen, setIsGradeOpen] = useState(false)
   const [gradeInput, setGradeInput] = useState('')
   const [feedbackInput, setFeedbackInput] = useState('')
+  const [questionScores, setQuestionScores] = useState<Record<string, number>>({})
 
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -244,6 +245,12 @@ export default function AssessmentWorkspacePage() {
                                                         setSelectedSubmission(s)
                                                         setGradeInput(s.grade?.toString() || '')
                                                         setFeedbackInput(s.feedback || '')
+                                                        const existingQ = s.answers?.__questionScores || {}
+                                                        const initialQ: Record<string, number> = {}
+                                                        (s.randomizedQuestions || []).forEach((q: any) => {
+                                                            initialQ[q.id] = existingQ[q.id] !== undefined ? Number(existingQ[q.id]) : 0
+                                                        })
+                                                        setQuestionScores(initialQ)
                                                         setIsGradeOpen(true)
                                                     }}
                                                     className="h-11 px-4 group/btn transition-all"
@@ -379,11 +386,29 @@ export default function AssessmentWorkspacePage() {
 
                {selectedSubmission?.randomizedQuestions?.map((q: any, i: number) => (
                     <div key={q.id} className="space-y-4 pb-8 border-b  last:border-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs  text-primary  ">Block {i+1} • {q.category}</span>
-                        {q.correctAnswer && (
-                          <span className="text-xs text-success/60 font-normal   italic">Reference: {q.correctAnswer}</span>
-                        )}
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs text-primary font-medium">Block {i+1} • {q.category}</span>
+                        <div className="flex items-center gap-2">
+                           <span className="text-xs text-muted-foreground">Marks:</span>
+                           <Input
+                             type="number"
+                             min={0}
+                             step="any"
+                             placeholder="0"
+                             className="w-20 h-8 bg-background font-mono text-xs text-center border-primary/20"
+                             value={questionScores[q.id] !== undefined ? questionScores[q.id] : ''}
+                             onChange={(e) => {
+                               const val = parseFloat(e.target.value) || 0
+                               const updated = { ...questionScores, [q.id]: val }
+                               setQuestionScores(updated)
+                               const sum = Object.values(updated).reduce((acc, curr) => acc + (Number(curr) || 0), 0)
+                               setGradeInput(String(sum))
+                             }}
+                           />
+                           {q.correctAnswer && (
+                             <span className="text-xs text-success/60 font-normal italic ml-2">Ref: {q.correctAnswer}</span>
+                           )}
+                         </div>
                       </div>
                       <p className="text-base font-sans font-normal text-foreground/80 leading-relaxed bg-muted/5 p-4  border ">{q.content}</p>
                       <div className="p-5  bg-primary/5 border-l-4  text-sm font-normal">
@@ -477,13 +502,17 @@ export default function AssessmentWorkspacePage() {
                         return
                       }
                       
+                      const answersPayload = {
+                        __questionScores: questionScores
+                      }
+
                       if (selectedSubmission.isPlaceholder || selectedSubmission.id?.startsWith('pending-')) {
                         await submitTestResult({
                           templateId: assessment.id,
                           studentId: selectedSubmission.studentId,
                           studentName: selectedSubmission.studentName,
                           score: score,
-                          answers: {},
+                          answers: answersPayload,
                           feedback: feedbackInput || "Teacher evaluation recorded manually.",
                           completedAt: new Date().toISOString()
                         })
@@ -491,7 +520,8 @@ export default function AssessmentWorkspacePage() {
                         await gradeSubmission(
                           selectedSubmission.id, 
                           score, 
-                          feedbackInput || ""
+                          feedbackInput || "",
+                          answersPayload
                         )
                       }
                       setIsGradeOpen(false)

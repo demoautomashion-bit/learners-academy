@@ -215,11 +215,27 @@ export async function submitTestResult(result: StudentTest, assignmentTitle: str
   }
 }
 
-export async function gradeSubmission(id: string, grade: number, feedback: string): Promise<ActionResult<Submission>> {
+export async function gradeSubmission(
+  id: string, 
+  grade: number, 
+  feedback: string,
+  answers?: Record<string, any>
+): Promise<ActionResult<Submission>> {
   try {
+    const existing = await db.submission.findUnique({ where: { id } })
+    const mergedAnswers = answers ? {
+      ...((existing?.answers && typeof existing.answers === 'object') ? (existing.answers as Record<string, any>) : {}),
+      ...answers
+    } : existing?.answers
+
     const res = await db.submission.update({
       where: { id },
-      data: { grade, feedback, status: 'graded' }
+      data: { 
+        grade, 
+        feedback, 
+        status: 'graded',
+        ...(mergedAnswers ? { answers: mergedAnswers as any } : {})
+      }
     })
 
     // Automated Sync with Evaluation Sheet for manual grading

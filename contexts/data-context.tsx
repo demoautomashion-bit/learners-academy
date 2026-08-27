@@ -63,7 +63,7 @@ interface DataContextType {
   removeAssessment: (id: string) => Promise<void>
   deleteAssessmentsByPhase: (phase: 'First Test' | 'Last Test' | 'Both') => Promise<void>
   submitTestResult: (result: StudentTest) => Promise<void>
-  gradeSubmission: (id: string, grade: number, feedback: string) => Promise<void>
+  gradeSubmission: (id: string, grade: number, feedback: string, answers?: Record<string, any>) => Promise<void>
   deleteSubmission: (id: string) => Promise<void>
   updateCourseProgress: (courseId: string, progress: number) => void
   addQuestion: (question: Question) => Promise<void>
@@ -181,7 +181,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [, startTransition] = useTransition()
 
   const refresh = useCallback(async () => {
-    if (isRefreshingRef.current) return
+    if (isRefreshingRef.current) {
+      setIsLoading(false)
+      setIsInitialized(true)
+      return
+    }
     
     // Safety Audit: Only sync if we have a stable identity OR we are on a landing page
     const isLandingPage = typeof window !== 'undefined' && 
@@ -436,10 +440,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteAllTeachers = useCallback(() => executeAction(() => dbDeleteAllTeachers(), "All staff cleared"), [executeAction])
 
   const submitTestResult = useCallback((r: StudentTest) => executeAction(() => dbSubmitTestResult(r, assessments.find(a => a.id === r.templateId)?.title || 'Test'), "Results stored"), [assessments, executeAction])
-  const gradeSubmission = useCallback((id: string, g: number, f: string) => executeAction(async () => {
-    const res = await dbGradeSubmission(id, g, f)
-    if (res.success) {
-      setSubmissions(prev => prev.map(s => s.id === id ? { ...s, grade: g, feedback: f, status: 'graded' } : s))
+  const gradeSubmission = useCallback((id: string, g: number, f: string, ans?: Record<string, any>) => executeAction(async () => {
+    const res = await dbGradeSubmission(id, g, f, ans)
+    if (res.success && res.data) {
+      setSubmissions(prev => prev.map(s => s.id === id ? { 
+        ...s, 
+        grade: g, 
+        feedback: f, 
+        status: 'graded',
+        ...(ans ? { answers: { ...(s.answers || {}), ...ans } } : {})
+      } : s))
     }
     return res
   }, "Score recorded"), [executeAction])
