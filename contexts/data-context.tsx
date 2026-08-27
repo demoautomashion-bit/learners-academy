@@ -187,8 +187,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       (window.location.pathname === '/' || window.location.pathname === '/student')
       
     if (!isLandingPage && (!user?.id || !user?.role)) {
-      setIsLoading(false)
-      setIsInitialized(true)
+      // Identity is still hydrating from sessionStorage — wait for user identity before completing initialization
       return
     }
     
