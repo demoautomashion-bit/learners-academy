@@ -325,14 +325,59 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteQuestion = useCallback((id: string) => executeAction(() => dbDeleteQuestion(id, user?.role === 'teacher' ? user?.id : undefined), "Block removed"), [executeAction, user?.id, user?.role])
   const deleteQuestionsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both', classLevel?: string) => executeAction(() => dbDeleteQuestionsByPhase(user?.id || '', phase, classLevel), "Bank cleared"), [executeAction, user?.id])
   const updateQuestion = useCallback((id: string, d: any) => executeAction(() => dbUpdateQuestion(id, d, user?.role === 'teacher' ? user?.id : undefined), "Block updated"), [executeAction, user?.id, user?.role])
-  const publishAssessment = useCallback((a: any) => executeAction(() => dbPublishAssessment(a), "Assessment published"), [executeAction])
-  const updateAssessmentStatus = useCallback((id: string, s: any) => executeAction(() => dbUpdateAssessmentStatus(id, s, user?.role === 'teacher' ? user?.id : undefined), "Status updated"), [executeAction, user?.id, user?.role])
-  const removeAssessment = useCallback((id: string) => executeAction(() => dbRemoveAssessment(id, user?.role === 'teacher' ? user?.id : undefined), "Permanently deleted"), [executeAction, user?.id, user?.role])
-  const deleteAssessmentsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both') => executeAction(() => dbDeleteAssessmentsByPhase(user?.id || '', phase), "Tests deleted"), [executeAction, user?.id])
+  const publishAssessment = useCallback((a: any) => executeAction(async () => {
+    const res = await dbPublishAssessment(a)
+    if (res.success && res.data) {
+      const createdItem = { ...res.data, id: String(res.data.id || '') }
+      setAssessments(prev => [createdItem, ...prev.filter(item => item.id !== createdItem.id)])
+    }
+    return res
+  }, "Assessment published"), [executeAction])
+
+  const updateAssessmentStatus = useCallback((id: string, s: any) => executeAction(async () => {
+    const res = await dbUpdateAssessmentStatus(id, s, user?.role === 'teacher' ? user?.id : undefined)
+    if (res.success) {
+      setAssessments(prev => prev.map(item => item.id === id ? { ...item, status: s } : item))
+    }
+    return res
+  }, "Status updated"), [executeAction, user?.id, user?.role])
+
+  const removeAssessment = useCallback((id: string) => executeAction(async () => {
+    const res = await dbRemoveAssessment(id, user?.role === 'teacher' ? user?.id : undefined)
+    if (res.success) {
+      setAssessments(prev => prev.filter(item => item.id !== id))
+    }
+    return res
+  }, "Permanently deleted"), [executeAction, user?.id, user?.role])
+
+  const deleteAssessmentsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both') => executeAction(async () => {
+    const res = await dbDeleteAssessmentsByPhase(user?.id || '', phase)
+    if (res.success) {
+      setAssessments(prev => prev.filter(item => {
+        if (item.submittedByTeacherId && item.submittedByTeacherId !== user?.id) return true
+        if (phase === 'Both') return false
+        return item.phase !== phase
+      }))
+    }
+    return res
+  }, "Tests deleted"), [executeAction, user?.id])
+
   const updateTeacherReviewFlag = useCallback((id: string, flag: boolean) => executeAction(() => dbUpdateTeacherReviewFlag(id, flag)), [executeAction])
   const approveQuestion = useCallback((id: string, flag: boolean) => executeAction(() => dbApproveQuestion(id, flag)), [executeAction])
-  const approveAssessment = useCallback((id: string) => executeAction(() => updateAssessmentReviewAction(id, 'active', '')), [executeAction])
-  const rejectAssessment = useCallback((id: string, fb: string) => executeAction(() => updateAssessmentReviewAction(id, 'draft', fb)), [executeAction])
+  const approveAssessment = useCallback((id: string) => executeAction(async () => {
+    const res = await updateAssessmentReviewAction(id, 'active', '')
+    if (res.success) {
+      setAssessments(prev => prev.map(item => item.id === id ? { ...item, status: 'active', adminFeedback: undefined } : item))
+    }
+    return res
+  }), [executeAction])
+  const rejectAssessment = useCallback((id: string, fb: string) => executeAction(async () => {
+    const res = await updateAssessmentReviewAction(id, 'draft', fb)
+    if (res.success) {
+      setAssessments(prev => prev.map(item => item.id === id ? { ...item, status: 'draft', adminFeedback: fb } : item))
+    }
+    return res
+  }), [executeAction])
 
   const deleteAllStudents = useCallback(() => executeAction(() => dbDeleteAllStudents(), "All students cleared"), [executeAction])
   const deleteAllCourses = useCallback((levelFilter?: string, timingFilter?: string) => executeAction(() => dbDeleteAllCourses(levelFilter, timingFilter), "Classes cleared"), [executeAction])

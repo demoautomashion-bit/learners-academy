@@ -46,7 +46,11 @@ export default function AssessmentsPage() {
 
   if (!user?.id || !isInitialized) return <AssessmentSkeleton />
 
-  const myAssessments = assessments?.filter(a => a.submittedByTeacherId === user?.id) || []
+  const myAssessments = assessments?.filter(a => 
+    !a.submittedByTeacherId || 
+    a.submittedByTeacherId === user?.id || 
+    (user?.name && a.submittedByTeacherName === user?.name)
+  ) || []
 
   const filteredAssessments = myAssessments.filter(a =>
     a.title.toLowerCase().includes(searchQuery.toLowerCase())
