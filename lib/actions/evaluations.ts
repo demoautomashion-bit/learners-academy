@@ -26,24 +26,38 @@ export async function getEvaluations(courseId: string): Promise<ActionResult> {
 
 export async function saveEvaluations(courseId: string, evaluations: any[]): Promise<ActionResult> {
   try {
-    // Process bulk upsert
-    // In a production environment, we'd use a transaction or bulk operation
-    // For this prototype, we iterate through the evaluation objects
-    
-    const results = await Promise.all(evaluations.map(async (evalData) => {
-      const { studentId: rawStudentId, midterm, final, attendance, participation, discipline, extra, scores, term } = evalData
-      
+    // 1. Resolve canonical student IDs for all evaluation payload entries
+    const resolvedItems: Array<{ canonicalStudentId: string; evalData: any }> = []
+
+    for (const evalData of evaluations) {
+      const rawId = evalData.studentId
+      if (!rawId) continue
+
       const student = await db.student.findFirst({
         where: {
           OR: [
-            { id: rawStudentId },
-            { studentId: rawStudentId }
+            { id: rawId },
+            { studentId: rawId }
           ]
         }
       })
 
-      if (!student) return null
-      const canonicalStudentId = student.id
+      if (student) {
+        resolvedItems.push({ canonicalStudentId: student.id, evalData })
+      }
+    }
+
+    // 2. Deduplicate payload items by canonicalStudentId and term
+    const uniqueMap = new Map<string, any>()
+    for (const item of resolvedItems) {
+      const term = item.evalData.term || "Term 1"
+      const key = `${item.canonicalStudentId}_${courseId}_${term}`
+      uniqueMap.set(key, item)
+    }
+
+    // 3. Execute unique upserts cleanly
+    const results = await Promise.all(Array.from(uniqueMap.values()).map(async ({ canonicalStudentId, evalData }) => {
+      const { midterm, final, attendance, participation, discipline, extra, scores, term } = evalData
 
       return db.evaluation.upsert({
         where: {

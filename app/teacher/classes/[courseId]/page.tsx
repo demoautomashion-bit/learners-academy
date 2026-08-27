@@ -111,14 +111,8 @@ export default function ClassWorkspacePage() {
         ) : {})
       };
 
-      // Index by direct evaluation studentId
-      initialGrades[e.studentId] = gradeObj
-
-      // Index by matched student's alternative IDs
-      if (matchedStudent) {
-        if (matchedStudent.id) initialGrades[matchedStudent.id] = gradeObj
-        if (matchedStudent.studentId) initialGrades[matchedStudent.studentId] = gradeObj
-      }
+      const canonicalId = matchedStudent?.id || e.studentId
+      initialGrades[canonicalId] = gradeObj
     });
     setGrades(initialGrades);
   }, [evaluations, courseId, students]);
