@@ -202,7 +202,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const [initRes, econData, audioRes, announcementsData, templatesRes] = await Promise.all([
         getInitialData(user?.id, user?.role as any),
         user?.role === 'admin' ? getEconomicStats().catch(() => ({ success: false, data: null })) : Promise.resolve({ success: true, data: null }),
-        user?.role === 'teacher' && user?.id ? getTeacherAudioFiles(user.id).catch(() => ({ success: true, data: [] })) : Promise.resolve({ success: true, data: [] }),
+        user?.id ? getTeacherAudioFiles(user.id).catch(() => ({ success: true, data: [] })) : Promise.resolve({ success: true, data: [] }),
         getAnnouncements().catch(() => []),
         getCardTemplates().catch(() => ({ success: false, data: [] }))
       ])
@@ -236,7 +236,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         
         setEvaluations(Array.isArray(d.evaluations) ? d.evaluations : [])
 
-        if (user?.role === 'teacher' && audioRes?.success) {
+        if (audioRes?.success) {
            setAudioFiles(audioRes.data as any)
         }
 
@@ -443,15 +443,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const markAttendance = useCallback((tid: string, date: string, s: string, sc?: number) => executeAction(() => dbMarkAttendance(tid, date, s, sc)), [executeAction])
   const addAttendanceEvent = useCallback((tid: string, date: string, e: any) => executeAction(() => dbAddAttendanceEvent(tid, date, e)), [executeAction])
   const saveEvaluations = useCallback((courseId: string, data: any[]) => executeAction(() => dbSaveEvaluations(courseId, data), "Evaluation Matrix Synchronized"), [executeAction])
-  // uploadAudio now only saves the DB record — the file itself is uploaded client-side to Vercel Blob
   const uploadAudio = useCallback((blobUrl: string, title: string, filename: string) => {
     if (!user?.id) {
        toast.error("Identity verification failed. Please re-login.")
        return Promise.reject("Missing User ID")
     }
-    return executeAction(() => dbSaveAudioRecord(blobUrl, title, filename, user.id), "Institutional asset verified")
+    return executeAction(async () => {
+      const res = await dbSaveAudioRecord(blobUrl, title, filename, user.id)
+      if (res.success && res.data) {
+        const newAsset = res.data
+        setAudioFiles(prev => [newAsset, ...prev.filter(item => item.id !== newAsset.id)])
+      }
+      return res
+    }, "Institutional asset verified")
   }, [executeAction, user?.id])
-  const deleteAudio = useCallback((id: string) => executeAction(() => dbDeleteAudio(id, user?.id || ''), "Asset purged"), [executeAction, user?.id])
+
+  const deleteAudio = useCallback((id: string) => executeAction(async () => {
+    const res = await dbDeleteAudio(id, user?.id || '')
+    if (res.success) {
+      setAudioFiles(prev => prev.filter(item => item.id !== id))
+    }
+    return res
+  }, "Asset purged"), [executeAction, user?.id])
   const addAnnouncement = useCallback((data: { title: string, summary: string, content: string, category: string, date: string, imageUrl?: string | null }) => executeAction(() => dbCreateAnnouncement(data), "Announcement posted"), [executeAction])
   const saveCardTemplate = useCallback((level: string, backgroundUrl: string, coordinates: any) => executeAction(() => dbSaveCardTemplate(level, backgroundUrl, coordinates), "Card template saved"), [executeAction])
   const deleteCardTemplate = useCallback((level: string) => executeAction(() => dbDeleteCardTemplate(level), "Card template reset"), [executeAction])
