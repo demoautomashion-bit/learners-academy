@@ -185,7 +185,7 @@ export function ReportCardA5({
           left: '18.5%',
           width: '33.2%',
           height: '4.8%',
-          fontSize: '15px'
+          fontSize: '19px'
         }}
       />
 
@@ -201,7 +201,7 @@ export function ReportCardA5({
           left: '26.8%',
           width: '24.9%',
           height: '4.8%',
-          fontSize: '15px'
+          fontSize: '19px'
         }}
       />
 
@@ -217,7 +217,7 @@ export function ReportCardA5({
           left: '20.8%',
           width: '30.9%',
           height: '4.8%',
-          fontSize: '15px'
+          fontSize: '19px'
         }}
       />
 
@@ -233,7 +233,7 @@ export function ReportCardA5({
           left: '18.5%',
           width: '33.2%',
           height: '4.8%',
-          fontSize: '15px'
+          fontSize: '19px'
         }}
       />
 

@@ -133,10 +133,10 @@ async function renderStudentCanvas(
     }
 
     // Student Info Overlays
-    drawLeftText(v.studentName || studentName || '', 18.8, 38.2, 26)
-    drawLeftText(v.fatherName || '', 27.2, 45.3, 26)
-    drawLeftText(v.level || '', 21.2, 52.2, 26)
-    drawLeftText(v.dateAwarded || v.dateOfIssue || 'June 04, 2026', 18.8, 59.3, 26)
+    drawLeftText(v.studentName || studentName || '', 18.8, 38.2, 32)
+    drawLeftText(v.fatherName || '', 27.2, 45.3, 32)
+    drawLeftText(v.level || '', 21.2, 52.2, 32)
+    drawLeftText(v.dateAwarded || v.dateOfIssue || 'June 04, 2026', 18.8, 59.3, 32)
 
     // Table Obtained Marks (Column Center X = 90.1%)
     const colCenterX = 90.1
