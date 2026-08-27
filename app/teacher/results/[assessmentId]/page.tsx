@@ -27,7 +27,8 @@ import {
   Award,
   ArrowRight,
   Filter,
-  CheckCircle2
+  CheckCircle2,
+  Trash2
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
@@ -41,7 +42,7 @@ export default function AssessmentWorkspacePage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
-  const { assessments, submissions, students, enrollments, gradeSubmission, isInitialized } = useData()
+  const { assessments, submissions, students, enrollments, gradeSubmission, deleteSubmission, isInitialized } = useData()
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null)
@@ -236,21 +237,37 @@ export default function AssessmentWorkspacePage() {
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                         {!s.isPlaceholder ? (
-                                            <Button 
-                                                variant={s.status === 'pending' ? 'default' : 'ghost'}
-                                                onClick={() => {
-                                                    setSelectedSubmission(s)
-                                                    setGradeInput(s.grade?.toString() || '')
-                                                    setFeedbackInput(s.feedback || '')
-                                                    setIsGradeOpen(true)
-                                                }}
-                                                className="h-11  px-6 group/btn transition-all"
-                                            >
-                                                <span className="text-xs   font-normal">
-                                                    {s.status === 'pending' ? 'Mark Paper' : 'Edit Marks'}
-                                                </span>
-                                                <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                                            </Button>
+                                            <div className="flex items-center gap-2 justify-end">
+                                                <Button 
+                                                    variant={s.status === 'pending' ? 'default' : 'ghost'}
+                                                    onClick={() => {
+                                                        setSelectedSubmission(s)
+                                                        setGradeInput(s.grade?.toString() || '')
+                                                        setFeedbackInput(s.feedback || '')
+                                                        setIsGradeOpen(true)
+                                                    }}
+                                                    className="h-11 px-4 group/btn transition-all"
+                                                >
+                                                    <span className="text-xs font-normal">
+                                                        {s.status === 'pending' ? 'Mark Paper' : 'Edit Marks'}
+                                                    </span>
+                                                    <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    title="Purge submission entry"
+                                                    className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                                    onClick={async () => {
+                                                        if (confirm(`Purge assessment submission for ${s.studentName || 'this student'}?`)) {
+                                                            await deleteSubmission(s.id)
+                                                            toast.success("Submission entry purged successfully.")
+                                                        }
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
                                         ) : (
                                             <Badge variant="outline" className="opacity-20 font-normal text-[10px] uppercase tracking-tighter">Pending Action</Badge>
                                         )}
@@ -431,31 +448,47 @@ export default function AssessmentWorkspacePage() {
             </div>
           </div>
 
-          <DialogFooter className="p-8 bg-background border-t  flex gap-4">
-            <Button variant="ghost" onClick={() => setIsGradeOpen(false)} className=" px-8 h-12 text-muted-foreground">
-                <span className="text-xs   font-normal">Discard</span>
-            </Button>
-            <Button 
-              className="  bg-primary hover:bg-primary/90 flex-1 md:flex-none"
-              onClick={() => {
-                if (selectedSubmission) {
-                  const score = parseFloat(gradeInput)
-                  if (isNaN(score) || score < 0 || score > assessment.totalMarks) {
-                    toast.error(`Please enter a valid marks between 0 and ${assessment.totalMarks}`)
-                    return
-                  }
-                  gradeSubmission(
-                    selectedSubmission.id, 
-                    score, 
-                    feedbackInput || ""
-                  )
-                  setIsGradeOpen(false)
-                  toast.success("Academic evaluation published successfully.")
-                }
-              }}
+          <DialogFooter className="p-8 bg-background border-t flex gap-4 items-center justify-between">
+            <Button
+                variant="destructive"
+                className="px-6 h-12 gap-2 text-xs font-normal"
+                onClick={async () => {
+                    if (selectedSubmission && confirm("Purge this submission record permanently?")) {
+                        await deleteSubmission(selectedSubmission.id)
+                        setIsGradeOpen(false)
+                        toast.success("Submission entry purged successfully.")
+                    }
+                }}
             >
-              <span className="text-xs   font-normal text-white">Publish Academic Score</span>
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Entry</span>
             </Button>
+            <div className="flex gap-3">
+                <Button variant="ghost" onClick={() => setIsGradeOpen(false)} className="px-6 h-12 text-muted-foreground">
+                    <span className="text-xs font-normal">Discard</span>
+                </Button>
+                <Button 
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    if (selectedSubmission) {
+                      const score = parseFloat(gradeInput)
+                      if (isNaN(score) || score < 0 || score > assessment.totalMarks) {
+                        toast.error(`Please enter a valid marks between 0 and ${assessment.totalMarks}`)
+                        return
+                      }
+                      gradeSubmission(
+                        selectedSubmission.id, 
+                        score, 
+                        feedbackInput || ""
+                      )
+                      setIsGradeOpen(false)
+                      toast.success("Academic evaluation published successfully.")
+                    }
+                  }}
+                >
+                  <span className="text-xs font-normal text-white">Publish Academic Score</span>
+                </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

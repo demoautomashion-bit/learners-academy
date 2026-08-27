@@ -232,4 +232,17 @@ export async function gradeSubmission(id: string, grade: number, feedback: strin
   }
 }
 
+export async function deleteSubmission(id: string): Promise<ActionResult<void>> {
+  try {
+    await db.submission.delete({
+      where: { id }
+    })
+    return { success: true }
+  } catch (error) {
+    console.error('DATABASE_ERROR [deleteSubmission]:', error)
+    return { success: false, error: 'Failed to purge submission record' }
+  }
+}
+
+
 

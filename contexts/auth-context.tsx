@@ -67,11 +67,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setMounted(true)
   }, [])
 
-  // Initialize auth state from sessionStorage
+  // Helper to read storage seamlessly (localStorage first, sessionStorage fallback)
+  const getStoredAuth = () => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY)
+  }
+
+  const setStoredAuth = (dataStr: string) => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, dataStr)
+    } catch (_) {}
+    try {
+      sessionStorage.setItem(AUTH_STORAGE_KEY, dataStr)
+    } catch (_) {}
+  }
+
+  const removeStoredAuth = () => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY)
+    } catch (_) {}
+    try {
+      sessionStorage.removeItem(AUTH_STORAGE_KEY)
+    } catch (_) {}
+  }
+
+  // Initialize auth state from persistent storage
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        const stored = sessionStorage.getItem(AUTH_STORAGE_KEY)
+        const stored = getStoredAuth()
         if (stored) {
           const { token } = JSON.parse(stored)
           const validatedUser = validateToken(token)
@@ -86,12 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return
           } else {
             console.warn('[Auth] Stale or invalid session detected during hydration. Purging...')
-            sessionStorage.removeItem(AUTH_STORAGE_KEY)
+            removeStoredAuth()
           }
         }
       } catch (error) {
         console.error('[Auth] Initialization failure:', error)
-        sessionStorage.removeItem(AUTH_STORAGE_KEY)
+        removeStoredAuth()
       }
       
       setState(prev => ({ ...prev, user: null, isAuthenticated: false, isLoading: false }))
@@ -154,12 +180,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       // Clear old session storage to prevent stale role mismatches
-      sessionStorage.removeItem(AUTH_STORAGE_KEY)
+      removeStoredAuth()
 
       const session = await loginAction(credentials)
       
-      // Store in sessionStorage
-      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+      // Store in persistent storage
+      setStoredAuth(JSON.stringify({
         token: session.token,
         user: session.user,
         expiresAt: session.expiresAt,
@@ -189,8 +215,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const session = await registerAction(data)
       
-      // Store in sessionStorage
-      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+      // Store in persistent storage
+      setStoredAuth(JSON.stringify({
         token: session.token,
         user: session.user,
         expiresAt: session.expiresAt,
@@ -215,7 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       // Clear persistence and simulate logout
-      sessionStorage.removeItem(AUTH_STORAGE_KEY)
+      removeStoredAuth()
       // Purge any residual student assessment draft answers
       Object.keys(sessionStorage).forEach(key => {
         if (key.startsWith('assessment_answers_')) {

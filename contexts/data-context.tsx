@@ -14,7 +14,7 @@ import { getStudents, enrollStudent as dbEnrollStudent, removeStudent as dbRemov
 import { getCourses, addCourse as dbAddCourse, removeCourse as dbRemoveCourse, updateCourseStatus as dbUpdateCourseStatus, updateCourse as dbUpdateCourse, deleteAllCourses as dbDeleteAllCourses } from '@/lib/actions/courses'
 import { getQuestions, addQuestion as dbAddQuestion, bulkAddQuestions as dbBulkAddQuestions, deleteQuestion as dbDeleteQuestion, updateQuestion as dbUpdateQuestion, toggleQuestionApproval as dbApproveQuestion, deleteQuestionsByPhase as dbDeleteQuestionsByPhase } from '@/lib/actions/questions'
 import { getAssessments, publishAssessment as dbPublishAssessment, removeAssessment as dbRemoveAssessment, updateAssessmentReviewAction, updateAssessmentStatus as dbUpdateAssessmentStatus, deleteAssessmentsByPhase as dbDeleteAssessmentsByPhase } from '@/lib/actions/assessments'
-import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission } from '@/lib/actions/submissions'
+import { getSubmissions, submitTestResult as dbSubmitTestResult, gradeSubmission as dbGradeSubmission, deleteSubmission as dbDeleteSubmission } from '@/lib/actions/submissions'
 import { getFeePayments, recordPayment as dbRecordPayment, updateClassFee as dbUpdateClassFee, addFeeAccount as dbAddFeeAccount, deleteAllFeePayments as dbDeleteAllFeePayments } from '@/lib/actions/fees'
 import { getEconomicStats, addExpenditure as dbAddExpenditure, deleteAllEconomicsLogs as dbDeleteAllEconomicsLogs } from '@/lib/actions/economics'
 import { markAttendance as dbMarkAttendance, addAttendanceEvent as dbAddAttendanceEvent } from '@/lib/actions/attendance'
@@ -64,6 +64,7 @@ interface DataContextType {
   deleteAssessmentsByPhase: (phase: 'First Test' | 'Last Test' | 'Both') => Promise<void>
   submitTestResult: (result: StudentTest) => Promise<void>
   gradeSubmission: (id: string, grade: number, feedback: string) => Promise<void>
+  deleteSubmission: (id: string) => Promise<void>
   updateCourseProgress: (courseId: string, progress: number) => void
   addQuestion: (question: Question) => Promise<void>
   bulkAddQuestions: (questions: Question[]) => Promise<void>
@@ -194,6 +195,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     isRefreshingRef.current = true
     setIsLoading(true)
 
+    // Safety timeout to prevent background sync from ever permanently freezing page loading
+    const lockTimeout = setTimeout(() => {
+      isRefreshingRef.current = false
+    }, 5000)
+
     try {
       // We don't reset hasError here to avoid flickering if it's already set
       // setHasError(false)
@@ -256,6 +262,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setErrorMsg((err as any)?.message || "Automatic synchronization failed after retries.")
       toast.error("Institutional Link Disrupted")
     } finally {
+      clearTimeout(lockTimeout)
       setIsInitialized(true)
       setIsLoading(false)
       isRefreshingRef.current = false
@@ -428,7 +435,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteAllTeachers = useCallback(() => executeAction(() => dbDeleteAllTeachers(), "All staff cleared"), [executeAction])
 
   const submitTestResult = useCallback((r: StudentTest) => executeAction(() => dbSubmitTestResult(r, assessments.find(a => a.id === r.templateId)?.title || 'Test'), "Results stored"), [assessments, executeAction])
-  const gradeSubmission = useCallback((id: string, g: number, f: string) => executeAction(() => dbGradeSubmission(id, g, f), "Score recorded"), [executeAction])
+  const gradeSubmission = useCallback((id: string, g: number, f: string) => executeAction(async () => {
+    const res = await dbGradeSubmission(id, g, f)
+    if (res.success) {
+      setSubmissions(prev => prev.map(s => s.id === id ? { ...s, grade: g, feedback: f, status: 'graded' } : s))
+    }
+    return res
+  }, "Score recorded"), [executeAction])
+  const deleteSubmission = useCallback((id: string) => executeAction(async () => {
+    const res = await dbDeleteSubmission(id)
+    if (res.success) {
+      setSubmissions(prev => prev.filter(s => s.id !== id))
+    }
+    return res
+  }, "Submission record purged"), [executeAction])
   const addExpenditure = useCallback((d: any) => executeAction(() => dbAddExpenditure(d)), [executeAction])
   const recordPayment = useCallback((id: string, a: number) => executeAction(() => dbRecordPayment(id, a), "Payment captured"), [executeAction])
   const addFeeAccount = useCallback((d: any) => executeAction(() => dbAddFeeAccount(d), "Account initialized"), [executeAction])
@@ -489,7 +509,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   return (
     <DataContext.Provider value={{
       teachers, students, courses, timeSlots, assignments, submissions, stats, questions, assessments, economics, feePayments, enrollments, activities, attendance, evaluations, audioFiles, announcements, cardTemplates, isInitialized, isLoading, errorMsg,
-      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, updateCourseProgress, addQuestion, bulkAddQuestions, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, addAnnouncement, saveCardTemplate, deleteCardTemplate, resetToDefaults: () => {}, refresh, retryConnection,
+      enrollStudent, removeStudent, updateStudentStatus, updateStudent, updateStudentSuccessMetrics, publishAssessment, updateAssessmentStatus, removeAssessment, deleteAssessmentsByPhase, submitTestResult, gradeSubmission, deleteSubmission, updateCourseProgress, addQuestion, bulkAddQuestions, deleteQuestion, deleteQuestionsByPhase, updateQuestion, addTeacher, updateTeacherStatus, removeTeacher, addCourse, updateCourseStatus, updateCourse, removeCourse, addExpenditure, recordPayment, addFeeAccount, updateClassFee, addTimeSlot, removeTimeSlot, addCourseToSlot, removeCourseFromSlot, updateTeacher: updateTeacherProfile, updateTeacherReviewFlag, approveQuestion, approveAssessment, rejectAssessment, logActivity, markAttendance, addAttendanceEvent, saveEvaluations, uploadAudio, deleteAudio, addAnnouncement, saveCardTemplate, deleteCardTemplate, resetToDefaults: () => {}, refresh, retryConnection,
       deleteAllStudents, deleteAllCourses, deleteAllTimeSlots, deleteAllFeePayments, deleteAllEconomicsLogs, deleteAllTeachers,
     }}>
       {children}
