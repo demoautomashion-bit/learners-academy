@@ -76,6 +76,8 @@ export default function ClassWorkspacePage() {
   // Local State for Interactive Spreadsheet
   const [grades, setGrades] = useState<Record<string, Record<string, string>>>({})
   const [isSaving, setIsSaving] = useState(false)
+  const hasUserEditedRef = useRef(false)
+  const isHydratedRef = useRef(false)
 
   const course = courses?.find(c => c.id === courseId)
 
@@ -94,9 +96,11 @@ export default function ClassWorkspacePage() {
   useEffect(() => {
     if (!evaluations || !courseId) return;
     
+    // Protect active user edits while typing
+    if (hasUserEditedRef.current && isHydratedRef.current) return;
+    
     const initialGrades: Record<string, any> = {};
     evaluations.filter((e: any) => e.courseId === courseId).forEach((e: any) => {
-      // Find matching student object to get both id and studentId
       const matchedStudent = students?.find(s => s.id === e.studentId || s.studentId === e.studentId)
       
       const gradeObj = {
@@ -114,7 +118,9 @@ export default function ClassWorkspacePage() {
       const canonicalId = matchedStudent?.id || e.studentId
       initialGrades[canonicalId] = gradeObj
     });
+
     setGrades(initialGrades);
+    isHydratedRef.current = true;
   }, [evaluations, courseId, students]);
 
   if (!user?.id) return null
@@ -139,6 +145,7 @@ export default function ClassWorkspacePage() {
   }
 
   const handleScoreChange = (studentId: string, field: string, value: string) => {
+    hasUserEditedRef.current = true
     setGrades(prev => ({
       ...prev,
       [studentId]: {
@@ -193,6 +200,7 @@ export default function ClassWorkspacePage() {
       });
 
       await saveEvaluations(courseId, payload);
+      hasUserEditedRef.current = false;
     } catch (error) {
       toast.error("Cloud Sync Failed");
     } finally {
