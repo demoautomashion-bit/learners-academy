@@ -42,7 +42,7 @@ export default function AssessmentWorkspacePage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
-  const { assessments, submissions, students, enrollments, gradeSubmission, deleteSubmission, isInitialized } = useData()
+  const { assessments, submissions, students, enrollments, gradeSubmission, submitTestResult, deleteSubmission, isInitialized } = useData()
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null)
@@ -469,18 +469,31 @@ export default function AssessmentWorkspacePage() {
                 </Button>
                 <Button 
                   className="bg-primary hover:bg-primary/90"
-                  onClick={() => {
+                  onClick={async () => {
                     if (selectedSubmission) {
                       const score = parseFloat(gradeInput)
                       if (isNaN(score) || score < 0 || score > assessment.totalMarks) {
                         toast.error(`Please enter a valid marks between 0 and ${assessment.totalMarks}`)
                         return
                       }
-                      gradeSubmission(
-                        selectedSubmission.id, 
-                        score, 
-                        feedbackInput || ""
-                      )
+                      
+                      if (selectedSubmission.isPlaceholder || selectedSubmission.id?.startsWith('pending-')) {
+                        await submitTestResult({
+                          templateId: assessment.id,
+                          studentId: selectedSubmission.studentId,
+                          studentName: selectedSubmission.studentName,
+                          score: score,
+                          answers: {},
+                          feedback: feedbackInput || "Teacher evaluation recorded manually.",
+                          completedAt: new Date().toISOString()
+                        })
+                      } else {
+                        await gradeSubmission(
+                          selectedSubmission.id, 
+                          score, 
+                          feedbackInput || ""
+                        )
+                      }
                       setIsGradeOpen(false)
                       toast.success("Academic evaluation published successfully.")
                     }
