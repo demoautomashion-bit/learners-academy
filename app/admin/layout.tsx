@@ -157,6 +157,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, logout } = useAuth()
 
   // STRICT ACCESS CONTROL
@@ -194,7 +195,11 @@ export default function AdminLayout({
                               )}
                               tooltip={item.title}
                             >
-                              <Link href={item.href} className="flex items-center gap-3">
+                              <Link 
+                                href={item.href} 
+                                onClick={() => router.push(item.href)}
+                                className="flex items-center gap-3"
+                              >
                                 <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
                                 <span className="text-xs">{item.title}</span>
                               </Link>
@@ -221,7 +226,11 @@ export default function AdminLayout({
                                    isActive && !(pathname || '').includes(item.href) ? "bg-primary/5 text-primary" : ""
                                  )}
                               >
-                                <Link href={item.href} className="flex items-center gap-3 w-full">
+                                <Link 
+                                  href={item.href} 
+                                  onClick={() => router.push(item.href)}
+                                  className="flex items-center gap-3 w-full"
+                                >
                                   <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
                                   <span className="text-xs text-sidebar-foreground/80">{item.title}</span>
                                   <ChevronDown className="ml-auto w-4 h-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180 opacity-40 shrink-0" />
@@ -261,7 +270,11 @@ export default function AdminLayout({
                                                 : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 font-normal"
                                             )}
                                           >
-                                           <Link href={subItem.href} className="flex items-center gap-3">
+                                           <Link 
+                                             href={subItem.href} 
+                                             onClick={() => router.push(subItem.href)}
+                                             className="flex items-center gap-3"
+                                           >
                                              {subItem.icon && <subItem.icon className="w-3.5 h-3.5" />}
                                              <span>{subItem.title}</span>
                                            </Link>
