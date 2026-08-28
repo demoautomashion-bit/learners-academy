@@ -108,6 +108,14 @@ export default function ClassWorkspacePage() {
     })))
   }, [courseEvaluations])
 
+  // Automatically reset edit locks on unmount / route change so leaving the page is always non-blocking
+  useEffect(() => {
+    return () => {
+      hasUserEditedRef.current = false;
+      isHydratedRef.current = false;
+    };
+  }, [courseId]);
+
   useEffect(() => {
     if (!courseId) return;
     
