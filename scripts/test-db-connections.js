@@ -1,9 +1,9 @@
 const { PrismaClient } = require('@prisma/client')
 
-const primaryUrl = "postgresql://neondb_owner:npg_Ck5ASZcOEI3m@ep-rapid-king-amp4tewt-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require"
+const secondaryUrl = "postgresql://neondb_owner:npg_RgfXHC5sDt4B@ep-nameless-hat-ayt8ljjn.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require"
 const thirdUrl = "postgresql://neondb_owner:npg_frCP0eoc5pDu@ep-autumn-dew-a59b4nu1-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
-const primary = new PrismaClient({ datasources: { db: { url: primaryUrl } } })
+const secondary = new PrismaClient({ datasources: { db: { url: secondaryUrl } } })
 const third = new PrismaClient({ datasources: { db: { url: thirdUrl } } })
 
 async function checkCounts() {
@@ -15,20 +15,20 @@ async function checkCounts() {
   ]
 
   console.log("==================================================")
-  console.log("   RECORD COUNTS: ORIGINAL PRIMARY vs 3RD DB      ")
+  console.log("   RECORD COUNTS: SECONDARY (UPDATED) vs 3RD DB   ")
   console.log("==================================================")
-  console.log(`Model               | Primary DB | 3rd DB`)
+  console.log(`Model               | Secondary (Source) | 3rd DB (Current)`)
   console.log("--------------------------------------------------")
 
   for (const m of models) {
-    let countP = 0
+    let countS = 0
     let countT = 0
-    try { countP = await primary[m].count() } catch (e) { countP = 'ERR' }
+    try { countS = await secondary[m].count() } catch (e) { countS = 'ERR' }
     try { countT = await third[m].count() } catch (e) { countT = 'ERR' }
-    console.log(`${m.padEnd(19)} | ${String(countP).padEnd(10)} | ${countT}`)
+    console.log(`${m.padEnd(19)} | ${String(countS).padEnd(18)} | ${countT}`)
   }
 
-  await primary.$disconnect()
+  await secondary.$disconnect()
   await third.$disconnect()
 }
 
