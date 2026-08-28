@@ -238,7 +238,6 @@ export default function TeacherLayout({
                                       >
                                        <Link 
                                          href={subItem.href} 
-                                         onClick={() => router.push(subItem.href)}
                                          className="flex items-center gap-3"
                                        >
                                          {subItem.icon && <subItem.icon className="w-3.5 h-3.5" />}

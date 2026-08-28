@@ -197,7 +197,6 @@ export default function AdminLayout({
                             >
                               <Link 
                                 href={item.href} 
-                                onClick={() => router.push(item.href)}
                                 className="flex items-center gap-3"
                               >
                                 <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
@@ -267,7 +266,6 @@ export default function AdminLayout({
                                           >
                                            <Link 
                                              href={subItem.href} 
-                                             onClick={() => router.push(subItem.href)}
                                              className="flex items-center gap-3"
                                            >
                                              {subItem.icon && <subItem.icon className="w-3.5 h-3.5" />}
