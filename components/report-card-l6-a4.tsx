@@ -43,6 +43,7 @@ export function ReportCardL6A4({
   sequenceNumber = 1
 }: LevelSixTranscriptProps) {
   const defaultDateOfCompletion = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const defaultTranscriptNo = generateTranscriptNumber('Level Six', sequenceNumber)
 
   const [values, setValues] = useState<LevelSixTranscriptValues>({
     studentName: '',
