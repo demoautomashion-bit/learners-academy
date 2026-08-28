@@ -226,34 +226,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
       retryCountRef.current = 0
       setErrorMsg(null)
 
-      startTransition(() => {
-        const d = initRes.data
-        setTeachers(Array.isArray(d.teachers) ? d.teachers : [])
-        setStudents(Array.isArray(d.students) ? d.students : [])
-        setCourses(Array.isArray(d.courses) ? d.courses : [])
-        setTimeSlots(Array.isArray(d.timeSlots) ? d.timeSlots : [])
-        setQuestions(Array.isArray(d.questions) ? d.questions : [])
-        setAssessments(Array.isArray(d.assessments) ? d.assessments : [])
-        setSubmissions(Array.isArray(d.submissions) ? d.submissions : [])
-        setAssignments(Array.isArray(d.assignments) ? d.assignments : [])
-        setEnrollments(Array.isArray(d.enrollments) ? d.enrollments : [])
-        setActivities(Array.isArray(d.activities) ? d.activities : [])
-        setAttendance(Array.isArray(d.attendance) ? d.attendance : [])
-        
-        if (econData && econData.success) {
-          setEconomics(econData.data)
-          setFeePayments(econData.data?.feePayments || [])
-        }
-        
-        setEvaluations(Array.isArray(d.evaluations) ? d.evaluations : [])
+      const d = initRes.data
+      setTeachers(Array.isArray(d.teachers) ? d.teachers : [])
+      setStudents(Array.isArray(d.students) ? d.students : [])
+      setCourses(Array.isArray(d.courses) ? d.courses : [])
+      setTimeSlots(Array.isArray(d.timeSlots) ? d.timeSlots : [])
+      setQuestions(Array.isArray(d.questions) ? d.questions : [])
+      setAssessments(Array.isArray(d.assessments) ? d.assessments : [])
+      setSubmissions(Array.isArray(d.submissions) ? d.submissions : [])
+      setAssignments(Array.isArray(d.assignments) ? d.assignments : [])
+      setEnrollments(Array.isArray(d.enrollments) ? d.enrollments : [])
+      setActivities(Array.isArray(d.activities) ? d.activities : [])
+      setAttendance(Array.isArray(d.attendance) ? d.attendance : [])
+      
+      if (econData && econData.success) {
+        setEconomics(econData.data)
+        setFeePayments(econData.data?.feePayments || [])
+      }
+      
+      setEvaluations(Array.isArray(d.evaluations) ? d.evaluations : [])
 
-        if (audioRes?.success) {
-           setAudioFiles(audioRes.data as any)
-        }
+      if (audioRes?.success) {
+         setAudioFiles(audioRes.data as any)
+      }
 
-        setAnnouncements(Array.isArray(announcementsData) ? announcementsData : [])
-        setCardTemplates(templatesRes && templatesRes.success && Array.isArray(templatesRes.data) ? templatesRes.data : [])
-      })
+      setAnnouncements(Array.isArray(announcementsData) ? announcementsData : [])
+      setCardTemplates(templatesRes && templatesRes.success && Array.isArray(templatesRes.data) ? templatesRes.data : [])
     } catch (err) {
       console.error('[DataProvider] SYNC_FAILURE:', err)
       
