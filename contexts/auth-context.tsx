@@ -67,16 +67,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setMounted(true)
   }, [])
 
-  // Helper to read storage seamlessly (localStorage first, sessionStorage fallback)
+  // Helper to read storage strictly from sessionStorage (tab/window session level)
   const getStoredAuth = () => {
     if (typeof window === 'undefined') return null
-    return localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY)
+    return sessionStorage.getItem(AUTH_STORAGE_KEY)
   }
 
   const setStoredAuth = (dataStr: string) => {
     if (typeof window === 'undefined') return
     try {
-      localStorage.setItem(AUTH_STORAGE_KEY, dataStr)
+      localStorage.removeItem(AUTH_STORAGE_KEY) // Purge legacy persistent storage
     } catch (_) {}
     try {
       sessionStorage.setItem(AUTH_STORAGE_KEY, dataStr)
