@@ -93,14 +93,29 @@ export default function ClassWorkspacePage() {
   // useEffect is correct here — useMemo must not have side effects (setState).
   // On refresh, this resets grades to the last saved DB state, discarding any
   // unsaved edits instead of crashing with React Error #310.
+  const courseEvaluations = useMemo(() => {
+    return (evaluations || []).filter((e: any) => e.courseId === courseId)
+  }, [evaluations, courseId])
+
+  const courseEvaluationsKey = useMemo(() => {
+    return JSON.stringify(courseEvaluations.map((e: any) => ({
+      id: e.id,
+      studentId: e.studentId,
+      updatedAt: e.updatedAt,
+      scores: e.scores,
+      midterm: e.midterm,
+      final: e.final
+    })))
+  }, [courseEvaluations])
+
   useEffect(() => {
-    if (!evaluations || !courseId) return;
+    if (!courseId) return;
     
     // Protect active user edits while typing
     if (hasUserEditedRef.current && isHydratedRef.current) return;
     
     const initialGrades: Record<string, any> = {};
-    evaluations.filter((e: any) => e.courseId === courseId).forEach((e: any) => {
+    courseEvaluations.forEach((e: any) => {
       const matchedStudent = students?.find(s => s.id === e.studentId || s.studentId === e.studentId)
       
       const gradeObj = {
@@ -121,7 +136,7 @@ export default function ClassWorkspacePage() {
 
     setGrades(initialGrades);
     isHydratedRef.current = true;
-  }, [evaluations, courseId, students]);
+  }, [courseEvaluationsKey, courseId, students]);
 
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
@@ -200,10 +215,10 @@ export default function ClassWorkspacePage() {
       });
 
       await saveEvaluations(courseId, payload);
-      hasUserEditedRef.current = false;
     } catch (error) {
       toast.error("Cloud Sync Failed");
     } finally {
+      hasUserEditedRef.current = false;
       setIsSaving(false);
     }
   }
