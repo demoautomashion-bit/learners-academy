@@ -244,11 +244,11 @@ async function renderStudentCanvas(
   // Student Info Overlay Text
   const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', sequenceNumber)
   const defaultDateComp = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-  const nameY = 20.2
-  const fatherY = 22.3
-  const progY = 24.4
-  const dateY = 26.5
-  const trY = 28.6
+  const nameY = 20.9
+  const fatherY = 23.0
+  const progY = 25.1
+  const dateY = 27.2
+  const trY = 29.3
 
   drawLeftText(v.studentName || studentName || '', 39.0, nameY, 24, '700')
   drawLeftText(v.fatherName || '', 45.5, fatherY, 24, '700')
@@ -259,14 +259,14 @@ async function renderStudentCanvas(
   // Obtained Marks Table (Column Center X = 84.7%)
   const colCenterX = 84.7
 
-  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, 38.8, 25, '700')
-  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, 42.6, 25, '700')
-  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, 46.4, 25, '700')
-  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, 50.2, 25, '700')
-  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, 53.8, 25, '700')
-  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, 57.5, 25, '700')
-  drawCenterText((v as any).participationMarks ?? '', colCenterX, 61.2, 25, '700')
-  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, 64.9, 25, '700')
+  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, 39.8, 25, '700')
+  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, 43.6, 25, '700')
+  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, 47.4, 25, '700')
+  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, 51.2, 25, '700')
+  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, 54.8, 25, '700')
+  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, 58.5, 25, '700')
+  drawCenterText((v as any).participationMarks ?? '', colCenterX, 62.2, 25, '700')
+  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, 65.9, 25, '700')
 
   // Grand Total
   const componentsList = [
@@ -281,14 +281,14 @@ async function renderStudentCanvas(
   ]
   const calcTotalScore = componentsList.reduce((sum: number, item) => sum + (parseFloat(String(item)) || 0), 0)
   const displayScore = (v as any).totalScore !== undefined && (v as any).totalScore !== '' ? String((v as any).totalScore) : String(calcTotalScore)
-  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, 68.6, 25, '700')
+  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, 69.6, 25, '700')
 
   // Academic Standing
   const calcPct = calcTotalScore > 0 ? ((calcTotalScore / 600) * 100).toFixed(1) + '%' : ''
   const tlaGrade = getTLAGrading(calcTotalScore > 0 ? (calcTotalScore / 600) * 100 : 0)
 
-  const standY1 = 74.9
-  const standY2 = 77.9
+  const standY1 = 75.7
+  const standY2 = 78.7
 
   drawLeftText(displayScore !== '0' ? displayScore : '', 43.5, standY1, 23, '700')
   drawLeftText(v.percentage || calcPct, 66.5, standY1, 23, '700')
