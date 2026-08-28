@@ -78,6 +78,7 @@ export default function ClassWorkspacePage() {
   const [isSaving, setIsSaving] = useState(false)
   const hasUserEditedRef = useRef(false)
   const isHydratedRef = useRef(false)
+  const lastHydratedCourseIdRef = useRef<string | null>(null)
 
   const course = courses?.find(c => c.id === courseId)
 
@@ -93,26 +94,11 @@ export default function ClassWorkspacePage() {
   // useEffect is correct here — useMemo must not have side effects (setState).
   // On refresh, this resets grades to the last saved DB state, discarding any
   // unsaved edits instead of crashing with React Error #310.
-  const courseEvaluations = useMemo(() => {
-    return (evaluations || []).filter((e: any) => e.courseId === courseId)
-  }, [evaluations, courseId])
-
-  const courseEvaluationsKey = useMemo(() => {
-    return JSON.stringify(courseEvaluations.map((e: any) => ({
-      id: e.id,
-      studentId: e.studentId,
-      updatedAt: e.updatedAt,
-      scores: e.scores,
-      midterm: e.midterm,
-      final: e.final
-    })))
-  }, [courseEvaluations])
-
-  // Automatically reset edit locks on unmount / route change so leaving the page is always non-blocking
   useEffect(() => {
     return () => {
       hasUserEditedRef.current = false;
       isHydratedRef.current = false;
+      lastHydratedCourseIdRef.current = null;
     };
   }, [courseId]);
 
@@ -122,8 +108,13 @@ export default function ClassWorkspacePage() {
     // Protect active user edits while typing
     if (hasUserEditedRef.current && isHydratedRef.current) return;
     
+    // Single-hydration check: if already hydrated for this courseId, do not re-run setGrades on context ref changes
+    if (lastHydratedCourseIdRef.current === courseId && isHydratedRef.current && !hasUserEditedRef.current) return;
+
     const initialGrades: Record<string, any> = {};
-    courseEvaluations.forEach((e: any) => {
+    const filteredEvals = (evaluations || []).filter((e: any) => e.courseId === courseId);
+
+    filteredEvals.forEach((e: any) => {
       const matchedStudent = students?.find(s => s.id === e.studentId || s.studentId === e.studentId)
       
       const gradeObj = {
@@ -144,7 +135,8 @@ export default function ClassWorkspacePage() {
 
     setGrades(initialGrades);
     isHydratedRef.current = true;
-  }, [courseEvaluationsKey, courseId, students]);
+    lastHydratedCourseIdRef.current = courseId;
+  }, [courseId, evaluations, students]);
 
   if (!user?.id) return null
   if (!isInitialized) return <DashboardSkeleton />
