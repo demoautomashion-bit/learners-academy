@@ -219,22 +219,17 @@ export default function AdminLayout({
                             <CollapsibleTrigger asChild>
                               <SidebarMenuButton 
                                  isActive={isActive} 
-                                 asChild
                                  tooltip={item.title}
                                  className={cn(
-                                   "transition-all duration-300 h-10 px-4 ",
+                                   "transition-all duration-300 h-10 px-4 cursor-pointer",
                                    isActive && !(pathname || '').includes(item.href) ? "bg-primary/5 text-primary" : ""
                                  )}
                               >
-                                <Link 
-                                  href={item.href} 
-                                  onClick={() => router.push(item.href)}
-                                  className="flex items-center gap-3 w-full"
-                                >
+                                <div className="flex items-center gap-3 w-full">
                                   <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground opacity-60")} />
                                   <span className="text-xs text-sidebar-foreground/80">{item.title}</span>
                                   <ChevronDown className="ml-auto w-4 h-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180 opacity-40 shrink-0" />
-                                </Link>
+                                </div>
                               </SidebarMenuButton>
                             </CollapsibleTrigger>
                             <CollapsibleContent asChild>
