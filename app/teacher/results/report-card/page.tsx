@@ -244,11 +244,11 @@ async function renderStudentCanvas(
   // Student Info Overlay Text
   const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', sequenceNumber)
   const defaultDateComp = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-  const nameY = isL6 ? 20.9 : 20.1
-  const fatherY = isL6 ? 23.0 : 22.2
-  const progY = isL6 ? 25.1 : 24.3
-  const dateY = isL6 ? 27.2 : 26.4
-  const trY = isL6 ? 29.3 : 28.5
+  const nameY = isL6 ? 20.9 : 20.9
+  const fatherY = isL6 ? 23.0 : 23.0
+  const progY = isL6 ? 25.1 : 25.1
+  const dateY = isL6 ? 27.2 : 27.2
+  const trY = isL6 ? 29.3 : 29.3
 
   drawLeftText(v.studentName || studentName || '', 39.0, nameY, 24, '700')
   drawLeftText(v.fatherName || '', 45.5, fatherY, 24, '700')
@@ -287,8 +287,8 @@ async function renderStudentCanvas(
   const calcPct = calcTotalScore > 0 ? ((calcTotalScore / 600) * 100).toFixed(1) + '%' : ''
   const tlaGrade = getTLAGrading(calcTotalScore > 0 ? (calcTotalScore / 600) * 100 : 0)
 
-  const standY1 = isL6 ? 76.1 : 75.3
-  const standY2 = isL6 ? 79.1 : 78.3
+  const standY1 = 76.1
+  const standY2 = 79.1
 
   drawLeftText(displayScore !== '0' ? displayScore : '', 43.5, standY1, 23, '700')
   drawLeftText(v.percentage || calcPct, 66.5, standY1, 23, '700')
