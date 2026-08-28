@@ -196,9 +196,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setIsInitialized(true)
       return
     }
-    
     isRefreshingRef.current = true
-    setIsLoading(true)
+    if (!isInitialized) {
+      setIsLoading(true)
+    }
 
     // Safety timeout to prevent background sync from ever permanently freezing page loading
     const lockTimeout = setTimeout(() => {
