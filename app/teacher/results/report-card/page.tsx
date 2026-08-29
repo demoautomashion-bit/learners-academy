@@ -242,33 +242,45 @@ async function renderStudentCanvas(
   }
 
   // Student Info Overlay Text
+  // X positions match preview card left: 52.0% exactly
+  // Y positions: L6 card top values are offset +0.9% to account for the label gap;
+  // for the canvas we use midpoint of each input (top + height/2).
+  // Preview heights are 1.9%, so midpoint = top + 0.95%
   const defaultTrNo = generateTranscriptNumber(isL6 ? 'Level Six' : 'Advanced', sequenceNumber)
   const defaultDateComp = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-  const nameY = isL6 ? 20.9 : 20.9
-  const fatherY = isL6 ? 23.0 : 23.0
-  const progY = isL6 ? 25.1 : 25.1
-  const dateY = isL6 ? 27.2 : 27.2
-  const trY = isL6 ? 29.3 : 29.3
 
-  drawLeftText(v.studentName || studentName || '', 39.0, nameY, 24, '700')
-  drawLeftText(v.fatherName || '', 45.5, fatherY, 24, '700')
-  drawLeftText(v.level || (isL6 ? 'Level Six' : 'Advanced'), 48.0, progY, 24, '700')
+  // Student info Y midpoints (top + 0.95) — using exact preview top values per card type
+  const nameY  = isL6 ? (20.0 + 0.95) : (19.3 + 0.95)   // L6: top 20.0%, Adv: top 19.3%
+  const fatherY = isL6 ? (22.1 + 0.95) : (21.4 + 0.95)  // L6: top 22.1%, Adv: top 21.4%
+  const progY  = isL6 ? (24.2 + 0.95) : (23.5 + 0.95)   // L6: top 24.2%, Adv: top 23.5%
+  const dateY  = isL6 ? (26.3 + 0.95) : (25.6 + 0.95)   // L6: top 26.3%, Adv: top 25.6%
+  const trY    = isL6 ? (28.4 + 0.95) : (27.7 + 0.95)   // L6: top 28.4%, Adv: top 27.7%
+
+  // All student info fields left-align at 52% (matching preview left: 52.0%)
+  drawLeftText(v.studentName || studentName || '', 52.0, nameY, 24, '700')
+  drawLeftText(v.fatherName || '', 52.0, fatherY, 24, '700')
+  drawLeftText(v.level || (isL6 ? 'Level Six' : 'Advanced'), 52.0, progY, 24, '700')
   drawLeftText(v.dateOfCompletion || v.dateOfIssue || defaultDateComp, 52.0, dateY, 24, '700')
-  drawLeftText((v as any).transcriptNo || defaultTrNo, 46.5, trY, 24, '700')
+  drawLeftText((v as any).transcriptNo || defaultTrNo, 52.0, trY, 24, '700')
 
-  // Obtained Marks Table (Column Center X = 84.7%)
-  const colCenterX = 84.7
+  // Obtained Marks Table
+  // Preview: left 75.5%, width 18.5% → center X = 75.5 + 18.5/2 = 84.75%
+  // Row heights are 3.2% → midpoint = top + 1.6%
+  const colCenterX = 84.75
 
-  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, 40.2, 25, '700')
-  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, 44.0, 25, '700')
-  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, 47.8, 25, '700')
-  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, 51.6, 25, '700')
-  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, 55.2, 25, '700')
-  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, 58.9, 25, '700')
-  drawCenterText((v as any).participationMarks ?? '', colCenterX, 62.6, 25, '700')
-  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, 66.3, 25, '700')
+  // L6 tops: 38.6, 42.4, 46.2, 50.0, 53.6, 57.3, 61.0, 64.7
+  // Adv tops: 37.1, 40.9, 44.7, 48.5, 52.1, 55.8, 59.5, 63.2
+  drawCenterText((v as any).listeningMarks ?? v.midtermObtained ?? '', colCenterX, (isL6 ? 38.6 : 37.1) + 1.6, 25, '700')
+  drawCenterText((v as any).speakingMarks ?? v.finalObtained ?? '', colCenterX, (isL6 ? 42.4 : 40.9) + 1.6, 25, '700')
+  drawCenterText((v as any).readingMarks ?? v.attendanceObtained ?? '', colCenterX, (isL6 ? 46.2 : 44.7) + 1.6, 25, '700')
+  drawCenterText((v as any).writingMarks ?? v.participationObtained ?? '', colCenterX, (isL6 ? 50.0 : 48.5) + 1.6, 25, '700')
+  drawCenterText((v as any).grammarMarks ?? v.disciplineObtained ?? '', colCenterX, (isL6 ? 53.6 : 52.1) + 1.6, 25, '700')
+  drawCenterText((v as any).attendanceMarks ?? '', colCenterX, (isL6 ? 57.3 : 55.8) + 1.6, 25, '700')
+  drawCenterText((v as any).participationMarks ?? '', colCenterX, (isL6 ? 61.0 : 59.5) + 1.6, 25, '700')
+  drawCenterText((v as any).disciplineMarks ?? '', colCenterX, (isL6 ? 64.7 : 63.2) + 1.6, 25, '700')
 
-  // Grand Total
+  // Grand Total row (height 3.3% → midpoint + 1.65)
+  // L6 top: 68.4%, Adv top: 66.9%
   const componentsList = [
     (v as any).listeningMarks ?? v.midtermObtained ?? 0,
     (v as any).speakingMarks ?? v.finalObtained ?? 0,
@@ -281,14 +293,18 @@ async function renderStudentCanvas(
   ]
   const calcTotalScore = componentsList.reduce((sum: number, item) => sum + (parseFloat(String(item)) || 0), 0)
   const displayScore = (v as any).totalScore !== undefined && (v as any).totalScore !== '' ? String((v as any).totalScore) : String(calcTotalScore)
-  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, 70.0, 25, '700')
+  drawCenterText(displayScore !== '0' ? displayScore : '', colCenterX, (isL6 ? 68.4 : 66.9) + 1.65, 25, '700')
 
   // Academic Standing
+  // Preview positions (height 1.9% → midpoint = top + 0.95):
+  // L6:  standY1 top 75.2%, standY2 top 78.2%
+  // Adv: standY1 top 74.5%, standY2 top 77.5%
+  // Left positions: totalScore at 43.5%, percentage at 66.5%, grade at 43.5%, remarks at 64.5%
   const calcPct = calcTotalScore > 0 ? ((calcTotalScore / 600) * 100).toFixed(1) + '%' : ''
   const tlaGrade = getTLAGrading(calcTotalScore > 0 ? (calcTotalScore / 600) * 100 : 0)
 
-  const standY1 = 76.1
-  const standY2 = 79.1
+  const standY1 = (isL6 ? 75.2 : 74.5) + 0.95
+  const standY2 = (isL6 ? 78.2 : 77.5) + 0.95
 
   drawLeftText(displayScore !== '0' ? displayScore : '', 43.5, standY1, 23, '700')
   drawLeftText(v.percentage || calcPct, 66.5, standY1, 23, '700')
