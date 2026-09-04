@@ -42,6 +42,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/auth-context'
 import { cn } from '@/lib/utils'
+import { exportSyllabusToWord, exportSyllabusToPDF } from '@/lib/export-utils'
 
 // Pre-defined CEFR Options & Presets
 const CEFR_LEVELS = [
@@ -123,10 +124,18 @@ export default function LessonGeneratorPage() {
     setTags(tagsList.filter(t => t !== tagToRemove))
   }
 
-  // Trigger Mock File Download
+  // Trigger Real File Download
   const handleDownloadFile = (ext: string) => {
+    if (!generatedResult) return
     const title = generatedResult?.title || 'Academic_Syllabus'
-    setDownloadToast(`Downloading ${title}.${ext}...`)
+    setDownloadToast(`Exporting ${title}.${ext}...`)
+
+    if (ext === 'docx' || ext === 'doc') {
+      exportSyllabusToWord(generatedResult)
+    } else if (ext === 'pdf') {
+      exportSyllabusToPDF(generatedResult)
+    }
+
     setTimeout(() => {
       setDownloadToast(null)
     }, 2500)
@@ -334,13 +343,13 @@ export default function LessonGeneratorPage() {
       {/* Toast Download Notification */}
       {downloadToast && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="fixed top-6 right-6 z-50 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg shadow-lg text-xs font-semibold flex items-center gap-2"
+          initial={{ opacity: 0, y: -10, x: '-50%' }}
+          animate={{ opacity: 1, y: 0, x: '-50%' }}
+          exit={{ opacity: 0, y: -10, x: '-50%' }}
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-5 py-2.5 rounded-full shadow-xl border border-primary/20 text-xs font-semibold flex items-center gap-2 max-w-[90vw] whitespace-nowrap"
         >
-          <Download className="w-4 h-4 animate-bounce" />
-          {downloadToast}
+          <Download className="w-4 h-4 animate-bounce shrink-0" />
+          <span>{downloadToast}</span>
         </motion.div>
       )}
 
@@ -720,13 +729,13 @@ export default function LessonGeneratorPage() {
             </CardContent>
 
             {/* Wizard Navigation Footer */}
-            <CardFooter className="border-t border-border pt-4 flex items-center justify-between gap-3">
+            <CardFooter className="border-t border-border pt-4 flex flex-col-reverse xs:flex-row items-stretch xs:items-center justify-between gap-3">
               {currentStep > 1 ? (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentStep((currentStep - 1) as any)}
-                  className="gap-1 text-xs shrink-0"
+                  className="gap-1 text-xs shrink-0 w-full xs:w-auto"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   Back
@@ -737,7 +746,7 @@ export default function LessonGeneratorPage() {
                 <Button
                   size="sm"
                   onClick={() => setCurrentStep((currentStep + 1) as any)}
-                  className="gap-1 text-xs ml-auto shrink-0"
+                  className="gap-1 text-xs ml-auto shrink-0 w-full xs:w-auto"
                 >
                   Next Step
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -746,7 +755,7 @@ export default function LessonGeneratorPage() {
                 <Button
                   onClick={handleGenerate}
                   disabled={isGenerating || (grammarTags.length === 0 && !grammarInput.trim())}
-                  className="flex-1 text-xs font-semibold gap-2 py-5 shadow-sm ml-auto"
+                  className="w-full xs:flex-1 text-xs font-semibold gap-2 py-5 shadow-sm ml-auto"
                 >
                   {isGenerating ? (
                     <>
@@ -755,8 +764,9 @@ export default function LessonGeneratorPage() {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Generate {syllabusScope === 'term' ? 'Full 3-Month Term Roadmap' : 'Single Plan'}</span>
+                      <Sparkles className="w-4 h-4 shrink-0" />
+                      <span className="hidden sm:inline">Generate {syllabusScope === 'term' ? 'Full 3-Month Term Roadmap' : 'Single Plan'}</span>
+                      <span className="inline sm:hidden">Generate {syllabusScope === 'term' ? '3-Month Roadmap' : 'Single Plan'}</span>
                     </>
                   )}
                 </Button>

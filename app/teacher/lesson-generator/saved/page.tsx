@@ -27,6 +27,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
+import { cn } from '@/lib/utils'
+import { exportSyllabusToWord, exportSyllabusToPDF } from '@/lib/export-utils'
 
 export default function SavedSyllabiPage() {
   const { user } = useAuth()
@@ -86,8 +88,17 @@ export default function SavedSyllabiPage() {
     return matchesSearch && matchesCefr && matchesType
   })
 
-  const triggerDownload = (fileName: string, fileType: string) => {
-    setDownloadToast(`Preparing ${fileName}.${fileType} download...`)
+  const triggerDownload = (item: any, fileType: string) => {
+    if (!item) return
+    const title = item.title || 'Academic_Syllabus'
+    setDownloadToast(`Preparing ${title}.${fileType} download...`)
+
+    if (fileType === 'docx' || fileType === 'doc') {
+      exportSyllabusToWord(item)
+    } else if (fileType === 'pdf') {
+      exportSyllabusToPDF(item)
+    }
+
     setTimeout(() => {
       setDownloadToast(null)
     }, 2500)
@@ -113,13 +124,13 @@ export default function SavedSyllabiPage() {
       {/* Download Toast Notification */}
       {downloadToast && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="fixed top-6 right-6 z-50 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg shadow-lg text-xs font-semibold flex items-center gap-2"
+          initial={{ opacity: 0, y: -10, x: '-50%' }}
+          animate={{ opacity: 1, y: 0, x: '-50%' }}
+          exit={{ opacity: 0, y: -10, x: '-50%' }}
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-5 py-2.5 rounded-full shadow-xl border border-primary/20 text-xs font-semibold flex items-center gap-2 max-w-[90vw] whitespace-nowrap"
         >
-          <Download className="w-4 h-4 animate-bounce" />
-          {downloadToast}
+          <Download className="w-4 h-4 animate-bounce shrink-0" />
+          <span>{downloadToast}</span>
         </motion.div>
       )}
 
@@ -301,7 +312,7 @@ export default function SavedSyllabiPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => triggerDownload(previewItem.title, 'pdf')}
+                  onClick={() => triggerDownload(previewItem, 'pdf')}
                   className="text-xs gap-1.5"
                 >
                   <Download className="w-3.5 h-3.5 text-primary" />
@@ -310,7 +321,7 @@ export default function SavedSyllabiPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => triggerDownload(previewItem.title, 'docx')}
+                  onClick={() => triggerDownload(previewItem, 'docx')}
                   className="text-xs gap-1.5"
                 >
                   <FileText className="w-3.5 h-3.5" />
