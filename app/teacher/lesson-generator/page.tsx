@@ -174,7 +174,28 @@ export default function LessonGeneratorPage() {
 
   // Dynamic Generation Engine based on teacher inputs
   const handleGenerate = () => {
-    if (grammarTags.length === 0 && !grammarInput.trim()) return
+    let activeGrammar = [...grammarTags]
+    if (grammarInput.trim() && !activeGrammar.includes(grammarInput.trim())) {
+      activeGrammar.push(grammarInput.trim())
+      setGrammarTags(activeGrammar)
+      setGrammarInput('')
+    }
+
+    let activeVocab = [...vocabTags]
+    if (vocabInput.trim() && !activeVocab.includes(vocabInput.trim())) {
+      activeVocab.push(vocabInput.trim())
+      setVocabTags(activeVocab)
+      setVocabInput('')
+    }
+
+    let activeIdioms = [...idiomTags]
+    if (idiomsInput.trim() && !activeIdioms.includes(idiomsInput.trim())) {
+      activeIdioms.push(idiomsInput.trim())
+      setIdiomTags(activeIdioms)
+      setIdiomsInput('')
+    }
+
+    if (activeGrammar.length === 0) return
 
     setIsGenerating(true)
     setGenerationStep(1)
@@ -340,26 +361,41 @@ export default function LessonGeneratorPage() {
       />
 
       {/* Main Scope Switcher Header */}
-      <div className="flex items-center gap-3 mt-6 bg-card border border-border p-2 rounded-xl">
-        <span className="text-xs font-semibold text-muted-foreground px-2">Generation Scope:</span>
-        <Button
-          variant={syllabusScope === 'single' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setSyllabusScope('single')}
-          className="text-xs gap-1.5 flex-1 md:flex-none"
-        >
-          <Clock className="w-3.5 h-3.5" />
-          Single Session Plan (30-90m)
-        </Button>
-        <Button
-          variant={syllabusScope === 'term' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setSyllabusScope('term')}
-          className="text-xs gap-1.5 flex-1 md:flex-none"
-        >
-          <Calendar className="w-3.5 h-3.5" />
-          Full 3-Month Term Roadmap (12 Weeks)
-        </Button>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-6 bg-card border border-border p-2.5 rounded-xl shadow-sm">
+        <div className="flex items-center gap-2 px-1">
+          <Layers className="w-4 h-4 text-primary shrink-0" />
+          <span className="text-xs font-semibold text-foreground tracking-tight">Generation Scope:</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+          <Button
+            variant={syllabusScope === 'single' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setSyllabusScope('single')}
+            className={cn(
+              'text-xs gap-1.5 h-9 px-3 font-medium transition-all rounded-lg text-center',
+              syllabusScope === 'single'
+                ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Clock className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Single Session Plan</span>
+          </Button>
+          <Button
+            variant={syllabusScope === 'term' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setSyllabusScope('term')}
+            className={cn(
+              'text-xs gap-1.5 h-9 px-3 font-medium transition-all rounded-lg text-center',
+              syllabusScope === 'term'
+                ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">3-Month Term Roadmap</span>
+          </Button>
+        </div>
       </div>
 
       {/* Main Grid Layout */}
@@ -551,20 +587,20 @@ export default function LessonGeneratorPage() {
                         {selectedCefr} Level
                       </Badge>
                     </Label>
-                    <div className="grid grid-cols-6 gap-1.5">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
                       {CEFR_LEVELS.map((item) => (
                         <button
                           key={item.level}
                           type="button"
                           onClick={() => setSelectedCefr(item.level)}
                           className={cn(
-                            'py-2.5 px-1 rounded-lg text-xs font-bold transition-all border text-center',
+                            'py-2.5 px-2 rounded-lg text-xs font-bold transition-all border text-center flex flex-col items-center justify-center gap-0.5',
                             selectedCefr === item.level
                               ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                               : 'bg-background border-border text-muted-foreground hover:bg-accent'
                           )}
                         >
-                          {item.level}
+                          <span>{item.level}</span>
                         </button>
                       ))}
                     </div>
@@ -734,7 +770,7 @@ export default function LessonGeneratorPage() {
           <Card className="border-border bg-card shadow-sm min-h-[600px] flex flex-col">
             
             {/* Header Toolbar */}
-            <div className="p-4 md:p-5 border-b border-border flex flex-wrap items-center justify-between gap-3">
+            <div className="p-4 md:p-5 border-b border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
                   <FileText className="w-4 h-4 text-primary" />
@@ -746,42 +782,42 @@ export default function LessonGeneratorPage() {
               </div>
 
               {generatedResult && (
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
                   {/* Real Database Save Action */}
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={handleSaveToDatabase}
                     disabled={isSaving || isSaved}
-                    className="text-xs gap-1.5"
+                    className="text-xs gap-1.5 h-9 justify-center"
                   >
                     <BookmarkPlus className="w-3.5 h-3.5 text-primary" />
-                    {isSaving ? 'Saving to DB...' : isSaved ? 'Saved to DB' : 'Save to Library'}
+                    <span>{isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}</span>
                   </Button>
 
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleDownloadFile('pdf')}
-                    className="text-xs gap-1.5"
+                    className="text-xs gap-1.5 h-9 justify-center"
                   >
                     <Download className="w-3.5 h-3.5 text-primary" />
-                    Download PDF
+                    <span>PDF</span>
                   </Button>
                   
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleDownloadFile('docx')}
-                    className="text-xs gap-1.5"
+                    className="text-xs gap-1.5 h-9 justify-center"
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    Download Word
+                    <span>Word</span>
                   </Button>
 
-                  <Button size="sm" onClick={() => window.print()} className="text-xs gap-1.5">
+                  <Button size="sm" onClick={() => window.print()} className="text-xs gap-1.5 h-9 justify-center">
                     <Printer className="w-3.5 h-3.5" />
-                    Print
+                    <span>Print</span>
                   </Button>
                 </div>
               )}

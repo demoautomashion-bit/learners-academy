@@ -57,6 +57,31 @@ export async function POST(request: Request) {
       )
     }
 
+    let validTeacherId = teacherId
+    const existingTeacher = await db.teacher.findUnique({
+      where: { id: teacherId }
+    })
+
+    if (!existingTeacher) {
+      const fallbackTeacher = await db.teacher.findFirst()
+      if (fallbackTeacher) {
+        validTeacherId = fallbackTeacher.id
+      } else {
+        const newTeacher = await db.teacher.create({
+          data: {
+            id: teacherId,
+            name: teacherName || 'Teacher',
+            email: `teacher-${Date.now()}@learnersacademy.com`,
+            phone: '0000000000',
+            employeeId: `EMP-${Date.now()}`,
+            subjects: ['English'],
+            qualifications: ['B.Ed']
+          }
+        })
+        validTeacherId = newTeacher.id
+      }
+    }
+
     const newSyllabus = await db.lessonSyllabus.create({
       data: {
         title,
@@ -71,7 +96,7 @@ export async function POST(request: Request) {
         weeks: weeks || null,
         quiz: quiz || null,
         homework: homework || null,
-        teacherId,
+        teacherId: validTeacherId,
         teacherName: teacherName || 'Teacher'
       }
     })

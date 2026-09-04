@@ -135,9 +135,9 @@ export default function SavedSyllabiPage() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <div className="grid grid-cols-[1fr_1fr_auto] md:flex items-center gap-2 w-full md:w-auto">
           <Select value={selectedCefr} onValueChange={setSelectedCefr}>
-            <SelectTrigger className="w-36 text-xs h-9">
+            <SelectTrigger className="w-full md:w-36 text-xs h-9">
               <SelectValue placeholder="CEFR Level" />
             </SelectTrigger>
             <SelectContent>
@@ -152,7 +152,7 @@ export default function SavedSyllabiPage() {
           </Select>
 
           <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-40 text-xs h-9">
+            <SelectTrigger className="w-full md:w-40 text-xs h-9">
               <SelectValue placeholder="Syllabus Scope" />
             </SelectTrigger>
             <SelectContent>
