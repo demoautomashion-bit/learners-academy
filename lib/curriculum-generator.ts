@@ -1,21 +1,24 @@
 /**
  * Granular Curriculum Generator Engine
- * Builds progressive, non-repeating 12-week course roadmaps with fine-grained daily details:
- * - Specific Grammar Sub-rules
- * - Explicit Target Vocabulary Lists
- * - Classroom Activity Methodologies
- * - Coursebook / Unit Section Mappings
- * - Concept Check Questions (CCQs)
- * - 4-Phase Daily Timelines (Warm-up, Instruction, Practice, Wrap-up)
+ * Supports Day-Labeled Weekly Schedules with Specialized Day Archetypes:
+ * - 📘 Grammar & Structure Day (Board layout, scope limit, CCQs, drills)
+ * - 🗣️ Discussion & Debate Day (CEFR debate topics, starter questions, functional phrases)
+ * - 🎮 Extra Activity & Fluency Day (Classroom games, setup steps, rules, materials)
+ * - 📖 Book & Reading Day (Unit mapping, reading strategies, text vocab, comprehension Qs)
  */
+
+export type DayArchetype = 'grammar' | 'activity' | 'discussion' | 'reading'
 
 export interface DailySession {
   sessionNum: number
   weekNum: number
   dayNum: number
   day: string
+  dayArchetype: DayArchetype
   topic: string
   grammarFocus: string
+  grammarScopeLimit?: string
+  boardLayout?: string
   vocabList: string[]
   unitRef: string
   activityType: string
@@ -23,6 +26,23 @@ export interface DailySession {
   objective: string
   type: 'Instruction & Practice' | 'Assessment' | 'Exam'
   ccqs: string[]
+  discussionTopics?: {
+    topic: string
+    prompt: string
+    cefrLevel: string
+  }[]
+  functionalPhrases?: string[]
+  activityGame?: {
+    gameName: string
+    materials: string[]
+    rules: string[]
+    scoring: string
+  }
+  readingPassage?: {
+    passageTitle: string
+    readingStrategy: string
+    comprehensionQuestions: string[]
+  }
   phases: {
     phase: string
     time: string
@@ -38,7 +58,7 @@ export interface GranularWeek {
   days: DailySession[]
 }
 
-interface GeneratorParams {
+export interface GeneratorParams {
   termWeeks: number
   sessionsPerWeek: number
   cefr: string
@@ -46,483 +66,427 @@ interface GeneratorParams {
   grammarTags: string[]
   vocabTags: string[]
   idiomTags: string[]
+  weeklyArchetypes?: DayArchetype[]
 }
 
-// Progressive CEFR Syllabus Curricula Templates
-const CEFR_CURRICULUM_TEMPLATES: Record<string, Array<{ weekTitle: string; topics: Array<{ topic: string; grammar: string; vocab: string[]; unit: string; activity: string; detail: string; ccqs: string[] }> }>> = {
+// Default weekly archetype schedules based on sessionsPerWeek
+const DEFAULT_SCHEDULE_ARCHETYPES: Record<number, DayArchetype[]> = {
+  2: ['grammar', 'discussion'],
+  3: ['grammar', 'activity', 'discussion'],
+  4: ['grammar', 'reading', 'activity', 'discussion'],
+  5: ['grammar', 'reading', 'activity', 'grammar', 'discussion']
+}
+
+// CEFR-Tailored Discussion & Debate Database
+const DISCUSSION_TOPICS_BY_CEFR: Record<string, Array<{ topic: string; prompt: string }>> = {
+  A1: [
+    { topic: "Favorite Seasons & Weather", prompt: "Which weather do you prefer and what activities do you do?" },
+    { topic: "Daily Habits & Free Time", prompt: "How do you spend your weekends versus weekdays?" },
+    { topic: "Travel vs Staying Home", prompt: "Do you like traveling to new cities or staying in your hometown?" }
+  ],
+  A2: [
+    { topic: "Eating Out vs Cooking at Home", prompt: "Is it healthier and cheaper to cook or dine at restaurants?" },
+    { topic: "Public Transport vs Driving", prompt: "Should cities ban cars from city centers to reduce pollution?" },
+    { topic: "Social Media Habits", prompt: "Do smartphones make people more connected or more isolated?" }
+  ],
   B1: [
-    {
-      weekTitle: "Week 1: Past Events & Life Experiences",
-      topics: [
-        {
-          topic: "Present Perfect vs Past Simple (Life Experiences)",
-          grammar: "Present Perfect + ever/never for unspecified past experience vs Past Simple + definite time (yesterday, in 2022).",
-          vocab: ["itinerary", "expedition", "embark", "pristine", "destination"],
-          unit: "Unit 1A (pp. 10-13): Horizons",
-          activity: "Find Someone Who... Survey",
-          detail: "Students interview classmates about past travel experiences using 'Have you ever...' and follow up with 'When did you...?'",
-          ccqs: ["Did the action happen in the past? Yes.", "Do we know the exact time? No for Present Perfect, Yes for Past Simple."]
-        },
-        {
-          topic: "Present Perfect Continuous (Ongoing Duration)",
-          grammar: "Form: Have/Has been + -ing with 'for' (duration) and 'since' (starting point).",
-          vocab: ["backpacking", "sojourn", "hospitality", "excursion", "unwinding"],
-          unit: "Unit 1B (pp. 14-17): Journey Duration",
-          activity: "Pair Timeline Reconstruction",
-          detail: "Students map out a traveler's timeline and describe how long they have been staying at each location.",
-          ccqs: ["Is the action finished or still happening? Still happening.", "What preposition marks duration? 'For'."]
-        },
-        {
-          topic: "Past Continuous & Past Simple (Interrupted Actions)",
-          grammar: "Past Continuous (was/were + -ing) interrupted by Past Simple (when/while clause).",
-          vocab: ["encounter", "unexpected", "mishap", "layover", "transit"],
-          unit: "Unit 1C (pp. 18-21): Travel Mishaps",
-          activity: "Story Chain & Narrative Building",
-          detail: "In groups of 4, students construct a travel story where background events are interrupted by unexpected incidents.",
-          ccqs: ["Which action started first? The continuous action.", "Which action interrupted it? The past simple action."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 2: Future Intentions & Scheduled Events",
-      topics: [
-        {
-          topic: "Future Plans: 'Be Going To' vs Present Continuous",
-          grammar: "'Be going to' for personal intentions vs Present Continuous for fixed arrangements with time/place.",
-          vocab: ["reservation", "flight schedule", "boarding", "confirmation", "itinerary"],
-          unit: "Unit 2A (pp. 22-25): Future Travel",
-          activity: "Travel Agent Role-Play",
-          detail: "One student plays a travel consultant confirming fixed flight details, while the client explains personal intentions.",
-          ccqs: ["Is this a pre-arranged booking or just an intention?", "Does it have a fixed time and place?"]
-        },
-        {
-          topic: "Future Predictions: Will vs 'Be Going To'",
-          grammar: "'Will' for spontaneous decisions & opinion predictions vs 'going to' for evidence-based predictions.",
-          vocab: ["forecast", "unpredictable", "turbulence", "expedition", "climate"],
-          unit: "Unit 2B (pp. 26-29): Weather & Plans",
-          activity: "Forecast & Warning Debate",
-          detail: "Students analyze weather forecast maps and predict trip hazards using evidence ('Look at those clouds, it's going to rain!').",
-          ccqs: ["Are we looking at physical evidence? Yes = going to.", "Is this an instant decision? Yes = will."]
-        },
-        {
-          topic: "Future Time Clauses (when, as soon as, before, until)",
-          grammar: "Using Present Simple in future time clauses after temporal conjunctions (e.g., 'As soon as we arrive...').",
-          vocab: ["customs", "immigration", "arrival", "departure", "terminal"],
-          unit: "Unit 2C (pp. 30-33): Airport Logistics",
-          activity: "Sequential Plan Blueprint",
-          detail: "Students draft an airport arrival checklist using time clauses: 'Before we collect bags, we will pass immigration.'",
-          ccqs: ["Do we use 'will' inside the 'when/before' clause? No, Present Simple."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 3: Passive Voice in Descriptions & Processes",
-      topics: [
-        {
-          topic: "Passive Voice: Present Simple & Past Simple",
-          grammar: "Form: Be + Past Participle. Focus on the action/object rather than the agent.",
-          vocab: ["produced", "manufactured", "exported", "heritage", "craftsmanship"],
-          unit: "Unit 3A (pp. 34-37): Local Crafts & Culture",
-          activity: "Cultural Souvenir Exhibition",
-          detail: "Students present cultural items describing how they are made and when they were created ('This rug is hand-woven...').",
-          ccqs: ["Do we care who made it or what happened to it? What happened.", "What form of verb follows 'be'? Past Participle."]
-        },
-        {
-          topic: "Passive Voice with Modals (can be done, must be kept)",
-          grammar: "Modal + be + Past Participle for safety rules, regulations, and guidelines.",
-          vocab: ["prohibited", "mandatory", "restricted", "passport", "regulation"],
-          unit: "Unit 3B (pp. 38-41): Airport Regulations",
-          activity: "Safety Infographic Design",
-          detail: "Pairs create an airline safety poster detailing what must be done, stored, or turned off during flight.",
-          ccqs: ["Is 'can be stored' active or passive? Passive.", "Who performs the action? Unspecified passenger."]
-        },
-        {
-          topic: "Passive Voice in Reporting & Historical Facts",
-          grammar: "Past Passive for historical facts: 'The monument was constructed in 1889 by...'",
-          vocab: ["monument", "architectural", "landmark", "century", "restored"],
-          unit: "Unit 3C (pp. 42-45): World Wonders",
-          activity: "Museum Tour Guide Presentations",
-          detail: "Students act as tour guides explaining when historic landmarks were built, destroyed, or renovated.",
-          ccqs: ["Was it built in the past? Yes.", "Why use passive? The monument is the main topic."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 4: Relative Clauses & Descriptive Precision",
-      topics: [
-        {
-          topic: "Defining Relative Clauses (who, which, that, where)",
-          grammar: "Using relative pronouns without commas to give essential information identifying a person, place, or thing.",
-          vocab: ["guide", "resort", "scenery", "local", "exotic"],
-          unit: "Unit 4A (pp. 46-49): Descriptive Travel",
-          activity: "Travel Guessing Game",
-          detail: "Students write clue cards defining places ('A place where people...'), and partners guess the travel destination.",
-          ccqs: ["Is the clause essential to know which place we mean? Yes.", "Do we use commas? No."]
-        },
-        {
-          topic: "Non-Defining Relative Clauses (extra info with commas)",
-          grammar: "Adding non-essential information enclosed in commas using who/which/where (cannot use 'that').",
-          vocab: ["picturesque", "breathtaking", "metropolis", "bustling", "renowned"],
-          unit: "Unit 4B (pp. 50-53): Famous Destinations",
-          activity: "Travel Brochure Copywriting",
-          detail: "Students write rich brochure entries: 'Kyoto, which was the ancient capital of Japan, is famous for gardens.'",
-          ccqs: ["Can we remove the clause and still understand the main sentence? Yes.", "Can we use 'that'? No."]
-        },
-        {
-          topic: "Relative Clauses with Prepositions & Whose",
-          grammar: "'Whose' for possession and prepositions in relative clauses ('The tour guide to whom we spoke...').",
-          vocab: ["host", "proprietor", "heritage", "cuisine", "hospitality"],
-          unit: "Unit 4C (pp. 54-57): Homestays & Hosts",
-          activity: "Homestay Review & Recommendation",
-          detail: "Students write recommendations for hosts whose homes they visited during fictional trips.",
-          ccqs: ["Does 'whose' show ownership? Yes."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 5: Conditionals & Hypothetical Travel Scenarios",
-      topics: [
-        {
-          topic: "First Conditional: Real Future Possibilities (if + present, will)",
-          grammar: "Form: If + Present Simple, Will/Can + Infinitive. Real future conditions and consequences.",
-          vocab: ["budget", "backpacking", "flight deal", "opportunity", "itinerary"],
-          unit: "Unit 5A (pp. 58-61): Trip Planning",
-          activity: "Decision Tree Negotiation",
-          detail: "Groups budget a trip with conditional rules: 'If we save \$200 on flights, we will book a nicer hotel.'",
-          ccqs: ["Is this condition possible? Yes.", "Which clause uses Present Simple? The 'if' clause."]
-        },
-        {
-          topic: "Second Conditional: Hypothetical & Imaginary Situations",
-          grammar: "Form: If + Past Simple, Would/Could + Infinitive for unreal present or future scenarios.",
-          vocab: ["desert island", "lottery", "secluded", "paradise", "adventure"],
-          unit: "Unit 5B (pp. 62-65): Dream Vacation",
-          activity: "Dream Trip Interview",
-          detail: "Students interview each other: 'If you had an unlimited travel budget, where would you go and why?'",
-          ccqs: ["Is this situation real right now? No, imaginary.", "What verb form follows 'if'? Past Simple."]
-        },
-        {
-          topic: "Mixed Conditionals Review & Expressing Wishes (I wish...)",
-          grammar: "'I wish I could...', 'If only I had...' for present regrets and unfulfilled desires in travel.",
-          vocab: ["regret", "missed opportunity", "language barrier", "homesick", "adaptation"],
-          unit: "Unit 5C (pp. 66-69): Travel Reflections",
-          activity: "Reflective Journal Writing",
-          detail: "Students write diary reflections expressing wishes about travel skills: 'I wish I spoke fluent French.'",
-          ccqs: ["Do I speak fluent French now? No.", "Does 'wish + past' express a current desire? Yes."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 6: Mid-Term Review & Oral Evaluation Milestone",
-      topics: [
-        {
-          topic: "Grammar & Vocabulary Consolidation Workshop",
-          grammar: "Comprehensive review of Present Perfect, Future forms, Passives, Relative Clauses, and Conditionals.",
-          vocab: ["recap", "synthesis", "fluency", "accuracy", "assessment"],
-          unit: "Mid-Term Review Module (pp. 70-71)",
-          activity: "Interactive Team Quiz & Diagnostic",
-          detail: "Gamified team competition testing target grammar structures and vocabulary across Weeks 1-5.",
-          ccqs: ["Diagnostic review of student comprehension."]
-        },
-        {
-          topic: "MID-TERM ORAL PRESENTATION EVALUATION",
-          grammar: "Oral presentation using target structures (Past Perfect/Simple, Passives, Conditionals).",
-          vocab: ["presentation", "articulation", "discourse", "rhetoric", "delivery"],
-          unit: "Oral Exam Module",
-          activity: "Student Travel Presentation & Defense",
-          detail: "Each student gives a 3-minute oral presentation on a trip experience or dream itinerary, evaluated on rubric.",
-          ccqs: ["Evaluation of spoken fluency, grammar accuracy, and vocabulary depth."]
-        },
-        {
-          topic: "MID-TERM WRITTEN ASSESSMENT & FEEDBACK",
-          grammar: "Written examination covering Weeks 1-5 grammar, vocabulary, and reading comprehension.",
-          vocab: ["examination", "feedback", "corrective", "analysis", "progress"],
-          unit: "Written Exam Module",
-          activity: "Formal Mid-Term Written Test",
-          detail: "45-minute written evaluation followed by peer review and targeted error correction feedback.",
-          ccqs: ["Assessment of written accuracy and sentence construction."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 7: Modals of Deduction & Speculation",
-      topics: [
-        {
-          topic: "Modals of Present Speculation (must, might, can't)",
-          grammar: "Must + infinitive (90% sure true), Might/May (50% possible), Can't + infinitive (90% sure impossible).",
-          vocab: ["mystery", "landmark", "artifact", "archaeological", "clue"],
-          unit: "Unit 7A (pp. 72-75): Historical Mysteries",
-          activity: "Mystery Artifact Deduction",
-          detail: "Students examine photos of strange artifacts and speculate: 'It must be an ancient tool... It can't be modern.'",
-          ccqs: ["When do we use 'must'? When we are almost certain it's true.", "When do we use 'can't'? When we are certain it's impossible."]
-        },
-        {
-          topic: "Modals of Past Deduction (must have, might have, couldn't have)",
-          grammar: "Modal + have + Past Participle for speculating about completed past events.",
-          vocab: ["expedition", "disappearance", "lost city", "investigation", "hypothesis"],
-          unit: "Unit 7B (pp. 76-79): Unsolved Journeys",
-          activity: "Detective Investigation Casebook",
-          detail: "Students solve a mystery disappearance of an explorer: 'They must have lost their map in the storm.'",
-          ccqs: ["Are we speculating about the past? Yes.", "What follows the modal? 'have + past participle'."]
-        },
-        {
-          topic: "Obligation & Permission Modals (have to, must, allowed to)",
-          grammar: "Must (internal obligation) vs Have to (external rule/law); Don't have to (lack of obligation).",
-          vocab: ["visa", "permit", "entry requirement", "vaccination", "embassy"],
-          unit: "Unit 7C (pp. 80-83): International Border Control",
-          activity: "Consulate Visa Interview",
-          detail: "Pair roleplay where an official explains visa requirements: 'You don't have to pay a fee, but you must bring a passport.'",
-          ccqs: ["Does 'don't have to' mean forbidden? No, it means optional."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 8: Reported Speech & Indirect Communication",
-      topics: [
-        {
-          topic: "Reported Statements & Tense Shifts",
-          grammar: "Backshifting tenses (Present Simple -> Past Simple, Present Perfect -> Past Perfect) in indirect reporting.",
-          vocab: ["statement", "complaint", "feedback", "review", "testimonial"],
-          unit: "Unit 8A (pp. 84-87): Hotel Reviews & Complaints",
-          activity: "Manager Feedback Relay",
-          detail: "Students report customer complaints to hotel managers: 'The guest said that the air conditioning was broken.'",
-          ccqs: ["Did the guest speak in the past? Yes.", "Why did the tense shift back? Because we report past words."]
-        },
-        {
-          topic: "Reported Questions & Imperatives (asked if/whether, told to)",
-          grammar: "Reporting questions without inversion ('She asked me where I lived') and commands ('He told us to wait').",
-          vocab: ["enquiry", "inquiry", "assistance", "guidance", "concierge"],
-          unit: "Unit 8B (pp. 88-91): Tour Guide Instructions",
-          activity: "Tourist Information Relay",
-          detail: "Students report questions asked at an information kiosk: 'The tourist asked if the museum was open on Mondays.'",
-          ccqs: ["Do we use auxiliary 'do/did' in reported questions? No.", "Word order: Subject before verb."]
-        },
-        {
-          topic: "Reporting Verbs (offer, promise, suggest, refuse, remind)",
-          grammar: "Using pattern reporting verbs (suggest + -ing, promise + to-infinitive, remind + object + to).",
-          vocab: ["recommendation", "suggestion", "guarantee", "advise", "negotiation"],
-          unit: "Unit 8C (pp. 92-95): Travel Advice Columns",
-          activity: "Advice Column Copywriting",
-          detail: "Students summarize travel advice using reporting verbs: 'The guide recommended visiting early in the morning.'",
-          ccqs: ["Which verb pattern follows 'suggest'? V-ing or that-clause."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 9: Past Habits vs Present Routines",
-      topics: [
-        {
-          topic: "Used To vs Would for Past Habits",
-          grammar: "'Used to' for past states & actions vs 'Would' for repeated past actions only (not states).",
-          vocab: ["tradition", "nostalgia", "transformation", "heritage", "lifestyle"],
-          unit: "Unit 9A (pp. 96-99): Changing Cities",
-          activity: "City Transformation Comparison",
-          detail: "Students compare old and modern photos of cities: 'People used to travel by horse-drawn carriage...'",
-          ccqs: ["Can we use 'would' for states ('would be a quiet town')? No, only 'used to'."]
-        },
-        {
-          topic: "Be Used To vs Get Used To (Acclimatization)",
-          grammar: "'Be used to + -ing' (customary state) vs 'Get used to + -ing' (process of adapting).",
-          vocab: ["culture shock", "acclimatize", "adaptation", "jet lag", "customs"],
-          unit: "Unit 9B (pp. 100-103): Living Abroad",
-          activity: "Expat Adaptation Interview",
-          detail: "Students interview an 'expat' about adapting to new customs: 'At first it was strange, but I got used to eating late.'",
-          ccqs: ["Is 'get used to' a process over time? Yes.", "What verb form follows 'used to' here? V-ing or Noun."]
-        },
-        {
-          topic: "Habitual Contrast: Present Habits vs Irritating Habits (Always + -ing)",
-          grammar: "Present Simple for normal routines vs Present Continuous + always/forever for annoying habits.",
-          vocab: ["annoyance", "pet peeve", "etiquette", "commute", "behavior"],
-          unit: "Unit 9C (pp. 104-107): Travel Etiquette",
-          activity: "Commuter Etiquette Forum",
-          detail: "Students discuss airport & bus etiquette: 'Some passengers are always taking phone calls on speakerphone!'",
-          ccqs: ["Does 'always + continuous' show mild frustration? Yes."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 10: Advanced Comparison & Nuanced Descriptions",
-      topics: [
-        {
-          topic: "Comparatives with Modifiers (far more, slightly less, nowhere near as)",
-          grammar: "Using degree modifiers: far / significantly / slightly / a bit + comparative adjective.",
-          vocab: ["luxury", "economical", "spacious", "congested", "tranquil"],
-          unit: "Unit 10A (pp. 108-111): Hotel & Resort Comparison",
-          activity: "Hotel Booking Evaluation Matrix",
-          detail: "Pairs compare 3 hotel options using precise modifiers: 'Resort A is significantly more spacious than Resort B.'",
-          ccqs: ["Which modifier shows a huge difference? 'Far' or 'significantly'."]
-        },
-        {
-          topic: "Superlatives & 'By Far the Most...'",
-          grammar: "Emphatic superlatives using 'by far the most', 'one of the most', 'easily the best'.",
-          vocab: ["spectacular", "unmatched", "extraordinary", "iconic", "destination"],
-          unit: "Unit 10B (pp. 112-115): World Wonders Ranking",
-          activity: "Travel Awards Presentation",
-          detail: "Students hold a 'World Travel Awards' event presenting trophies: 'This beach is by far the most pristine in Asia.'",
-          ccqs: ["Does 'by far' add strong emphasis? Yes."]
-        },
-        {
-          topic: "Similes & Comparative Structures (The more..., the better...)",
-          grammar: "Double comparative structures: 'The earlier we book, the cheaper the tickets will be.'",
-          vocab: ["efficiency", "proactive", "advantageous", "cost-effective", "strategy"],
-          unit: "Unit 10C (pp. 116-119): Travel Strategy",
-          activity: "Travel Hack Elevator Pitch",
-          detail: "Students present travel tips using double comparatives: 'The more research you do, the smoother your trip goes.'",
-          ccqs: ["Do both clauses use comparative forms? Yes."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 11: Verb Patterns (Gerunds & Infinitives)",
-      topics: [
-        {
-          topic: "Verbs Followed by Gerund (-ing) vs Infinitive (to)",
-          grammar: "Verb patterns: enjoy/avoid/recommend + -ing vs decide/plan/hope + to-infinitive.",
-          vocab: ["preference", "avoidance", "anticipation", "itinerary", "aspiration"],
-          unit: "Unit 11A (pp. 120-123): Travel Preferences",
-          activity: "Travel Personality Profiler",
-          detail: "Students create travel style quizzes: 'Do you enjoy exploring ruins or do you prefer to relax on a beach?'",
-          ccqs: ["Which form follows 'enjoy'? -ing.", "Which form follows 'decide'? to-infinitive."]
-        },
-        {
-          topic: "Verbs with Change in Meaning (remember, stop, try, regret)",
-          grammar: "Contrast: 'Stop to talk' (pause action to talk) vs 'Stop talking' (cease talking).",
-          vocab: ["recollection", "cessation", "attempt", "mindfulness", "experience"],
-          unit: "Unit 11B (pp. 124-127): Travel Memories",
-          activity: "Travel Mistake Confessions",
-          detail: "Students share stories: 'I remembered to lock the door, but I forgot to take my passport!'",
-          ccqs: ["Did 'stop doing' mean quit? Yes.", "Did 'stop to do' mean pause in order to do? Yes."]
-        },
-        {
-          topic: "Prepositions Followed by Gerunds in Travel Contexts",
-          grammar: "Preposition + -ing pattern ('interested in visiting', 'famous for hosting', 'after arriving').",
-          vocab: ["hospitality", "cuisine", "renowned", "specialized", "cultural"],
-          unit: "Unit 11C (pp. 128-131): Cultural Immersion",
-          activity: "Cultural Etiquette Guidebook",
-          detail: "Students write etiquette rules: 'Be careful about taking photos... Always thank hosts after eating.'",
-          ccqs: ["What verb form always follows a preposition? V-ing."]
-        }
-      ]
-    },
-    {
-      weekTitle: "Week 12: Term Synthesis & Final Academic Assessment",
-      topics: [
-        {
-          topic: "Term Grammar & Vocabulary Master Review",
-          grammar: "Complete synthesis of B1 CEFR grammar modules and high-frequency travel/academic vocabulary.",
-          vocab: ["synthesis", "proficiency", "fluency", "mastery", "portfolio"],
-          unit: "Final Review Module (pp. 132-135)",
-          activity: "Comprehensive Curriculum Tournament",
-          detail: "Interactive review challenge preparing students for final written & oral evaluations.",
-          ccqs: ["Comprehensive check of term learning outcomes."]
-        },
-        {
-          topic: "FINAL TERM WRITTEN EXAMINATION",
-          grammar: "Formal 60-minute written examination testing grammar precision, vocabulary range, and essay writing.",
-          vocab: ["examination", "evaluation", "assessment", "rubric", "certification"],
-          unit: "Final Exam Module",
-          activity: "Formal Invigilated Written Exam",
-          detail: "Students complete formal written assessment covering all 12 weeks of B1 CEFR learning objectives.",
-          ccqs: ["Evaluation of written accuracy, structural variety, and vocabulary usage."]
-        },
-        {
-          topic: "FINAL ORAL DEFENSE & GRADUATION PORTFOLIO",
-          grammar: "Individual oral interview & portfolio presentation aligned to CEFR B1 speaking criteria.",
-          vocab: ["defense", "interview", "graduation", "attainment", "feedback"],
-          unit: "Graduation Module",
-          activity: "Individual Oral Examination & Certificate Presentation",
-          detail: "1-on-1 speaking interview where students defend their semester portfolio and receive final feedback.",
-          ccqs: ["Final evaluation of spoken fluency, pronunciation, grammar control, and CEFR attainment."]
-        }
-      ]
-    }
+    { topic: "Solo Backpacking vs Guided Group Tours", prompt: "Is traveling alone more rewarding than traveling with a guided tour group?" },
+    { topic: "Tourism Impact on Historic Cities", prompt: "Does mass tourism destroy local culture or help local economies thrive?" },
+    { topic: "Working Remotely While Traveling (Digital Nomads)", prompt: "Can you maintain high career productivity while living as a travel nomad?" },
+    { topic: "Eco-Tourism & Environmental Responsibility", prompt: "Should travelers pay an environmental tax when visiting fragile natural landmarks?" }
+  ],
+  B2: [
+    { topic: "Cultural Assimilation vs Preserving Heritage", prompt: "When living abroad, should immigrants adapt completely or preserve native customs?" },
+    { topic: "The Ethics of Captive Wildlife Tourism", prompt: "Should animal sanctuaries and zoos be phased out in favor of wild reserves?" },
+    { topic: "Artificial Intelligence in Education", prompt: "Will AI tutors replace human language teachers in the next decade?" }
+  ],
+  C1: [
+    { topic: "Gentrifcation in Global Metropolises", prompt: "Is urban redevelopment beneficial for cities or destructive to working-class communities?" },
+    { topic: "Overtourism & Sustainable Travel Policy", prompt: "How should UNESCO World Heritage sites regulate visitor numbers without hurting local livelihoods?" }
+  ],
+  C2: [
+    { topic: "Linguistic Imperialism & Global English", prompt: "Does the dominance of global English erode indigenous languages and cultural nuances?" },
+    { topic: "Philosophical Paradigms of Space Exploration", prompt: "Should humanity focus resources on Earth restoration before colonizing other planets?" }
   ]
 }
 
+// Interactive Classroom Game Templates for Activity Days
+const CLASSROOM_GAMES = [
+  {
+    gameName: "Running Dictation & Grammar Challenge",
+    materials: ["Printed sentence strips", "Whiteboard markers", "Notebooks"],
+    rules: [
+      "Divide class into pairs: Runner and Writer.",
+      "Runners sprint to read posted target sentences outside the door and memorize them.",
+      "Runners dictate the exact grammar and vocabulary to Writers without touching the pen.",
+      "First pair to accurately transcribe and correct grammar errors wins."
+    ],
+    scoring: "10 points for perfect grammar, 5 points for accurate vocabulary usage."
+  },
+  {
+    gameName: "Information Gap & Travel Booking Roleplay",
+    materials: ["Roleplay scenario cards (Client & Agent)", "Budget worksheets"],
+    rules: [
+      "Pair students: One travel consultant with flight schedules, one traveler with secret preferences.",
+      "Students negotiate itinerary details without looking at each other's sheets.",
+      "Must use target conditional and modal structures to complete the booking."
+    ],
+    scoring: "Evaluated on smooth negotiation, target structure usage, and accuracy."
+  },
+  {
+    gameName: "Grammar Jeopardy & Speed Buzzer Tournament",
+    materials: ["Jeopardy grid on board", "Buzzer or desk bell"],
+    rules: [
+      "Divide class into 3 competing teams.",
+      "Categories include: Tense Transformations, Vocab Definitions, Spot the Error, and Idiom Usage.",
+      "Teams buzz in to answer. Correct answers earn points; wrong answers forfeit points to competitors."
+    ],
+    scoring: "Team with highest cumulative score after 5 rounds wins the trophy."
+  },
+  {
+    gameName: "Murder Mystery & Modals of Deduction Challenge",
+    materials: ["Clue cards", "Character sheets", "Evidence files"],
+    rules: [
+      "Each student receives a character profile with hidden clues about a mysterious missing suitcase.",
+      "Students mingle and interview suspects using modals of deduction ('He must have taken the map because...').",
+      "Groups submit a final investigative report explaining the culprit."
+    ],
+    scoring: "Full points for identifying the correct suspect with accurate modal justification."
+  }
+]
+
+// Functional Speaking Phrases for Discussion Days
+const FUNCTIONAL_PHRASES_BY_CEFR: Record<string, string[]> = {
+  A1: ["I think that...", "In my opinion...", "I agree with you.", "I don't agree.", "What about you?"],
+  A2: ["From my point of view...", "That's a good point.", "I'm not sure about that.", "On one hand...", "Could you explain why?"],
+  B1: [
+    "From my perspective...",
+    "I see your point, but consider...",
+    "While that may be true, on the flip side...",
+    "I would argue that...",
+    "That aligns with my experience because..."
+  ],
+  B2: [
+    "I take your point, however...",
+    "It's worth considering that...",
+    "That plays a crucial role in...",
+    "I respectfully disagree because...",
+    "To play devil's advocate for a moment..."
+  ],
+  C1: [
+    "That raises a fundamental question regarding...",
+    "Notwithstanding your premise, we must acknowledge...",
+    "I would challenge the assertion that...",
+    "That argument hinges upon the assumption that..."
+  ]
+}
+
+// B1 Baseline Syllabus Template Data
+const B1_SYLLABUS_WEEKS = [
+  {
+    weekTitle: "Week 1: Past Events & Life Experiences",
+    grammarTopic: "Present Perfect vs Past Simple",
+    grammarRule: "Present Perfect for indefinite life experiences (ever/never) vs Past Simple for fixed dates (in 2022, yesterday).",
+    grammarScope: "Focus on affirmative and negative forms today. Leave question inversion drills for Session 2.",
+    boardFormula: "Subject + have/has + V3 (Past Participle)  VS  Subject + V2 (Past Form) + Time Marker",
+    vocab: ["itinerary", "expedition", "embark", "pristine", "destination"],
+    unit: "Unit 1A (pp. 10-13): Horizons",
+    readingTitle: "The Great Silk Road Expeditions",
+    readingStrategy: "Scanning for specific historic dates vs Skimming for narrative gist."
+  },
+  {
+    weekTitle: "Week 2: Future Intentions & Scheduled Events",
+    grammarTopic: "Future Plans: 'Be Going To' vs Present Continuous",
+    grammarRule: "'Be going to' for personal intentions vs Present Continuous for fixed pre-arranged bookings.",
+    grammarScope: "Teach clear contrast between intent (mental plan) vs arrangement (ticket purchased).",
+    boardFormula: "Subject + am/is/are + going to + Infinitive  VS  Subject + am/is/are + V-ing (Fixed Time/Place)",
+    vocab: ["reservation", "flight schedule", "boarding", "confirmation", "itinerary"],
+    unit: "Unit 2A (pp. 22-25): Future Travel",
+    readingTitle: "Hyperloop & The Future of High-Speed Transit",
+    readingStrategy: "Identifying author stance and technological predictions."
+  },
+  {
+    weekTitle: "Week 3: Passive Voice in Descriptions & Processes",
+    grammarTopic: "Passive Voice: Present Simple & Past Simple",
+    grammarRule: "Form: Be + Past Participle. Focus on the action/object rather than who performed it.",
+    grammarScope: "Limit to Present & Past Simple passive forms. Do not introduce passive modals yet.",
+    boardFormula: "Object + am/is/are/was/were + V3 (Past Participle) + [by Agent]",
+    vocab: ["produced", "manufactured", "exported", "heritage", "craftsmanship"],
+    unit: "Unit 3A (pp. 34-37): Local Crafts & Culture",
+    readingTitle: "How Venetian Glass Artifacts Are Hand-Crafted",
+    readingStrategy: "Process flowchart mapping and passive verb identification."
+  },
+  {
+    weekTitle: "Week 4: Relative Clauses & Descriptive Precision",
+    grammarTopic: "Defining Relative Clauses (who, which, that, where)",
+    grammarRule: "Relative pronouns without commas to give essential information identifying a person, place, or thing.",
+    grammarScope: "Focus on defining clauses (no commas). Cover non-defining clauses next week.",
+    boardFormula: "Noun + [who / which / that / where] + Clause  (No Commas)",
+    vocab: ["guide", "resort", "scenery", "local", "exotic"],
+    unit: "Unit 4A (pp. 46-49): Descriptive Travel",
+    readingTitle: "Unexplored Eco-Resorts of the Amazon Rainforest",
+    readingStrategy: "Identifying descriptive relative clauses and extracting key destination features."
+  },
+  {
+    weekTitle: "Week 5: Conditionals & Hypothetical Travel Scenarios",
+    grammarTopic: "First Conditional (Real Future) vs Second Conditional (Unreal Present)",
+    grammarRule: "First: If + Present, Will + Infinitive (real). Second: If + Past, Would + Infinitive (imaginary).",
+    grammarScope: "Focus on contrasting real probability (First) vs imaginary dream scenarios (Second).",
+    boardFormula: "First: If + Present Simple, Will + V1  |  Second: If + Past Simple, Would + V1",
+    vocab: ["budget", "backpacking", "flight deal", "opportunity", "itinerary"],
+    unit: "Unit 5A (pp. 58-61): Trip Planning",
+    readingTitle: "10 Travel Mistakes You Should Avoid At All Costs",
+    readingStrategy: "Analyzing cause and effect in conditional advice."
+  },
+  {
+    weekTitle: "Week 6: Mid-Term Review & Oral Evaluation Milestone",
+    grammarTopic: "Mid-Term Review & Oral Defense Checkpoint",
+    grammarRule: "Comprehensive synthesis of Weeks 1-5 grammar modules and vocabulary.",
+    grammarScope: "Diagnostic evaluation of student grammar accuracy and oral fluency.",
+    boardFormula: "Mid-Term Assessment & Progress Checklist",
+    vocab: ["recap", "synthesis", "fluency", "accuracy", "assessment"],
+    unit: "Mid-Term Review Module (pp. 70-71)",
+    readingTitle: "Mid-Term Portfolio Review & Diagnostic Test",
+    readingStrategy: "Comprehensive text analysis and error identification."
+  },
+  {
+    weekTitle: "Week 7: Modals of Speculation & Deduction",
+    grammarTopic: "Modals of Present Speculation (must, might, can't)",
+    grammarRule: "Must + infinitive (90% sure true), Might (50% possible), Can't (90% sure impossible).",
+    grammarScope: "Teach degrees of certainty using present modals. Leave past deduction for Session 2.",
+    boardFormula: "Subject + MUST / MIGHT / CAN'T + V1 (Base Form)",
+    vocab: ["mystery", "landmark", "artifact", "archaeological", "clue"],
+    unit: "Unit 7A (pp. 72-75): Historical Mysteries",
+    readingTitle: "The Mysterious Disappearance of Amelia Earhart",
+    readingStrategy: "Evaluating historical evidence and modal deductions."
+  },
+  {
+    weekTitle: "Week 8: Reported Speech & Indirect Communication",
+    grammarTopic: "Reported Statements & Tense Shifts",
+    grammarRule: "Backshifting tenses (Present Simple -> Past Simple, Present Perfect -> Past Perfect) in indirect reporting.",
+    grammarScope: "Focus on reporting statements and tense backshifting rule.",
+    boardFormula: "Direct: 'I am tired'  ->  Reported: He said (that) he WAS tired.",
+    vocab: ["statement", "complaint", "feedback", "review", "testimonial"],
+    unit: "Unit 8A (pp. 84-87): Hotel Reviews & Complaints",
+    readingTitle: "Behind the Scenes of Luxury Hotel Concierge Desks",
+    readingStrategy: "Distinguishing direct dialogue from reported statements."
+  },
+  {
+    weekTitle: "Week 9: Past Habits vs Present Routines",
+    grammarTopic: "Used To vs Would for Past Habits",
+    grammarRule: "'Used to' for past states & actions vs 'Would' for repeated past actions only (not states).",
+    grammarScope: "Emphasize that 'would' CANNOT be used for past states ('would be quiet' is incorrect).",
+    boardFormula: "Subject + used to + V1 (States & Actions)  VS  Subject + would + V1 (Repeated Actions)",
+    vocab: ["tradition", "nostalgia", "transformation", "heritage", "lifestyle"],
+    unit: "Unit 9A (pp. 96-99): Changing Cities",
+    readingTitle: "How Tokyo Evolved From a Fishing Village to a Megacity",
+    readingStrategy: "Tracking historical transformations and habit contrasts."
+  },
+  {
+    weekTitle: "Week 10: Advanced Comparison & Degree Modifiers",
+    grammarTopic: "Comparatives with Modifiers (far more, slightly less, nowhere near as)",
+    grammarRule: "Using degree modifiers: far / significantly / slightly / a bit + comparative adjective.",
+    grammarScope: "Teach exact degree modifiers to make comparisons nuanced and formal.",
+    boardFormula: "Subject + verb + [far / significantly / slightly] + Comparative Adj + than + Noun",
+    vocab: ["luxury", "economical", "spacious", "congested", "tranquil"],
+    unit: "Unit 10A (pp. 108-111): Resort Comparison",
+    readingTitle: "The Highs and Lows of Overwater Bungalow Resorts",
+    readingStrategy: "Comparative evaluation and price/value analysis."
+  },
+  {
+    weekTitle: "Week 11: Verb Patterns (Gerunds & Infinitives)",
+    grammarTopic: "Verbs Followed by Gerund (-ing) vs Infinitive (to)",
+    grammarRule: "Verb patterns: enjoy/avoid/recommend + -ing vs decide/plan/hope + to-infinitive.",
+    grammarScope: "Focus on verb pattern categorization and common student pre-verb errors.",
+    boardFormula: "Verb + V-ing (enjoy, avoid, suggest)  VS  Verb + to-V1 (decide, plan, hope)",
+    vocab: ["preference", "avoidance", "anticipation", "itinerary", "aspiration"],
+    unit: "Unit 11A (pp. 120-123): Travel Preferences",
+    readingTitle: "Psychology of Travel: What Your Vacation Style Says About You",
+    readingStrategy: "Extracting psychological profiles and verb structures."
+  },
+  {
+    weekTitle: "Week 12: Term Synthesis & Final Academic Assessment",
+    grammarTopic: "Final Course Synthesis & Graduation Defense",
+    grammarRule: "Comprehensive term review and CEFR B1 attainment defense.",
+    grammarScope: "Formal 60-minute written examination and 1-on-1 oral defense.",
+    boardFormula: "Final Term Certification & Academic Evaluation Rubric",
+    vocab: ["examination", "evaluation", "assessment", "rubric", "certification"],
+    unit: "Final Exam Module (pp. 132-135)",
+    readingTitle: "Final Course Evaluation & Portfolio Assessment",
+    readingStrategy: "Academic synthesis and portfolio defense."
+  }
+]
+
 export function generateGranularTermRoadmap(params: GeneratorParams): GranularWeek[] {
-  const { termWeeks, sessionsPerWeek, cefr, theme, grammarTags, vocabTags } = params
+  const { termWeeks, sessionsPerWeek, cefr, theme, grammarTags, vocabTags, weeklyArchetypes } = params
 
-  // Select base CEFR template (fallback to B1)
-  const templateWeeks = CEFR_CURRICULUM_TEMPLATES[cefr] || CEFR_CURRICULUM_TEMPLATES['B1']
+  // Determine schedule archetypes per week (e.g. ['grammar', 'activity', 'discussion'])
+  const archetypes = weeklyArchetypes && weeklyArchetypes.length === sessionsPerWeek
+    ? weeklyArchetypes
+    : (DEFAULT_SCHEDULE_ARCHETYPES[sessionsPerWeek] || DEFAULT_SCHEDULE_ARCHETYPES[3])
+
   const generatedWeeks: GranularWeek[] = []
-
   let overallSessionCounter = 1
 
+  const cefrDiscussions = DISCUSSION_TOPICS_BY_CEFR[cefr] || DISCUSSION_TOPICS_BY_CEFR['B1']
+  const cefrPhrases = FUNCTIONAL_PHRASES_BY_CEFR[cefr] || FUNCTIONAL_PHRASES_BY_CEFR['B1']
+
   for (let w = 1; w <= termWeeks; w++) {
-    const templateWeek = templateWeeks[(w - 1) % templateWeeks.length]
+    const weekData = B1_SYLLABUS_WEEKS[(w - 1) % B1_SYLLABUS_WEEKS.length]
     const weekDays: DailySession[] = []
 
     for (let d = 1; d <= sessionsPerWeek; d++) {
       const sessionNum = overallSessionCounter++
-      
-      // Determine topic source
-      const topicIndex = (d - 1) % templateWeek.topics.length
-      const baseTopic = templateWeek.topics[topicIndex]
+      const archetype = archetypes[(d - 1) % archetypes.length]
 
-      // Check if Mid-term or Final
       let type: 'Instruction & Practice' | 'Assessment' | 'Exam' = 'Instruction & Practice'
-      let topicTitle = baseTopic.topic
-      let grammarFocus = baseTopic.grammar
-      let vocabList = [...baseTopic.vocab]
-      let unitRef = baseTopic.unit
-      let activityType = baseTopic.activity
-      let activityDetail = baseTopic.detail
-      let objective = `Master ${baseTopic.topic} in "${theme}" context with featured target vocabulary.`
-      let ccqs = baseTopic.ccqs
+      let topicTitle = ''
+      let grammarFocus = ''
+      let grammarScopeLimit: string | undefined = undefined
+      let boardLayout: string | undefined = undefined
+      let vocabList = [...weekData.vocab]
+      let unitRef = weekData.unit
+      let activityType = ''
+      let activityDetail = ''
+      let objective = ''
+      let ccqs: string[] = []
+      let discussionTopics: DailySession['discussionTopics'] = undefined
+      let functionalPhrases: string[] | undefined = undefined
+      let activityGame: DailySession['activityGame'] = undefined
+      let readingPassage: DailySession['readingPassage'] = undefined
 
-      // Inject custom user tags if provided
+      // Custom user tags integration
       if (grammarTags.length > 0 && d === 1 && w !== 6 && w !== 12) {
-        const customGrammar = grammarTags[(w - 1) % grammarTags.length]
-        if (customGrammar) {
-          topicTitle = `${customGrammar} & ${baseTopic.topic.split('(')[0].trim()}`
-          grammarFocus = `Core Focus: ${customGrammar}. ${baseTopic.grammar}`
+        const customG = grammarTags[(w - 1) % grammarTags.length]
+        if (customG) {
+          weekData.grammarTopic = customG
         }
       }
-
       if (vocabTags.length > 0) {
         vocabList = Array.from(new Set([...vocabTags.slice(0, 3), ...vocabList])).slice(0, 5)
       }
 
+      // Check Mid-Term & Final Exams
       if (w === Math.floor(termWeeks / 2) && d === sessionsPerWeek) {
         type = 'Assessment'
         topicTitle = 'MID-TERM ORAL & WRITTEN EVALUATION'
-        grammarFocus = 'Comprehensive diagnostic evaluation of Weeks 1-6 grammar and vocabulary mastery.'
-        activityType = 'Formal Diagnostic Assessment'
-        activityDetail = 'Students undergo oral presentations and written grammar check aligned to CEFR criteria.'
-        objective = 'Evaluate mid-term progress, speaking fluency, and grammatical accuracy.'
+        grammarFocus = 'Diagnostic assessment of Weeks 1-6 grammar, vocabulary, and speaking fluency.'
+        activityType = 'Formal Evaluation'
+        activityDetail = 'Students undergo individual oral presentations and written grammar check.'
+        objective = 'Evaluate mid-term progress and academic attainment aligned to CEFR criteria.'
       } else if (w === termWeeks && d === sessionsPerWeek) {
         type = 'Exam'
         topicTitle = 'FINAL TERM WRITTEN & ORAL GRADUATION ASSESSMENT'
-        grammarFocus = 'Final term evaluation covering complete semester curriculum.'
-        activityType = 'Comprehensive Final Exam'
-        activityDetail = 'Invigilated written exam followed by 1-on-1 oral defense and portfolio review.'
-        objective = 'Certify CEFR level proficiency and academic attainment.'
+        grammarFocus = 'Comprehensive semester graduation evaluation covering complete curriculum.'
+        activityType = 'Graduation Examination'
+        activityDetail = 'Invigilated written exam followed by 1-on-1 speaking interview and portfolio review.'
+        objective = 'Certify CEFR level proficiency and issue formal academic transcripts.'
+      } else {
+        // BUILD ACCORDING TO DAY ARCHETYPE
+        switch (archetype) {
+          case 'grammar':
+            topicTitle = `📘 Grammar Focus: ${weekData.grammarTopic}`
+            grammarFocus = weekData.grammarRule
+            grammarScopeLimit = weekData.grammarScope
+            boardLayout = weekData.boardFormula
+            activityType = "Board Formula & Direct Instruction Drills"
+            activityDetail = "Teacher delivers direct instruction using whiteboard formulas, followed by controlled sentence transformation drills."
+            objective = `Master structural accuracy and form of ${weekData.grammarTopic} in "${theme}" context.`
+            ccqs = [
+              `When do we use this structure? ${weekData.grammarRule.slice(0, 50)}...`,
+              `What is the auxiliary verb form on the board? ${weekData.boardFormula.slice(0, 35)}...`,
+              `Does this represent a finished or ongoing state?`
+            ]
+            break
+
+          case 'discussion':
+            const discTopic = cefrDiscussions[(sessionNum - 1) % cefrDiscussions.length]
+            topicTitle = `🗣️ Discussion & Debate: ${discTopic.topic}`
+            grammarFocus = `Apply ${weekData.grammarTopic} naturally during persuasive speaking.`
+            activityType = "Class Debate & Panel Discussion"
+            activityDetail = `Students are assigned pro/con positions on "${discTopic.topic}". They utilize target functional phrases to debate.`
+            objective = `Develop spoken fluency, argumentation, and natural usage of functional expressions.`
+            discussionTopics = [
+              {
+                topic: discTopic.topic,
+                prompt: discTopic.prompt,
+                cefrLevel: cefr
+              },
+              {
+                topic: `Alternative Perspective: ${discTopic.topic}`,
+                prompt: `How would local residents versus international tourists view this issue differently?`,
+                cefrLevel: cefr
+              }
+            ]
+            functionalPhrases = cefrPhrases
+            ccqs = [
+              "Are you expressing agreement or polite disagreement?",
+              "What phrase can you use to introduce a counter-argument?"
+            ]
+            break
+
+          case 'activity':
+            const gameTemplate = CLASSROOM_GAMES[(sessionNum - 1) % CLASSROOM_GAMES.length]
+            topicTitle = `🎮 Fluency Game: ${gameTemplate.gameName}`
+            grammarFocus = `Consolidate ${weekData.grammarTopic} through interactive classroom dynamics.`
+            activityType = gameTemplate.gameName
+            activityDetail = gameTemplate.rules.join(" ")
+            objective = `Reinforce target vocabulary and structural patterns through high-energy cooperative gameplay.`
+            activityGame = gameTemplate
+            ccqs = [
+              "What are the game rules and scoring conditions?",
+              "What grammar structure must be used to score points?"
+            ]
+            break
+
+          case 'reading':
+            topicTitle = `📖 Book & Reading: ${weekData.readingTitle}`
+            grammarFocus = `Analyze ${weekData.grammarTopic} within authentic reading text.`
+            activityType = "Text Analysis & Vocab Extraction"
+            activityDetail = `Students read "${weekData.readingTitle}", practice ${weekData.readingStrategy}, and extract target vocabulary.`
+            objective = `Enhance reading comprehension, context vocabulary extraction, and text strategy.`
+            readingPassage = {
+              passageTitle: weekData.readingTitle,
+              readingStrategy: weekData.readingStrategy,
+              comprehensionQuestions: [
+                `What is the main topic of "${weekData.readingTitle}"?`,
+                `Scan Paragraph 2: Find two target vocabulary words used in context.`,
+                `Identify one instance of ${weekData.grammarTopic} in the text and explain why the author used it.`
+              ]
+            }
+            ccqs = [
+              "Are we skimming for the main idea or scanning for specific facts?",
+              "What does this target vocabulary word mean in Paragraph 3?"
+            ]
+            break
+        }
       }
 
-      // Generate 4-Phase Timeline
+      // Generate 4-Phase Timeline customized for archetype
       const phases = [
         {
           phase: 'Phase 1: Warm-Up & Schema Activation',
           time: '10 Mins',
-          activity: 'Interactive Icebreaker & Board Discussion',
-          instructions: `Teacher introduces "${theme}" context using board prompts. Students discuss initial thoughts in pairs.`
+          activity: archetype === 'discussion' ? 'Debate Icebreaker Prompt' : archetype === 'activity' ? 'Game Rules & Team Setup' : archetype === 'reading' ? 'Title & Image Prediction' : 'Grammar Warm-Up & Board Teaser',
+          instructions: `Teacher introduces "${theme}" context. Students discuss initial prompts in pairs.`
         },
         {
-          phase: 'Phase 2: Direct Instruction & Concept Check',
+          phase: 'Phase 2: Core Delivery & Instruction',
           time: '15 Mins',
-          activity: 'Form & Meaning Breakdown',
-          instructions: `Explain ${grammarFocus}. Conduct Concept Check Questions (CCQs) on board.`
+          activity: archetype === 'grammar' ? 'Whiteboard Formula Breakdown' : archetype === 'discussion' ? 'Functional Language Input' : archetype === 'reading' ? 'Guided Text Reading & Strategy' : 'Game Demo & Safety Trial',
+          instructions: archetype === 'grammar' ? `Explain ${boardLayout}. Conduct Concept Check Questions (CCQs).` : `Introduce key expressions (${(functionalPhrases || vocabList).slice(0, 3).join(', ')}).`
         },
         {
-          phase: 'Phase 3: Guided Practice & Classroom Dynamics',
+          phase: 'Phase 3: Guided Practice & Dynamics',
           time: '15 Mins',
           activity: activityType,
           instructions: activityDetail
         },
         {
-          phase: 'Phase 4: Wrap-Up & Exit Assignment',
+          phase: 'Phase 4: Wrap-Up & Assessment',
           time: '5 Mins',
           activity: 'Exit Ticket & Homework Check',
-          instructions: `Review target vocabulary (${vocabList.slice(0, 3).join(', ')}). Assign textbook exercises from ${unitRef}.`
+          instructions: `Review target vocabulary (${vocabList.slice(0, 3).join(', ')}). Assign exercises from ${unitRef}.`
         }
       ]
 
@@ -531,8 +495,11 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         weekNum: w,
         dayNum: d,
         day: `Session ${sessionNum} (Week ${w}, Day ${d})`,
+        dayArchetype: archetype,
         topic: topicTitle,
         grammarFocus,
+        grammarScopeLimit,
+        boardLayout,
         vocabList,
         unitRef,
         activityType,
@@ -540,13 +507,17 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         objective,
         type,
         ccqs,
+        discussionTopics,
+        functionalPhrases,
+        activityGame,
+        readingPassage,
         phases
       })
     }
 
     generatedWeeks.push({
       weekNum: w,
-      title: templateWeek.weekTitle,
+      title: weekData.weekTitle,
       theme,
       days: weekDays
     })

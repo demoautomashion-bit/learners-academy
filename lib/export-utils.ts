@@ -117,8 +117,39 @@ export function exportSyllabusToWord(syllabus: any) {
           <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 15px; background: #fafafa;">
             <h3 style="color: #1e3a8a; margin-top: 0; margin-bottom: 4px; font-size: 11pt;">${d.day}: ${d.topic}</h3>
             <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}</p>
+            ${d.grammarScopeLimit ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 4px;"><strong>Grammar Scope Limit (How much to teach today):</strong> ${d.grammarScopeLimit}</p>` : ''}
+            ${d.boardLayout ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #1e3a8a; background: #e0e7ff; padding: 4px 8px; border-radius: 4px; font-family: monospace;"><strong>Whiteboard Formula / Layout:</strong> ${d.boardLayout}</p>` : ''}
             <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${(d.vocabList || []).join(', ')} | <strong>Curriculum Unit:</strong> ${d.unitRef || 'Standard Unit'}</p>
             
+            ${d.discussionTopics && d.discussionTopics.length > 0 ? `
+              <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                <strong>🗣️ CEFR Discussion & Debate Topics:</strong>
+                ${d.discussionTopics.map((dt: any) => `<div style="margin-top: 3px;"><strong>Topic:</strong> ${dt.topic} — <em>"${dt.prompt}"</em></div>`).join('')}
+                ${d.functionalPhrases ? `<div style="margin-top: 4px;"><strong>Functional Speaking Phrases to Practice:</strong> ${d.functionalPhrases.join(' | ')}</div>` : ''}
+              </div>
+            ` : ''}
+
+            ${d.activityGame ? `
+              <div style="background: #fdf4ff; border-left: 3px solid #c026d3; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                <strong>🎮 Classroom Fluency Game: ${d.activityGame.gameName}</strong>
+                <div><strong>Materials Needed:</strong> ${d.activityGame.materials.join(', ')}</div>
+                <div><strong>Rules:</strong> ${d.activityGame.rules.join(' ')}</div>
+                <div><strong>Scoring System:</strong> ${d.activityGame.scoring}</div>
+              </div>
+            ` : ''}
+
+            ${d.readingPassage ? `
+              <div style="background: #fffbeb; border-left: 3px solid #d97706; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                <strong>📖 Book Reading: ${d.readingPassage.passageTitle}</strong>
+                <div><strong>Reading Strategy Focus:</strong> ${d.readingPassage.readingStrategy}</div>
+                <div><strong>Comprehension Questions:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                    ${d.readingPassage.comprehensionQuestions.map((cq: string) => `<li>${cq}</li>`).join('')}
+                  </ul>
+                </div>
+              </div>
+            ` : ''}
+
             ${d.ccqs && d.ccqs.length > 0 ? `
               <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
                 <strong>Concept Check Questions (CCQs):</strong>
@@ -555,9 +586,50 @@ export function exportSyllabusToPDF(syllabus: any) {
               <strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}
             </div>
 
+            ${d.grammarScopeLimit ? `
+              <div style="font-size: 10.5px; color: #92400e; background: #fef3c7; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
+                <strong>Grammar Scope Limit (How much to teach today):</strong> ${d.grammarScopeLimit}
+              </div>
+            ` : ''}
+
+            ${d.boardLayout ? `
+              <div style="font-size: 10.5px; color: #1e3a8a; background: #e0e7ff; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; font-family: monospace;">
+                <strong>Whiteboard Formula / Layout:</strong> ${d.boardLayout}
+              </div>
+            ` : ''}
+
             <div style="font-size: 11px; color: #334155; margin-bottom: 10px;">
               <strong>Target Vocabulary:</strong> <span style="color: #1e3a8a; font-weight: 600;">${(d.vocabList || []).join(', ')}</span>
             </div>
+
+            ${d.discussionTopics && d.discussionTopics.length > 0 ? `
+              <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">
+                <strong style="color: #15803d;">🗣️ CEFR Discussion & Debate Topics:</strong>
+                ${d.discussionTopics.map((dt: any) => `<div style="margin-top: 4px;"><strong>Topic:</strong> ${dt.topic} — <em>"${dt.prompt}"</em></div>`).join('')}
+                ${d.functionalPhrases ? `<div style="margin-top: 6px;"><strong>Functional Speaking Phrases to Practice:</strong> ${d.functionalPhrases.join(' | ')}</div>` : ''}
+              </div>
+            ` : ''}
+
+            ${d.activityGame ? `
+              <div style="background: #fdf4ff; border-left: 3px solid #c026d3; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">
+                <strong style="color: #a21caf;">🎮 Classroom Fluency Game: ${d.activityGame.gameName}</strong>
+                <div style="margin-top: 4px;"><strong>Materials Needed:</strong> ${d.activityGame.materials.join(', ')}</div>
+                <div style="margin-top: 2px;"><strong>Rules:</strong> ${d.activityGame.rules.join(' ')}</div>
+                <div style="margin-top: 2px;"><strong>Scoring System:</strong> ${d.activityGame.scoring}</div>
+              </div>
+            ` : ''}
+
+            ${d.readingPassage ? `
+              <div style="background: #fffbeb; border-left: 3px solid #d97706; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">
+                <strong style="color: #b45309;">📖 Book Reading: ${d.readingPassage.passageTitle}</strong>
+                <div style="margin-top: 4px;"><strong>Reading Strategy Focus:</strong> ${d.readingPassage.readingStrategy}</div>
+                <div style="margin-top: 4px;"><strong>Comprehension Questions:</strong>
+                  <ul style="margin: 4px 0 0 0; padding-left: 16px;">
+                    ${d.readingPassage.comprehensionQuestions.map((cq: string) => `<li>${cq}</li>`).join('')}
+                  </ul>
+                </div>
+              </div>
+            ` : ''}
 
             ${d.ccqs && d.ccqs.length > 0 ? `
               <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">

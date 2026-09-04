@@ -43,7 +43,14 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/auth-context'
 import { cn } from '@/lib/utils'
 import { exportSyllabusToWord, exportSyllabusToPDF } from '@/lib/export-utils'
-import { generateGranularTermRoadmap } from '@/lib/curriculum-generator'
+import { generateGranularTermRoadmap, DayArchetype } from '@/lib/curriculum-generator'
+
+const ARCHETYPE_OPTIONS: Array<{ type: DayArchetype; label: string; icon: string; color: string }> = [
+  { type: 'grammar', label: '📘 Grammar & Structure', icon: '📘', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
+  { type: 'activity', label: '🎮 Extra Activity & Fluency', icon: '🎮', color: 'bg-purple-500/10 text-purple-600 border-purple-200' },
+  { type: 'discussion', label: '🗣️ Discussion & Debate', icon: '🗣️', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-200' },
+  { type: 'reading', label: '📖 Book & Reading', icon: '📖', color: 'bg-amber-500/10 text-amber-600 border-amber-200' },
+]
 
 // Pre-defined CEFR Options & Presets
 const CEFR_LEVELS = [
@@ -77,6 +84,14 @@ export default function LessonGeneratorPage() {
   const [termWeeks, setTermWeeks] = useState(12) // 12 weeks = 3 months
   const [sessionsPerWeek, setSessionsPerWeek] = useState(3)
   const [termViewMode, setTermViewMode] = useState<'roadmap' | 'cards'>('roadmap')
+  const [weeklyArchetypes, setWeeklyArchetypes] = useState<DayArchetype[]>(['grammar', 'activity', 'discussion'])
+
+  const handleSessionsChange = (count: number) => {
+    setSessionsPerWeek(count)
+    if (count === 2) setWeeklyArchetypes(['grammar', 'discussion'])
+    else if (count === 3) setWeeklyArchetypes(['grammar', 'activity', 'discussion'])
+    else if (count === 5) setWeeklyArchetypes(['grammar', 'reading', 'activity', 'grammar', 'discussion'])
+  }
   
   // Form State
   const [selectedCefr, setSelectedCefr] = useState('B1')
@@ -229,7 +244,8 @@ export default function LessonGeneratorPage() {
           theme: customTopic || 'Travel & World Experiences',
           grammarTags,
           vocabTags,
-          idiomTags
+          idiomTags,
+          weeklyArchetypes
         })
 
         setGeneratedResult({
@@ -620,7 +636,7 @@ export default function LessonGeneratorPage() {
                             <button
                               key={s}
                               type="button"
-                              onClick={() => setSessionsPerWeek(s)}
+                              onClick={() => handleSessionsChange(s)}
                               className={cn(
                                 'py-2 rounded-md text-xs font-semibold border transition-all text-center',
                                 sessionsPerWeek === s
@@ -631,6 +647,43 @@ export default function LessonGeneratorPage() {
                               {s}x Weekly
                             </button>
                           ))}
+                        </div>
+                      </div>
+
+                      {/* Weekly Schedule Timetable Configurator */}
+                      <div className="space-y-2.5 pt-3 border-t border-border">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-semibold">Weekly Day-Label Archetypes</Label>
+                          <span className="text-[11px] text-muted-foreground">Tailor each day's lesson type</span>
+                        </div>
+
+                        <div className="space-y-2">
+                          {Array.from({ length: sessionsPerWeek }).map((_, idx) => {
+                            const currentType = weeklyArchetypes[idx] || 'grammar'
+                            return (
+                              <div key={idx} className="p-2.5 rounded-lg border border-border bg-muted/20 flex items-center justify-between gap-2">
+                                <span className="text-xs font-bold text-foreground">
+                                  Day {idx + 1} ({idx === 0 ? 'e.g. Tue' : idx === 1 ? 'e.g. Wed' : idx === 2 ? 'e.g. Fri' : `Day ${idx + 1}`})
+                                </span>
+
+                                <select
+                                  value={currentType}
+                                  onChange={(e) => {
+                                    const updated = [...weeklyArchetypes]
+                                    updated[idx] = e.target.value as DayArchetype
+                                    setWeeklyArchetypes(updated)
+                                  }}
+                                  className="text-xs font-semibold bg-background border border-border rounded-md px-2.5 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                >
+                                  {ARCHETYPE_OPTIONS.map((opt) => (
+                                    <option key={opt.type} value={opt.type}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )
+                          })}
                         </div>
                       </div>
                     </div>
@@ -1017,6 +1070,97 @@ export default function LessonGeneratorPage() {
                                       {d.grammarFocus}
                                     </p>
                                   </div>
+
+                                  {/* Grammar Day Specifics: Scope Limit & Board Formula */}
+                                  {d.grammarScopeLimit && (
+                                    <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-lg text-xs space-y-1">
+                                      <span className="font-bold text-amber-700 dark:text-amber-400 block">⚠️ Grammar Scope Limit (How much to teach today):</span>
+                                      <p className="text-amber-800 dark:text-amber-300 leading-normal">{d.grammarScopeLimit}</p>
+                                    </div>
+                                  )}
+
+                                  {d.boardLayout && (
+                                    <div className="bg-blue-500/10 border border-blue-500/30 p-2.5 rounded-lg text-xs space-y-1 font-mono">
+                                      <span className="font-bold text-blue-700 dark:text-blue-400 block font-sans">📐 Whiteboard Formula / Board Layout:</span>
+                                      <p className="text-blue-900 dark:text-blue-200">{d.boardLayout}</p>
+                                    </div>
+                                  )}
+
+                                  {/* Discussion Day Specifics: CEFR Debate Prompts & Functional Phrases */}
+                                  {d.discussionTopics && d.discussionTopics.length > 0 && (
+                                    <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-lg space-y-2">
+                                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                                        🗣️ CEFR Discussion & Debate Prompts:
+                                      </span>
+                                      {d.discussionTopics.map((dt: any, dti: number) => (
+                                        <div key={dti} className="bg-background/80 p-2 rounded border border-emerald-500/20 text-xs">
+                                          <strong className="text-foreground">{dt.topic}:</strong>{' '}
+                                          <span className="text-muted-foreground italic">"{dt.prompt}"</span>
+                                        </div>
+                                      ))}
+
+                                      {d.functionalPhrases && (
+                                        <div className="space-y-1 pt-1">
+                                          <span className="text-[10px] font-bold uppercase text-emerald-800 dark:text-emerald-300">Functional Speaking Phrases:</span>
+                                          <div className="flex flex-wrap gap-1">
+                                            {d.functionalPhrases.map((phrase: string, pi: number) => (
+                                              <Badge key={pi} variant="outline" className="text-[10px] bg-emerald-500/5 text-emerald-700 border-emerald-300">
+                                                {phrase}
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Extra Activity Day Specifics: Game Blueprint & Rules */}
+                                  {d.activityGame && (
+                                    <div className="bg-purple-500/10 border border-purple-500/30 p-3 rounded-lg space-y-2">
+                                      <div className="flex items-center justify-between border-b border-purple-500/20 pb-1.5">
+                                        <span className="text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+                                          🎮 Classroom Fluency Game: {d.activityGame.gameName}
+                                        </span>
+                                        <Badge variant="outline" className="text-[10px] bg-purple-500/10 border-purple-300 text-purple-700">
+                                          Game Blueprint
+                                        </Badge>
+                                      </div>
+
+                                      <div className="text-xs text-muted-foreground space-y-1">
+                                        <div><strong className="text-foreground font-semibold">Materials Needed:</strong> {d.activityGame.materials.join(', ')}</div>
+                                        <div><strong className="text-foreground font-semibold">Execution Rules:</strong></div>
+                                        <ol className="list-decimal list-inside space-y-0.5 pl-1 text-[11px]">
+                                          {d.activityGame.rules.map((rule: string, ri: number) => (
+                                            <li key={ri}>{rule}</li>
+                                          ))}
+                                        </ol>
+                                        <div className="pt-1 text-purple-800 dark:text-purple-300 font-medium"><strong className="text-foreground">Scoring System:</strong> {d.activityGame.scoring}</div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Book / Reading Day Specifics: Passage & Questions */}
+                                  {d.readingPassage && (
+                                    <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-lg space-y-2">
+                                      <div className="flex items-center justify-between border-b border-amber-500/20 pb-1.5">
+                                        <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                                          📖 Book Reading: {d.readingPassage.passageTitle}
+                                        </span>
+                                        <Badge variant="outline" className="text-[10px] bg-amber-500/10 border-amber-300 text-amber-700">
+                                          {d.readingPassage.readingStrategy}
+                                        </Badge>
+                                      </div>
+
+                                      <div className="text-xs space-y-1">
+                                        <strong className="text-foreground font-semibold">Reading Comprehension Questions:</strong>
+                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground pl-1">
+                                          {d.readingPassage.comprehensionQuestions.map((cq: string, cqi: number) => (
+                                            <li key={cqi}>{cq}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  )}
 
                                   {d.vocabList && d.vocabList.length > 0 && (
                                     <div className="space-y-1.5">
