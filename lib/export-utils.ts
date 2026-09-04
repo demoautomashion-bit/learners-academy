@@ -1,6 +1,7 @@
 /**
  * Export Utility for Syllabus Documents
  * Generates formatted Word (.doc) and PDF/HTML files for client-side download.
+ * Embeds official academy branding, logo, and a top preview navigation bar.
  */
 
 export function exportSyllabusToWord(syllabus: any) {
@@ -8,6 +9,8 @@ export function exportSyllabusToWord(syllabus: any) {
 
   const title = syllabus.title || 'Academic_Syllabus'
   const fileName = `${title.replace(/[^a-zA-Z0-9_-]/g, '_')}.doc`
+  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  const serialId = `TLA-SYL-${Math.floor(100000 + Math.random() * 900000)}`
 
   let htmlContent = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -15,30 +18,50 @@ export function exportSyllabusToWord(syllabus: any) {
       <meta charset='utf-8'>
       <title>${title}</title>
       <style>
-        body { font-family: 'Calibri', 'Arial', sans-serif; margin: 25px; color: #1e293b; line-height: 1.5; }
-        h1 { color: #0f172a; font-size: 22pt; border-bottom: 2px solid #2563eb; padding-bottom: 6px; margin-bottom: 12px; }
-        h2 { color: #1e40af; font-size: 14pt; margin-top: 18px; margin-bottom: 8px; }
-        h3 { color: #334155; font-size: 12pt; margin-top: 12px; margin-bottom: 6px; }
-        .meta-bar { background-color: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 10pt; margin-bottom: 15px; }
-        .badge { display: inline-block; background-color: #2563eb; color: #ffffff; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 9pt; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; }
-        th, td { border: 1px solid #cbd5e1; padding: 8px 10px; font-size: 10pt; text-align: left; vertical-align: top; }
-        th { background-color: #f8fafc; font-weight: bold; color: #0f172a; }
+        body { font-family: 'Calibri', 'Arial', sans-serif; margin: 25px; color: #0f172a; line-height: 1.5; }
+        .academy-header { border-bottom: 3px solid #1e3a8a; padding-bottom: 12px; margin-bottom: 20px; }
+        .academy-title { color: #1e3a8a; font-size: 20pt; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .academy-subtitle { color: #475569; font-size: 9.5pt; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; font-weight: bold; }
+        .doc-title { font-size: 16pt; font-weight: bold; color: #0f172a; margin-top: 15px; margin-bottom: 8px; }
+        .meta-bar { background-color: #f8fafc; border: 1px solid #cbd5e1; padding: 10px 14px; border-radius: 6px; font-size: 9.5pt; margin-bottom: 20px; }
+        .meta-item { display: inline-block; margin-right: 20px; color: #334155; }
+        .badge { background-color: #1e3a8a; color: #ffffff; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 9pt; }
+        h2 { color: #1e3a8a; font-size: 13pt; margin-top: 18px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        h3 { color: #334155; font-size: 11pt; margin-top: 14px; margin-bottom: 6px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 16px; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px 10px; font-size: 9.5pt; text-align: left; vertical-align: top; }
+        th { background-color: #f1f5f9; font-weight: bold; color: #0f172a; }
         ul { margin-top: 5px; margin-bottom: 10px; padding-left: 20px; }
-        li { font-size: 10pt; margin-bottom: 4px; }
+        li { font-size: 9.5pt; margin-bottom: 4px; color: #334155; }
+        .footer-clause { margin-top: 30px; border-t: 1px solid #cbd5e1; pt: 10px; font-size: 8pt; color: #64748b; text-align: center; }
       </style>
     </head>
     <body>
-      <h1>${title}</h1>
+      <div class="academy-header">
+        <table style="width: 100%; border: none;">
+          <tr>
+            <td style="border: none; padding: 0;">
+              <div class="academy-title">The Learners Academy</div>
+              <div class="academy-subtitle">Premium English Language Education & Academic Curricula</div>
+            </td>
+            <td style="border: none; padding: 0; text-align: right; font-size: 9pt; color: #64748b;">
+              <strong>SERIAL:</strong> ${serialId}<br>
+              <strong>DATE:</strong> ${dateStr}
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="doc-title">${title}</div>
       
       <div class="meta-bar">
-        <strong>CEFR Level:</strong> ${syllabus.cefr || 'B1'} &nbsp;|&nbsp;
-        <strong>Duration:</strong> ${syllabus.duration || 'N/A'} &nbsp;|&nbsp;
-        <strong>Context/Theme:</strong> ${syllabus.theme || syllabus.topic || 'General Context'}
+        <span class="meta-item"><strong>CEFR Benchmark:</strong> <span class="badge">${syllabus.cefr || 'B1'}</span></span>
+        <span class="meta-item"><strong>Duration:</strong> ${syllabus.duration || 'N/A'}</span>
+        <span class="meta-item"><strong>Context / Theme:</strong> ${syllabus.theme || syllabus.topic || 'General Context'}</span>
       </div>
   `
 
-  // Objectives Section
+  // Learning Objectives
   if (syllabus.objectives && syllabus.objectives.length > 0) {
     htmlContent += `
       <h2>Learning Objectives</h2>
@@ -108,7 +131,7 @@ export function exportSyllabusToWord(syllabus: any) {
     if (syllabus.homework) {
       htmlContent += `
         <h2>Homework & Independent Application</h2>
-        <p style="font-size: 10pt; background: #f8fafc; padding: 10px; border-left: 4px solid #2563eb;">
+        <p style="font-size: 9.5pt; background: #f8fafc; padding: 10px; border-left: 4px solid #1e3a8a;">
           ${syllabus.homework}
         </p>
       `
@@ -116,6 +139,9 @@ export function exportSyllabusToWord(syllabus: any) {
   }
 
   htmlContent += `
+      <div class="footer-clause">
+        The Learners Academy — Official Academic Syllabus Document & Official Curriculum Record
+      </div>
     </body>
     </html>
   `
@@ -138,6 +164,8 @@ export function exportSyllabusToPDF(syllabus: any) {
   if (!syllabus) return
 
   const title = syllabus.title || 'Academic_Syllabus'
+  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  const serialId = `TLA-SYL-${Math.floor(100000 + Math.random() * 900000)}`
 
   const printWindow = window.open('', '_blank')
   if (!printWindow) return
@@ -146,36 +174,267 @@ export function exportSyllabusToPDF(syllabus: any) {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>${title}</title>
+      <meta charset="utf-8">
+      <title>${title} - The Learners Academy</title>
       <style>
         @page { size: A4; margin: 15mm; }
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.5; padding: 10px; }
-        h1 { font-size: 20px; font-weight: 700; color: #0f172a; border-bottom: 2px solid #2563eb; padding-bottom: 6px; margin-bottom: 12px; }
-        h2 { font-size: 14px; font-weight: 700; color: #1e40af; margin-top: 16px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .meta-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; display: flex; gap: 15px; }
-        .meta-item { font-weight: 600; color: #475569; }
-        .meta-item span { color: #0f172a; font-weight: 700; }
-        table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 16px; }
-        th, td { border: 1px solid #cbd5e1; padding: 7px 10px; font-size: 11px; text-align: left; }
-        th { background: #f1f5f9; font-weight: 700; color: #0f172a; }
-        ul { margin: 6px 0; padding-left: 18px; }
-        li { font-size: 11px; margin-bottom: 4px; color: #334155; }
-        .week-card { border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px; overflow: hidden; page-break-inside: avoid; }
-        .week-header { background: #f8fafc; padding: 8px 12px; font-weight: 700; font-size: 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #0f172a; line-height: 1.5; margin: 0; padding: 0; background-color: #f8fafc; }
+        
+        /* Sticky Top Preview Navigation Bar (Hidden during print) */
+        .preview-nav-bar {
+          position: sticky;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          background: #0f172a;
+          color: #ffffff;
+          padding: 12px 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          font-family: system-ui, -apple-system, sans-serif;
+        }
+        .nav-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          border: none;
+          transition: all 0.2s ease;
+          text-decoration: none;
+        }
+        .nav-btn-back {
+          background: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .nav-btn-back:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+        .nav-btn-print {
+          background: #2563eb;
+          color: #ffffff;
+        }
+        .nav-btn-print:hover {
+          background: #1d4ed8;
+        }
+
+        /* Printable Document Sheet Container */
+        .page-container {
+          max-w: 800px;
+          margin: 24px auto;
+          background: #ffffff;
+          padding: 40px;
+          border-radius: 12px;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+          border: 1px solid #e2e8f0;
+        }
+
+        /* Header Block */
+        .academy-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 3px solid #1e3a8a;
+          padding-bottom: 16px;
+          margin-bottom: 24px;
+        }
+        .logo-box {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .logo-img {
+          width: 48px;
+          height: 48px;
+          object-fit: contain;
+          border-radius: 50%;
+        }
+        .academy-info h1 {
+          font-size: 22px;
+          font-weight: 800;
+          color: #1e3a8a;
+          margin: 0;
+          letter-spacing: -0.5px;
+          text-transform: uppercase;
+        }
+        .academy-info p {
+          font-size: 11px;
+          color: #64748b;
+          margin: 2px 0 0 0;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .header-meta {
+          text-align: right;
+          font-size: 11px;
+          color: #64748b;
+        }
+        .header-meta strong {
+          color: #0f172a;
+        }
+
+        /* Content Styling */
+        .doc-title {
+          font-size: 20px;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 14px;
+          line-height: 1.3;
+        }
+        .meta-box {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 10px 16px;
+          margin-bottom: 24px;
+          font-size: 12px;
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+        .meta-item {
+          font-weight: 600;
+          color: #475569;
+        }
+        .meta-item span {
+          color: #0f172a;
+          font-weight: 700;
+        }
+        .cefr-badge {
+          background: #1e3a8a;
+          color: #ffffff;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 700;
+        }
+        h2 {
+          font-size: 13px;
+          font-weight: 700;
+          color: #1e3a8a;
+          margin-top: 24px;
+          margin-bottom: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          border-bottom: 1px solid #e2e8f0;
+          padding-bottom: 4px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 8px;
+          margin-bottom: 20px;
+        }
+        th, td {
+          border: 1px solid #cbd5e1;
+          padding: 8px 12px;
+          font-size: 11px;
+          text-align: left;
+          vertical-align: top;
+        }
+        th {
+          background: #f1f5f9;
+          font-weight: 700;
+          color: #0f172a;
+        }
+        ul {
+          margin: 8px 0;
+          padding-left: 20px;
+        }
+        li {
+          font-size: 12px;
+          margin-bottom: 6px;
+          color: #334155;
+        }
+        .week-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          margin-bottom: 16px;
+          overflow: hidden;
+          page-break-inside: avoid;
+        }
+        .week-header {
+          background: #f8fafc;
+          padding: 10px 14px;
+          font-weight: 700;
+          font-size: 12px;
+          border-bottom: 1px solid #e2e8f0;
+          color: #0f172a;
+        }
+        .footer-watermark {
+          margin-top: 40px;
+          padding-top: 16px;
+          border-top: 1px solid #e2e8f0;
+          text-align: center;
+          font-size: 10px;
+          color: #94a3b8;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        /* Print Media Query */
         @media print {
-          body { padding: 0; }
-          .no-print { display: none; }
+          body { background: #ffffff; }
+          .no-print { display: none !important; }
+          .page-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+          }
         }
       </style>
     </head>
     <body>
-      <h1>${title}</h1>
-
-      <div class="meta-box">
-        <div class="meta-item">CEFR Benchmark: <span>${syllabus.cefr || 'B1'}</span></div>
-        <div class="meta-item">Duration: <span>${syllabus.duration || 'N/A'}</span></div>
-        <div class="meta-item">Theme Context: <span>${syllabus.theme || syllabus.topic || 'General Context'}</span></div>
+      <!-- Top Sticky Preview Navigation Bar -->
+      <div class="preview-nav-bar no-print">
+        <div style="display: flex; items-center; gap: 10px;">
+          <button class="nav-btn nav-btn-back" onclick="if(window.opener){window.close();}else{window.history.back();}">
+            ← Back to Teacher Portal
+          </button>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; color: #94a3b8;">
+          Document Preview
+        </div>
+        <button class="nav-btn nav-btn-print" onclick="window.print();">
+          🖨️ Commit to Print / Save PDF
+        </button>
       </div>
+
+      <div class="page-container">
+        <!-- Official Academy Header -->
+        <div class="academy-header">
+          <div class="logo-box">
+            <img src="/images/logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none';" />
+            <div class="academy-info">
+              <h1>The Learners Academy</h1>
+              <p>Premium English Language Education & Academic Curricula</p>
+            </div>
+          </div>
+          <div class="header-meta">
+            <div>SERIAL: <strong>${serialId}</strong></div>
+            <div>DATE: <strong>${dateStr}</strong></div>
+          </div>
+        </div>
+
+        <div class="doc-title">${title}</div>
+
+        <div class="meta-box">
+          <div class="meta-item">CEFR Benchmark: <span class="cefr-badge">${syllabus.cefr || 'B1'}</span></div>
+          <div class="meta-item">Duration: <span>${syllabus.duration || 'N/A'}</span></div>
+          <div class="meta-item">Theme Context: <span>${syllabus.theme || syllabus.topic || 'General Context'}</span></div>
+        </div>
   `
 
   // Objectives
@@ -191,7 +450,7 @@ export function exportSyllabusToPDF(syllabus: any) {
   // Roadmap (Term)
   if (syllabus.isTerm || syllabus.weeks || syllabus.scope === 'term') {
     const weeksList = syllabus.weeks || []
-    htmlContent += `<h2>12-Week Syllabus Roadmap</h2>`
+    htmlContent += `<h2>12-Week Course Syllabus Roadmap</h2>`
     
     weeksList.forEach((w: any) => {
       htmlContent += `
@@ -248,6 +507,11 @@ export function exportSyllabusToPDF(syllabus: any) {
   }
 
   htmlContent += `
+        <div class="footer-watermark">
+          The Learners Academy — Official Academic Syllabus Document & Official Curriculum Record
+        </div>
+      </div>
+
       <script>
         window.onload = function() {
           window.print();
