@@ -43,6 +43,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/auth-context'
 import { cn } from '@/lib/utils'
 import { exportSyllabusToWord, exportSyllabusToPDF } from '@/lib/export-utils'
+import { generateGranularTermRoadmap } from '@/lib/curriculum-generator'
 
 // Pre-defined CEFR Options & Presets
 const CEFR_LEVELS = [
@@ -75,6 +76,7 @@ export default function LessonGeneratorPage() {
   // Term Specific State
   const [termWeeks, setTermWeeks] = useState(12) // 12 weeks = 3 months
   const [sessionsPerWeek, setSessionsPerWeek] = useState(3)
+  const [termViewMode, setTermViewMode] = useState<'roadmap' | 'cards'>('roadmap')
   
   // Form State
   const [selectedCefr, setSelectedCefr] = useState('B1')
@@ -218,58 +220,30 @@ export default function LessonGeneratorPage() {
       setGenerationStep(0)
 
       if (syllabusScope === 'term') {
-        // 3-Month Term Roadmap Data Structure
+        // Granular Multi-Week Course Roadmap Generation Engine
         const totalSessions = termWeeks * sessionsPerWeek
-        const roadmapWeeks = []
-
-        for (let w = 1; w <= termWeeks; w++) {
-          const weekDays = []
-          for (let d = 1; d <= sessionsPerWeek; d++) {
-            const sessionNum = (w - 1) * sessionsPerWeek + d
-            
-            if (w === 6 && d === sessionsPerWeek) {
-              weekDays.push({
-                day: `Session ${sessionNum} (Week ${w}, Day ${d})`,
-                topic: 'MID-TERM REVIEW & PROGRESS CHECK',
-                type: 'Assessment',
-                objective: 'Evaluate mid-term grammar mastery and oral presentation.'
-              })
-            } else if (w === 12 && d === sessionsPerWeek) {
-              weekDays.push({
-                day: `Session ${sessionNum} (Week ${w}, Day ${d})`,
-                topic: 'FINAL TERM WRITTEN & ORAL EVALUATION',
-                type: 'Exam',
-                objective: 'Comprehensive term assessment aligned to CEFR criteria.'
-              })
-            } else {
-              weekDays.push({
-                day: `Session ${sessionNum} (Week ${w}, Day ${d})`,
-                topic: `${grammarTags[(sessionNum - 1) % grammarTags.length] || 'Core Structure'} - Module ${d}`,
-                type: 'Instruction & Practice',
-                objective: `Master target structure in "${customTopic}" context with featured vocabulary.`
-              })
-            }
-          }
-
-          roadmapWeeks.push({
-            weekNum: w,
-            title: `Week ${w}: ${grammarTags[(w - 1) % grammarTags.length] || 'Academic Module'} Mastery`,
-            days: weekDays
-          })
-        }
+        const roadmapWeeks = generateGranularTermRoadmap({
+          termWeeks,
+          sessionsPerWeek,
+          cefr: selectedCefr,
+          theme: customTopic || 'Travel & World Experiences',
+          grammarTags,
+          vocabTags,
+          idiomTags
+        })
 
         setGeneratedResult({
           isTerm: true,
-          title: `3-Month (${termWeeks}-Week) Comprehensive Course Roadmap`,
+          title: `3-Month (${termWeeks}-Week) Granular Academic Syllabus Roadmap`,
           cefr: selectedCefr,
           duration: `${totalSessions} Sessions (${sessionsPerWeek}x / week)`,
-          theme: customTopic || 'General Context',
+          theme: customTopic || 'Travel & World Experiences',
           totalSessions,
           weeks: roadmapWeeks,
           objectives: [
             `Complete ${termWeeks}-week progressive mastery from basic structures to ${selectedCefr} CEFR proficiency.`,
-            `Systematically cover ${grammarTags.length} core grammar units with daily classroom timelines.`,
-            `Conduct mid-term review (Week 6) and final term assessment (Week 12).`
+            `Systematically cover distinct grammar sub-rules, target vocabulary, and activities across all ${totalSessions} sessions.`,
+            `Conduct mid-term review (Week ${Math.floor(termWeeks / 2)}) and final graduation assessment (Week ${termWeeks}).`
           ]
         })
       } else {
@@ -887,6 +861,7 @@ export default function LessonGeneratorPage() {
                   </div>
 
                   {/* 3-MONTH TERM DAY-BY-DAY ROADMAP VIEW */}
+                  {/* 3-MONTH TERM GRANULAR ROADMAP & GUIDEBOOK VIEW */}
                   {generatedResult.isTerm ? (
                     <div className="space-y-6">
                       <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
@@ -901,45 +876,202 @@ export default function LessonGeneratorPage() {
                         </ul>
                       </div>
 
-                      {/* 12-Week Day-by-Day Timeline */}
-                      <div className="space-y-4">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
-                          12-Week Day-by-Day Syllabus Roadmap
-                        </h4>
-                        
-                        {generatedResult.weeks.map((w: any) => (
-                          <div key={w.weekNum} className="border border-border rounded-lg bg-card overflow-hidden">
-                            <div className="bg-muted/40 p-3 border-b border-border flex items-center justify-between">
-                              <span className="text-xs font-bold text-foreground">{w.title}</span>
-                              <Badge variant="outline" className="text-[10px] font-mono">
-                                Week {w.weekNum} of {termWeeks}
-                              </Badge>
-                            </div>
-                            
-                            <div className="p-3 space-y-2">
-                              {w.days.map((d: any, idx: number) => (
-                                <div
-                                  key={idx}
-                                  className={cn(
-                                    'p-2.5 rounded border text-xs flex flex-col md:flex-row md:items-center justify-between gap-2',
-                                    d.type === 'Exam'
-                                      ? 'bg-destructive/10 border-destructive/30 font-semibold'
-                                      : d.type === 'Assessment'
-                                      ? 'bg-primary/10 border-primary/30 font-semibold'
-                                      : 'bg-background border-border'
-                                  )}
-                                >
-                                  <div>
-                                    <span className="text-xs font-bold text-foreground block">{d.day}</span>
-                                    <span className="text-xs text-primary font-medium">{d.topic}</span>
+                      {/* View Mode Switcher Header */}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-border pb-3">
+                        <div>
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+                            Curriculum View Mode
+                          </h4>
+                          <p className="text-[11px] text-muted-foreground">
+                            Switch between high-level course matrix and daily lesson execution plans.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setTermViewMode('roadmap')}
+                            className={cn(
+                              'px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5',
+                              termViewMode === 'roadmap'
+                                ? 'bg-background text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                            )}
+                          >
+                            <Layers className="w-3.5 h-3.5" />
+                            <span>Roadmap Matrix</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTermViewMode('cards')}
+                            className={cn(
+                              'px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5',
+                              termViewMode === 'cards'
+                                ? 'bg-background text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                            )}
+                          >
+                            <BookOpen className="w-3.5 h-3.5 text-primary" />
+                            <span>Daily Teacher Cards</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* MODE 1: ROADMAP MATRIX VIEW */}
+                      {termViewMode === 'roadmap' ? (
+                        <div className="space-y-4">
+                          {generatedResult.weeks.map((w: any) => (
+                            <div key={w.weekNum} className="border border-border rounded-lg bg-card overflow-hidden shadow-xs">
+                              <div className="bg-muted/40 p-3 border-b border-border flex items-center justify-between">
+                                <span className="text-xs font-bold text-foreground">{w.title}</span>
+                                <Badge variant="outline" className="text-[10px] font-mono">
+                                  Week {w.weekNum} of {termWeeks}
+                                </Badge>
+                              </div>
+                              
+                              <div className="p-3 space-y-3">
+                                {w.days.map((d: any, idx: number) => (
+                                  <div
+                                    key={idx}
+                                    className={cn(
+                                      'p-3 rounded-lg border text-xs space-y-2 transition-all',
+                                      d.type === 'Exam'
+                                        ? 'bg-destructive/10 border-destructive/30'
+                                        : d.type === 'Assessment'
+                                        ? 'bg-primary/10 border-primary/30'
+                                        : 'bg-background border-border hover:border-primary/40'
+                                    )}
+                                  >
+                                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 pb-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-bold text-foreground">{d.day}</span>
+                                        <Badge
+                                          variant={d.type === 'Exam' ? 'destructive' : d.type === 'Assessment' ? 'default' : 'secondary'}
+                                          className="text-[9px] px-1.5 py-0"
+                                        >
+                                          {d.type || 'Instruction'}
+                                        </Badge>
+                                      </div>
+                                      <Badge variant="outline" className="text-[10px] font-mono bg-muted/30">
+                                        {d.unitRef || 'Unit Main'}
+                                      </Badge>
+                                    </div>
+
+                                    <div>
+                                      <h5 className="text-xs font-semibold text-primary">{d.topic}</h5>
+                                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                                        <strong className="text-foreground font-medium">Grammar Focus:</strong> {d.grammarFocus}
+                                      </p>
+                                    </div>
+
+                                    {d.vocabList && d.vocabList.length > 0 && (
+                                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Target Vocab:</span>
+                                        {d.vocabList.map((v: string, vi: number) => (
+                                          <span key={vi} className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded font-mono font-medium">
+                                            {v}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    {d.activityType && (
+                                      <div className="bg-muted/30 p-2 rounded text-[11px] text-foreground border border-border/50 flex items-start gap-2">
+                                        <Target className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                                        <div>
+                                          <strong className="text-primary font-semibold">{d.activityType}:</strong>{' '}
+                                          <span className="text-muted-foreground">{d.activityDetail}</span>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                  <span className="text-[11px] text-muted-foreground">{d.objective}</span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        /* MODE 2: DAILY TEACHER GUIDEBOOK CARDS VIEW */
+                        <div className="space-y-4">
+                          {generatedResult.weeks.map((w: any) => (
+                            <div key={w.weekNum} className="space-y-4">
+                              <h4 className="text-xs font-bold uppercase tracking-wider text-primary border-b border-border pb-1">
+                                {w.title}
+                              </h4>
+
+                              {w.days.map((d: any, idx: number) => (
+                                <div key={idx} className="border border-border rounded-xl bg-card p-4 space-y-3 shadow-xs">
+                                  <div className="flex items-center justify-between border-b border-border pb-2.5">
+                                    <div className="space-y-0.5">
+                                      <span className="text-xs font-bold text-primary block">{d.day}</span>
+                                      <h3 className="text-sm font-bold text-foreground">{d.topic}</h3>
+                                    </div>
+                                    <Badge variant="outline" className="text-xs font-mono">
+                                      {d.unitRef}
+                                    </Badge>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Grammar Sub-Rule & Objective</span>
+                                    <p className="text-xs text-muted-foreground leading-relaxed bg-muted/20 p-2.5 rounded-lg border border-border/60">
+                                      {d.grammarFocus}
+                                    </p>
+                                  </div>
+
+                                  {d.vocabList && d.vocabList.length > 0 && (
+                                    <div className="space-y-1.5">
+                                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Target Classroom Vocabulary</span>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {d.vocabList.map((v: string, vi: number) => (
+                                          <Badge key={vi} variant="secondary" className="text-xs font-mono font-normal">
+                                            {v}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {d.ccqs && d.ccqs.length > 0 && (
+                                    <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg space-y-1">
+                                      <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                                        <HelpCircle className="w-3.5 h-3.5" />
+                                        Concept Check Questions (CCQs) for Teacher:
+                                      </span>
+                                      <ul className="space-y-1 pt-1">
+                                        {d.ccqs.map((q: string, qi: number) => (
+                                          <li key={qi} className="text-xs text-foreground/90 flex items-start gap-2">
+                                            <span className="text-primary font-bold">?</span>
+                                            <span>{q}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+
+                                  {d.phases && d.phases.length > 0 && (
+                                    <div className="space-y-2 pt-1">
+                                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">4-Phase Classroom Timeline</span>
+                                      <div className="grid grid-cols-1 gap-2">
+                                        {d.phases.map((p: any, pi: number) => (
+                                          <div key={pi} className="p-2.5 rounded-lg bg-muted/30 border border-border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                            <div className="space-y-0.5">
+                                              <div className="flex items-center gap-2">
+                                                <span className="font-bold text-foreground">{p.phase}</span>
+                                                <Badge variant="outline" className="text-[10px] font-mono">{p.time}</Badge>
+                                              </div>
+                                              <p className="text-[11px] text-muted-foreground">{p.instructions}</p>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     /* SINGLE LESSON PREVIEW */

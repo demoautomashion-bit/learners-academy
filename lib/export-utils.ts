@@ -82,22 +82,75 @@ export function exportSyllabusToWord(syllabus: any) {
         <table>
           <thead>
             <tr>
-              <th style="width: 25%;">Session</th>
-              <th style="width: 35%;">Topic & Focus</th>
-              <th style="width: 40%;">Learning Objective</th>
+              <th style="width: 18%;">Session</th>
+              <th style="width: 24%;">Topic & Grammar Sub-Rule</th>
+              <th style="width: 20%;">Target Vocabulary</th>
+              <th style="width: 23%;">Classroom Activity</th>
+              <th style="width: 15%;">Unit Ref</th>
             </tr>
           </thead>
           <tbody>
             ${(w.days || []).map((d: any) => `
               <tr>
-                <td><strong>${d.day}</strong></td>
-                <td>${d.topic}</td>
-                <td>${d.objective}</td>
+                <td><strong>${d.day}</strong><br><span style="font-size: 8pt; color: #1e3a8a;">${d.type || ''}</span></td>
+                <td><strong>${d.topic}</strong><br><span style="font-size: 8.5pt; color: #475569;">${d.grammarFocus || d.objective}</span></td>
+                <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 8.5pt;">${(d.vocabList || []).join(', ') || 'N/A'}</span></td>
+                <td><strong>${d.activityType || 'Activity'}</strong><br><span style="font-size: 8.5pt; color: #334155;">${d.activityDetail || d.objective}</span></td>
+                <td><span style="font-size: 8.5pt; font-weight: bold;">${d.unitRef || 'Unit Main'}</span></td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       `
+    })
+
+    // Teacher's Daily Guidebook (Micro Session Plans)
+    htmlContent += `
+      <br/><hr/><br/>
+      <h2>Teacher's Daily Guidebook (Micro Session Plans)</h2>
+      <p style="font-size: 9.5pt; color: #475569; margin-bottom: 15px;">Detailed daily lesson execution cards for classroom management, concept check questions (CCQs), and timeline breakdown.</p>
+    `
+
+    weeksList.forEach((w: any) => {
+      (w.days || []).forEach((d: any) => {
+        htmlContent += `
+          <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 15px; background: #fafafa;">
+            <h3 style="color: #1e3a8a; margin-top: 0; margin-bottom: 4px; font-size: 11pt;">${d.day}: ${d.topic}</h3>
+            <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}</p>
+            <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${(d.vocabList || []).join(', ')} | <strong>Curriculum Unit:</strong> ${d.unitRef || 'Standard Unit'}</p>
+            
+            ${d.ccqs && d.ccqs.length > 0 ? `
+              <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                <strong>Concept Check Questions (CCQs):</strong>
+                <ul style="margin: 3px 0 0 0; padding-left: 15px;">
+                  ${d.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+
+            ${d.phases && d.phases.length > 0 ? `
+              <table style="width: 100%; font-size: 8.5pt; border-collapse: collapse; margin-top: 6px;">
+                <thead>
+                  <tr style="background: #f1f5f9;">
+                    <th style="width: 25%; padding: 4px;">Phase</th>
+                    <th style="width: 15%; padding: 4px;">Time</th>
+                    <th style="width: 60%; padding: 4px;">Activity & Instructions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${d.phases.map((p: any) => `
+                    <tr>
+                      <td style="padding: 4px;"><strong>${p.phase}</strong></td>
+                      <td style="padding: 4px;">${p.time}</td>
+                      <td style="padding: 4px;"><strong>${p.activity}:</strong> ${p.instructions}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : ''}
+          </div>
+        `
+      })
     })
   } else {
     // Single Session Timeline View
@@ -459,17 +512,21 @@ export function exportSyllabusToPDF(syllabus: any) {
           <table>
             <thead>
               <tr>
-                <th style="width: 25%;">Session</th>
-                <th style="width: 35%;">Topic & Focus</th>
-                <th style="width: 40%;">Objective</th>
+                <th style="width: 18%;">Session</th>
+                <th style="width: 25%;">Topic & Grammar Sub-Rule</th>
+                <th style="width: 20%;">Target Vocabulary</th>
+                <th style="width: 23%;">Classroom Activity</th>
+                <th style="width: 14%;">Unit Ref</th>
               </tr>
             </thead>
             <tbody>
               ${(w.days || []).map((d: any) => `
                 <tr>
-                  <td><strong>${d.day}</strong></td>
-                  <td>${d.topic}</td>
-                  <td>${d.objective}</td>
+                  <td><strong>${d.day}</strong><br/><span style="font-size: 9px; color: #1e3a8a;">${d.type || ''}</span></td>
+                  <td><strong>${d.topic}</strong><br/><span style="font-size: 10px; color: #475569;">${d.grammarFocus || d.objective}</span></td>
+                  <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 10px;">${(d.vocabList || []).join(', ') || 'N/A'}</span></td>
+                  <td><strong>${d.activityType || 'Activity'}</strong><br/><span style="font-size: 10px; color: #334155;">${d.activityDetail || d.objective}</span></td>
+                  <td><span style="font-size: 10px; font-weight: bold;">${d.unitRef || 'Unit Main'}</span></td>
                 </tr>
               `).join('')}
             </tbody>
@@ -477,6 +534,66 @@ export function exportSyllabusToPDF(syllabus: any) {
         </div>
       `
     })
+
+    // Teacher's Daily Guidebook Cards in PDF
+    htmlContent += `
+      <div style="page-break-before: always;">
+        <h2>Teacher's Daily Guidebook (Micro Session Plans)</h2>
+        <p style="font-size: 11px; color: #475569; margin-bottom: 16px;">Detailed daily lesson execution cards for classroom management, concept check questions (CCQs), and timeline breakdown.</p>
+    `
+
+    weeksList.forEach((w: any) => {
+      (w.days || []).forEach((d: any) => {
+        htmlContent += `
+          <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px; background: #ffffff; page-break-inside: avoid;">
+            <div style="display: flex; align-items: center; justify-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px;">
+              <h3 style="color: #1e3a8a; margin: 0; font-size: 13px;">${d.day}: ${d.topic}</h3>
+              <span style="font-size: 10px; font-weight: bold; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${d.unitRef || 'Standard Unit'}</span>
+            </div>
+            
+            <div style="font-size: 11px; color: #334155; margin-bottom: 8px;">
+              <strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}
+            </div>
+
+            <div style="font-size: 11px; color: #334155; margin-bottom: 10px;">
+              <strong>Target Vocabulary:</strong> <span style="color: #1e3a8a; font-weight: 600;">${(d.vocabList || []).join(', ')}</span>
+            </div>
+
+            ${d.ccqs && d.ccqs.length > 0 ? `
+              <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">
+                <strong style="color: #1e3a8a;">Concept Check Questions (CCQs):</strong>
+                <ul style="margin: 4px 0 0 0; padding-left: 16px; color: #1e293b;">
+                  ${d.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+
+            ${d.phases && d.phases.length > 0 ? `
+              <table style="width: 100%; font-size: 10px; border-collapse: collapse; margin-top: 6px;">
+                <thead>
+                  <tr style="background: #f8fafc;">
+                    <th style="width: 25%; padding: 6px; border: 1px solid #e2e8f0;">Phase</th>
+                    <th style="width: 15%; padding: 6px; border: 1px solid #e2e8f0;">Time</th>
+                    <th style="width: 60%; padding: 6px; border: 1px solid #e2e8f0;">Activity & Instructions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${d.phases.map((p: any) => `
+                    <tr>
+                      <td style="padding: 6px; border: 1px solid #e2e8f0;"><strong>${p.phase}</strong></td>
+                      <td style="padding: 6px; border: 1px solid #e2e8f0;">${p.time}</td>
+                      <td style="padding: 6px; border: 1px solid #e2e8f0;"><strong>${p.activity}:</strong> ${p.instructions}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : ''}
+          </div>
+        `
+      })
+    })
+
+    htmlContent += `</div>`
   } else {
     // Single Session Timeline
     if (syllabus.timeline && syllabus.timeline.length > 0) {
