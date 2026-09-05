@@ -67,6 +67,137 @@ export interface GeneratorParams {
   vocabTags: string[]
   idiomTags: string[]
   weeklyArchetypes?: DayArchetype[]
+  selectedDays?: string[]
+  detailLevel?: 'simplified' | 'detailed'
+}
+
+// Dynamic Grammar Synthesizer for Teacher Inputs
+export function getGrammarDetailsForStructure(grammarTag: string, cefr: string = 'B1') {
+  const gLower = grammarTag.toLowerCase()
+
+  if (gLower.includes('present perfect vs past simple') || (gLower.includes('present perfect') && gLower.includes('past simple'))) {
+    return {
+      topic: 'Present Perfect vs Past Simple',
+      rule: 'Use Present Perfect for indefinite past experiences without exact timestamps (ever/never/already). Use Past Simple for completed actions at specific past times (yesterday, in 2021).',
+      scope: 'Focus on contrasting finished time expressions (ago, yesterday) with open time periods (this week, so far).',
+      board: 'Pres. Perf: Subj + have/has + V3 (Indefinite)  VS  Past Simple: Subj + V2 (Finished Time)',
+      ccqs: [
+        'Do we know exactly when the action happened in Present Perfect? (No, time is indefinite)',
+        'Is "yesterday" used with Present Perfect or Past Simple? (Past Simple)',
+        'Is the time period still open with "this week"? (Yes, Present Perfect)'
+      ]
+    }
+  }
+
+  if (gLower.includes('second conditional') || gLower.includes('2nd conditional')) {
+    return {
+      topic: 'Second Conditional (Hypothetical & Imaginary)',
+      rule: 'If + Past Simple, Subject + WOULD / COULD + Base Verb. Used for unreal, imaginary, or highly unlikely present/future situations.',
+      scope: 'Emphasize "If I WERE you" (subjunctive were) and contrast real probability (1st) with imaginary situations (2nd).',
+      board: 'IF + Past Simple (Condition), Subject + WOULD + V1 (Hypothetical Result)',
+      ccqs: [
+        'Is this situation real or imaginary? (Imaginary / Hypothetical)',
+        'Does the past simple verb refer to past time or present imaginary state? (Present/future unreal state)',
+        'What modal verb expresses the hypothetical result? (Would / Could)'
+      ]
+    }
+  }
+
+  if (gLower.includes('first conditional') || gLower.includes('1st conditional')) {
+    return {
+      topic: 'First Conditional (Real Future Possibility)',
+      rule: 'If + Present Simple, Subject + WILL / CAN + Base Verb. Used for real, possible future events and consequences.',
+      scope: 'Teach clear condition vs result clauses and modal variations (will, can, might).',
+      board: 'IF + Present Simple (Real Condition), Subject + WILL / CAN + V1 (Future Result)',
+      ccqs: [
+        'Is this situation likely to happen? (Yes, it is a real possibility)',
+        'Can we use "will" inside the IF clause? (No, use Present Simple after IF)',
+        'What verb form goes in the result clause? (WILL + Base Verb)'
+      ]
+    }
+  }
+
+  if (gLower.includes('third conditional') || gLower.includes('3rd conditional')) {
+    return {
+      topic: 'Third Conditional (Past Regrets & Imaginary Past)',
+      rule: 'If + Past Perfect (had + V3), Subject + WOULD HAVE + V3. Used for impossible past conditions and imaginary past outcomes.',
+      scope: 'Focus on past regrets and alternative history outcomes. Drill pronunciation contractions (would\'ve).',
+      board: 'IF + had + V3 (Past Condition), Subject + WOULD HAVE + V3 (Past Imaginary Result)',
+      ccqs: [
+        'Did the condition actually happen in the past? (No)',
+        'Can we change the past outcome now? (No, it is impossible)',
+        'What form is used in the IF clause? (Past Perfect: HAD + V3)'
+      ]
+    }
+  }
+
+  if (gLower.includes('passive voice') || gLower.includes('passive')) {
+    return {
+      topic: 'Passive Voice (Focus on Action & Object)',
+      rule: 'Subject + BE (am/is/are/was/were) + Past Participle (V3). Used when the focus is on the action/recipient rather than the agent.',
+      scope: 'Practice transforming active sentences to passive and determining when "by + agent" is necessary or redundant.',
+      board: 'Active: Agent + Verb + Object  ->  Passive: Object + BE + V3 (+ by Agent)',
+      ccqs: [
+        'Who is doing the action in passive voice? (The agent, but the object is the sentence focus)',
+        'What two auxiliary components form every passive verb? (BE verb + Past Participle V3)',
+        'When do we omit "by agent"? (When agent is unknown, obvious, or unimportant)'
+      ]
+    }
+  }
+
+  if (gLower.includes('reported speech') || gLower.includes('indirect speech')) {
+    return {
+      topic: 'Reported Speech & Tense Shifts',
+      rule: 'When reporting what someone said in the past, shift tenses back one step (Present -> Past, Past/Present Perf -> Past Perf).',
+      scope: 'Cover statement backshifting, pronoun changes, and time word shifts (today -> that day, tomorrow -> the next day).',
+      board: 'Direct: "I am working"  ->  Reported: He said (that) he WAS working.',
+      ccqs: [
+        'What happens to Present Simple in reported speech? (Shifts back to Past Simple)',
+        'Does the speaker\'s pronoun change when reporting? (Yes, e.g. "I" becomes "he/she")',
+        'Is "that" mandatory after said/told? (No, it is optional)'
+      ]
+    }
+  }
+
+  if (gLower.includes('relative clauses') || gLower.includes('relative pronoun')) {
+    return {
+      topic: 'Relative Clauses (Who, Which, That, Where)',
+      rule: 'Use relative pronouns to join sentences and provide essential (defining) or extra (non-defining) information about nouns.',
+      scope: 'Contrast defining clauses (no commas, essential info) vs non-defining clauses (with commas, extra info).',
+      board: 'Person: WHO/THAT  |  Thing: WHICH/THAT  |  Place: WHERE  |  Possession: WHOSE',
+      ccqs: [
+        'Which relative pronoun do we use for people? (Who / That)',
+        'Do defining relative clauses use commas? (No commas needed)',
+        'What pronoun is used for physical locations? (Where)'
+      ]
+    }
+  }
+
+  if (gLower.includes('modal') || gLower.includes('modals of deduction')) {
+    return {
+      topic: 'Modal Verbs of Deduction & Certainty',
+      rule: 'MUST + V1 (90%+ certain true), MIGHT / COULD + V1 (50% possible), CAN\'T + V1 (90%+ certain impossible).',
+      scope: 'Teach degrees of certainty in present speculation. Distinguish between logical deduction and obligation.',
+      board: 'Subject + MUST / MIGHT / CAN\'T + V1 (Base Form)',
+      ccqs: [
+        'When do we use MUST? (When we are almost 100% sure something is true based on evidence)',
+        'What modal means 90% impossible? (Can\'t)',
+        'Does "might" express high certainty or lower possibility? (Lower possibility / ~50%)'
+      ]
+    }
+  }
+
+  return {
+    topic: grammarTag,
+    rule: `Apply accurate structural rules for ${grammarTag} within formal and informal ${cefr}-level language contexts.`,
+    scope: `Focus on sentence construction, affirmative/negative forms, and common usage errors associated with ${grammarTag}.`,
+    board: `Target Formula: ${grammarTag} (Form & Transformation Rules)`,
+    ccqs: [
+      `What is the primary function of ${grammarTag}?`,
+      `How do we form affirmative and negative sentences using this structure?`,
+      `What common student errors should be avoided?`
+    ]
+  }
 }
 
 // Default weekly archetype schedules based on sessionsPerWeek
@@ -318,7 +449,12 @@ const B1_SYLLABUS_WEEKS = [
 ]
 
 export function generateGranularTermRoadmap(params: GeneratorParams): GranularWeek[] {
-  const { termWeeks, sessionsPerWeek, cefr, theme, grammarTags, vocabTags, weeklyArchetypes } = params
+  const { termWeeks, sessionsPerWeek, cefr, theme, grammarTags, vocabTags, weeklyArchetypes, selectedDays, detailLevel } = params
+
+  const defaultDays = ['Monday', 'Wednesday', 'Friday', 'Tuesday', 'Thursday']
+  const daysList = selectedDays && selectedDays.length > 0
+    ? selectedDays
+    : defaultDays.slice(0, sessionsPerWeek)
 
   // Determine schedule archetypes per week (e.g. ['grammar', 'activity', 'discussion'])
   const archetypes = weeklyArchetypes && weeklyArchetypes.length === sessionsPerWeek
@@ -338,6 +474,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
     for (let d = 1; d <= sessionsPerWeek; d++) {
       const sessionNum = overallSessionCounter++
       const archetype = archetypes[(d - 1) % archetypes.length]
+      const dayName = daysList[(d - 1) % daysList.length] || `Day ${d}`
 
       let type: 'Instruction & Practice' | 'Assessment' | 'Exam' = 'Instruction & Practice'
       let topicTitle = ''
@@ -355,13 +492,13 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
       let activityGame: DailySession['activityGame'] = undefined
       let readingPassage: DailySession['readingPassage'] = undefined
 
-      // Custom user tags integration
-      if (grammarTags.length > 0 && d === 1 && w !== 6 && w !== 12) {
-        const customG = grammarTags[(w - 1) % grammarTags.length]
-        if (customG) {
-          weekData.grammarTopic = customG
-        }
-      }
+      // Dynamic grammar structure resolution for current session
+      const targetGrammarTag = grammarTags.length > 0
+        ? grammarTags[(sessionNum - 1) % grammarTags.length]
+        : weekData.grammarTopic
+
+      const grammarDetails = getGrammarDetailsForStructure(targetGrammarTag, cefr)
+
       if (vocabTags.length > 0) {
         vocabList = Array.from(new Set([...vocabTags.slice(0, 3), ...vocabList])).slice(0, 5)
       }
@@ -385,24 +522,20 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         // BUILD ACCORDING TO DAY ARCHETYPE
         switch (archetype) {
           case 'grammar':
-            topicTitle = `📘 Grammar Focus: ${weekData.grammarTopic}`
-            grammarFocus = weekData.grammarRule
-            grammarScopeLimit = weekData.grammarScope
-            boardLayout = weekData.boardFormula
+            topicTitle = `📘 Grammar Focus: ${grammarDetails.topic}`
+            grammarFocus = grammarDetails.rule
+            grammarScopeLimit = grammarDetails.scope
+            boardLayout = grammarDetails.board
             activityType = "Board Formula & Direct Instruction Drills"
             activityDetail = "Teacher delivers direct instruction using whiteboard formulas, followed by controlled sentence transformation drills."
-            objective = `Master structural accuracy and form of ${weekData.grammarTopic} in "${theme}" context.`
-            ccqs = [
-              `When do we use this structure? ${weekData.grammarRule.slice(0, 50)}...`,
-              `What is the auxiliary verb form on the board? ${weekData.boardFormula.slice(0, 35)}...`,
-              `Does this represent a finished or ongoing state?`
-            ]
+            objective = `Master structural accuracy and form of ${grammarDetails.topic} in "${theme}" context.`
+            ccqs = grammarDetails.ccqs
             break
 
           case 'discussion':
             const discTopic = cefrDiscussions[(sessionNum - 1) % cefrDiscussions.length]
             topicTitle = `🗣️ Discussion & Debate: ${discTopic.topic}`
-            grammarFocus = `Apply ${weekData.grammarTopic} naturally during persuasive speaking.`
+            grammarFocus = `Apply ${grammarDetails.topic} naturally during persuasive speaking.`
             activityType = "Class Debate & Panel Discussion"
             activityDetail = `Students are assigned pro/con positions on "${discTopic.topic}". They utilize target functional phrases to debate.`
             objective = `Develop spoken fluency, argumentation, and natural usage of functional expressions.`
@@ -428,7 +561,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
           case 'activity':
             const gameTemplate = CLASSROOM_GAMES[(sessionNum - 1) % CLASSROOM_GAMES.length]
             topicTitle = `🎮 Fluency Game: ${gameTemplate.gameName}`
-            grammarFocus = `Consolidate ${weekData.grammarTopic} through interactive classroom dynamics.`
+            grammarFocus = `Consolidate ${grammarDetails.topic} through interactive classroom dynamics.`
             activityType = gameTemplate.gameName
             activityDetail = gameTemplate.rules.join(" ")
             objective = `Reinforce target vocabulary and structural patterns through high-energy cooperative gameplay.`
@@ -441,7 +574,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
 
           case 'reading':
             topicTitle = `📖 Book & Reading: ${weekData.readingTitle}`
-            grammarFocus = `Analyze ${weekData.grammarTopic} within authentic reading text.`
+            grammarFocus = `Analyze ${grammarDetails.topic} within authentic reading text.`
             activityType = "Text Analysis & Vocab Extraction"
             activityDetail = `Students read "${weekData.readingTitle}", practice ${weekData.readingStrategy}, and extract target vocabulary.`
             objective = `Enhance reading comprehension, context vocabulary extraction, and text strategy.`
@@ -451,7 +584,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
               comprehensionQuestions: [
                 `What is the main topic of "${weekData.readingTitle}"?`,
                 `Scan Paragraph 2: Find two target vocabulary words used in context.`,
-                `Identify one instance of ${weekData.grammarTopic} in the text and explain why the author used it.`
+                `Identify one instance of ${grammarDetails.topic} in the text and explain why the author used it.`
               ]
             }
             ccqs = [
@@ -474,7 +607,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
           phase: 'Phase 2: Core Delivery & Instruction',
           time: '15 Mins',
           activity: archetype === 'grammar' ? 'Whiteboard Formula Breakdown' : archetype === 'discussion' ? 'Functional Language Input' : archetype === 'reading' ? 'Guided Text Reading & Strategy' : 'Game Demo & Safety Trial',
-          instructions: archetype === 'grammar' ? `Explain ${boardLayout}. Conduct Concept Check Questions (CCQs).` : `Introduce key expressions (${(functionalPhrases || vocabList).slice(0, 3).join(', ')}).`
+          instructions: archetype === 'grammar' ? `Explain ${boardLayout || grammarFocus}. Conduct Concept Check Questions (CCQs).` : `Introduce key expressions (${(functionalPhrases || vocabList).slice(0, 3).join(', ')}).`
         },
         {
           phase: 'Phase 3: Guided Practice & Dynamics',
@@ -490,28 +623,31 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         }
       ]
 
+      // If simplified mode, strip heavy extra fields for lightweight presentation
+      const isSimplified = detailLevel === 'simplified'
+
       weekDays.push({
         sessionNum,
         weekNum: w,
         dayNum: d,
-        day: `Session ${sessionNum} (Week ${w}, Day ${d})`,
+        day: `${dayName} — Session ${sessionNum}`,
         dayArchetype: archetype,
         topic: topicTitle,
         grammarFocus,
-        grammarScopeLimit,
-        boardLayout,
+        grammarScopeLimit: isSimplified ? undefined : grammarScopeLimit,
+        boardLayout: isSimplified ? undefined : boardLayout,
         vocabList,
         unitRef,
         activityType,
         activityDetail,
         objective,
         type,
-        ccqs,
-        discussionTopics,
-        functionalPhrases,
-        activityGame,
-        readingPassage,
-        phases
+        ccqs: isSimplified ? [] : ccqs,
+        discussionTopics: isSimplified ? undefined : discussionTopics,
+        functionalPhrases: isSimplified ? undefined : functionalPhrases,
+        activityGame: isSimplified ? undefined : activityGame,
+        readingPassage: isSimplified ? undefined : readingPassage,
+        phases: isSimplified ? [] : phases
       })
     }
 

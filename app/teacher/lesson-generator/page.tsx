@@ -43,7 +43,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/auth-context'
 import { cn } from '@/lib/utils'
 import { exportSyllabusToWord, exportSyllabusToPDF } from '@/lib/export-utils'
-import { generateGranularTermRoadmap, DayArchetype } from '@/lib/curriculum-generator'
+import { generateGranularTermRoadmap, getGrammarDetailsForStructure, DayArchetype } from '@/lib/curriculum-generator'
 
 const ARCHETYPE_OPTIONS: Array<{ type: DayArchetype; label: string; icon: string; color: string }> = [
   { type: 'grammar', label: '📘 Grammar & Structure', icon: '📘', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
@@ -86,11 +86,22 @@ export default function LessonGeneratorPage() {
   const [termViewMode, setTermViewMode] = useState<'roadmap' | 'cards'>('roadmap')
   const [weeklyArchetypes, setWeeklyArchetypes] = useState<DayArchetype[]>(['grammar', 'activity', 'discussion'])
 
+  // Day-of-Week & Detail Level Options
+  const [detailLevel, setDetailLevel] = useState<'simplified' | 'detailed'>('detailed')
+  const [selectedDays, setSelectedDays] = useState<string[]>(['Monday', 'Wednesday', 'Friday'])
+
   const handleSessionsChange = (count: number) => {
     setSessionsPerWeek(count)
-    if (count === 2) setWeeklyArchetypes(['grammar', 'discussion'])
-    else if (count === 3) setWeeklyArchetypes(['grammar', 'activity', 'discussion'])
-    else if (count === 5) setWeeklyArchetypes(['grammar', 'reading', 'activity', 'grammar', 'discussion'])
+    if (count === 2) {
+      setWeeklyArchetypes(['grammar', 'discussion'])
+      setSelectedDays(['Tuesday', 'Thursday'])
+    } else if (count === 3) {
+      setWeeklyArchetypes(['grammar', 'activity', 'discussion'])
+      setSelectedDays(['Monday', 'Wednesday', 'Friday'])
+    } else if (count === 5) {
+      setWeeklyArchetypes(['grammar', 'reading', 'activity', 'grammar', 'discussion'])
+      setSelectedDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'])
+    }
   }
   
   // Form State
@@ -242,58 +253,88 @@ export default function LessonGeneratorPage() {
           sessionsPerWeek,
           cefr: selectedCefr,
           theme: customTopic || 'Travel & World Experiences',
-          grammarTags,
-          vocabTags,
-          idiomTags,
-          weeklyArchetypes
+          grammarTags: activeGrammar,
+          vocabTags: activeVocab,
+          idiomTags: activeIdioms,
+          weeklyArchetypes,
+          selectedDays,
+          detailLevel
         })
 
         setGeneratedResult({
           isTerm: true,
-          title: `3-Month (${termWeeks}-Week) Granular Academic Syllabus Roadmap`,
+          detailLevel,
+          title: `${termWeeks}-Week (${totalSessions} Sessions) Syllabus Roadmap`,
           cefr: selectedCefr,
           duration: `${totalSessions} Sessions (${sessionsPerWeek}x / week)`,
           theme: customTopic || 'Travel & World Experiences',
           totalSessions,
+          selectedDays,
           weeks: roadmapWeeks,
           objectives: [
             `Complete ${termWeeks}-week progressive mastery from basic structures to ${selectedCefr} CEFR proficiency.`,
-            `Systematically cover distinct grammar sub-rules, target vocabulary, and activities across all ${totalSessions} sessions.`,
+            `Systematically cover target grammar (${activeGrammar.join(', ')}), vocabulary, and activities on ${selectedDays.join(', ')}.`,
             `Conduct mid-term review (Week ${Math.floor(termWeeks / 2)}) and final graduation assessment (Week ${termWeeks}).`
           ]
         })
       } else {
-        // Single Lesson Data Structure
+        // Single Lesson Data Structure using Dynamic Grammar Details
+        const primaryG = activeGrammar[0] || 'Grammatical Structures'
+        const gInfo = getGrammarDetailsForStructure(primaryG, selectedCefr)
+
         setGeneratedResult({
           isTerm: false,
-          title: `Mastering ${grammarTags.join(' & ') || 'Grammatical Structures'}`,
+          detailLevel,
+          title: `Mastering ${activeGrammar.join(' & ') || 'Grammatical Structures'}`,
           cefr: selectedCefr,
           duration: `${duration} Minutes`,
           theme: customTopic || 'General Context',
+          grammarFocus: gInfo.rule,
+          boardLayout: gInfo.board,
+          grammarScopeLimit: gInfo.scope,
           objectives: [
-            `Distinguish between finished past actions and ongoing states using ${grammarTags[0] || 'target structure'}.`,
-            `Formulate grammatically accurate sentences incorporating target vocabulary: ${vocabTags.slice(0, 3).join(', ')}.`,
-            `Apply idioms such as "${idiomTags[0] || 'break the ice'}" naturally in conversational scenarios.`
+            `Master structural form and application of ${primaryG}: ${gInfo.rule}`,
+            `Formulate grammatically accurate sentences incorporating target vocabulary: ${activeVocab.slice(0, 3).join(', ') || 'key terms'}.`,
+            `Apply idioms such as "${activeIdioms[0] || 'break the ice'}" naturally in conversational scenarios.`
           ],
-          vocabulary: vocabTags.map(v => ({ word: v, def: `Target key vocabulary term aligned to ${selectedCefr} level.` })),
-          idioms: idiomTags.map(idm => ({ expression: idm, usage: 'Common English idiom used for natural speaking fluency.' })),
-          timeline: [
+          vocabulary: activeVocab.map(v => ({ word: v, def: `Target key vocabulary term aligned to ${selectedCefr} level.` })),
+          idioms: activeIdioms.map(idm => ({ expression: idm, usage: 'Common English idiom used for natural speaking fluency.' })),
+          timeline: detailLevel === 'simplified' ? [
+            {
+              phase: 'Warm-Up & Schema',
+              time: `${Math.round(duration * 0.2)} mins`,
+              activity: `Icebreaker Discussion`,
+              instructions: `Students discuss topic context "${customTopic}" in pairs.`
+            },
+            {
+              phase: 'Core Instruction',
+              time: `${Math.round(duration * 0.45)} mins`,
+              activity: `Form & Meaning: ${gInfo.topic}`,
+              instructions: `Explain structural rule: ${gInfo.rule}`
+            },
+            {
+              phase: 'Guided Application',
+              time: `${Math.round(duration * 0.35)} mins`,
+              activity: 'Pair Roleplay & Practice',
+              instructions: `Practice applying ${primaryG} and vocabulary (${activeVocab.slice(0, 3).join(', ')}).`
+            }
+          ] : [
             {
               phase: 'Warm-Up & Schema Activation',
               time: `${Math.round(duration * 0.15)} mins`,
-              activity: `Icebreaker: "${idiomTags[0] || 'Break the Ice'}" Discussion`,
+              activity: `Icebreaker: "${activeIdioms[0] || 'Break the Ice'}" Discussion`,
               instructions: `Students discuss past experiences using targeted vocabulary.`
             },
             {
               phase: 'Direct Instruction',
               time: `${Math.round(duration * 0.25)} mins`,
-              activity: 'Form & Meaning Mapping',
-              instructions: `Teacher explains ${grammarTags.join(', ')} with timeline diagrams.`
+              activity: `Form & Meaning: ${gInfo.topic}`,
+              instructions: `Teacher explains board formula: ${gInfo.board}.`
             },
             {
               phase: 'Guided Practice',
               time: `${Math.round(duration * 0.3)} mins`,
-              activity: 'Sentence Transformation & Worksheet',
+              activity: 'Sentence Transformation Drills',
               instructions: `Worksheet activity incorporating target idioms and vocabulary.`
             },
             {
@@ -303,21 +344,22 @@ export default function LessonGeneratorPage() {
               instructions: `Students engage in a real-world scenario focused on "${customTopic}".`
             },
             {
-              phase: 'Wrap-up & Exit Quiz',
+              phase: 'Wrap-up & Exit Check',
               time: `${Math.round(duration * 0.1)} mins`,
               activity: 'Comprehension Exit Ticket',
-              instructions: 'Quick 3-question evaluation of immediate comprehension.'
+              instructions: gInfo.ccqs[0] || 'Quick evaluation of immediate comprehension.'
             }
           ],
+          ccqs: detailLevel === 'simplified' ? [] : gInfo.ccqs,
           quiz: [
             {
-              question: `Which option correctly completes the ${selectedCefr}-level context?`,
+              question: `Which option correctly completes the ${selectedCefr}-level context using ${primaryG}?`,
               options: ['Option A (Correct)', 'Option B', 'Option C', 'Option D'],
               answer: 'Option A (Correct)',
-              reason: 'Proper alignment with target grammatical rules.'
+              reason: gInfo.rule
             }
           ],
-          homework: `Write a 120-word paragraph about "${customTopic}" utilizing target grammar.`
+          homework: `Write a 120-word paragraph about "${customTopic}" utilizing target structure (${primaryG}).`
         })
       }
     }, 2400)
@@ -650,6 +692,80 @@ export default function LessonGeneratorPage() {
                         </div>
                       </div>
 
+                      {/* Lesson Detail Level Selector */}
+                      <div className="space-y-2 pt-2 border-t border-border">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-semibold">Lesson Format & Detail Level</Label>
+                          <Badge variant="outline" className="text-[11px] capitalize font-mono">
+                            {detailLevel === 'simplified' ? '⚡ Simplified' : '📘 Fully Detailed'}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setDetailLevel('simplified')}
+                            className={cn(
+                              'py-2 px-2.5 rounded-lg text-xs font-semibold border transition-all flex flex-col items-center gap-0.5 text-center',
+                              detailLevel === 'simplified'
+                                ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                                : 'bg-muted/30 border-border text-muted-foreground hover:bg-accent'
+                            )}
+                          >
+                            <span className="font-bold">⚡ Simplified</span>
+                            <span className="text-[10px] opacity-80 font-normal">Clean overview summaries</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDetailLevel('detailed')}
+                            className={cn(
+                              'py-2 px-2.5 rounded-lg text-xs font-semibold border transition-all flex flex-col items-center gap-0.5 text-center',
+                              detailLevel === 'detailed'
+                                ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                                : 'bg-muted/30 border-border text-muted-foreground hover:bg-accent'
+                            )}
+                          >
+                            <span className="font-bold">📘 Fully Detailed</span>
+                            <span className="text-[10px] opacity-80 font-normal">Board formulas, CCQs & games</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Teaching Days of the Week Selector */}
+                      <div className="space-y-2 pt-2 border-t border-border">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-semibold">Teaching Days of the Week</Label>
+                          <span className="text-[11px] text-muted-foreground">{selectedDays.length} days selected</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => {
+                            const isSelected = selectedDays.includes(day)
+                            return (
+                              <button
+                                key={day}
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    if (selectedDays.length > 1) {
+                                      setSelectedDays(selectedDays.filter(d => d !== day))
+                                    }
+                                  } else {
+                                    setSelectedDays([...selectedDays, day])
+                                  }
+                                }}
+                                className={cn(
+                                  'px-2.5 py-1.5 rounded-md text-xs font-semibold border transition-all',
+                                  isSelected
+                                    ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                                    : 'bg-muted/30 border-border text-muted-foreground hover:bg-accent'
+                                )}
+                              >
+                                {day}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
                       {/* Weekly Schedule Timetable Configurator */}
                       <div className="space-y-2.5 pt-3 border-t border-border">
                         <div className="flex items-center justify-between">
@@ -660,10 +776,13 @@ export default function LessonGeneratorPage() {
                         <div className="space-y-2">
                           {Array.from({ length: sessionsPerWeek }).map((_, idx) => {
                             const currentType = weeklyArchetypes[idx] || 'grammar'
+                            const dayName = selectedDays[idx % selectedDays.length] || `Day ${idx + 1}`
                             return (
                               <div key={idx} className="p-2.5 rounded-lg border border-border bg-muted/20 flex items-center justify-between gap-2">
-                                <span className="text-xs font-bold text-foreground">
-                                  Day {idx + 1} ({idx === 0 ? 'e.g. Tue' : idx === 1 ? 'e.g. Wed' : idx === 2 ? 'e.g. Fri' : `Day ${idx + 1}`})
+                                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                                  <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
+                                  <span>{dayName}</span>
+                                  <span className="text-[11px] font-normal text-muted-foreground">(Session {idx + 1})</span>
                                 </span>
 
                                 <select
