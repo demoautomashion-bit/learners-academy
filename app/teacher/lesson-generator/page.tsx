@@ -778,11 +778,11 @@ export default function LessonGeneratorPage() {
                             const currentType = weeklyArchetypes[idx] || 'grammar'
                             const dayName = selectedDays[idx % selectedDays.length] || `Day ${idx + 1}`
                             return (
-                              <div key={idx} className="p-2.5 rounded-lg border border-border bg-muted/20 flex items-center justify-between gap-2">
-                                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                              <div key={idx} className="p-2.5 rounded-lg border border-border bg-muted/20 flex items-center justify-between gap-2 overflow-hidden">
+                                <span className="text-xs font-bold text-foreground flex items-center gap-1.5 min-w-0 flex-1 truncate">
                                   <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
-                                  <span>{dayName}</span>
-                                  <span className="text-[11px] font-normal text-muted-foreground">(Session {idx + 1})</span>
+                                  <span className="truncate">{dayName}</span>
+                                  <span className="text-[11px] font-normal text-muted-foreground shrink-0">(S{idx + 1})</span>
                                 </span>
 
                                 <select
@@ -792,7 +792,7 @@ export default function LessonGeneratorPage() {
                                     updated[idx] = e.target.value as DayArchetype
                                     setWeeklyArchetypes(updated)
                                   }}
-                                  className="text-xs font-semibold bg-background border border-border rounded-md px-2.5 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                  className="text-xs font-semibold bg-background border border-border rounded-md px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary shrink-0 max-w-[55%] truncate"
                                 >
                                   {ARCHETYPE_OPTIONS.map((opt) => (
                                     <option key={opt.type} value={opt.type}>

@@ -74,6 +74,7 @@ export function exportSyllabusToWord(syllabus: any) {
   // 12-Week Term Roadmap View
   if (syllabus.isTerm || syllabus.weeks || syllabus.scope === 'term') {
     const weeksList = syllabus.weeks || []
+    const isSimplified = syllabus.detailLevel === 'simplified'
     htmlContent += `<h2>12-Week Course Syllabus Roadmap</h2>`
     
     weeksList.forEach((w: any) => {
@@ -82,11 +83,11 @@ export function exportSyllabusToWord(syllabus: any) {
         <table>
           <thead>
             <tr>
-              <th style="width: 18%;">Session</th>
-              <th style="width: 24%;">Topic & Grammar Sub-Rule</th>
-              <th style="width: 20%;">Target Vocabulary</th>
-              <th style="width: 23%;">Classroom Activity</th>
-              <th style="width: 15%;">Unit Ref</th>
+              <th style="width: 22%;">Session</th>
+              <th style="width: 28%;">Topic & Grammar Sub-Rule</th>
+              <th style="width: 18%;">Target Vocabulary</th>
+              <th style="width: 22%;">Classroom Activity</th>
+              <th style="width: 10%;">Unit Ref</th>
             </tr>
           </thead>
           <tbody>
@@ -94,7 +95,7 @@ export function exportSyllabusToWord(syllabus: any) {
               <tr>
                 <td><strong>${d.day}</strong><br><span style="font-size: 8pt; color: #1e3a8a;">${d.type || ''}</span></td>
                 <td><strong>${d.topic}</strong><br><span style="font-size: 8.5pt; color: #475569;">${d.grammarFocus || d.objective}</span></td>
-                <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 8.5pt;">${(d.vocabList || []).join(', ') || 'N/A'}</span></td>
+                <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 8.5pt;">${(d.vocabList && d.vocabList.length > 0) ? d.vocabList.join(', ') : '—'}</span></td>
                 <td><strong>${d.activityType || 'Activity'}</strong><br><span style="font-size: 8.5pt; color: #334155;">${d.activityDetail || d.objective}</span></td>
                 <td><span style="font-size: 8.5pt; font-weight: bold;">${d.unitRef || 'Unit Main'}</span></td>
               </tr>
@@ -104,85 +105,87 @@ export function exportSyllabusToWord(syllabus: any) {
       `
     })
 
-    // Teacher's Daily Guidebook (Micro Session Plans)
-    htmlContent += `
-      <br/><hr/><br/>
-      <h2>Teacher's Daily Guidebook (Micro Session Plans)</h2>
-      <p style="font-size: 9.5pt; color: #475569; margin-bottom: 15px;">Detailed daily lesson execution cards for classroom management, concept check questions (CCQs), and timeline breakdown.</p>
-    `
+    // Teacher's Daily Guidebook (Micro Session Plans) - Rendered ONLY in Detailed Mode
+    if (!isSimplified) {
+      htmlContent += `
+        <br/><hr/><br/>
+        <h2>Teacher's Daily Guidebook (Micro Session Plans)</h2>
+        <p style="font-size: 9.5pt; color: #475569; margin-bottom: 15px;">Detailed daily lesson execution cards for classroom management, concept check questions (CCQs), and timeline breakdown.</p>
+      `
 
-    weeksList.forEach((w: any) => {
-      (w.days || []).forEach((d: any) => {
-        htmlContent += `
-          <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 15px; background: #fafafa;">
-            <h3 style="color: #1e3a8a; margin-top: 0; margin-bottom: 4px; font-size: 11pt;">${d.day}: ${d.topic}</h3>
-            <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}</p>
-            ${d.grammarScopeLimit ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 4px;"><strong>Grammar Scope Limit (How much to teach today):</strong> ${d.grammarScopeLimit}</p>` : ''}
-            ${d.boardLayout ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #1e3a8a; background: #e0e7ff; padding: 4px 8px; border-radius: 4px; font-family: monospace;"><strong>Whiteboard Formula / Layout:</strong> ${d.boardLayout}</p>` : ''}
-            <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${(d.vocabList || []).join(', ')} | <strong>Curriculum Unit:</strong> ${d.unitRef || 'Standard Unit'}</p>
-            
-            ${d.discussionTopics && d.discussionTopics.length > 0 ? `
-              <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-                <strong>🗣️ CEFR Discussion & Debate Topics:</strong>
-                ${d.discussionTopics.map((dt: any) => `<div style="margin-top: 3px;"><strong>Topic:</strong> ${dt.topic} — <em>"${dt.prompt}"</em></div>`).join('')}
-                ${d.functionalPhrases ? `<div style="margin-top: 4px;"><strong>Functional Speaking Phrases to Practice:</strong> ${d.functionalPhrases.join(' | ')}</div>` : ''}
-              </div>
-            ` : ''}
+      weeksList.forEach((w: any) => {
+        (w.days || []).forEach((d: any) => {
+          htmlContent += `
+            <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 15px; background: #fafafa;">
+              <h3 style="color: #1e3a8a; margin-top: 0; margin-bottom: 4px; font-size: 11pt;">${d.day}: ${d.topic}</h3>
+              <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}</p>
+              ${d.grammarScopeLimit ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 4px;"><strong>Grammar Scope Limit:</strong> ${d.grammarScopeLimit}</p>` : ''}
+              ${d.boardLayout ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #1e3a8a; background: #e0e7ff; padding: 4px 8px; border-radius: 4px; font-family: monospace;"><strong>Whiteboard Formula:</strong> ${d.boardLayout}</p>` : ''}
+              ${d.vocabList && d.vocabList.length > 0 ? `<p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${d.vocabList.join(', ')} | <strong>Curriculum Unit:</strong> ${d.unitRef || 'Standard Unit'}</p>` : ''}
+              
+              ${d.discussionTopics && d.discussionTopics.length > 0 ? `
+                <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong>🗣️ CEFR Discussion & Debate Topics:</strong>
+                  ${d.discussionTopics.map((dt: any) => `<div style="margin-top: 3px;"><strong>Topic:</strong> ${dt.topic} — <em>"${dt.prompt}"</em></div>`).join('')}
+                  ${d.functionalPhrases ? `<div style="margin-top: 4px;"><strong>Functional Speaking Phrases to Practice:</strong> ${d.functionalPhrases.join(' | ')}</div>` : ''}
+                </div>
+              ` : ''}
 
-            ${d.activityGame ? `
-              <div style="background: #fdf4ff; border-left: 3px solid #c026d3; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-                <strong>🎮 Classroom Fluency Game: ${d.activityGame.gameName}</strong>
-                <div><strong>Materials Needed:</strong> ${d.activityGame.materials.join(', ')}</div>
-                <div><strong>Rules:</strong> ${d.activityGame.rules.join(' ')}</div>
-                <div><strong>Scoring System:</strong> ${d.activityGame.scoring}</div>
-              </div>
-            ` : ''}
+              ${d.activityGame ? `
+                <div style="background: #fdf4ff; border-left: 3px solid #c026d3; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong>🎮 Classroom Fluency Game: ${d.activityGame.gameName}</strong>
+                  <div><strong>Materials Needed:</strong> ${d.activityGame.materials.join(', ')}</div>
+                  <div><strong>Rules:</strong> ${d.activityGame.rules.join(' ')}</div>
+                  <div><strong>Scoring System:</strong> ${d.activityGame.scoring}</div>
+                </div>
+              ` : ''}
 
-            ${d.readingPassage ? `
-              <div style="background: #fffbeb; border-left: 3px solid #d97706; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-                <strong>📖 Book Reading: ${d.readingPassage.passageTitle}</strong>
-                <div><strong>Reading Strategy Focus:</strong> ${d.readingPassage.readingStrategy}</div>
-                <div><strong>Comprehension Questions:</strong>
-                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
-                    ${d.readingPassage.comprehensionQuestions.map((cq: string) => `<li>${cq}</li>`).join('')}
+              ${d.readingPassage ? `
+                <div style="background: #fffbeb; border-left: 3px solid #d97706; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong>📖 Book Reading: ${d.readingPassage.passageTitle}</strong>
+                  <div><strong>Reading Strategy Focus:</strong> ${d.readingPassage.readingStrategy}</div>
+                  <div><strong>Comprehension Questions:</strong>
+                    <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                      ${d.readingPassage.comprehensionQuestions.map((cq: string) => `<li>${cq}</li>`).join('')}
+                    </ul>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${d.ccqs && d.ccqs.length > 0 ? `
+                <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong>Concept Check Questions (CCQs):</strong>
+                  <ul style="margin: 3px 0 0 0; padding-left: 15px;">
+                    ${d.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
                   </ul>
                 </div>
-              </div>
-            ` : ''}
+              ` : ''}
 
-            ${d.ccqs && d.ccqs.length > 0 ? `
-              <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-                <strong>Concept Check Questions (CCQs):</strong>
-                <ul style="margin: 3px 0 0 0; padding-left: 15px;">
-                  ${d.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
-                </ul>
-              </div>
-            ` : ''}
-
-            ${d.phases && d.phases.length > 0 ? `
-              <table style="width: 100%; font-size: 8.5pt; border-collapse: collapse; margin-top: 6px;">
-                <thead>
-                  <tr style="background: #f1f5f9;">
-                    <th style="width: 25%; padding: 4px;">Phase</th>
-                    <th style="width: 15%; padding: 4px;">Time</th>
-                    <th style="width: 60%; padding: 4px;">Activity & Instructions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${d.phases.map((p: any) => `
-                    <tr>
-                      <td style="padding: 4px;"><strong>${p.phase}</strong></td>
-                      <td style="padding: 4px;">${p.time}</td>
-                      <td style="padding: 4px;"><strong>${p.activity}:</strong> ${p.instructions}</td>
+              ${d.phases && d.phases.length > 0 ? `
+                <table style="width: 100%; font-size: 8.5pt; border-collapse: collapse; margin-top: 6px;">
+                  <thead>
+                    <tr style="background: #f1f5f9;">
+                      <th style="width: 25%; padding: 4px;">Phase</th>
+                      <th style="width: 15%; padding: 4px;">Time</th>
+                      <th style="width: 60%; padding: 4px;">Activity & Instructions</th>
                     </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            ` : ''}
-          </div>
-        `
+                  </thead>
+                  <tbody>
+                    ${d.phases.map((p: any) => `
+                      <tr>
+                        <td style="padding: 4px;"><strong>${p.phase}</strong></td>
+                        <td style="padding: 4px;">${p.time}</td>
+                        <td style="padding: 4px;"><strong>${p.activity}:</strong> ${p.instructions}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              ` : ''}
+            </div>
+          `
+        })
       })
-    })
+    }
   } else {
     // Single Session Timeline View
     if (syllabus.timeline && syllabus.timeline.length > 0) {
@@ -534,6 +537,7 @@ export function exportSyllabusToPDF(syllabus: any) {
   // Roadmap (Term)
   if (syllabus.isTerm || syllabus.weeks || syllabus.scope === 'term') {
     const weeksList = syllabus.weeks || []
+    const isSimplified = syllabus.detailLevel === 'simplified'
     htmlContent += `<h2>12-Week Course Syllabus Roadmap</h2>`
     
     weeksList.forEach((w: any) => {
@@ -543,11 +547,11 @@ export function exportSyllabusToPDF(syllabus: any) {
           <table>
             <thead>
               <tr>
-                <th style="width: 18%;">Session</th>
-                <th style="width: 25%;">Topic & Grammar Sub-Rule</th>
-                <th style="width: 20%;">Target Vocabulary</th>
-                <th style="width: 23%;">Classroom Activity</th>
-                <th style="width: 14%;">Unit Ref</th>
+                <th style="width: 22%;">Session</th>
+                <th style="width: 28%;">Topic & Grammar Sub-Rule</th>
+                <th style="width: 18%;">Target Vocabulary</th>
+                <th style="width: 22%;">Classroom Activity</th>
+                <th style="width: 10%;">Unit Ref</th>
               </tr>
             </thead>
             <tbody>
@@ -555,7 +559,7 @@ export function exportSyllabusToPDF(syllabus: any) {
                 <tr>
                   <td><strong>${d.day}</strong><br/><span style="font-size: 9px; color: #1e3a8a;">${d.type || ''}</span></td>
                   <td><strong>${d.topic}</strong><br/><span style="font-size: 10px; color: #475569;">${d.grammarFocus || d.objective}</span></td>
-                  <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 10px;">${(d.vocabList || []).join(', ') || 'N/A'}</span></td>
+                  <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 9.5px;">${(d.vocabList && d.vocabList.length > 0) ? d.vocabList.join(', ') : '—'}</span></td>
                   <td><strong>${d.activityType || 'Activity'}</strong><br/><span style="font-size: 10px; color: #334155;">${d.activityDetail || d.objective}</span></td>
                   <td><span style="font-size: 10px; font-weight: bold;">${d.unitRef || 'Unit Main'}</span></td>
                 </tr>
@@ -566,106 +570,110 @@ export function exportSyllabusToPDF(syllabus: any) {
       `
     })
 
-    // Teacher's Daily Guidebook Cards in PDF
-    htmlContent += `
-      <div style="page-break-before: always;">
-        <h2>Teacher's Daily Guidebook (Micro Session Plans)</h2>
-        <p style="font-size: 11px; color: #475569; margin-bottom: 16px;">Detailed daily lesson execution cards for classroom management, concept check questions (CCQs), and timeline breakdown.</p>
-    `
+    // Teacher's Daily Guidebook Cards in PDF (Rendered ONLY in Fully Detailed mode to keep Simplified PDFs under 4 pages)
+    if (!isSimplified) {
+      htmlContent += `
+        <div style="margin-top: 24px;">
+          <h2>Teacher's Daily Guidebook (Micro Session Plans)</h2>
+          <p style="font-size: 11px; color: #475569; margin-bottom: 16px;">Detailed daily lesson execution cards for classroom management, concept check questions (CCQs), and timeline breakdown.</p>
+      `
 
-    weeksList.forEach((w: any) => {
-      (w.days || []).forEach((d: any) => {
-        htmlContent += `
-          <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px; background: #ffffff; page-break-inside: avoid;">
-            <div style="display: flex; align-items: center; justify-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px;">
-              <h3 style="color: #1e3a8a; margin: 0; font-size: 13px;">${d.day}: ${d.topic}</h3>
-              <span style="font-size: 10px; font-weight: bold; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${d.unitRef || 'Standard Unit'}</span>
-            </div>
-            
-            <div style="font-size: 11px; color: #334155; margin-bottom: 8px;">
-              <strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}
-            </div>
-
-            ${d.grammarScopeLimit ? `
-              <div style="font-size: 10.5px; color: #92400e; background: #fef3c7; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
-                <strong>Grammar Scope Limit (How much to teach today):</strong> ${d.grammarScopeLimit}
+      weeksList.forEach((w: any) => {
+        (w.days || []).forEach((d: any) => {
+          htmlContent += `
+            <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; background: #ffffff; page-break-inside: avoid;">
+              <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 8px;">
+                <h3 style="color: #1e3a8a; margin: 0; font-size: 12.5px;">${d.day}: ${d.topic}</h3>
+                <span style="font-size: 10px; font-weight: bold; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${d.unitRef || 'Standard Unit'}</span>
               </div>
-            ` : ''}
-
-            ${d.boardLayout ? `
-              <div style="font-size: 10.5px; color: #1e3a8a; background: #e0e7ff; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; font-family: monospace;">
-                <strong>Whiteboard Formula / Layout:</strong> ${d.boardLayout}
+              
+              <div style="font-size: 11px; color: #334155; margin-bottom: 6px;">
+                <strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}
               </div>
-            ` : ''}
 
-            <div style="font-size: 11px; color: #334155; margin-bottom: 10px;">
-              <strong>Target Vocabulary:</strong> <span style="color: #1e3a8a; font-weight: 600;">${(d.vocabList || []).join(', ')}</span>
-            </div>
+              ${d.grammarScopeLimit ? `
+                <div style="font-size: 10px; color: #92400e; background: #fef3c7; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px;">
+                  <strong>Grammar Scope Limit:</strong> ${d.grammarScopeLimit}
+                </div>
+              ` : ''}
 
-            ${d.discussionTopics && d.discussionTopics.length > 0 ? `
-              <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">
-                <strong style="color: #15803d;">🗣️ CEFR Discussion & Debate Topics:</strong>
-                ${d.discussionTopics.map((dt: any) => `<div style="margin-top: 4px;"><strong>Topic:</strong> ${dt.topic} — <em>"${dt.prompt}"</em></div>`).join('')}
-                ${d.functionalPhrases ? `<div style="margin-top: 6px;"><strong>Functional Speaking Phrases to Practice:</strong> ${d.functionalPhrases.join(' | ')}</div>` : ''}
-              </div>
-            ` : ''}
+              ${d.boardLayout ? `
+                <div style="font-size: 10px; color: #1e3a8a; background: #e0e7ff; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; font-family: monospace;">
+                  <strong>Whiteboard Formula:</strong> ${d.boardLayout}
+                </div>
+              ` : ''}
 
-            ${d.activityGame ? `
-              <div style="background: #fdf4ff; border-left: 3px solid #c026d3; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">
-                <strong style="color: #a21caf;">🎮 Classroom Fluency Game: ${d.activityGame.gameName}</strong>
-                <div style="margin-top: 4px;"><strong>Materials Needed:</strong> ${d.activityGame.materials.join(', ')}</div>
-                <div style="margin-top: 2px;"><strong>Rules:</strong> ${d.activityGame.rules.join(' ')}</div>
-                <div style="margin-top: 2px;"><strong>Scoring System:</strong> ${d.activityGame.scoring}</div>
-              </div>
-            ` : ''}
+              ${d.vocabList && d.vocabList.length > 0 ? `
+                <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
+                  <strong>Target Vocabulary:</strong> <span style="color: #1e3a8a; font-weight: 600;">${d.vocabList.join(', ')}</span>
+                </div>
+              ` : ''}
 
-            ${d.readingPassage ? `
-              <div style="background: #fffbeb; border-left: 3px solid #d97706; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">
-                <strong style="color: #b45309;">📖 Book Reading: ${d.readingPassage.passageTitle}</strong>
-                <div style="margin-top: 4px;"><strong>Reading Strategy Focus:</strong> ${d.readingPassage.readingStrategy}</div>
-                <div style="margin-top: 4px;"><strong>Comprehension Questions:</strong>
-                  <ul style="margin: 4px 0 0 0; padding-left: 16px;">
-                    ${d.readingPassage.comprehensionQuestions.map((cq: string) => `<li>${cq}</li>`).join('')}
+              ${d.discussionTopics && d.discussionTopics.length > 0 ? `
+                <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 10px;">
+                  <strong style="color: #15803d;">🗣️ CEFR Discussion Topics:</strong>
+                  ${d.discussionTopics.map((dt: any) => `<div style="margin-top: 2px;"><strong>Topic:</strong> ${dt.topic} — <em>"${dt.prompt}"</em></div>`).join('')}
+                  ${d.functionalPhrases ? `<div style="margin-top: 4px;"><strong>Functional Speaking Phrases:</strong> ${d.functionalPhrases.join(' | ')}</div>` : ''}
+                </div>
+              ` : ''}
+
+              ${d.activityGame ? `
+                <div style="background: #fdf4ff; border-left: 3px solid #c026d3; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 10px;">
+                  <strong style="color: #a21caf;">🎮 Fluency Game: ${d.activityGame.gameName}</strong>
+                  <div style="margin-top: 2px;"><strong>Materials Needed:</strong> ${d.activityGame.materials.join(', ')}</div>
+                  <div style="margin-top: 2px;"><strong>Rules:</strong> ${d.activityGame.rules.join(' ')}</div>
+                  <div style="margin-top: 2px;"><strong>Scoring:</strong> ${d.activityGame.scoring}</div>
+                </div>
+              ` : ''}
+
+              ${d.readingPassage ? `
+                <div style="background: #fffbeb; border-left: 3px solid #d97706; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 10px;">
+                  <strong style="color: #b45309;">📖 Reading Passage: ${d.readingPassage.passageTitle}</strong>
+                  <div style="margin-top: 2px;"><strong>Strategy:</strong> ${d.readingPassage.readingStrategy}</div>
+                  <div style="margin-top: 2px;"><strong>Comprehension Questions:</strong>
+                    <ul style="margin: 2px 0 0 0; padding-left: 14px;">
+                      ${d.readingPassage.comprehensionQuestions.map((cq: string) => `<li>${cq}</li>`).join('')}
+                    </ul>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${d.ccqs && d.ccqs.length > 0 ? `
+                <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 10px;">
+                  <strong style="color: #1e3a8a;">Concept Check Questions (CCQs):</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 14px; color: #1e293b;">
+                    ${d.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
                   </ul>
                 </div>
-              </div>
-            ` : ''}
+              ` : ''}
 
-            ${d.ccqs && d.ccqs.length > 0 ? `
-              <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 10.5px;">
-                <strong style="color: #1e3a8a;">Concept Check Questions (CCQs):</strong>
-                <ul style="margin: 4px 0 0 0; padding-left: 16px; color: #1e293b;">
-                  ${d.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
-                </ul>
-              </div>
-            ` : ''}
-
-            ${d.phases && d.phases.length > 0 ? `
-              <table style="width: 100%; font-size: 10px; border-collapse: collapse; margin-top: 6px;">
-                <thead>
-                  <tr style="background: #f8fafc;">
-                    <th style="width: 25%; padding: 6px; border: 1px solid #e2e8f0;">Phase</th>
-                    <th style="width: 15%; padding: 6px; border: 1px solid #e2e8f0;">Time</th>
-                    <th style="width: 60%; padding: 6px; border: 1px solid #e2e8f0;">Activity & Instructions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${d.phases.map((p: any) => `
-                    <tr>
-                      <td style="padding: 6px; border: 1px solid #e2e8f0;"><strong>${p.phase}</strong></td>
-                      <td style="padding: 6px; border: 1px solid #e2e8f0;">${p.time}</td>
-                      <td style="padding: 6px; border: 1px solid #e2e8f0;"><strong>${p.activity}:</strong> ${p.instructions}</td>
+              ${d.phases && d.phases.length > 0 ? `
+                <table style="width: 100%; font-size: 9.5px; border-collapse: collapse; margin-top: 6px; table-layout: fixed;">
+                  <thead>
+                    <tr style="background: #f8fafc;">
+                      <th style="width: 25%; padding: 4px 6px; border: 1px solid #e2e8f0;">Phase</th>
+                      <th style="width: 15%; padding: 4px 6px; border: 1px solid #e2e8f0;">Time</th>
+                      <th style="width: 60%; padding: 4px 6px; border: 1px solid #e2e8f0;">Activity & Instructions</th>
                     </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            ` : ''}
-          </div>
-        `
+                  </thead>
+                  <tbody>
+                    ${d.phases.map((p: any) => `
+                      <tr>
+                        <td style="padding: 4px 6px; border: 1px solid #e2e8f0;"><strong>${p.phase}</strong></td>
+                        <td style="padding: 4px 6px; border: 1px solid #e2e8f0;">${p.time}</td>
+                        <td style="padding: 4px 6px; border: 1px solid #e2e8f0;"><strong>${p.activity}:</strong> ${p.instructions}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              ` : ''}
+            </div>
+          `
+        })
       })
-    })
 
-    htmlContent += `</div>`
+      htmlContent += `</div>`
+    }
   } else {
     // Single Session Timeline
     if (syllabus.timeline && syllabus.timeline.length > 0) {

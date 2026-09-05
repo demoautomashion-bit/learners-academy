@@ -448,6 +448,15 @@ const B1_SYLLABUS_WEEKS = [
   }
 ]
 
+function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
+  if (!arr || arr.length === 0) return []
+  const chunks: T[][] = []
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    chunks.push(arr.slice(i, i + chunkSize))
+  }
+  return chunks
+}
+
 export function generateGranularTermRoadmap(params: GeneratorParams): GranularWeek[] {
   const { termWeeks, sessionsPerWeek, cefr, theme, grammarTags, vocabTags, weeklyArchetypes, selectedDays, detailLevel } = params
 
@@ -456,6 +465,15 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
     ? selectedDays
     : defaultDays.slice(0, sessionsPerWeek)
 
+  // Build unified Vocabulary Bank from user tags and syllabus baseline
+  const baseVocabPool = Array.from(
+    new Set([
+      ...vocabTags,
+      ...B1_SYLLABUS_WEEKS.flatMap(w => w.vocab)
+    ])
+  )
+  const vocabChunks = chunkArray(baseVocabPool, 3)
+
   // Determine schedule archetypes per week (e.g. ['grammar', 'activity', 'discussion'])
   const archetypes = weeklyArchetypes && weeklyArchetypes.length === sessionsPerWeek
     ? weeklyArchetypes
@@ -463,6 +481,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
 
   const generatedWeeks: GranularWeek[] = []
   let overallSessionCounter = 1
+  let instructionalSessionCounter = 0
 
   const cefrDiscussions = DISCUSSION_TOPICS_BY_CEFR[cefr] || DISCUSSION_TOPICS_BY_CEFR['B1']
   const cefrPhrases = FUNCTIONAL_PHRASES_BY_CEFR[cefr] || FUNCTIONAL_PHRASES_BY_CEFR['B1']
@@ -481,7 +500,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
       let grammarFocus = ''
       let grammarScopeLimit: string | undefined = undefined
       let boardLayout: string | undefined = undefined
-      let vocabList = [...weekData.vocab]
+      let vocabList: string[] = []
       let unitRef = weekData.unit
       let activityType = ''
       let activityDetail = ''
@@ -499,8 +518,13 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
 
       const grammarDetails = getGrammarDetailsForStructure(targetGrammarTag, cefr)
 
-      if (vocabTags.length > 0) {
-        vocabList = Array.from(new Set([...vocabTags.slice(0, 3), ...vocabList])).slice(0, 5)
+      // Vocabulary Chunking: Assign 2-3 word chunks ONLY on instructional days (grammar & reading)
+      if (archetype === 'grammar' || archetype === 'reading') {
+        const currentChunk = vocabChunks[instructionalSessionCounter % vocabChunks.length] || []
+        vocabList = currentChunk
+        instructionalSessionCounter++
+      } else {
+        vocabList = []
       }
 
       // Check Mid-Term & Final Exams
@@ -511,6 +535,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         activityType = 'Formal Evaluation'
         activityDetail = 'Students undergo individual oral presentations and written grammar check.'
         objective = 'Evaluate mid-term progress and academic attainment aligned to CEFR criteria.'
+        vocabList = []
       } else if (w === termWeeks && d === sessionsPerWeek) {
         type = 'Exam'
         topicTitle = 'FINAL TERM WRITTEN & ORAL GRADUATION ASSESSMENT'
@@ -518,6 +543,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         activityType = 'Graduation Examination'
         activityDetail = 'Invigilated written exam followed by 1-on-1 speaking interview and portfolio review.'
         objective = 'Certify CEFR level proficiency and issue formal academic transcripts.'
+        vocabList = []
       } else {
         // BUILD ACCORDING TO DAY ARCHETYPE
         switch (archetype) {
