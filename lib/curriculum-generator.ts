@@ -20,7 +20,6 @@ export interface DailySession {
   grammarScopeLimit?: string
   boardLayout?: string
   vocabList: string[]
-  unitRef: string
   activityType: string
   activityDetail: string
   objective: string
@@ -62,7 +61,7 @@ export interface GeneratorParams {
   termWeeks: number
   sessionsPerWeek: number
   cefr: string
-  theme: string
+  theme?: string
   grammarTags: string[]
   vocabTags: string[]
   idiomTags: string[]
@@ -312,7 +311,7 @@ const FUNCTIONAL_PHRASES_BY_CEFR: Record<string, string[]> = {
   ]
 }
 
-// B1 Baseline Syllabus Template Data
+// Baseline Syllabus Weeks (Generic, no fake textbook titles or page numbers)
 const B1_SYLLABUS_WEEKS = [
   {
     weekTitle: "Week 1: Past Events & Life Experiences",
@@ -321,8 +320,7 @@ const B1_SYLLABUS_WEEKS = [
     grammarScope: "Focus on affirmative and negative forms today. Leave question inversion drills for Session 2.",
     boardFormula: "Subject + have/has + V3 (Past Participle)  VS  Subject + V2 (Past Form) + Time Marker",
     vocab: ["itinerary", "expedition", "embark", "pristine", "destination"],
-    unit: "Unit 1A (pp. 10-13): Horizons",
-    readingTitle: "The Great Silk Road Expeditions",
+    readingTitle: "Text Analysis: Historical Narratives & Past Events",
     readingStrategy: "Scanning for specific historic dates vs Skimming for narrative gist."
   },
   {
@@ -331,9 +329,8 @@ const B1_SYLLABUS_WEEKS = [
     grammarRule: "'Be going to' for personal intentions vs Present Continuous for fixed pre-arranged bookings.",
     grammarScope: "Teach clear contrast between intent (mental plan) vs arrangement (ticket purchased).",
     boardFormula: "Subject + am/is/are + going to + Infinitive  VS  Subject + am/is/are + V-ing (Fixed Time/Place)",
-    vocab: ["reservation", "flight schedule", "boarding", "confirmation", "itinerary"],
-    unit: "Unit 2A (pp. 22-25): Future Travel",
-    readingTitle: "Hyperloop & The Future of High-Speed Transit",
+    vocab: ["reservation", "schedule", "confirmation", "itinerary", "arrangement"],
+    readingTitle: "Text Analysis: Modern Innovations & Future Planning",
     readingStrategy: "Identifying author stance and technological predictions."
   },
   {
@@ -343,8 +340,7 @@ const B1_SYLLABUS_WEEKS = [
     grammarScope: "Limit to Present & Past Simple passive forms. Do not introduce passive modals yet.",
     boardFormula: "Object + am/is/are/was/were + V3 (Past Participle) + [by Agent]",
     vocab: ["produced", "manufactured", "exported", "heritage", "craftsmanship"],
-    unit: "Unit 3A (pp. 34-37): Local Crafts & Culture",
-    readingTitle: "How Venetian Glass Artifacts Are Hand-Crafted",
+    readingTitle: "Text Analysis: Artisanal Production & Heritage Crafts",
     readingStrategy: "Process flowchart mapping and passive verb identification."
   },
   {
@@ -353,20 +349,18 @@ const B1_SYLLABUS_WEEKS = [
     grammarRule: "Relative pronouns without commas to give essential information identifying a person, place, or thing.",
     grammarScope: "Focus on defining clauses (no commas). Cover non-defining clauses next week.",
     boardFormula: "Noun + [who / which / that / where] + Clause  (No Commas)",
-    vocab: ["guide", "resort", "scenery", "local", "exotic"],
-    unit: "Unit 4A (pp. 46-49): Descriptive Travel",
-    readingTitle: "Unexplored Eco-Resorts of the Amazon Rainforest",
-    readingStrategy: "Identifying descriptive relative clauses and extracting key destination features."
+    vocab: ["guide", "location", "scenery", "resident", "environment"],
+    readingTitle: "Text Analysis: Environment & Regional Descriptions",
+    readingStrategy: "Identifying descriptive relative clauses and extracting key features."
   },
   {
-    weekTitle: "Week 5: Conditionals & Hypothetical Travel Scenarios",
+    weekTitle: "Week 5: Conditionals & Hypothetical Scenarios",
     grammarTopic: "First Conditional (Real Future) vs Second Conditional (Unreal Present)",
     grammarRule: "First: If + Present, Will + Infinitive (real). Second: If + Past, Would + Infinitive (imaginary).",
     grammarScope: "Focus on contrasting real probability (First) vs imaginary dream scenarios (Second).",
     boardFormula: "First: If + Present Simple, Will + V1  |  Second: If + Past Simple, Would + V1",
-    vocab: ["budget", "backpacking", "flight deal", "opportunity", "itinerary"],
-    unit: "Unit 5A (pp. 58-61): Trip Planning",
-    readingTitle: "10 Travel Mistakes You Should Avoid At All Costs",
+    vocab: ["budget", "opportunity", "strategy", "outcome", "decision"],
+    readingTitle: "Text Analysis: Decision Making & Cause-and-Effect Advice",
     readingStrategy: "Analyzing cause and effect in conditional advice."
   },
   {
@@ -376,7 +370,6 @@ const B1_SYLLABUS_WEEKS = [
     grammarScope: "Diagnostic evaluation of student grammar accuracy and oral fluency.",
     boardFormula: "Mid-Term Assessment & Progress Checklist",
     vocab: ["recap", "synthesis", "fluency", "accuracy", "assessment"],
-    unit: "Mid-Term Review Module (pp. 70-71)",
     readingTitle: "Mid-Term Portfolio Review & Diagnostic Test",
     readingStrategy: "Comprehensive text analysis and error identification."
   },
@@ -386,10 +379,9 @@ const B1_SYLLABUS_WEEKS = [
     grammarRule: "Must + infinitive (90% sure true), Might (50% possible), Can't (90% sure impossible).",
     grammarScope: "Teach degrees of certainty using present modals. Leave past deduction for Session 2.",
     boardFormula: "Subject + MUST / MIGHT / CAN'T + V1 (Base Form)",
-    vocab: ["mystery", "landmark", "artifact", "archaeological", "clue"],
-    unit: "Unit 7A (pp. 72-75): Historical Mysteries",
-    readingTitle: "The Mysterious Disappearance of Amelia Earhart",
-    readingStrategy: "Evaluating historical evidence and modal deductions."
+    vocab: ["mystery", "evidence", "artifact", "hypothesis", "clue"],
+    readingTitle: "Text Analysis: Investigating Historical Mysteries",
+    readingStrategy: "Evaluating evidence and modal deductions."
   },
   {
     weekTitle: "Week 8: Reported Speech & Indirect Communication",
@@ -398,8 +390,7 @@ const B1_SYLLABUS_WEEKS = [
     grammarScope: "Focus on reporting statements and tense backshifting rule.",
     boardFormula: "Direct: 'I am tired'  ->  Reported: He said (that) he WAS tired.",
     vocab: ["statement", "complaint", "feedback", "review", "testimonial"],
-    unit: "Unit 8A (pp. 84-87): Hotel Reviews & Complaints",
-    readingTitle: "Behind the Scenes of Luxury Hotel Concierge Desks",
+    readingTitle: "Text Analysis: Customer Feedback & Formal Communication",
     readingStrategy: "Distinguishing direct dialogue from reported statements."
   },
   {
@@ -409,8 +400,7 @@ const B1_SYLLABUS_WEEKS = [
     grammarScope: "Emphasize that 'would' CANNOT be used for past states ('would be quiet' is incorrect).",
     boardFormula: "Subject + used to + V1 (States & Actions)  VS  Subject + would + V1 (Repeated Actions)",
     vocab: ["tradition", "nostalgia", "transformation", "heritage", "lifestyle"],
-    unit: "Unit 9A (pp. 96-99): Changing Cities",
-    readingTitle: "How Tokyo Evolved From a Fishing Village to a Megacity",
+    readingTitle: "Text Analysis: Urban Transformations & Cultural History",
     readingStrategy: "Tracking historical transformations and habit contrasts."
   },
   {
@@ -420,8 +410,7 @@ const B1_SYLLABUS_WEEKS = [
     grammarScope: "Teach exact degree modifiers to make comparisons nuanced and formal.",
     boardFormula: "Subject + verb + [far / significantly / slightly] + Comparative Adj + than + Noun",
     vocab: ["luxury", "economical", "spacious", "congested", "tranquil"],
-    unit: "Unit 10A (pp. 108-111): Resort Comparison",
-    readingTitle: "The Highs and Lows of Overwater Bungalow Resorts",
+    readingTitle: "Text Analysis: Comparative Evaluations & Market Reviews",
     readingStrategy: "Comparative evaluation and price/value analysis."
   },
   {
@@ -431,8 +420,7 @@ const B1_SYLLABUS_WEEKS = [
     grammarScope: "Focus on verb pattern categorization and common student pre-verb errors.",
     boardFormula: "Verb + V-ing (enjoy, avoid, suggest)  VS  Verb + to-V1 (decide, plan, hope)",
     vocab: ["preference", "avoidance", "anticipation", "itinerary", "aspiration"],
-    unit: "Unit 11A (pp. 120-123): Travel Preferences",
-    readingTitle: "Psychology of Travel: What Your Vacation Style Says About You",
+    readingTitle: "Text Analysis: Psychology of Motivation & Habits",
     readingStrategy: "Extracting psychological profiles and verb structures."
   },
   {
@@ -442,7 +430,6 @@ const B1_SYLLABUS_WEEKS = [
     grammarScope: "Formal 60-minute written examination and 1-on-1 oral defense.",
     boardFormula: "Final Term Certification & Academic Evaluation Rubric",
     vocab: ["examination", "evaluation", "assessment", "rubric", "certification"],
-    unit: "Final Exam Module (pp. 132-135)",
     readingTitle: "Final Course Evaluation & Portfolio Assessment",
     readingStrategy: "Academic synthesis and portfolio defense."
   }
@@ -458,23 +445,22 @@ function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
 }
 
 export function generateGranularTermRoadmap(params: GeneratorParams): GranularWeek[] {
-  const { termWeeks, sessionsPerWeek, cefr, theme, grammarTags, vocabTags, weeklyArchetypes, selectedDays, detailLevel } = params
+  const { termWeeks, sessionsPerWeek, cefr, theme, grammarTags, vocabTags, idiomTags = [], weeklyArchetypes, selectedDays, detailLevel } = params
 
   const defaultDays = ['Monday', 'Wednesday', 'Friday', 'Tuesday', 'Thursday']
   const daysList = selectedDays && selectedDays.length > 0
     ? selectedDays
     : defaultDays.slice(0, sessionsPerWeek)
 
-  // Build unified Vocabulary Bank from user tags and syllabus baseline
-  const baseVocabPool = Array.from(
-    new Set([
-      ...vocabTags,
-      ...B1_SYLLABUS_WEEKS.flatMap(w => w.vocab)
-    ])
-  )
+  // Build Vocabulary Pool strictly from user inputs if provided, otherwise fallback to baseline
+  const userEnteredPool = Array.from(new Set([...vocabTags, ...idiomTags])).filter(Boolean)
+  const baseVocabPool = userEnteredPool.length > 0
+    ? userEnteredPool
+    : B1_SYLLABUS_WEEKS.flatMap(w => w.vocab)
+
   const vocabChunks = chunkArray(baseVocabPool, 3)
 
-  // Determine schedule archetypes per week (e.g. ['grammar', 'activity', 'discussion'])
+  // Determine schedule archetypes per week
   const archetypes = weeklyArchetypes && weeklyArchetypes.length === sessionsPerWeek
     ? weeklyArchetypes
     : (DEFAULT_SCHEDULE_ARCHETYPES[sessionsPerWeek] || DEFAULT_SCHEDULE_ARCHETYPES[3])
@@ -485,6 +471,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
 
   const cefrDiscussions = DISCUSSION_TOPICS_BY_CEFR[cefr] || DISCUSSION_TOPICS_BY_CEFR['B1']
   const cefrPhrases = FUNCTIONAL_PHRASES_BY_CEFR[cefr] || FUNCTIONAL_PHRASES_BY_CEFR['B1']
+  const cleanTheme = theme ? theme.trim() : ''
 
   for (let w = 1; w <= termWeeks; w++) {
     const weekData = B1_SYLLABUS_WEEKS[(w - 1) % B1_SYLLABUS_WEEKS.length]
@@ -501,7 +488,6 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
       let grammarScopeLimit: string | undefined = undefined
       let boardLayout: string | undefined = undefined
       let vocabList: string[] = []
-      let unitRef = weekData.unit
       let activityType = ''
       let activityDetail = ''
       let objective = ''
@@ -545,6 +531,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         objective = 'Certify CEFR level proficiency and issue formal academic transcripts.'
         vocabList = []
       } else {
+        const themeSuffix = cleanTheme ? ` in "${cleanTheme}" context` : ''
         // BUILD ACCORDING TO DAY ARCHETYPE
         switch (archetype) {
           case 'grammar':
@@ -554,7 +541,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
             boardLayout = grammarDetails.board
             activityType = "Board Formula & Direct Instruction Drills"
             activityDetail = "Teacher delivers direct instruction using whiteboard formulas, followed by controlled sentence transformation drills."
-            objective = `Master structural accuracy and form of ${grammarDetails.topic} in "${theme}" context.`
+            objective = `Master structural accuracy and form of ${grammarDetails.topic}${themeSuffix}.`
             ccqs = grammarDetails.ccqs
             break
 
@@ -573,7 +560,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
               },
               {
                 topic: `Alternative Perspective: ${discTopic.topic}`,
-                prompt: `How would local residents versus international tourists view this issue differently?`,
+                prompt: `How would different stakeholders view this issue differently?`,
                 cefrLevel: cefr
               }
             ]
@@ -627,7 +614,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
           phase: 'Phase 1: Warm-Up & Schema Activation',
           time: '10 Mins',
           activity: archetype === 'discussion' ? 'Debate Icebreaker Prompt' : archetype === 'activity' ? 'Game Rules & Team Setup' : archetype === 'reading' ? 'Title & Image Prediction' : 'Grammar Warm-Up & Board Teaser',
-          instructions: `Teacher introduces "${theme}" context. Students discuss initial prompts in pairs.`
+          instructions: `Teacher introduces ${cleanTheme ? `"${cleanTheme}"` : 'target concept'} context. Students discuss initial prompts in pairs.`
         },
         {
           phase: 'Phase 2: Core Delivery & Instruction',
@@ -645,7 +632,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
           phase: 'Phase 4: Wrap-Up & Assessment',
           time: '5 Mins',
           activity: 'Exit Ticket & Homework Check',
-          instructions: `Review target vocabulary (${vocabList.slice(0, 3).join(', ')}). Assign exercises from ${unitRef}.`
+          instructions: `Review target concepts${vocabList.length > 0 ? ` (${vocabList.slice(0, 3).join(', ')})` : ''}. Assign practice exercises.`
         }
       ]
 
@@ -663,7 +650,6 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         grammarScopeLimit: isSimplified ? undefined : grammarScopeLimit,
         boardLayout: isSimplified ? undefined : boardLayout,
         vocabList,
-        unitRef,
         activityType,
         activityDetail,
         objective,
@@ -680,7 +666,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
     generatedWeeks.push({
       weekNum: w,
       title: weekData.weekTitle,
-      theme,
+      theme: cleanTheme,
       days: weekDays
     })
   }

@@ -107,17 +107,17 @@ export default function LessonGeneratorPage() {
   // Form State
   const [selectedCefr, setSelectedCefr] = useState('B1')
   const [duration, setDuration] = useState(45)
-  const [customTopic, setCustomTopic] = useState('Travel & World Experiences')
+  const [customTopic, setCustomTopic] = useState('')
   
   // Tag Inputs State
   const [grammarInput, setGrammarInput] = useState('')
-  const [grammarTags, setGrammarTags] = useState<string[]>(['Present Perfect vs Past Simple', 'Passive Voice'])
+  const [grammarTags, setGrammarTags] = useState<string[]>([])
 
   const [vocabInput, setVocabInput] = useState('')
-  const [vocabTags, setVocabTags] = useState<string[]>(['itinerary', 'destination', 'embark'])
+  const [vocabTags, setVocabTags] = useState<string[]>([])
 
   const [idiomsInput, setIdiomsInput] = useState('')
-  const [idiomTags, setIdiomTags] = useState<string[]>(['break the ice', 'hit the road'])
+  const [idiomTags, setIdiomTags] = useState<string[]>([])
 
   // Form Options Checkboxes
   const [includeWarmup, setIncludeWarmup] = useState(true)
@@ -170,6 +170,7 @@ export default function LessonGeneratorPage() {
   }
 
   // Save generated syllabus to PostgreSQL database via POST /api/lessons
+  // Save generated syllabus to PostgreSQL database via POST /api/lessons
   const handleSaveToDatabase = async () => {
     if (!generatedResult) return
 
@@ -179,7 +180,7 @@ export default function LessonGeneratorPage() {
         title: generatedResult.title,
         scope: syllabusScope,
         cefr: selectedCefr,
-        topic: customTopic || 'General Context',
+        topic: customTopic.trim() || undefined,
         duration: generatedResult.duration,
         grammar: grammarTags,
         vocabulary: generatedResult.vocabulary || null,
@@ -239,6 +240,8 @@ export default function LessonGeneratorPage() {
     setGeneratedResult(null)
     setIsSaved(false)
 
+    const cleanTopic = customTopic.trim()
+
     setTimeout(() => setGenerationStep(2), 700)
     setTimeout(() => setGenerationStep(3), 1500)
     setTimeout(() => {
@@ -252,7 +255,7 @@ export default function LessonGeneratorPage() {
           termWeeks,
           sessionsPerWeek,
           cefr: selectedCefr,
-          theme: customTopic || 'Travel & World Experiences',
+          theme: cleanTopic,
           grammarTags: activeGrammar,
           vocabTags: activeVocab,
           idiomTags: activeIdioms,
@@ -267,7 +270,7 @@ export default function LessonGeneratorPage() {
           title: `${termWeeks}-Week (${totalSessions} Sessions) Syllabus Roadmap`,
           cefr: selectedCefr,
           duration: `${totalSessions} Sessions (${sessionsPerWeek}x / week)`,
-          theme: customTopic || 'Travel & World Experiences',
+          theme: cleanTopic || undefined,
           totalSessions,
           selectedDays,
           weeks: roadmapWeeks,
@@ -282,21 +285,27 @@ export default function LessonGeneratorPage() {
         const primaryG = activeGrammar[0] || 'Grammatical Structures'
         const gInfo = getGrammarDetailsForStructure(primaryG, selectedCefr)
 
+        const objectives = [
+          `Master structural form and application of ${primaryG}: ${gInfo.rule}`
+        ]
+        if (activeVocab.length > 0) {
+          objectives.push(`Formulate grammatically accurate sentences incorporating target vocabulary: ${activeVocab.slice(0, 3).join(', ')}.`)
+        }
+        if (activeIdioms.length > 0) {
+          objectives.push(`Apply idioms such as "${activeIdioms[0]}" naturally in conversational scenarios.`)
+        }
+
         setGeneratedResult({
           isTerm: false,
           detailLevel,
           title: `Mastering ${activeGrammar.join(' & ') || 'Grammatical Structures'}`,
           cefr: selectedCefr,
           duration: `${duration} Minutes`,
-          theme: customTopic || 'General Context',
+          theme: cleanTopic || undefined,
           grammarFocus: gInfo.rule,
           boardLayout: gInfo.board,
           grammarScopeLimit: gInfo.scope,
-          objectives: [
-            `Master structural form and application of ${primaryG}: ${gInfo.rule}`,
-            `Formulate grammatically accurate sentences incorporating target vocabulary: ${activeVocab.slice(0, 3).join(', ') || 'key terms'}.`,
-            `Apply idioms such as "${activeIdioms[0] || 'break the ice'}" naturally in conversational scenarios.`
-          ],
+          objectives,
           vocabulary: activeVocab.map(v => ({ word: v, def: `Target key vocabulary term aligned to ${selectedCefr} level.` })),
           idioms: activeIdioms.map(idm => ({ expression: idm, usage: 'Common English idiom used for natural speaking fluency.' })),
           timeline: detailLevel === 'simplified' ? [
@@ -304,7 +313,7 @@ export default function LessonGeneratorPage() {
               phase: 'Warm-Up & Schema',
               time: `${Math.round(duration * 0.2)} mins`,
               activity: `Icebreaker Discussion`,
-              instructions: `Students discuss topic context "${customTopic}" in pairs.`
+              instructions: cleanTopic ? `Students discuss topic context "${cleanTopic}" in pairs.` : `Students discuss target grammar concepts in pairs.`
             },
             {
               phase: 'Core Instruction',
@@ -315,15 +324,15 @@ export default function LessonGeneratorPage() {
             {
               phase: 'Guided Application',
               time: `${Math.round(duration * 0.35)} mins`,
-              activity: 'Pair Roleplay & Practice',
-              instructions: `Practice applying ${primaryG} and vocabulary (${activeVocab.slice(0, 3).join(', ')}).`
+              activity: 'Pair Practice',
+              instructions: `Practice applying ${primaryG}${activeVocab.length > 0 ? ` and vocabulary (${activeVocab.slice(0, 3).join(', ')})` : ''}.`
             }
           ] : [
             {
               phase: 'Warm-Up & Schema Activation',
               time: `${Math.round(duration * 0.15)} mins`,
-              activity: `Icebreaker: "${activeIdioms[0] || 'Break the Ice'}" Discussion`,
-              instructions: `Students discuss past experiences using targeted vocabulary.`
+              activity: `Icebreaker Discussion`,
+              instructions: `Students activate prior knowledge on target concepts.`
             },
             {
               phase: 'Direct Instruction',
@@ -335,13 +344,13 @@ export default function LessonGeneratorPage() {
               phase: 'Guided Practice',
               time: `${Math.round(duration * 0.3)} mins`,
               activity: 'Sentence Transformation Drills',
-              instructions: `Worksheet activity incorporating target idioms and vocabulary.`
+              instructions: `Worksheet activity incorporating target concepts.`
             },
             {
               phase: 'Production & Application',
               time: `${Math.round(duration * 0.2)} mins`,
-              activity: 'Pair Work Roleplay',
-              instructions: `Students engage in a real-world scenario focused on "${customTopic}".`
+              activity: 'Pair Work Practice',
+              instructions: cleanTopic ? `Students engage in a real-world scenario focused on "${cleanTopic}".` : `Students engage in target sentence production.`
             },
             {
               phase: 'Wrap-up & Exit Check',
@@ -359,7 +368,9 @@ export default function LessonGeneratorPage() {
               reason: gInfo.rule
             }
           ],
-          homework: `Write a 120-word paragraph about "${customTopic}" utilizing target structure (${primaryG}).`
+          homework: cleanTopic
+            ? `Write a 120-word paragraph about "${cleanTopic}" utilizing target structure (${primaryG}).`
+            : `Write a 120-word paragraph utilizing target structure (${primaryG}).`
         })
       }
     }, 2400)
@@ -778,10 +789,10 @@ export default function LessonGeneratorPage() {
                             const currentType = weeklyArchetypes[idx] || 'grammar'
                             const dayName = selectedDays[idx % selectedDays.length] || `Day ${idx + 1}`
                             return (
-                              <div key={idx} className="p-2.5 rounded-lg border border-border bg-muted/20 flex items-center justify-between gap-2 overflow-hidden">
-                                <span className="text-xs font-bold text-foreground flex items-center gap-1.5 min-w-0 flex-1 truncate">
+                              <div key={idx} className="p-2.5 rounded-lg border border-border bg-muted/20 flex items-center justify-between gap-3">
+                                <span className="text-xs font-bold text-foreground flex items-center gap-1.5 min-w-0 shrink-0">
                                   <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
-                                  <span className="truncate">{dayName}</span>
+                                  <span>{dayName}</span>
                                   <span className="text-[11px] font-normal text-muted-foreground shrink-0">(S{idx + 1})</span>
                                 </span>
 
@@ -792,7 +803,7 @@ export default function LessonGeneratorPage() {
                                     updated[idx] = e.target.value as DayArchetype
                                     setWeeklyArchetypes(updated)
                                   }}
-                                  className="text-xs font-semibold bg-background border border-border rounded-md px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary shrink-0 max-w-[55%] truncate"
+                                  className="text-xs font-semibold bg-background border border-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary max-w-[55%] truncate shrink-0 cursor-pointer shadow-sm"
                                 >
                                   {ARCHETYPE_OPTIONS.map((opt) => (
                                     <option key={opt.type} value={opt.type}>
@@ -1024,7 +1035,7 @@ export default function LessonGeneratorPage() {
                         </Badge>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        Context: <span className="font-medium text-foreground">{generatedResult.theme}</span>
+                        Context: <span className="font-medium text-foreground">{generatedResult.theme || 'General / Core English'}</span>
                       </span>
                     </div>
                     <h2 className="text-xl font-bold tracking-tight text-foreground">
@@ -1124,9 +1135,6 @@ export default function LessonGeneratorPage() {
                                           {d.type || 'Instruction'}
                                         </Badge>
                                       </div>
-                                      <Badge variant="outline" className="text-[10px] font-mono bg-muted/30">
-                                        {d.unitRef || 'Unit Main'}
-                                      </Badge>
                                     </div>
 
                                     <div>
@@ -1178,9 +1186,6 @@ export default function LessonGeneratorPage() {
                                       <span className="text-xs font-bold text-primary block">{d.day}</span>
                                       <h3 className="text-sm font-bold text-foreground">{d.topic}</h3>
                                     </div>
-                                    <Badge variant="outline" className="text-xs font-mono">
-                                      {d.unitRef}
-                                    </Badge>
                                   </div>
 
                                   <div className="space-y-1">

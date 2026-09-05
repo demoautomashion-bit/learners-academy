@@ -77,33 +77,37 @@ export function exportSyllabusToWord(syllabus: any) {
     const isSimplified = syllabus.detailLevel === 'simplified'
     htmlContent += `<h2>12-Week Course Syllabus Roadmap</h2>`
     
+    htmlContent += `
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">Week / Session</th>
+            <th style="width: 32%;">Topic & Grammar Sub-Rule</th>
+            <th style="width: 20%;">Target Vocabulary</th>
+            <th style="width: 26%;">Classroom Activity</th>
+          </tr>
+        </thead>
+        <tbody>
+    `
     weeksList.forEach((w: any) => {
-      htmlContent += `
-        <h3>${w.title || `Week ${w.weekNum}`}</h3>
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 22%;">Session</th>
-              <th style="width: 28%;">Topic & Grammar Sub-Rule</th>
-              <th style="width: 18%;">Target Vocabulary</th>
-              <th style="width: 22%;">Classroom Activity</th>
-              <th style="width: 10%;">Unit Ref</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${(w.days || []).map((d: any) => `
-              <tr>
-                <td><strong>${d.day}</strong><br><span style="font-size: 8pt; color: #1e3a8a;">${d.type || ''}</span></td>
-                <td><strong>${d.topic}</strong><br><span style="font-size: 8.5pt; color: #475569;">${d.grammarFocus || d.objective}</span></td>
-                <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 8.5pt;">${(d.vocabList && d.vocabList.length > 0) ? d.vocabList.join(', ') : '—'}</span></td>
-                <td><strong>${d.activityType || 'Activity'}</strong><br><span style="font-size: 8.5pt; color: #334155;">${d.activityDetail || d.objective}</span></td>
-                <td><span style="font-size: 8.5pt; font-weight: bold;">${d.unitRef || 'Unit Main'}</span></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `
+      (w.days || []).forEach((d: any, idx: number) => {
+        htmlContent += `
+          <tr>
+            <td>
+              ${idx === 0 ? `<div style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">${w.title || `Week ${w.weekNum}`}</div>` : ''}
+              <strong>${d.day}</strong><br><span style="font-size: 8pt; color: #475569;">${d.type || ''}</span>
+            </td>
+            <td><strong>${d.topic}</strong><br><span style="font-size: 8.5pt; color: #475569;">${d.grammarFocus || d.objective}</span></td>
+            <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 8.5pt;">${(d.vocabList && d.vocabList.length > 0) ? d.vocabList.join(', ') : '—'}</span></td>
+            <td><strong>${d.activityType || 'Activity'}</strong><br><span style="font-size: 8.5pt; color: #334155;">${d.activityDetail || d.objective}</span></td>
+          </tr>
+        `
+      })
     })
+    htmlContent += `
+        </tbody>
+      </table>
+    `
 
     // Teacher's Daily Guidebook (Micro Session Plans) - Rendered ONLY in Detailed Mode
     if (!isSimplified) {
@@ -121,7 +125,7 @@ export function exportSyllabusToWord(syllabus: any) {
               <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}</p>
               ${d.grammarScopeLimit ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 4px;"><strong>Grammar Scope Limit:</strong> ${d.grammarScopeLimit}</p>` : ''}
               ${d.boardLayout ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #1e3a8a; background: #e0e7ff; padding: 4px 8px; border-radius: 4px; font-family: monospace;"><strong>Whiteboard Formula:</strong> ${d.boardLayout}</p>` : ''}
-              ${d.vocabList && d.vocabList.length > 0 ? `<p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${d.vocabList.join(', ')} | <strong>Curriculum Unit:</strong> ${d.unitRef || 'Standard Unit'}</p>` : ''}
+              ${d.vocabList && d.vocabList.length > 0 ? `<p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${d.vocabList.join(', ')}</p>` : ''}
               
               ${d.discussionTopics && d.discussionTopics.length > 0 ? `
                 <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
@@ -419,6 +423,15 @@ export function exportSyllabusToPDF(syllabus: any) {
           border-collapse: collapse;
           margin-top: 8px;
           margin-bottom: 20px;
+          table-layout: fixed;
+          page-break-inside: auto;
+        }
+        tr {
+          page-break-inside: avoid;
+          page-break-after: auto;
+        }
+        thead {
+          display: table-header-group;
         }
         th, td {
           border: 1px solid #cbd5e1;
@@ -426,6 +439,7 @@ export function exportSyllabusToPDF(syllabus: any) {
           font-size: 11px;
           text-align: left;
           vertical-align: top;
+          word-wrap: break-word;
         }
         th {
           background: #f1f5f9;
@@ -540,35 +554,37 @@ export function exportSyllabusToPDF(syllabus: any) {
     const isSimplified = syllabus.detailLevel === 'simplified'
     htmlContent += `<h2>12-Week Course Syllabus Roadmap</h2>`
     
+    htmlContent += `
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">Week / Session</th>
+            <th style="width: 32%;">Topic & Grammar Sub-Rule</th>
+            <th style="width: 20%;">Target Vocabulary</th>
+            <th style="width: 26%;">Classroom Activity</th>
+          </tr>
+        </thead>
+        <tbody>
+    `
     weeksList.forEach((w: any) => {
-      htmlContent += `
-        <div class="week-card">
-          <div class="week-header">${w.title || `Week ${w.weekNum}`}</div>
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 22%;">Session</th>
-                <th style="width: 28%;">Topic & Grammar Sub-Rule</th>
-                <th style="width: 18%;">Target Vocabulary</th>
-                <th style="width: 22%;">Classroom Activity</th>
-                <th style="width: 10%;">Unit Ref</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${(w.days || []).map((d: any) => `
-                <tr>
-                  <td><strong>${d.day}</strong><br/><span style="font-size: 9px; color: #1e3a8a;">${d.type || ''}</span></td>
-                  <td><strong>${d.topic}</strong><br/><span style="font-size: 10px; color: #475569;">${d.grammarFocus || d.objective}</span></td>
-                  <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 9.5px;">${(d.vocabList && d.vocabList.length > 0) ? d.vocabList.join(', ') : '—'}</span></td>
-                  <td><strong>${d.activityType || 'Activity'}</strong><br/><span style="font-size: 10px; color: #334155;">${d.activityDetail || d.objective}</span></td>
-                  <td><span style="font-size: 10px; font-weight: bold;">${d.unitRef || 'Unit Main'}</span></td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `
+      (w.days || []).forEach((d: any, idx: number) => {
+        htmlContent += `
+          <tr>
+            <td>
+              ${idx === 0 ? `<div style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">${w.title || `Week ${w.weekNum}`}</div>` : ''}
+              <strong>${d.day}</strong><br/><span style="font-size: 9px; color: #1e3a8a;">${d.type || ''}</span>
+            </td>
+            <td><strong>${d.topic}</strong><br/><span style="font-size: 10px; color: #475569;">${d.grammarFocus || d.objective}</span></td>
+            <td><span style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 9.5px;">${(d.vocabList && d.vocabList.length > 0) ? d.vocabList.join(', ') : '—'}</span></td>
+            <td><strong>${d.activityType || 'Activity'}</strong><br/><span style="font-size: 10px; color: #334155;">${d.activityDetail || d.objective}</span></td>
+          </tr>
+        `
+      })
     })
+    htmlContent += `
+        </tbody>
+      </table>
+    `
 
     // Teacher's Daily Guidebook Cards in PDF (Rendered ONLY in Fully Detailed mode to keep Simplified PDFs under 4 pages)
     if (!isSimplified) {
@@ -582,9 +598,8 @@ export function exportSyllabusToPDF(syllabus: any) {
         (w.days || []).forEach((d: any) => {
           htmlContent += `
             <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; background: #ffffff; page-break-inside: avoid;">
-              <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 8px;">
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 8px;">
                 <h3 style="color: #1e3a8a; margin: 0; font-size: 12.5px;">${d.day}: ${d.topic}</h3>
-                <span style="font-size: 10px; font-weight: bold; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${d.unitRef || 'Standard Unit'}</span>
               </div>
               
               <div style="font-size: 11px; color: #334155; margin-bottom: 6px;">
