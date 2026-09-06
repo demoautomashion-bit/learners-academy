@@ -366,39 +366,97 @@ export default function LessonGeneratorPage() {
       />
 
       {/* Main Scope Switcher Header */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-6 bg-card border border-border p-2.5 rounded-xl shadow-sm">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mt-6 bg-card border border-border p-3 rounded-xl shadow-sm">
         <div className="flex items-center gap-2 px-1">
           <Layers className="w-4 h-4 text-primary shrink-0" />
-          <span className="text-xs font-semibold text-foreground tracking-tight">Generation Scope:</span>
+          <span className="text-xs font-semibold text-foreground tracking-tight whitespace-nowrap">Generation Scope:</span>
         </div>
-        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 w-full lg:w-auto">
           <Button
             variant={syllabusScope === 'single' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setSyllabusScope('single')}
             className={cn(
-              'text-xs gap-1.5 h-9 px-3 font-medium transition-all rounded-lg text-center',
+              'text-xs gap-1.5 h-9 px-2.5 font-medium transition-all rounded-lg text-center',
               syllabusScope === 'single'
                 ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-foreground bg-muted/30'
             )}
           >
             <Clock className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">Single Session Plan</span>
+            <span className="truncate">Single Session</span>
           </Button>
+
           <Button
-            variant={syllabusScope === 'term' ? 'default' : 'ghost'}
+            variant={syllabusScope === 'term' && termWeeks === 1 ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setSyllabusScope('term')}
+            onClick={() => {
+              setSyllabusScope('term')
+              setTermWeeks(1)
+            }}
             className={cn(
-              'text-xs gap-1.5 h-9 px-3 font-medium transition-all rounded-lg text-center',
-              syllabusScope === 'term'
+              'text-xs gap-1.5 h-9 px-2.5 font-medium transition-all rounded-lg text-center',
+              syllabusScope === 'term' && termWeeks === 1
                 ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-foreground bg-muted/30'
             )}
           >
             <Calendar className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{termWeeks}-Week Term Roadmap</span>
+            <span className="truncate">1 Wk (1w)</span>
+          </Button>
+
+          <Button
+            variant={syllabusScope === 'term' && termWeeks === 4 ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => {
+              setSyllabusScope('term')
+              setTermWeeks(4)
+            }}
+            className={cn(
+              'text-xs gap-1.5 h-9 px-2.5 font-medium transition-all rounded-lg text-center',
+              syllabusScope === 'term' && termWeeks === 4
+                ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground bg-muted/30'
+            )}
+          >
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">1 Mo (4w)</span>
+          </Button>
+
+          <Button
+            variant={syllabusScope === 'term' && termWeeks === 8 ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => {
+              setSyllabusScope('term')
+              setTermWeeks(8)
+            }}
+            className={cn(
+              'text-xs gap-1.5 h-9 px-2.5 font-medium transition-all rounded-lg text-center',
+              syllabusScope === 'term' && termWeeks === 8
+                ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground bg-muted/30'
+            )}
+          >
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">2 Mos (8w)</span>
+          </Button>
+
+          <Button
+            variant={syllabusScope === 'term' && termWeeks === 12 ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => {
+              setSyllabusScope('term')
+              setTermWeeks(12)
+            }}
+            className={cn(
+              'text-xs gap-1.5 h-9 px-2.5 font-medium transition-all rounded-lg text-center col-span-2 sm:col-span-1',
+              syllabusScope === 'term' && termWeeks === 12
+                ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground bg-muted/30'
+            )}
+          >
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">3 Mos (12w)</span>
           </Button>
         </div>
       </div>
