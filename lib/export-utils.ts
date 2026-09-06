@@ -172,6 +172,10 @@ export function exportSyllabusToWord(syllabus: any) {
       htmlContent += `<p style="font-size: 9.5pt; color: #334155; margin-bottom: 10px;"><strong>Grammar Rule / Focus:</strong> ${syllabus.grammarFocus}</p>`
     }
 
+    if (syllabus.grammarExplanation) {
+      htmlContent += `<div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 8px 12px; margin-bottom: 12px; font-size: 9pt; color: #14532d;"><strong>📘 In-Depth Concept Explanation:</strong> ${syllabus.grammarExplanation}</div>`
+    }
+
     if (syllabus.grammarScopeLimit) {
       htmlContent += `<p style="font-size: 8.5pt; color: #b45309; background: #fef3c7; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px;"><strong>Grammar Scope Limit:</strong> ${syllabus.grammarScopeLimit}</p>`
     }
@@ -187,6 +191,17 @@ export function exportSyllabusToWord(syllabus: any) {
           <div style="margin-top: 6px;"><strong>Positive (+):</strong> ${syllabus.grammarForms.positive}</div>
           <div style="margin-top: 4px;"><strong>Negative (-):</strong> ${syllabus.grammarForms.negative}</div>
           <div style="margin-top: 4px;"><strong>Interrogative (?):</strong> ${syllabus.grammarForms.interrogative} <em>(${syllabus.grammarForms.shortAnswers})</em></div>
+        </div>
+      `
+    }
+
+    if (syllabus.sentenceModels && syllabus.sentenceModels.length > 0) {
+      htmlContent += `
+        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 9pt;">
+          <strong style="color: #065f46; font-size: 9.5pt;">💬 Model Sentence Formation Examples:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px; color: #064e3b; font-family: monospace;">
+            ${syllabus.sentenceModels.map((sm: string) => `<li>${sm}</li>`).join('')}
+          </ul>
         </div>
       `
     }

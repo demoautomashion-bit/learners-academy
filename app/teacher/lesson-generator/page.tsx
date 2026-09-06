@@ -211,7 +211,7 @@ export default function LessonGeneratorPage() {
   }
 
   // Dynamic Generation Engine based on teacher inputs
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     let activeGrammar = [...grammarTags]
     if (grammarInput.trim() && !activeGrammar.includes(grammarInput.trim())) {
       activeGrammar.push(grammarInput.trim())
@@ -243,13 +243,37 @@ export default function LessonGeneratorPage() {
     const cleanTopic = customTopic.trim()
 
     setTimeout(() => setGenerationStep(2), 700)
-    setTimeout(() => setGenerationStep(3), 1500)
-    setTimeout(() => {
-      setIsGenerating(false)
-      setGenerationStep(0)
+    setTimeout(() => setGenerationStep(3), 1400)
+
+    try {
+      const res = await fetch('/api/lessons/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scope: syllabusScope,
+          termWeeks,
+          sessionsPerWeek,
+          cefr: selectedCefr,
+          topic: cleanTopic,
+          grammarTags: activeGrammar,
+          vocabTags: activeVocab,
+          idiomTags: activeIdioms,
+          weeklyArchetypes,
+          selectedDays,
+          detailLevel
+        })
+      })
+
+      const responseData = await res.json()
+      if (responseData.success && responseData.data) {
+        setGeneratedResult(responseData.data)
+      } else {
+        throw new Error(responseData.error || 'Generation failed')
+      }
+    } catch (err) {
+      console.warn('API generation error, using fallback:', err)
 
       if (syllabusScope === 'term') {
-        // Granular Multi-Week Course Roadmap Generation Engine
         const totalSessions = termWeeks * sessionsPerWeek
         const roadmapWeeks = generateGranularTermRoadmap({
           termWeeks,
@@ -281,7 +305,6 @@ export default function LessonGeneratorPage() {
           ]
         })
       } else {
-        // Single Lesson Data Structure using Dynamic Grammar Details
         const primaryG = activeGrammar[0] || 'Grammatical Structures'
         const gInfo = getGrammarDetailsForStructure(primaryG, selectedCefr)
 
@@ -303,15 +326,21 @@ export default function LessonGeneratorPage() {
           duration: `${duration} Minutes`,
           theme: cleanTopic || undefined,
           grammarFocus: gInfo.rule,
+          grammarExplanation: `In ${selectedCefr} level communication, ${primaryG} is used to articulate concepts clearly and accurately. ${gInfo.scope}`,
           boardLayout: gInfo.board,
           grammarScopeLimit: gInfo.scope,
           grammarForms: gInfo.forms,
+          sentenceModels: [
+            `Positive (+): ${gInfo.forms.positive}`,
+            `Negative (-): ${gInfo.forms.negative}`,
+            `Interrogative (?): ${gInfo.forms.interrogative}`
+          ],
           grammarSubSections: gInfo.subSections,
           edgeCases: gInfo.edgeCases,
           signalWords: gInfo.signalWords,
           objectives,
-          vocabulary: activeVocab.map(v => ({ word: v, def: `Target key vocabulary term aligned to ${selectedCefr} level.` })),
-          idioms: activeIdioms.map(idm => ({ expression: idm, usage: 'Common English idiom used for natural speaking fluency.' })),
+          vocabulary: activeVocab.map(v => ({ word: v, partOfSpeech: 'key term', def: `Target key vocabulary term aligned to ${selectedCefr} level.`, example: `We need to review ${v} in this context.` })),
+          idioms: activeIdioms.map(idm => ({ expression: idm, meaning: 'Common English idiom for natural speaking fluency.', usage: 'Use in spontaneous speaking.' })),
           ccqs: detailLevel === 'simplified' ? [] : gInfo.ccqs,
           quiz: [
             {
@@ -326,7 +355,10 @@ export default function LessonGeneratorPage() {
             : `Write a 120-word paragraph utilizing target structure (${primaryG}).`
         })
       }
-    }, 2400)
+    } finally {
+      setIsGenerating(false)
+      setGenerationStep(0)
+    }
   }
 
   const handleCopy = () => {
@@ -933,8 +965,17 @@ export default function LessonGeneratorPage() {
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Generate {syllabusScope === 'term' ? 'Full 3-Month Term Roadmap' : 'Single Plan'}</span>
-                      <span className="inline sm:hidden">Generate {syllabusScope === 'term' ? '3-Month Roadmap' : 'Single Plan'}</span>
+                      <span className="hidden sm:inline">
+                        Generate {syllabusScope === 'term'
+                          ? termWeeks === 1 ? '1-Week Intensive Roadmap'
+                            : termWeeks === 4 ? '1-Month Module Roadmap'
+                            : termWeeks === 8 ? '2-Month Syllabus Roadmap'
+                            : '3-Month Full Term Roadmap'
+                          : 'Single Session Plan'}
+                      </span>
+                      <span className="inline sm:hidden">
+                        Generate {syllabusScope === 'term' ? `${termWeeks}-Week Roadmap` : 'Single Plan'}
+                      </span>
                     </>
                   )}
                 </Button>
@@ -1458,6 +1499,18 @@ export default function LessonGeneratorPage() {
                       </TabsContent>
 
                       <TabsContent value="mechanics" className="space-y-4">
+                        {/* In-Depth Grammar Concept & Usage Explanation */}
+                        {generatedResult.grammarExplanation && (
+                          <div className="bg-primary/5 border border-primary/20 p-3.5 rounded-xl space-y-1.5">
+                            <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                              📘 In-Depth Grammar Concept & Usage Explanation:
+                            </span>
+                            <p className="text-xs text-foreground leading-relaxed">
+                              {generatedResult.grammarExplanation}
+                            </p>
+                          </div>
+                        )}
+
                         {/* Scope limit & Whiteboard formula */}
                         {generatedResult.grammarScopeLimit && (
                           <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-lg text-xs space-y-1">
@@ -1493,6 +1546,22 @@ export default function LessonGeneratorPage() {
                                 <p className="text-foreground leading-relaxed">{generatedResult.grammarForms.interrogative}</p>
                                 <span className="text-[11px] text-muted-foreground block font-sans pt-1 border-t border-border/40 mt-1"><strong>Short Answers:</strong> {generatedResult.grammarForms.shortAnswers}</span>
                               </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Model Example Sentences */}
+                        {generatedResult.sentenceModels && generatedResult.sentenceModels.length > 0 && (
+                          <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-xl space-y-2">
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                              💬 Model Sentence Formation Examples:
+                            </span>
+                            <div className="space-y-1.5 font-mono text-xs">
+                              {generatedResult.sentenceModels.map((sm: string, smi: number) => (
+                                <div key={smi} className="bg-background/90 p-2 rounded-md border border-emerald-500/20 text-foreground">
+                                  {sm}
+                                </div>
+                              ))}
                             </div>
                           </div>
                         )}
