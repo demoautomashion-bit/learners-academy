@@ -75,7 +75,8 @@ export function exportSyllabusToWord(syllabus: any) {
   if (syllabus.isTerm || syllabus.weeks || syllabus.scope === 'term') {
     const weeksList = syllabus.weeks || []
     const isSimplified = syllabus.detailLevel === 'simplified'
-    htmlContent += `<h2>12-Week Course Syllabus Roadmap</h2>`
+    const weekCount = weeksList.length || 12
+    htmlContent += `<h2>${weekCount}-Week Course Syllabus Roadmap</h2>`
     
     htmlContent += `
       <table>
@@ -125,100 +126,130 @@ export function exportSyllabusToWord(syllabus: any) {
               <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}</p>
               ${d.grammarScopeLimit ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 4px;"><strong>Grammar Scope Limit:</strong> ${d.grammarScopeLimit}</p>` : ''}
               ${d.boardLayout ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #1e3a8a; background: #e0e7ff; padding: 4px 8px; border-radius: 4px; font-family: monospace;"><strong>Whiteboard Formula:</strong> ${d.boardLayout}</p>` : ''}
-              ${d.vocabList && d.vocabList.length > 0 ? `<p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${d.vocabList.join(', ')}</p>` : ''}
               
-              ${d.discussionTopics && d.discussionTopics.length > 0 ? `
-                <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-                  <strong>🗣️ CEFR Discussion & Debate Topics:</strong>
-                  ${d.discussionTopics.map((dt: any) => `<div style="margin-top: 3px;"><strong>Topic:</strong> ${dt.topic} — <em>"${dt.prompt}"</em></div>`).join('')}
-                  ${d.functionalPhrases ? `<div style="margin-top: 4px;"><strong>Functional Speaking Phrases to Practice:</strong> ${d.functionalPhrases.join(' | ')}</div>` : ''}
+              ${d.grammarForms ? `
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong style="color: #1e3a8a;">📐 Sentence Structure Matrix (+ / - / ?):</strong>
+                  <div style="margin-top: 4px;"><strong>Positive (+):</strong> ${d.grammarForms.positive}</div>
+                  <div style="margin-top: 2px;"><strong>Negative (-):</strong> ${d.grammarForms.negative}</div>
+                  <div style="margin-top: 2px;"><strong>Interrogative (?):</strong> ${d.grammarForms.interrogative} <em>(${d.grammarForms.shortAnswers})</em></div>
                 </div>
               ` : ''}
 
-              ${d.activityGame ? `
-                <div style="background: #fdf4ff; border-left: 3px solid #c026d3; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-                  <strong>🎮 Classroom Fluency Game: ${d.activityGame.gameName}</strong>
-                  <div><strong>Materials Needed:</strong> ${d.activityGame.materials.join(', ')}</div>
-                  <div><strong>Rules:</strong> ${d.activityGame.rules.join(' ')}</div>
-                  <div><strong>Scoring System:</strong> ${d.activityGame.scoring}</div>
-                </div>
-              ` : ''}
-
-              ${d.readingPassage ? `
-                <div style="background: #fffbeb; border-left: 3px solid #d97706; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-                  <strong>📖 Book Reading: ${d.readingPassage.passageTitle}</strong>
-                  <div><strong>Reading Strategy Focus:</strong> ${d.readingPassage.readingStrategy}</div>
-                  <div><strong>Comprehension Questions:</strong>
-                    <ul style="margin: 2px 0 0 0; padding-left: 15px;">
-                      ${d.readingPassage.comprehensionQuestions.map((cq: string) => `<li>${cq}</li>`).join('')}
-                    </ul>
-                  </div>
-                </div>
-              ` : ''}
-
-              ${d.ccqs && d.ccqs.length > 0 ? `
-                <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-                  <strong>Concept Check Questions (CCQs):</strong>
-                  <ul style="margin: 3px 0 0 0; padding-left: 15px;">
-                    ${d.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
+              ${d.grammarSubSections && d.grammarSubSections.length > 0 ? `
+                <div style="background: #f8fafc; border-left: 3px solid #1e3a8a; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong>🎯 Functional Grammar Sub-Sections to Cover:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                    ${d.grammarSubSections.map((sec: string) => `<li>${sec}</li>`).join('')}
                   </ul>
                 </div>
               ` : ''}
 
-              ${d.phases && d.phases.length > 0 ? `
-                <table style="width: 100%; font-size: 8.5pt; border-collapse: collapse; margin-top: 6px;">
-                  <thead>
-                    <tr style="background: #f1f5f9;">
-                      <th style="width: 25%; padding: 4px;">Phase</th>
-                      <th style="width: 15%; padding: 4px;">Time</th>
-                      <th style="width: 60%; padding: 4px;">Activity & Instructions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${d.phases.map((p: any) => `
-                      <tr>
-                        <td style="padding: 4px;"><strong>${p.phase}</strong></td>
-                        <td style="padding: 4px;">${p.time}</td>
-                        <td style="padding: 4px;"><strong>${p.activity}:</strong> ${p.instructions}</td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
+              ${d.edgeCases && d.edgeCases.length > 0 ? `
+                <div style="background: #fef3c7; border-left: 3px solid #d97706; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt; color: #92400e;">
+                  <strong>⚠️ Edge Cases & Common Student Pitfalls:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                    ${d.edgeCases.map((ec: string) => `<li>${ec}</li>`).join('')}
+                  </ul>
+                </div>
               ` : ''}
+
+              ${d.signalWords && d.signalWords.length > 0 ? `
+                <p style="margin: 0 0 8px 0; font-size: 8.5pt;"><strong>Key Signal Words & Placement:</strong> ${d.signalWords.join(', ')}</p>
+              ` : ''}
+
+              ${d.vocabList && d.vocabList.length > 0 ? `<p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${d.vocabList.join(', ')}</p>` : ''}
             </div>
           `
         })
       })
     }
   } else {
-    // Single Session Timeline View
-    if (syllabus.timeline && syllabus.timeline.length > 0) {
+    // Single Session Grammar Mechanics & Structure Matrix
+    htmlContent += `<h2>Grammar Mechanics & Sentence Matrix</h2>`
+
+    if (syllabus.grammarFocus) {
+      htmlContent += `<p style="font-size: 9.5pt; color: #334155; margin-bottom: 10px;"><strong>Grammar Rule / Focus:</strong> ${syllabus.grammarFocus}</p>`
+    }
+
+    if (syllabus.grammarScopeLimit) {
+      htmlContent += `<p style="font-size: 8.5pt; color: #b45309; background: #fef3c7; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px;"><strong>Grammar Scope Limit:</strong> ${syllabus.grammarScopeLimit}</p>`
+    }
+
+    if (syllabus.boardLayout) {
+      htmlContent += `<p style="font-size: 8.5pt; color: #1e3a8a; background: #e0e7ff; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; font-family: monospace;"><strong>Whiteboard Formula:</strong> ${syllabus.boardLayout}</p>`
+    }
+
+    if (syllabus.grammarForms) {
       htmlContent += `
-        <h2>Lesson Plan Timeline</h2>
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 25%;">Phase</th>
-              <th style="width: 15%;">Time</th>
-              <th style="width: 30%;">Activity</th>
-              <th style="width: 30%;">Teacher Instructions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${syllabus.timeline.map((step: any) => `
-              <tr>
-                <td><strong>${step.phase}</strong></td>
-                <td>${step.time}</td>
-                <td>${step.activity}</td>
-                <td>${step.instructions}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 9pt;">
+          <strong style="color: #1e3a8a; font-size: 9.5pt;">📐 Sentence Structure Matrix (+ / - / ?):</strong>
+          <div style="margin-top: 6px;"><strong>Positive (+):</strong> ${syllabus.grammarForms.positive}</div>
+          <div style="margin-top: 4px;"><strong>Negative (-):</strong> ${syllabus.grammarForms.negative}</div>
+          <div style="margin-top: 4px;"><strong>Interrogative (?):</strong> ${syllabus.grammarForms.interrogative} <em>(${syllabus.grammarForms.shortAnswers})</em></div>
+        </div>
       `
     }
 
-    // Homework Section
+    if (syllabus.grammarSubSections && syllabus.grammarSubSections.length > 0) {
+      htmlContent += `
+        <div style="background: #f8fafc; border-left: 3px solid #1e3a8a; padding: 8px 12px; margin-bottom: 14px; font-size: 9pt;">
+          <strong>🎯 Functional Grammar Sub-Sections to Cover:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+            ${syllabus.grammarSubSections.map((sec: string) => `<li>${sec}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
+    if (syllabus.edgeCases && syllabus.edgeCases.length > 0) {
+      htmlContent += `
+        <div style="background: #fef3c7; border-left: 3px solid #d97706; padding: 8px 12px; margin-bottom: 14px; font-size: 9pt; color: #92400e;">
+          <strong>⚠️ Edge Cases & Common Student Pitfalls:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+            ${syllabus.edgeCases.map((ec: string) => `<li>${ec}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
+    if (syllabus.signalWords && syllabus.signalWords.length > 0) {
+      htmlContent += `
+        <p style="font-size: 9pt; margin-bottom: 14px;">
+          <strong>Key Signal Words & Placement Rules:</strong> ${syllabus.signalWords.join(', ')}
+        </p>
+      `
+    }
+
+    if (syllabus.vocabulary && syllabus.vocabulary.length > 0) {
+      htmlContent += `
+        <h2>Target Vocabulary</h2>
+        <ul>
+          ${syllabus.vocabulary.map((v: any) => `<li><strong>${v.word}:</strong> ${v.def}</li>`).join('')}
+        </ul>
+      `
+    }
+
+    if (syllabus.idioms && syllabus.idioms.length > 0) {
+      htmlContent += `
+        <h2>Target Idioms & Expressions</h2>
+        <ul>
+          ${syllabus.idioms.map((idm: any) => `<li><strong>"${idm.expression}":</strong> ${idm.usage}</li>`).join('')}
+        </ul>
+      `
+    }
+
+    if (syllabus.ccqs && syllabus.ccqs.length > 0) {
+      htmlContent += `
+        <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 8px 12px; margin-bottom: 14px; font-size: 9pt;">
+          <strong style="color: #1e3a8a;">Concept Check Questions (CCQs):</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px; color: #1e293b;">
+            ${syllabus.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
     if (syllabus.homework) {
       htmlContent += `
         <h2>Homework & Independent Application</h2>
@@ -552,7 +583,8 @@ export function exportSyllabusToPDF(syllabus: any) {
   if (syllabus.isTerm || syllabus.weeks || syllabus.scope === 'term') {
     const weeksList = syllabus.weeks || []
     const isSimplified = syllabus.detailLevel === 'simplified'
-    htmlContent += `<h2>12-Week Course Syllabus Roadmap</h2>`
+    const weekCount = weeksList.length || 12
+    htmlContent += `<h2>${weekCount}-Week Course Syllabus Roadmap</h2>`
     
     htmlContent += `
       <table>
@@ -618,6 +650,39 @@ export function exportSyllabusToPDF(syllabus: any) {
                 </div>
               ` : ''}
 
+              ${d.grammarForms ? `
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 10px;">
+                  <strong style="color: #1e3a8a;">📐 Sentence Structure Matrix (+ / - / ?):</strong>
+                  <div style="margin-top: 4px;"><strong>Positive (+):</strong> ${d.grammarForms.positive}</div>
+                  <div style="margin-top: 2px;"><strong>Negative (-):</strong> ${d.grammarForms.negative}</div>
+                  <div style="margin-top: 2px;"><strong>Interrogative (?):</strong> ${d.grammarForms.interrogative} <em>(${d.grammarForms.shortAnswers})</em></div>
+                </div>
+              ` : ''}
+
+              ${d.grammarSubSections && d.grammarSubSections.length > 0 ? `
+                <div style="background: #f8fafc; border-left: 3px solid #1e3a8a; padding: 6px 10px; margin-bottom: 8px; font-size: 10px;">
+                  <strong style="color: #0f172a;">🎯 Functional Grammar Sub-Sections to Cover:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 14px; color: #334155;">
+                    ${d.grammarSubSections.map((sec: string) => `<li>${sec}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+
+              ${d.edgeCases && d.edgeCases.length > 0 ? `
+                <div style="background: #fef3c7; border-left: 3px solid #d97706; padding: 6px 10px; margin-bottom: 8px; font-size: 10px; color: #92400e;">
+                  <strong>⚠️ Edge Cases & Common Student Pitfalls:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 14px;">
+                    ${d.edgeCases.map((ec: string) => `<li>${ec}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+
+              ${d.signalWords && d.signalWords.length > 0 ? `
+                <div style="font-size: 10px; color: #334155; margin-bottom: 8px;">
+                  <strong>Key Signal Words & Placement:</strong> ${d.signalWords.join(', ')}
+                </div>
+              ` : ''}
+
               ${d.vocabList && d.vocabList.length > 0 ? `
                 <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
                   <strong>Target Vocabulary:</strong> <span style="color: #1e3a8a; font-weight: 600;">${d.vocabList.join(', ')}</span>
@@ -661,27 +726,6 @@ export function exportSyllabusToPDF(syllabus: any) {
                   </ul>
                 </div>
               ` : ''}
-
-              ${d.phases && d.phases.length > 0 ? `
-                <table style="width: 100%; font-size: 9.5px; border-collapse: collapse; margin-top: 6px; table-layout: fixed;">
-                  <thead>
-                    <tr style="background: #f8fafc;">
-                      <th style="width: 25%; padding: 4px 6px; border: 1px solid #e2e8f0;">Phase</th>
-                      <th style="width: 15%; padding: 4px 6px; border: 1px solid #e2e8f0;">Time</th>
-                      <th style="width: 60%; padding: 4px 6px; border: 1px solid #e2e8f0;">Activity & Instructions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${d.phases.map((p: any) => `
-                      <tr>
-                        <td style="padding: 4px 6px; border: 1px solid #e2e8f0;"><strong>${p.phase}</strong></td>
-                        <td style="padding: 4px 6px; border: 1px solid #e2e8f0;">${p.time}</td>
-                        <td style="padding: 4px 6px; border: 1px solid #e2e8f0;"><strong>${p.activity}:</strong> ${p.instructions}</td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
-              ` : ''}
             </div>
           `
         })
@@ -690,30 +734,97 @@ export function exportSyllabusToPDF(syllabus: any) {
       htmlContent += `</div>`
     }
   } else {
-    // Single Session Timeline
-    if (syllabus.timeline && syllabus.timeline.length > 0) {
+    // Single Session Grammar Mechanics & Structure Matrix
+    htmlContent += `<h2>Grammar Mechanics & Sentence Matrix</h2>`
+
+    if (syllabus.grammarFocus) {
+      htmlContent += `<div style="font-size: 11px; color: #334155; margin-bottom: 10px;"><strong>Grammar Rule / Focus:</strong> ${syllabus.grammarFocus}</div>`
+    }
+
+    if (syllabus.grammarScopeLimit) {
+      htmlContent += `<div style="font-size: 10px; color: #92400e; background: #fef3c7; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px;"><strong>Grammar Scope Limit:</strong> ${syllabus.grammarScopeLimit}</div>`
+    }
+
+    if (syllabus.boardLayout) {
+      htmlContent += `<div style="font-size: 10px; color: #1e3a8a; background: #e0e7ff; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; font-family: monospace;"><strong>Whiteboard Formula:</strong> ${syllabus.boardLayout}</div>`
+    }
+
+    if (syllabus.grammarForms) {
       htmlContent += `
-        <h2>Lesson Plan Timeline</h2>
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 25%;">Phase</th>
-              <th style="width: 15%;">Time</th>
-              <th style="width: 30%;">Activity</th>
-              <th style="width: 30%;">Instructions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${syllabus.timeline.map((step: any) => `
-              <tr>
-                <td><strong>${step.phase}</strong></td>
-                <td>${step.time}</td>
-                <td>${step.activity}</td>
-                <td>${step.instructions}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 10.5px;">
+          <strong style="color: #1e3a8a;">📐 Sentence Structure Matrix (+ / - / ?):</strong>
+          <div style="margin-top: 6px;"><strong>Positive (+):</strong> ${syllabus.grammarForms.positive}</div>
+          <div style="margin-top: 4px;"><strong>Negative (-):</strong> ${syllabus.grammarForms.negative}</div>
+          <div style="margin-top: 4px;"><strong>Interrogative (?):</strong> ${syllabus.grammarForms.interrogative} <em>(${syllabus.grammarForms.shortAnswers})</em></div>
+        </div>
+      `
+    }
+
+    if (syllabus.grammarSubSections && syllabus.grammarSubSections.length > 0) {
+      htmlContent += `
+        <div style="background: #f8fafc; border-left: 3px solid #1e3a8a; padding: 8px 12px; margin-bottom: 14px; font-size: 10.5px;">
+          <strong style="color: #0f172a;">🎯 Functional Grammar Sub-Sections to Cover:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px; color: #334155;">
+            ${syllabus.grammarSubSections.map((sec: string) => `<li>${sec}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
+    if (syllabus.edgeCases && syllabus.edgeCases.length > 0) {
+      htmlContent += `
+        <div style="background: #fef3c7; border-left: 3px solid #d97706; padding: 8px 12px; margin-bottom: 14px; font-size: 10.5px; color: #92400e;">
+          <strong>⚠️ Edge Cases & Common Student Pitfalls:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+            ${syllabus.edgeCases.map((ec: string) => `<li>${ec}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
+    if (syllabus.signalWords && syllabus.signalWords.length > 0) {
+      htmlContent += `
+        <div style="font-size: 10.5px; color: #334155; margin-bottom: 14px;">
+          <strong>Key Signal Words & Placement Rules:</strong> ${syllabus.signalWords.join(', ')}
+        </div>
+      `
+    }
+
+    if (syllabus.vocabulary && syllabus.vocabulary.length > 0) {
+      htmlContent += `
+        <h2>Target Vocabulary</h2>
+        <ul>
+          ${syllabus.vocabulary.map((v: any) => `<li><strong>${v.word}:</strong> ${v.def}</li>`).join('')}
+        </ul>
+      `
+    }
+
+    if (syllabus.idioms && syllabus.idioms.length > 0) {
+      htmlContent += `
+        <h2>Target Idioms & Expressions</h2>
+        <ul>
+          ${syllabus.idioms.map((idm: any) => `<li><strong>"${idm.expression}":</strong> ${idm.usage}</li>`).join('')}
+        </ul>
+      `
+    }
+
+    if (syllabus.ccqs && syllabus.ccqs.length > 0) {
+      htmlContent += `
+        <div style="background: #eff6ff; border-left: 3px solid #2563eb; padding: 8px 12px; margin-bottom: 14px; font-size: 10.5px;">
+          <strong style="color: #1e3a8a;">Concept Check Questions (CCQs):</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px; color: #1e293b;">
+            ${syllabus.ccqs.map((q: string) => `<li>${q}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
+    if (syllabus.homework) {
+      htmlContent += `
+        <h2>Homework & Independent Application</h2>
+        <div style="font-size: 11px; background: #f8fafc; padding: 10px; border-left: 4px solid #1e3a8a; border-radius: 4px;">
+          ${syllabus.homework}
+        </div>
       `
     }
   }

@@ -9,6 +9,13 @@
 
 export type DayArchetype = 'grammar' | 'activity' | 'discussion' | 'reading'
 
+export interface GrammarForms {
+  positive: string
+  negative: string
+  interrogative: string
+  shortAnswers: string
+}
+
 export interface DailySession {
   sessionNum: number
   weekNum: number
@@ -19,6 +26,10 @@ export interface DailySession {
   grammarFocus: string
   grammarScopeLimit?: string
   boardLayout?: string
+  grammarForms?: GrammarForms
+  grammarSubSections?: string[]
+  edgeCases?: string[]
+  signalWords?: string[]
   vocabList: string[]
   activityType: string
   activityDetail: string
@@ -42,7 +53,7 @@ export interface DailySession {
     readingStrategy: string
     comprehensionQuestions: string[]
   }
-  phases: {
+  phases?: {
     phase: string
     time: string
     activity: string
@@ -80,6 +91,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       rule: 'Use Present Perfect for indefinite past experiences without exact timestamps (ever/never/already). Use Past Simple for completed actions at specific past times (yesterday, in 2021).',
       scope: 'Focus on contrasting finished time expressions (ago, yesterday) with open time periods (this week, so far).',
       board: 'Pres. Perf: Subj + have/has + V3 (Indefinite)  VS  Past Simple: Subj + V2 (Finished Time)',
+      forms: {
+        positive: 'Subject + have/has + V3 (e.g. "She has visited London.")',
+        negative: 'Subject + haven\'t/hasn\'t + V3 (e.g. "She hasn\'t visited London.")',
+        interrogative: '(Wh-) + Have/Has + Subject + V3...? (e.g. "Has she visited London?")',
+        shortAnswers: 'Yes, she has. / No, she hasn\'t.'
+      },
+      subSections: [
+        'Section 1: Indefinite Life Experiences (using ever / never)',
+        'Section 2: Unfinished Time Periods (this week, so far) vs Finished Time (yesterday, in 2021)',
+        'Section 3: Recent Actions with Present Results (already / yet / just)'
+      ],
+      edgeCases: [
+        'Been vs. Gone: "She has been to Paris" (visited & returned) vs "She has gone to Paris" (still there).',
+        'Never use exact timestamps (ago, yesterday, last week) with Present Perfect.'
+      ],
+      signalWords: ['ever', 'never', 'already', 'yet', 'just', 'recently', 'so far', 'since', 'for'],
       ccqs: [
         'Do we know exactly when the action happened in Present Perfect? (No, time is indefinite)',
         'Is "yesterday" used with Present Perfect or Past Simple? (Past Simple)',
@@ -94,6 +121,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       rule: 'If + Past Simple, Subject + WOULD / COULD + Base Verb. Used for unreal, imaginary, or highly unlikely present/future situations.',
       scope: 'Emphasize "If I WERE you" (subjunctive were) and contrast real probability (1st) with imaginary situations (2nd).',
       board: 'IF + Past Simple (Condition), Subject + WOULD + V1 (Hypothetical Result)',
+      forms: {
+        positive: 'IF + Subject + Past Simple, Subject + WOULD + V1 (e.g. "If I won the lottery, I would buy a house.")',
+        negative: 'IF + Subject + didn\'t + V1, Subject + WOULD NOT (wouldn\'t) + V1 (e.g. "If I didn\'t work today, I wouldn\'t be tired.")',
+        interrogative: 'What + WOULD + Subject + do + IF + Subject + Past Simple...? (e.g. "What would you do if you saw a ghost?")',
+        shortAnswers: 'Yes, I would. / No, I wouldn\'t.'
+      },
+      subSections: [
+        'Section 1: Unreal Present & Future Imaginary Scenarios',
+        'Section 2: Giving Formal Advice using "If I were you, I would..."',
+        'Section 3: Modal variations in result clause (would vs could vs might)'
+      ],
+      edgeCases: [
+        'Subjunctive Were: Use "If I/he/she WERE" in formal contexts instead of "was".',
+        'Do NOT use "would" inside the IF-clause ("If I would win" is INCORRECT; use Past Simple).'
+      ],
+      signalWords: ['if', 'imagine', 'suppose', 'in that case', 'if I were you'],
       ccqs: [
         'Is this situation real or imaginary? (Imaginary / Hypothetical)',
         'Does the past simple verb refer to past time or present imaginary state? (Present/future unreal state)',
@@ -108,6 +151,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       rule: 'If + Present Simple, Subject + WILL / CAN + Base Verb. Used for real, possible future events and consequences.',
       scope: 'Teach clear condition vs result clauses and modal variations (will, can, might).',
       board: 'IF + Present Simple (Real Condition), Subject + WILL / CAN + V1 (Future Result)',
+      forms: {
+        positive: 'IF + Subject + Present Simple, Subject + WILL + V1 (e.g. "If it rains, we will stay home.")',
+        negative: 'IF + Subject + don\'t/doesn\'t + V1, Subject + WILL NOT (won\'t) + V1 (e.g. "If he doesn\'t hurry, he won\'t catch the bus.")',
+        interrogative: 'What + WILL + Subject + do + IF + Subject + Present Simple...? (e.g. "What will you do if the flight is delayed?")',
+        shortAnswers: 'Yes, I will. / No, I won\'t.'
+      },
+      subSections: [
+        'Section 1: Real Future Conditions & Consequences',
+        'Section 2: Warnings, Offers, and Promises',
+        'Section 3: Result clause modal variations (will, can, may, might)'
+      ],
+      edgeCases: [
+        'Never use "will" inside the IF-clause ("If it will rain" is INCORRECT; use Present Simple).',
+        'Unless = If... not (e.g. "Unless you study, you won\'t pass").'
+      ],
+      signalWords: ['if', 'unless', 'as long as', 'provided that', 'in case'],
       ccqs: [
         'Is this situation likely to happen? (Yes, it is a real possibility)',
         'Can we use "will" inside the IF clause? (No, use Present Simple after IF)',
@@ -122,6 +181,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       rule: 'If + Past Perfect (had + V3), Subject + WOULD HAVE + V3. Used for impossible past conditions and imaginary past outcomes.',
       scope: 'Focus on past regrets and alternative history outcomes. Drill pronunciation contractions (would\'ve).',
       board: 'IF + had + V3 (Past Condition), Subject + WOULD HAVE + V3 (Past Imaginary Result)',
+      forms: {
+        positive: 'IF + Subject + had + V3, Subject + WOULD HAVE + V3 (e.g. "If I had studied, I would have passed.")',
+        negative: 'IF + Subject + hadn\'t + V3, Subject + WOULD NOT HAVE (wouldn\'t have) + V3 (e.g. "If we hadn\'t missed the train, we wouldn\'t have been late.")',
+        interrogative: 'WOULD + Subject + have + V3 + IF + Subject + had + V3...? (e.g. "Would you have accepted the job if they had offered it?")',
+        shortAnswers: 'Yes, I would have. / No, I wouldn\'t have.'
+      },
+      subSections: [
+        'Section 1: Past Regrets & Alternative History Outcomes',
+        'Section 2: Pronunciation & Contractions ("would\'ve", "could\'ve", "hadn\'t")',
+        'Section 3: Result clause modals (would have vs could have vs might have)'
+      ],
+      edgeCases: [
+        'Both clauses refer to PAST events that CANNOT be changed.',
+        'Do not confuse HAD (past simple) with HAD + V3 (past perfect in IF clause).'
+      ],
+      signalWords: ['if', 'had', 'would have', 'could have', 'in retrospect'],
       ccqs: [
         'Did the condition actually happen in the past? (No)',
         'Can we change the past outcome now? (No, it is impossible)',
@@ -136,6 +211,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       rule: 'Subject + BE (am/is/are/was/were) + Past Participle (V3). Used when the focus is on the action/recipient rather than the agent.',
       scope: 'Practice transforming active sentences to passive and determining when "by + agent" is necessary or redundant.',
       board: 'Active: Agent + Verb + Object  ->  Passive: Object + BE + V3 (+ by Agent)',
+      forms: {
+        positive: 'Object + BE (am/is/are/was/were) + V3 (+ by Agent) (e.g. "The report was written by Sarah.")',
+        negative: 'Object + BE + NOT (isn\'t/aren\'t/wasn\'t/weren\'t) + V3 (e.g. "The documents were not signed.")',
+        interrogative: '(Wh-) + BE + Object + V3...? (e.g. "Was the letter delivered yesterday?")',
+        shortAnswers: 'Yes, it was. / No, it wasn\'t.'
+      },
+      subSections: [
+        'Section 1: Present Simple & Past Simple Passive Transformations',
+        'Section 2: When to include or omit "by + agent" (unknown, obvious, or unimportant agent)',
+        'Section 3: Formal & Academic Process Descriptions'
+      ],
+      edgeCases: [
+        'Intransitive verbs (happen, arrive, die, exist) CANNOT be made passive.',
+        'Watch out for irregular V3 forms (written, spoken, built, taken).'
+      ],
+      signalWords: ['by', 'processed', 'manufactured', 'published', 'conducted'],
       ccqs: [
         'Who is doing the action in passive voice? (The agent, but the object is the sentence focus)',
         'What two auxiliary components form every passive verb? (BE verb + Past Participle V3)',
@@ -150,6 +241,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       rule: 'When reporting what someone said in the past, shift tenses back one step (Present -> Past, Past/Present Perf -> Past Perf).',
       scope: 'Cover statement backshifting, pronoun changes, and time word shifts (today -> that day, tomorrow -> the next day).',
       board: 'Direct: "I am working"  ->  Reported: He said (that) he WAS working.',
+      forms: {
+        positive: 'Subject + said (that) / told + Object (that) + Backshifted Clause (e.g. "He said he was tired.")',
+        negative: 'Subject + said (that) + Subject + hadn\'t / didn\'t + V1 (e.g. "She said she didn\'t like coffee.")',
+        interrogative: 'Subject + asked (if / whether) + Subject + Backshifted Clause (e.g. "He asked if I was ready.")',
+        shortAnswers: 'Reported questions use statement word order without question mark.'
+      },
+      subSections: [
+        'Section 1: Tense Backshifting Rules (Present -> Past, Past/Pres Perf -> Past Perf)',
+        'Section 2: Pronoun, Possessive & Time Expression Shifts (today -> that day, tomorrow -> next day)',
+        'Section 3: Said vs Told (Told requires a direct object: "He told ME")'
+      ],
+      edgeCases: [
+        'General truths and permanent facts do not need backshifting ("He said the Earth is round").',
+        'Word order in reported questions changes back to Subject + Verb (no "do/does/did").'
+      ],
+      signalWords: ['said', 'told', 'asked', 'explained', 'mentioned', 'the previous day', 'the next day'],
       ccqs: [
         'What happens to Present Simple in reported speech? (Shifts back to Past Simple)',
         'Does the speaker\'s pronoun change when reporting? (Yes, e.g. "I" becomes "he/she")',
@@ -164,6 +271,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       rule: 'Use relative pronouns to join sentences and provide essential (defining) or extra (non-defining) information about nouns.',
       scope: 'Contrast defining clauses (no commas, essential info) vs non-defining clauses (with commas, extra info).',
       board: 'Person: WHO/THAT  |  Thing: WHICH/THAT  |  Place: WHERE  |  Possession: WHOSE',
+      forms: {
+        positive: 'Noun + [WHO / WHICH / THAT / WHERE] + Defining Clause (e.g. "The woman WHO lives next door is a doctor.")',
+        negative: 'Noun + [WHO / WHICH / THAT] + Negative Clause (e.g. "I bought a computer THAT doesn\'t work.")',
+        interrogative: 'Is that the hotel WHERE we stayed? / Do you know the man WHO called?',
+        shortAnswers: 'Defining relative clauses give essential identification.'
+      },
+      subSections: [
+        'Section 1: Relative Pronouns for Persons (Who/That), Things (Which/That), Places (Where), Possessions (Whose)',
+        'Section 2: Defining Clauses (Essential info, no commas, "that" allowed)',
+        'Section 3: Omission of relative pronoun when it is the OBJECT of the clause'
+      ],
+      edgeCases: [
+        'Do NOT use "that" in non-defining relative clauses (which are set off by commas).',
+        'Preposition placement: "The house WHICH he lives IN" vs "The house IN WHICH he lives".'
+      ],
+      signalWords: ['who', 'which', 'that', 'where', 'whose', 'whom'],
       ccqs: [
         'Which relative pronoun do we use for people? (Who / That)',
         'Do defining relative clauses use commas? (No commas needed)',
@@ -178,6 +301,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       rule: 'MUST + V1 (90%+ certain true), MIGHT / COULD + V1 (50% possible), CAN\'T + V1 (90%+ certain impossible).',
       scope: 'Teach degrees of certainty in present speculation. Distinguish between logical deduction and obligation.',
       board: 'Subject + MUST / MIGHT / CAN\'T + V1 (Base Form)',
+      forms: {
+        positive: 'Subject + MUST + Base Verb (V1) [90%+ Certain True] (e.g. "He has 3 cars; he MUST be rich.")',
+        negative: 'Subject + CAN\'T + Base Verb (V1) [90%+ Certain Impossible] (e.g. "She just ate; she CAN\'T be hungry.")',
+        interrogative: 'Subject + MIGHT / COULD + Base Verb (V1) [50% Possible] (e.g. "He might be at the office.")',
+        shortAnswers: 'Yes, he must. / No, she can\'t.'
+      },
+      subSections: [
+        'Section 1: High Certainty Deductions (MUST vs CAN\'T)',
+        'Section 2: Possibility & Speculation (MIGHT / COULD / MAY)',
+        'Section 3: Visual & Circumstantial Evidence Analysis'
+      ],
+      edgeCases: [
+        'Use CAN\'T for negative deduction, NOT mustn\'t ("He mustn\'t be home" is incorrect for deduction; use "can\'t be home").',
+        'Modals are followed directly by BASE VERB without "to".'
+      ],
+      signalWords: ['must', 'can\'t', 'might', 'could', 'probably', 'bound to', 'definitely'],
       ccqs: [
         'When do we use MUST? (When we are almost 100% sure something is true based on evidence)',
         'What modal means 90% impossible? (Can\'t)',
@@ -191,6 +330,22 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     rule: `Apply accurate structural rules for ${grammarTag} within formal and informal ${cefr}-level language contexts.`,
     scope: `Focus on sentence construction, affirmative/negative forms, and common usage errors associated with ${grammarTag}.`,
     board: `Target Formula: ${grammarTag} (Form & Transformation Rules)`,
+    forms: {
+      positive: `Subject + ${grammarTag} Structure + Object (Affirmative)`,
+      negative: `Subject + Auxiliary + NOT + ${grammarTag} Structure (Negative)`,
+      interrogative: `Auxiliary + Subject + ${grammarTag} Structure...? (Question Form)`,
+      shortAnswers: `Yes, [Subject] + Auxiliary. / No, [Subject] + Auxiliary + NOT.`
+    },
+    subSections: [
+      `Section 1: Form & Affirmative/Negative Sentence Structure of ${grammarTag}`,
+      `Section 2: Question Inversion & Conversational Short Answers`,
+      `Section 3: Contextual Application & Fluency Drills`
+    ],
+    edgeCases: [
+      `Pay attention to subject-verb agreement and auxiliary choice.`,
+      `Avoid double negatives or improper tense mixing.`
+    ],
+    signalWords: ['always', 'usually', 'sometimes', 'never', 'already', 'yet'],
     ccqs: [
       `What is the primary function of ${grammarTag}?`,
       `How do we form affirmative and negative sentences using this structure?`,
@@ -608,34 +763,6 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         }
       }
 
-      // Generate 4-Phase Timeline customized for archetype
-      const phases = [
-        {
-          phase: 'Phase 1: Warm-Up & Schema Activation',
-          time: '10 Mins',
-          activity: archetype === 'discussion' ? 'Debate Icebreaker Prompt' : archetype === 'activity' ? 'Game Rules & Team Setup' : archetype === 'reading' ? 'Title & Image Prediction' : 'Grammar Warm-Up & Board Teaser',
-          instructions: `Teacher introduces ${cleanTheme ? `"${cleanTheme}"` : 'target concept'} context. Students discuss initial prompts in pairs.`
-        },
-        {
-          phase: 'Phase 2: Core Delivery & Instruction',
-          time: '15 Mins',
-          activity: archetype === 'grammar' ? 'Whiteboard Formula Breakdown' : archetype === 'discussion' ? 'Functional Language Input' : archetype === 'reading' ? 'Guided Text Reading & Strategy' : 'Game Demo & Safety Trial',
-          instructions: archetype === 'grammar' ? `Explain ${boardLayout || grammarFocus}. Conduct Concept Check Questions (CCQs).` : `Introduce key expressions (${(functionalPhrases || vocabList).slice(0, 3).join(', ')}).`
-        },
-        {
-          phase: 'Phase 3: Guided Practice & Dynamics',
-          time: '15 Mins',
-          activity: activityType,
-          instructions: activityDetail
-        },
-        {
-          phase: 'Phase 4: Wrap-Up & Assessment',
-          time: '5 Mins',
-          activity: 'Exit Ticket & Homework Check',
-          instructions: `Review target concepts${vocabList.length > 0 ? ` (${vocabList.slice(0, 3).join(', ')})` : ''}. Assign practice exercises.`
-        }
-      ]
-
       // If simplified mode, strip heavy extra fields for lightweight presentation
       const isSimplified = detailLevel === 'simplified'
 
@@ -649,6 +776,10 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         grammarFocus,
         grammarScopeLimit: isSimplified ? undefined : grammarScopeLimit,
         boardLayout: isSimplified ? undefined : boardLayout,
+        grammarForms: isSimplified ? undefined : grammarDetails.forms,
+        grammarSubSections: isSimplified ? undefined : grammarDetails.subSections,
+        edgeCases: isSimplified ? undefined : grammarDetails.edgeCases,
+        signalWords: isSimplified ? undefined : grammarDetails.signalWords,
         vocabList,
         activityType,
         activityDetail,
@@ -658,8 +789,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         discussionTopics: isSimplified ? undefined : discussionTopics,
         functionalPhrases: isSimplified ? undefined : functionalPhrases,
         activityGame: isSimplified ? undefined : activityGame,
-        readingPassage: isSimplified ? undefined : readingPassage,
-        phases: isSimplified ? [] : phases
+        readingPassage: isSimplified ? undefined : readingPassage
       })
     }
 

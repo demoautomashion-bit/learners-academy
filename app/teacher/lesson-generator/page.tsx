@@ -305,60 +305,13 @@ export default function LessonGeneratorPage() {
           grammarFocus: gInfo.rule,
           boardLayout: gInfo.board,
           grammarScopeLimit: gInfo.scope,
+          grammarForms: gInfo.forms,
+          grammarSubSections: gInfo.subSections,
+          edgeCases: gInfo.edgeCases,
+          signalWords: gInfo.signalWords,
           objectives,
           vocabulary: activeVocab.map(v => ({ word: v, def: `Target key vocabulary term aligned to ${selectedCefr} level.` })),
           idioms: activeIdioms.map(idm => ({ expression: idm, usage: 'Common English idiom used for natural speaking fluency.' })),
-          timeline: detailLevel === 'simplified' ? [
-            {
-              phase: 'Warm-Up & Schema',
-              time: `${Math.round(duration * 0.2)} mins`,
-              activity: `Icebreaker Discussion`,
-              instructions: cleanTopic ? `Students discuss topic context "${cleanTopic}" in pairs.` : `Students discuss target grammar concepts in pairs.`
-            },
-            {
-              phase: 'Core Instruction',
-              time: `${Math.round(duration * 0.45)} mins`,
-              activity: `Form & Meaning: ${gInfo.topic}`,
-              instructions: `Explain structural rule: ${gInfo.rule}`
-            },
-            {
-              phase: 'Guided Application',
-              time: `${Math.round(duration * 0.35)} mins`,
-              activity: 'Pair Practice',
-              instructions: `Practice applying ${primaryG}${activeVocab.length > 0 ? ` and vocabulary (${activeVocab.slice(0, 3).join(', ')})` : ''}.`
-            }
-          ] : [
-            {
-              phase: 'Warm-Up & Schema Activation',
-              time: `${Math.round(duration * 0.15)} mins`,
-              activity: `Icebreaker Discussion`,
-              instructions: `Students activate prior knowledge on target concepts.`
-            },
-            {
-              phase: 'Direct Instruction',
-              time: `${Math.round(duration * 0.25)} mins`,
-              activity: `Form & Meaning: ${gInfo.topic}`,
-              instructions: `Teacher explains board formula: ${gInfo.board}.`
-            },
-            {
-              phase: 'Guided Practice',
-              time: `${Math.round(duration * 0.3)} mins`,
-              activity: 'Sentence Transformation Drills',
-              instructions: `Worksheet activity incorporating target concepts.`
-            },
-            {
-              phase: 'Production & Application',
-              time: `${Math.round(duration * 0.2)} mins`,
-              activity: 'Pair Work Practice',
-              instructions: cleanTopic ? `Students engage in a real-world scenario focused on "${cleanTopic}".` : `Students engage in target sentence production.`
-            },
-            {
-              phase: 'Wrap-up & Exit Check',
-              time: `${Math.round(duration * 0.1)} mins`,
-              activity: 'Comprehension Exit Ticket',
-              instructions: gInfo.ccqs[0] || 'Quick evaluation of immediate comprehension.'
-            }
-          ],
           ccqs: detailLevel === 'simplified' ? [] : gInfo.ccqs,
           quiz: [
             {
@@ -399,7 +352,7 @@ export default function LessonGeneratorPage() {
       {/* Page Header */}
       <PageHeader
         title="AI Lesson & Term Syllabus Generator"
-        description="Synthesize single-session lesson plans or full 3-month (12-week) day-by-day term syllabi tailored to CEFR standards."
+        description="Synthesize single-session lesson plans or full term syllabi (1 to 12 weeks) tailored to CEFR standards."
         badgeText="Academic Tool"
         icon={Wand2}
         action={
@@ -445,7 +398,7 @@ export default function LessonGeneratorPage() {
             )}
           >
             <Calendar className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">3-Month Term Roadmap</span>
+            <span className="truncate">{termWeeks}-Week Term Roadmap</span>
           </Button>
         </div>
       </div>
@@ -663,8 +616,8 @@ export default function LessonGeneratorPage() {
                     <div className="space-y-4 pt-2 border-t border-border">
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold">Term Duration</Label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[4, 8, 12].map((w) => (
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[1, 4, 8, 12].map((w) => (
                             <button
                               key={w}
                               type="button"
@@ -676,7 +629,7 @@ export default function LessonGeneratorPage() {
                                   : 'bg-muted/40 border-border text-muted-foreground'
                               )}
                             >
-                              {w === 12 ? '3 Months (12w)' : `${w} Weeks`}
+                              {w === 1 ? '1 Wk (1w)' : w === 4 ? '1 Mo (4w)' : w === 8 ? '2 Mos (8w)' : '3 Mos (12w)'}
                             </button>
                           ))}
                         </div>
@@ -1210,6 +1163,78 @@ export default function LessonGeneratorPage() {
                                     </div>
                                   )}
 
+                                  {/* 3-Part Sentence Structure Matrix (+ / - / ?) */}
+                                  {d.grammarForms && (
+                                    <div className="bg-blue-500/10 border border-blue-500/30 p-3 rounded-lg space-y-2">
+                                      <span className="text-xs font-bold text-blue-700 dark:text-blue-400 flex items-center gap-1.5 font-sans">
+                                        📐 Sentence Structure Matrix (+ / - / ?):
+                                      </span>
+                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono text-[11px]">
+                                        <div className="bg-background/90 p-2 rounded border border-blue-500/20 space-y-0.5">
+                                          <span className="font-bold text-blue-600 dark:text-blue-400 block font-sans text-[10px] uppercase">Positive (+)</span>
+                                          <p className="text-foreground leading-normal">{d.grammarForms.positive}</p>
+                                        </div>
+                                        <div className="bg-background/90 p-2 rounded border border-blue-500/20 space-y-0.5">
+                                          <span className="font-bold text-red-600 dark:text-red-400 block font-sans text-[10px] uppercase">Negative (-)</span>
+                                          <p className="text-foreground leading-normal">{d.grammarForms.negative}</p>
+                                        </div>
+                                        <div className="bg-background/90 p-2 rounded border border-blue-500/20 space-y-0.5">
+                                          <span className="font-bold text-emerald-600 dark:text-emerald-400 block font-sans text-[10px] uppercase">Interrogative (?)</span>
+                                          <p className="text-foreground leading-normal">{d.grammarForms.interrogative}</p>
+                                          <span className="text-[10px] text-muted-foreground block font-sans mt-1"><strong>Short Answers:</strong> {d.grammarForms.shortAnswers}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Grammar Sub-Sections to Cover */}
+                                  {d.grammarSubSections && d.grammarSubSections.length > 0 && (
+                                    <div className="bg-muted/40 border border-border p-3 rounded-lg space-y-1.5">
+                                      <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                                        🎯 Grammar Functional Sub-Sections to Cover:
+                                      </span>
+                                      <ul className="space-y-1 pl-1">
+                                        {d.grammarSubSections.map((sec: string, seci: number) => (
+                                          <li key={seci} className="text-xs text-muted-foreground flex items-start gap-2">
+                                            <span className="text-primary font-bold">•</span>
+                                            <span>{sec}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+
+                                  {/* Edge Cases & Common Pitfalls */}
+                                  {d.edgeCases && d.edgeCases.length > 0 && (
+                                    <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-lg space-y-1">
+                                      <span className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                                        ⚠️ Edge Cases & Common Student Pitfalls:
+                                      </span>
+                                      <ul className="space-y-1 pl-1">
+                                        {d.edgeCases.map((ec: string, eci: number) => (
+                                          <li key={eci} className="text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2">
+                                            <span className="text-amber-600 font-bold">!</span>
+                                            <span>{ec}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+
+                                  {/* Signal Words & Placement */}
+                                  {d.signalWords && d.signalWords.length > 0 && (
+                                    <div className="space-y-1">
+                                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Key Signal Words & Placement Rules</span>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {d.signalWords.map((sw: string, swi: number) => (
+                                          <Badge key={swi} variant="outline" className="text-xs font-mono font-normal bg-muted/40">
+                                            {sw}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
                                   {/* Discussion Day Specifics: CEFR Debate Prompts & Functional Phrases */}
                                   {d.discussionTopics && d.discussionTopics.length > 0 && (
                                     <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-lg space-y-2">
@@ -1315,25 +1340,6 @@ export default function LessonGeneratorPage() {
                                       </ul>
                                     </div>
                                   )}
-
-                                  {d.phases && d.phases.length > 0 && (
-                                    <div className="space-y-2 pt-1">
-                                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">4-Phase Classroom Timeline</span>
-                                      <div className="grid grid-cols-1 gap-2">
-                                        {d.phases.map((p: any, pi: number) => (
-                                          <div key={pi} className="p-2.5 rounded-lg bg-muted/30 border border-border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                            <div className="space-y-0.5">
-                                              <div className="flex items-center gap-2">
-                                                <span className="font-bold text-foreground">{p.phase}</span>
-                                                <Badge variant="outline" className="text-[10px] font-mono">{p.time}</Badge>
-                                              </div>
-                                              <p className="text-[11px] text-muted-foreground">{p.instructions}</p>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
                               ))}
                             </div>
@@ -1346,7 +1352,7 @@ export default function LessonGeneratorPage() {
                     <Tabs defaultValue="overview" className="w-full">
                       <TabsList className="grid grid-cols-4 w-full mb-4">
                         <TabsTrigger value="overview" className="text-xs font-medium">Overview</TabsTrigger>
-                        <TabsTrigger value="timeline" className="text-xs font-medium">Timeline</TabsTrigger>
+                        <TabsTrigger value="mechanics" className="text-xs font-medium">Grammar Mechanics</TabsTrigger>
                         <TabsTrigger value="activities" className="text-xs font-medium">Activities</TabsTrigger>
                         <TabsTrigger value="assessment" className="text-xs font-medium">Assessment</TabsTrigger>
                       </TabsList>
@@ -1355,7 +1361,7 @@ export default function LessonGeneratorPage() {
                         <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
                           <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Learning Objectives</h4>
                           <ul className="space-y-1.5 pt-1">
-                            {generatedResult.objectives.map((obj: string, i: number) => (
+                            {generatedResult.objectives?.map((obj: string, i: number) => (
                               <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
                                 <span className="text-primary font-bold">•</span>
                                 <span>{obj}</span>
@@ -1363,22 +1369,143 @@ export default function LessonGeneratorPage() {
                             ))}
                           </ul>
                         </div>
+
+                        {generatedResult.vocabulary && generatedResult.vocabulary.length > 0 && (
+                          <div className="p-4 rounded-lg border border-border bg-card space-y-2">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Target Vocabulary</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {generatedResult.vocabulary.map((v: any, idx: number) => (
+                                <div key={idx} className="p-2.5 rounded-lg bg-muted/30 border border-border/60 text-xs">
+                                  <span className="font-bold text-foreground block">{v.word}</span>
+                                  <span className="text-muted-foreground text-[11px]">{v.def}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {generatedResult.idioms && generatedResult.idioms.length > 0 && (
+                          <div className="p-4 rounded-lg border border-border bg-card space-y-2">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Idioms & Collocations</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {generatedResult.idioms.map((idm: any, idx: number) => (
+                                <div key={idx} className="p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-xs">
+                                  <span className="font-bold text-primary block">"{idm.expression}"</span>
+                                  <span className="text-muted-foreground text-[11px]">{idm.usage}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </TabsContent>
 
-                      <TabsContent value="timeline" className="space-y-3">
-                        {generatedResult.timeline.map((step: any, i: number) => (
-                          <div key={i} className="p-3.5 rounded-lg border border-border bg-card space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-foreground">{step.phase}</span>
-                              <Badge variant="outline" className="text-[10px] font-mono">{step.time}</Badge>
-                            </div>
-                            <h5 className="text-xs font-medium text-primary">{step.activity}</h5>
-                            <p className="text-xs text-muted-foreground">{step.instructions}</p>
+                      <TabsContent value="mechanics" className="space-y-4">
+                        {/* Scope limit & Whiteboard formula */}
+                        {generatedResult.grammarScopeLimit && (
+                          <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-lg text-xs space-y-1">
+                            <span className="font-bold text-amber-700 dark:text-amber-400 block">⚠️ Grammar Scope Limit:</span>
+                            <p className="text-amber-800 dark:text-amber-300 leading-normal">{generatedResult.grammarScopeLimit}</p>
                           </div>
-                        ))}
+                        )}
+
+                        {generatedResult.boardLayout && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 p-3 rounded-lg text-xs space-y-1 font-mono">
+                            <span className="font-bold text-blue-700 dark:text-blue-400 block font-sans">📐 Whiteboard Formula / Board Layout:</span>
+                            <p className="text-blue-900 dark:text-blue-200">{generatedResult.boardLayout}</p>
+                          </div>
+                        )}
+
+                        {/* 3-Part Sentence Structure Matrix */}
+                        {generatedResult.grammarForms && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 p-3.5 rounded-xl space-y-2.5">
+                            <span className="text-xs font-bold text-blue-700 dark:text-blue-400 flex items-center gap-1.5 font-sans">
+                              📐 3-Part Sentence Structure Matrix (+ / - / ?):
+                            </span>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono text-xs">
+                              <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
+                                <span className="font-bold text-blue-600 dark:text-blue-400 block font-sans text-[10px] uppercase tracking-wide">Positive (+)</span>
+                                <p className="text-foreground leading-relaxed">{generatedResult.grammarForms.positive}</p>
+                              </div>
+                              <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
+                                <span className="font-bold text-red-600 dark:text-red-400 block font-sans text-[10px] uppercase tracking-wide">Negative (-)</span>
+                                <p className="text-foreground leading-relaxed">{generatedResult.grammarForms.negative}</p>
+                              </div>
+                              <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400 block font-sans text-[10px] uppercase tracking-wide">Interrogative (?)</span>
+                                <p className="text-foreground leading-relaxed">{generatedResult.grammarForms.interrogative}</p>
+                                <span className="text-[11px] text-muted-foreground block font-sans pt-1 border-t border-border/40 mt-1"><strong>Short Answers:</strong> {generatedResult.grammarForms.shortAnswers}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Grammar Sub-Sections to cover */}
+                        {generatedResult.grammarSubSections && generatedResult.grammarSubSections.length > 0 && (
+                          <div className="bg-muted/40 border border-border p-3.5 rounded-xl space-y-2">
+                            <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                              🎯 Functional Grammar Sub-Sections to Cover:
+                            </span>
+                            <ul className="space-y-1.5 pl-1">
+                              {generatedResult.grammarSubSections.map((sec: string, seci: number) => (
+                                <li key={seci} className="text-xs text-muted-foreground flex items-start gap-2">
+                                  <span className="text-primary font-bold">•</span>
+                                  <span>{sec}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Edge Cases & Common Student Pitfalls */}
+                        {generatedResult.edgeCases && generatedResult.edgeCases.length > 0 && (
+                          <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl space-y-2">
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                              ⚠️ Edge Cases & Common Student Pitfalls:
+                            </span>
+                            <ul className="space-y-1.5 pl-1">
+                              {generatedResult.edgeCases.map((ec: string, eci: number) => (
+                                <li key={eci} className="text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2">
+                                  <span className="text-amber-600 font-bold">!</span>
+                                  <span>{ec}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Key Signal Words & Placement */}
+                        {generatedResult.signalWords && generatedResult.signalWords.length > 0 && (
+                          <div className="space-y-2 p-3 border border-border rounded-xl bg-card">
+                            <span className="text-xs font-bold text-foreground block">Key Signal Words & Placement Rules</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {generatedResult.signalWords.map((sw: string, swi: number) => (
+                                <Badge key={swi} variant="outline" className="text-xs font-mono font-normal bg-muted/40">
+                                  {sw}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </TabsContent>
 
                       <TabsContent value="activities" className="space-y-4">
+                        {generatedResult.ccqs && generatedResult.ccqs.length > 0 && (
+                          <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl space-y-2">
+                            <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                              <HelpCircle className="w-4 h-4" />
+                              Concept Check Questions (CCQs) for Teacher:
+                            </span>
+                            <ul className="space-y-1.5 pt-1">
+                              {generatedResult.ccqs.map((q: string, qi: number) => (
+                                <li key={qi} className="text-xs text-foreground/90 flex items-start gap-2">
+                                  <span className="text-primary font-bold">?</span>
+                                  <span>{q}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
                         {generatedResult.activities?.map((act: any, i: number) => (
                           <div key={i} className="p-4 rounded-lg border border-border bg-card space-y-2">
                             <h4 className="text-sm font-semibold text-foreground">{act.title}</h4>
@@ -1396,9 +1523,27 @@ export default function LessonGeneratorPage() {
                           {generatedResult.quiz?.map((q: any, i: number) => (
                             <div key={i} className="p-3 rounded bg-muted/20 space-y-2 text-xs">
                               <span className="font-medium text-foreground block">Q{i + 1}: {q.question}</span>
+                              {q.options && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                                  {q.options.map((opt: string, optIdx: number) => (
+                                    <div key={optIdx} className={cn("p-1.5 rounded border text-[11px]", opt === q.answer ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 font-semibold" : "bg-background border-border text-muted-foreground")}>
+                                      {opt}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
+
+                        {generatedResult.homework && (
+                          <div className="p-4 rounded-lg border border-border bg-card space-y-2">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Homework Assignment</h4>
+                            <p className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/60">
+                              {generatedResult.homework}
+                            </p>
+                          </div>
+                        )}
                       </TabsContent>
                     </Tabs>
                   )}
