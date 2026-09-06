@@ -1247,6 +1247,26 @@ export default function LessonGeneratorPage() {
                                     </p>
                                   </div>
 
+                                  {/* In-Depth Grammar Concept & Usage Explanation */}
+                                  {d.grammarExplanation && (
+                                    <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg space-y-1">
+                                      <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                                        📘 In-Depth Grammar Concept & Usage Explanation:
+                                      </span>
+                                      <p className="text-xs text-foreground leading-relaxed">{d.grammarExplanation}</p>
+                                    </div>
+                                  )}
+
+                                  {/* Sentence Syntax Blueprint / Word Order Formula */}
+                                  {d.syntaxFormula && (
+                                    <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-lg space-y-1">
+                                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 block font-sans">
+                                        🔤 Sentence Syntax Blueprint (Word Order Formula):
+                                      </span>
+                                      <p className="text-xs font-mono font-semibold text-emerald-900 dark:text-emerald-200">{d.syntaxFormula}</p>
+                                    </div>
+                                  )}
+
                                   {/* Grammar Day Specifics: Scope Limit & Board Formula */}
                                   {d.grammarScopeLimit && (
                                     <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-lg text-xs space-y-1">
@@ -1282,6 +1302,22 @@ export default function LessonGeneratorPage() {
                                           <p className="text-foreground leading-normal">{d.grammarForms.interrogative}</p>
                                           <span className="text-[10px] text-muted-foreground block font-sans mt-1"><strong>Short Answers:</strong> {d.grammarForms.shortAnswers}</span>
                                         </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Model Sentence Formation Examples */}
+                                  {d.sentenceModels && d.sentenceModels.length > 0 && (
+                                    <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-lg space-y-1.5">
+                                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 font-sans">
+                                        💬 Model Sentence Formation Examples:
+                                      </span>
+                                      <div className="space-y-1 font-mono text-[11px]">
+                                        {d.sentenceModels.map((sm: string, smi: number) => (
+                                          <div key={smi} className="bg-background/90 p-1.5 rounded border border-emerald-500/20 text-foreground">
+                                            {sm}
+                                          </div>
+                                        ))}
                                       </div>
                                     </div>
                                   )}
@@ -1507,6 +1543,18 @@ export default function LessonGeneratorPage() {
                             </span>
                             <p className="text-xs text-foreground leading-relaxed">
                               {generatedResult.grammarExplanation}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Sentence Syntax Blueprint / Word Order Formula */}
+                        {generatedResult.syntaxFormula && (
+                          <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-xl space-y-1.5">
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 block font-sans">
+                              🔤 Sentence Syntax Blueprint (Word Order Formula):
+                            </span>
+                            <p className="text-xs font-mono font-semibold text-emerald-900 dark:text-emerald-200">
+                              {generatedResult.syntaxFormula}
                             </p>
                           </div>
                         )}
