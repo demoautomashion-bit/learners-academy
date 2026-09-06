@@ -24,6 +24,8 @@ export interface DailySession {
   dayArchetype: DayArchetype
   topic: string
   grammarFocus: string
+  grammarDefinition?: string
+  usageCases?: string[]
   grammarExplanation?: string
   syntaxFormula?: string
   grammarScopeLimit?: string
@@ -98,15 +100,21 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     return {
       topic: `Present Perfect vs Past Simple — ${currentSub}`,
       rule: 'Use Present Perfect for indefinite past experiences without exact timestamps (ever/never/already). Use Past Simple for completed actions at specific past times (yesterday, in 2021).',
+      definition: 'Present Perfect links past occurrences to present relevance without specifying exact timing, whereas Past Simple describes completed actions anchored to a finished past time window.',
+      usageCases: [
+        'Sharing personal life experiences and accomplishments without specifying when they occurred.',
+        'Contrasting ongoing or open time frames (this week, so far) against completed time frames (yesterday, last year).',
+        'Reporting recent news or events that produce immediate consequences in the present.'
+      ],
       explanation: `In ${cefr}-level communication, distinguishing Present Perfect from Past Simple allows speakers to separate ongoing/open life context from completed historical events. Past Simple links to a closed time window, whereas Present Perfect connects past occurrences to the speaker's present state.`,
       syntaxFormula: 'Pres. Perf: [Subject] + [have/has] + [Past Participle V3]  VS  Past Simple: [Subject] + [Past Verb V2] + [Finished Time Marker]',
       scope: 'Focus on contrasting finished time expressions (ago, yesterday, last year) with open time periods (this week, so far, in my life).',
       board: 'Pres. Perf: Subj + have/has + V3 (Indefinite)  VS  Past Simple: Subj + V2 (Finished Time)',
       forms: {
-        positive: 'Pres Perf: She has visited Rome. | Past Simple: She visited Rome in 2020.',
-        negative: 'Pres Perf: She hasn\'t visited Rome. | Past Simple: She didn\'t visit Rome last year.',
-        interrogative: 'Pres Perf: Has she ever visited Rome? | Past Simple: Did she visit Rome in 2020?',
-        shortAnswers: 'Pres Perf: Yes, she has. / No, she hasn\'t. | Past Simple: Yes, she did. / No, she didn\'t.'
+        positive: 'Pres Perf (+): [Subject] + [have/has] + [V3]  |  Past Simple (+): [Subject] + [V2] + [Time Marker]',
+        negative: 'Pres Perf (-): [Subject] + [haven\'t/hasn\'t] + [V3]  |  Past Simple (-): [Subject] + [didn\'t] + [V1]',
+        interrogative: 'Pres Perf (?): [Have/Has] + [Subject] + [V3] ...?  |  Past Simple (?): [Did] + [Subject] + [V1] ...?',
+        shortAnswers: 'Pres Perf: Yes, [Subj] + have/has. / No, [Subj] + haven\'t/hasn\'t. | Past Simple: Yes, [Subj] + did. / No, [Subj] + didn\'t.'
       },
       subSections,
       edgeCases: [
@@ -137,15 +145,21 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     return {
       topic: `Second Conditional — ${currentSub}`,
       rule: 'If + Past Simple, Subject + WOULD / COULD + Base Verb. Used for unreal, imaginary, or highly unlikely present/future situations.',
+      definition: 'The Second Conditional is a complex sentence structure used to hypothesize about impossible, unreal, or highly improbable present or future situations and their imaginary outcomes.',
+      usageCases: [
+        'Hypothesizing about imaginary life scenarios (e.g. winning the lottery, living in another era).',
+        'Offering polite, indirect advice in formal or business contexts ("If I were you, I would...").',
+        'Speculating on alternative present realities and negotiating hypothetical conditions.'
+      ],
       explanation: `The Second Conditional constructs hypothetical worlds. Although the IF-clause uses a Past Simple verb form, it refers to present or future unreal states rather than past time. It is frequently used for diplomacy, hypothetical problem-solving, and giving polite advice.`,
       syntaxFormula: '[IF] + [Subject] + [Past Simple V2], [Subject] + [WOULD / COULD / MIGHT] + [Base Verb V1]',
       scope: 'Emphasize "If I WERE you" (subjunctive were) and contrast real probability (1st Conditional) with imaginary situations (2nd Conditional).',
       board: 'IF + Past Simple (Hypothetical Condition), Subject + WOULD + V1 (Unreal Result)',
       forms: {
-        positive: 'IF + Subject + Past Simple, Subject + WOULD + V1 (e.g. "If I won the lottery, I would buy a house.")',
-        negative: 'IF + Subject + didn\'t + V1, Subject + WOULD NOT (wouldn\'t) + V1 (e.g. "If I didn\'t work today, I wouldn\'t be tired.")',
-        interrogative: 'What + WOULD + Subject + do + IF + Subject + Past Simple...? (e.g. "What would you do if you saw a ghost?")',
-        shortAnswers: 'Yes, I would. / No, I wouldn\'t.'
+        positive: 'Positive (+): [IF] + [Subject] + [Past Simple V2], [Subject] + [WOULD] + [Base Verb V1]',
+        negative: 'Negative (-): [IF] + [Subject] + [didn\'t + V1], [Subject] + [WOULD NOT (wouldn\'t)] + [Base Verb V1]',
+        interrogative: 'Interrogative (?): [Wh-] + [WOULD] + [Subject] + [do] + [IF] + [Subject] + [Past Simple V2] ...?',
+        shortAnswers: 'Yes, [Subject] + would. / No, [Subject] + wouldn\'t.'
       },
       subSections,
       edgeCases: [
@@ -176,15 +190,21 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     return {
       topic: `First Conditional — ${currentSub}`,
       rule: 'If + Present Simple, Subject + WILL / CAN + Base Verb. Used for real, possible future events and consequences.',
+      definition: 'The First Conditional is a two-clause conditional structure used to express real, likely future events and their probable consequences.',
+      usageCases: [
+        'Stating realistic future plans and contingent outcomes based on specific conditions.',
+        'Delivering warnings, promises, guarantees, or negotiations in everyday and business English.',
+        'Expressing varying degrees of future certainty using modals like will, can, and might in the result clause.'
+      ],
       explanation: `The First Conditional expresses real-world cause and effect for future events. The IF-clause sets a realistic condition in Present Simple, while the result clause predicts the outcome using future modal verbs.`,
       syntaxFormula: '[IF] + [Subject] + [Present Simple V1/V-s], [Subject] + [WILL / CAN / MAY / MIGHT] + [Base Verb V1]',
       scope: 'Teach clear condition vs result clauses and highlight modal variations (will vs can vs might).',
       board: 'IF + Present Simple (Real Condition), Subject + WILL / CAN + V1 (Future Result)',
       forms: {
-        positive: 'IF + Subject + Present Simple, Subject + WILL + V1 (e.g. "If it rains, we will stay home.")',
-        negative: 'IF + Subject + don\'t/doesn\'t + V1, Subject + WILL NOT (won\'t) + V1 (e.g. "If he doesn\'t hurry, he won\'t catch the bus.")',
-        interrogative: 'What + WILL + Subject + do + IF + Subject + Present Simple...? (e.g. "What will you do if the flight is delayed?")',
-        shortAnswers: 'Yes, I will. / No, I won\'t.'
+        positive: 'Positive (+): [IF] + [Subject] + [Present Simple V1/s], [Subject] + [WILL] + [Base Verb V1]',
+        negative: 'Negative (-): [IF] + [Subject] + [don\'t/doesn\'t + V1], [Subject] + [WILL NOT (won\'t)] + [Base Verb V1]',
+        interrogative: 'Interrogative (?): [Wh-] + [WILL] + [Subject] + [do] + [IF] + [Subject] + [Present Simple V1/s] ...?',
+        shortAnswers: 'Yes, [Subject] + will. / No, [Subject] + won\'t.'
       },
       subSections,
       edgeCases: [
@@ -215,15 +235,21 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     return {
       topic: `Third Conditional — ${currentSub}`,
       rule: 'If + Past Perfect (had + V3), Subject + WOULD HAVE + V3. Used for impossible past conditions and imaginary past outcomes.',
+      definition: 'The Third Conditional is a hypothetical sentence structure used to analyze completed past events and express impossible past conditions and alternative historical outcomes.',
+      usageCases: [
+        'Expressing personal regrets, remorse, or relief regarding finished past decisions.',
+        'Analyzing alternative historical scenarios or past business project failures/successes.',
+        'Speculating on how a past situation would have differed if a past action had occurred.'
+      ],
       explanation: `The Third Conditional reflects on completed past events that cannot be changed. It allows speakers to express past regrets, relief, or speculate on how history would have unfolded under different circumstances.`,
       syntaxFormula: '[IF] + [Subject] + [had + Past Participle V3], [Subject] + [WOULD HAVE / COULD HAVE] + [Past Participle V3]',
       scope: 'Focus on past regrets and alternative history outcomes. Drill spoken contractions ("would\'ve", "hadn\'t").',
       board: 'IF + had + V3 (Past Condition), Subject + WOULD HAVE + V3 (Past Imaginary Result)',
       forms: {
-        positive: 'IF + Subject + had + V3, Subject + WOULD HAVE + V3 (e.g. "If I had studied, I would have passed.")',
-        negative: 'IF + Subject + hadn\'t + V3, Subject + WOULD NOT HAVE (wouldn\'t have) + V3 (e.g. "If we hadn\'t missed the train, we wouldn\'t have been late.")',
-        interrogative: 'WOULD + Subject + have + V3 + IF + Subject + had + V3...? (e.g. "Would you have accepted the job if they had offered it?")',
-        shortAnswers: 'Yes, I would have. / No, I wouldn\'t have.'
+        positive: 'Positive (+): [IF] + [Subject] + [had + V3], [Subject] + [WOULD HAVE] + [Past Participle V3]',
+        negative: 'Negative (-): [IF] + [Subject] + [hadn\'t + V3], [Subject] + [WOULD NOT HAVE] + [Past Participle V3]',
+        interrogative: 'Interrogative (?): [WOULD] + [Subject] + [have + V3] + [IF] + [Subject] + [had + V3] ...?',
+        shortAnswers: 'Yes, [Subject] + would have. / No, [Subject] + wouldn\'t have.'
       },
       subSections,
       edgeCases: [
@@ -256,15 +282,21 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     return {
       topic: `Passive Voice — ${currentSub}`,
       rule: 'Subject (Recipient) + BE (am/is/are/was/were/will be) + Past Participle (V3) (+ by Agent). Focuses on the receiver of the action.',
+      definition: 'Passive Voice is a syntactic voice construction where the grammatical subject of the sentence receives the action of the verb rather than performing it.',
+      usageCases: [
+        'Writing formal academic reports, scientific papers, and process descriptions where objectivity is required.',
+        'Reporting news items or crime incidents when the perpetrator/agent is unknown, obvious, or unimportant.',
+        'Emphasizing the result, product, or recipient of an action rather than the person who performed it.'
+      ],
       explanation: `In English syntax, Passive Voice shifts sentence focus from the agent performing the action to the recipient or outcome. It is indispensable in formal, scientific, academic, and journalistic registers where the agent is obvious, irrelevant, or intentionally omitted.`,
       syntaxFormula: '[Subject / Recipient] + [BE Auxiliary (am / is / are / was / were / will be)] + [Main Verb (Past Participle V3)] + [Optional Agent (by + Noun)]',
       scope: 'Practice active-to-passive transformations and clarify when "by + agent" is necessary versus redundant.',
       board: 'Active: Agent + Verb + Object  ->  Passive: Object + BE + V3 (+ by Agent)',
       forms: {
-        positive: 'Object + BE (am/is/are/was/were) + V3 (+ by Agent) (e.g. "The contract was signed by the director.")',
-        negative: 'Object + BE + NOT (isn\'t/aren\'t/wasn\'t/weren\'t) + V3 (e.g. "The documents were not delivered on time.")',
-        interrogative: '(Wh-) + BE + Object + V3...? (e.g. "Was the announcement published yesterday?")',
-        shortAnswers: 'Yes, it was. / No, it wasn\'t.'
+        positive: 'Positive (+): [Object / Recipient] + [BE (am/is/are/was/were)] + [Past Participle V3] + [by Agent]',
+        negative: 'Negative (-): [Object / Recipient] + [BE + NOT (isn\'t/aren\'t/wasn\'t/weren\'t)] + [Past Participle V3]',
+        interrogative: 'Interrogative (?): [BE Auxiliary] + [Object / Recipient] + [Past Participle V3] ...?',
+        shortAnswers: 'Yes, [Subject] + was/were. / No, [Subject] + wasn\'t/weren\'t.'
       },
       subSections,
       edgeCases: [
@@ -295,15 +327,21 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     return {
       topic: `Reported Speech — ${currentSub}`,
       rule: 'When reporting direct quotes in past context, shift tenses back one step (Present -> Past, Past/Pres Perf -> Past Perf) and adjust pronouns.',
+      definition: 'Reported (Indirect) Speech is a grammatical mechanism used to communicate what another person said without repeating their exact direct words.',
+      usageCases: [
+        'Summarizing meetings, interviews, customer complaints, or past dialogues in business and academic reporting.',
+        'Relaying messages, instructions, or gossip accurately to third parties.',
+        'Writing journalistic articles and formal meeting minutes using proper tense backshifting.'
+      ],
       explanation: `Reported Speech enables speakers to convey prior conversations accurately without quoting word-for-word. It requires systematic adjustments to verb tenses, personal pronouns, possessives, and temporal adverbs to maintain chronological alignment.`,
       syntaxFormula: '[Reporting Subject] + [said (that) / told + Object (that)] + [Subject] + [Backshifted Verb] + [Rest of Clause]',
       scope: 'Cover statement backshifting, pronoun modifications, and time word shifts (today -> that day, tomorrow -> the following day).',
       board: 'Direct: "I am working"  ->  Reported: He said (that) he WAS working.',
       forms: {
-        positive: 'Subject + said (that) / told + Object (that) + Backshifted Clause (e.g. "He said he was feeling unwell.")',
-        negative: 'Subject + said (that) + Subject + hadn\'t / didn\'t + V1 (e.g. "She stated that she didn\'t agree.")',
-        interrogative: 'Subject + asked (if / whether) + Subject + Backshifted Clause (e.g. "He asked if I had completed the report.")',
-        shortAnswers: 'Reported questions use statement word order without question mark.'
+        positive: 'Positive (+): [Reporting Subj] + [said (that) / told + Obj (that)] + [Subj] + [Backshifted Verb]',
+        negative: 'Negative (-): [Reporting Subj] + [said (that)] + [Subj] + [didn\'t / hadn\'t] + [Base/V3 Verb]',
+        interrogative: 'Interrogative (?): [Reporting Subj] + [asked + Obj] + [if / whether / Wh-] + [Statement Word Order]',
+        shortAnswers: 'Reported questions use statement word order without question marks.'
       },
       subSections,
       edgeCases: [
@@ -334,14 +372,20 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     return {
       topic: `Relative Clauses — ${currentSub}`,
       rule: 'Use relative pronouns (who, which, that, where, whose) to connect clauses and provide essential or supplemental noun information.',
+      definition: 'A Relative Clause is a subordinate adjective clause introduced by a relative pronoun that modifies and provides identifying or descriptive information about a preceding noun.',
+      usageCases: [
+        'Combining short sentences into smooth, sophisticated complex sentences in academic writing.',
+        'Providing precise definitions and identifying specific people, places, or objects ("The man WHO lives next door...").',
+        'Adding supplemental, non-defining background context in formal descriptions using commas.'
+      ],
       explanation: `Relative clauses streamline complex sentence construction by embedding descriptive details directly behind target nouns. Defining relative clauses identify which noun is being discussed, while non-defining clauses add non-essential descriptive context.`,
       syntaxFormula: '[Main Noun] + [Relative Pronoun (who / which / that / where / whose)] + [Embedded Clause] + [Main Predicate]',
       scope: 'Contrast defining clauses (no commas, essential) vs non-defining clauses (with commas, extra info).',
       board: 'Person: WHO / THAT  |  Thing: WHICH / THAT  |  Place: WHERE  |  Possession: WHOSE',
       forms: {
-        positive: 'Noun + [WHO / WHICH / THAT / WHERE] + Defining Clause (e.g. "The engineer WHO designed the system won an award.")',
-        negative: 'Noun + [WHO / WHICH / THAT] + Negative Clause (e.g. "We replaced the machine THAT wasn\'t functioning.")',
-        interrogative: 'Is that the hotel WHERE we stayed? / Do you know the author WHO wrote this book?',
+        positive: 'Positive (+): [Main Noun] + [WHO / WHICH / THAT / WHERE] + [Defining Clause]',
+        negative: 'Negative (-): [Main Noun] + [WHO / WHICH / THAT] + [Negative Clause (doesn\'t / isn\'t)]',
+        interrogative: 'Interrogative (?): [Is that the Noun] + [WHERE / WHO] + [Subject + Verb] ...?',
         shortAnswers: 'Defining relative clauses specify essential identity.'
       },
       subSections,
@@ -373,15 +417,21 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     return {
       topic: `Modals of Deduction & Speculation — ${currentSub}`,
       rule: 'MUST + V1 (90%+ sure true), MIGHT / COULD + V1 (50% possible), CAN\'T + V1 (90%+ sure impossible).',
+      definition: 'Modals of Deduction are modal auxiliary verbs used by speakers to express logical conclusions, inferences, and levels of certainty based on available evidence.',
+      usageCases: [
+        'Evaluating circumstantial evidence and formulating logical hypotheses in investigations or problem solving.',
+        'Expressing nuances of uncertainty (must vs might vs can\'t) in professional and academic discourse.',
+        'Analyzing mysterious occurrences or past unverified events (must have been, could have happened).'
+      ],
       explanation: `Modals of deduction allow speakers to evaluate circumstantial evidence and express varying degrees of logical certainty about present or past situations without making flat assumptions.`,
       syntaxFormula: 'Present: [Subject] + [MUST / MIGHT / COULD / CAN\'T] + [Base Verb V1]  |  Past: [Subject] + [MUST HAVE / CAN\'T HAVE] + [Past Participle V3]',
       scope: 'Teach degrees of certainty in present/past speculation. Distinguish logical deduction from obligation.',
       board: 'MUST (90% True)  |  MIGHT / COULD (50% Possible)  |  CAN\'T (90% Impossible)',
       forms: {
-        positive: 'Subject + MUST + Base Verb (V1) [90%+ Certain True] (e.g. "He has 3 sports cars; he MUST be wealthy.")',
-        negative: 'Subject + CAN\'T + Base Verb (V1) [90%+ Certain Impossible] (e.g. "She just ate; she CAN\'T be hungry.")',
-        interrogative: 'Subject + MIGHT / COULD + Base Verb (V1) [50% Possible] (e.g. "Could he be stuck in traffic?")',
-        shortAnswers: 'Yes, he must. / No, she can\'t.'
+        positive: 'Positive (+): [Subject] + [MUST / MIGHT / COULD] + [Base Verb V1] (High to medium certainty)',
+        negative: 'Negative (-): [Subject] + [CAN\'T] + [Base Verb V1] (90%+ Certain Impossible)',
+        interrogative: 'Interrogative (?): [COULD / MIGHT] + [Subject] + [be + V-ing / V1] ...?',
+        shortAnswers: 'Yes, [Subject] + must. / No, [Subject] + can\'t.'
       },
       subSections,
       edgeCases: [
@@ -402,7 +452,7 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     }
   }
 
-  // Smart Generic Fallback with progressive sections & explicit word-order syntax formula
+  // Smart Generic Fallback with progressive sections, academic definition & usage cases
   const genericSubSections = [
     `Section 1: Affirmative & Negative Sentence Formation Syntax of ${grammarTag}`,
     `Section 2: Question Inversion, Auxiliary Rules & Short Answers`,
@@ -413,14 +463,20 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
   return {
     topic: `${grammarTag} — ${currentSub}`,
     rule: `Apply accurate structural syntax rules for ${grammarTag} within formal and informal ${cefr}-level language contexts.`,
+    definition: `${grammarTag} is an essential structural element in English grammar used to express precise chronological relationships, conditions, or functional communications.`,
+    usageCases: [
+      `Constructing grammatically accurate affirmative and negative sentences in ${cefr}-level speech and writing.`,
+      `Avoiding common structural errors and subject-verb agreement pitfalls in formal examination contexts.`,
+      `Developing spoken fluency and precise expression when discussing complex real-world topics.`
+    ],
     explanation: `In ${cefr}-level English mastery, understanding ${grammarTag} provides structural accuracy, preventing communication misunderstandings and ensuring well-formed written and spoken expressions.`,
     syntaxFormula: `[Subject / Focus] + [Auxiliary Verb for ${grammarTag}] + [Main Verb Structure] + [Object / Complement]`,
     scope: `Focus on sentence word-order syntax, auxiliary verb placement, and common L1 student transfer errors associated with ${grammarTag}.`,
     board: `Target Formula: ${grammarTag} (Form & Sentence Transformation Rules)`,
     forms: {
-      positive: `Subject + [Auxiliary + Main Verb for ${grammarTag}] + Object (Affirmative)`,
-      negative: `Subject + [Auxiliary + NOT + Main Verb for ${grammarTag}] + Object (Negative)`,
-      interrogative: `[Auxiliary Verb] + Subject + [Main Verb for ${grammarTag}]...? (Question Form)`,
+      positive: `Positive (+): [Subject] + [Auxiliary + Main Verb for ${grammarTag}] + [Object / Complement]`,
+      negative: `Negative (-): [Subject] + [Auxiliary + NOT + Main Verb for ${grammarTag}] + [Object / Complement]`,
+      interrogative: `Interrogative (?): [Auxiliary Verb] + [Subject] + [Main Verb for ${grammarTag}] ...?`,
       shortAnswers: `Yes, [Subject] + Auxiliary. / No, [Subject] + Auxiliary + NOT.`
     },
     subSections: genericSubSections,
@@ -872,6 +928,8 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         dayArchetype: archetype,
         topic: topicTitle,
         grammarFocus,
+        grammarDefinition: isSimplified ? undefined : grammarDetails.definition,
+        usageCases: isSimplified ? undefined : grammarDetails.usageCases,
         grammarExplanation: isSimplified ? undefined : grammarExplanation,
         syntaxFormula: isSimplified ? undefined : syntaxFormula,
         grammarScopeLimit: isSimplified ? undefined : grammarScopeLimit,

@@ -73,15 +73,23 @@ export async function POST(req: Request) {
             duration: `45 Minutes`,
             theme: topic || undefined,
             grammarFocus: gInfo.rule,
+            grammarDefinition: gInfo.definition,
+            usageCases: gInfo.usageCases,
             grammarExplanation: gInfo.explanation,
             syntaxFormula: gInfo.syntaxFormula,
+            syntaxPatterns: gInfo.syntaxPatterns || {
+              positive: gInfo.forms?.positive || '[Subject] + [Verb]',
+              negative: gInfo.forms?.negative || '[Subject] + [Auxiliary] + not + [Verb]',
+              interrogative: gInfo.forms?.interrogative || '[Auxiliary] + [Subject] + [Verb]?',
+              shortAnswers: gInfo.forms?.shortAnswers || 'Yes, [Subject] + [Aux]. / No, [Subject] + [Aux] + not.'
+            },
             boardLayout: gInfo.board,
             grammarScopeLimit: gInfo.scope,
             grammarForms: gInfo.forms,
             sentenceModels: gInfo.sentenceModels || [
-              `Positive (+): ${gInfo.forms.positive}`,
-              `Negative (-): ${gInfo.forms.negative}`,
-              `Interrogative (?): ${gInfo.forms.interrogative}`
+              `Positive (+): ${gInfo.forms?.positive || 'She has finished the work.'}`,
+              `Negative (-): ${gInfo.forms?.negative || 'They have not arrived yet.'}`,
+              `Interrogative (?): ${gInfo.forms?.interrogative || 'Have you seen the report?'}`
             ],
             grammarSubSections: gInfo.subSections,
             edgeCases: gInfo.edgeCases,
@@ -130,8 +138,8 @@ export async function POST(req: Request) {
       STRICT CONSTRAINTS:
       1. VOCABULARY & IDIOMS RULE: If Target Vocabulary is "NONE PROVIDED BY TEACHER", return empty arrays [] for "vocabList" in all session objects. DO NOT invent unrequested vocabulary words. If Target Idioms is "NONE PROVIDED BY TEACHER", do not generate idioms.
       2. DIVERSE GRAMMAR CHUNKING RULE: Break down complex grammar topics (e.g. Active/Passive Voice, Conditionals, Reported Speech, Tenses, Modals) into progressive, sequential sub-sections across sessions (e.g. Session 1: Present Simple Passive, Session 2: Past & Future Passive, Session 3: Continuous & Perfect Passive, Session 4: Passives with Modals...).
-      3. SYNTAX BLUEPRINT RULE: Include an explicit "syntaxFormula" string showing the word-order syntax breakdown (e.g., "[Subject / Recipient] + [BE Auxiliary] + [Past Participle V3] + [by Agent]") for every session.
-      4. ZERO generic intro/outro commentary.
+      3. DEFINITION & USAGE RULE: For every session, provide a formal academic "grammarDefinition" and a list of 2-3 "usageCases" (when, why, and in what context students use this rule in real speech/writing).
+      4. PURE SYNTAX RULES VS EXAMPLES RULE: Separately provide "syntaxPatterns" (pure structural word-order formulas: positive, negative, interrogative, shortAnswers) and "sentenceModels" (actual full example sentences illustrating those formulas).
 
       Return ONLY valid JSON adhering strictly to this schema:
       {
@@ -158,20 +166,28 @@ export async function POST(req: Request) {
                 "dayArchetype": "grammar",
                 "topic": "Session Topic — Progressive Sub-Section Name",
                 "grammarFocus": "Concise rule summary",
-                "grammarExplanation": "Detailed explanation of when and why to use this structure in real communication",
+                "grammarDefinition": "Formal academic definition of this grammatical concept",
+                "usageCases": ["Real-world usage scenario 1", "Real-world usage scenario 2"],
+                "grammarExplanation": "Detailed explanation of when and why to use this structure",
                 "syntaxFormula": "Exact word order syntax breakdown [Subject] + [Auxiliary] + [Verb]...",
+                "syntaxPatterns": {
+                  "positive": "[Subject] + [Aux] + [V3]",
+                  "negative": "[Subject] + [Aux] + not + [V3]",
+                  "interrogative": "[Aux] + [Subject] + [V3]?",
+                  "shortAnswers": "Yes, [Subject] + [Aux]. / No, [Subject] + [Aux] + not."
+                },
                 "grammarScopeLimit": "What to cover vs leave out today",
                 "boardLayout": "Whiteboard formula",
                 "grammarForms": {
-                  "positive": "Formula & Example",
-                  "negative": "Formula & Example",
-                  "interrogative": "Formula & Example",
+                  "positive": "[Subject] + [Aux] + [V3]",
+                  "negative": "[Subject] + [Aux] + not + [V3]",
+                  "interrogative": "[Aux] + [Subject] + [V3]?",
                   "shortAnswers": "Short answer format"
                 },
                 "sentenceModels": [
-                  "Model 1: Positive (+)",
-                  "Model 2: Negative (-)",
-                  "Model 3: Question (?)"
+                  "Positive (+): Full example sentence",
+                  "Negative (-): Full example sentence",
+                  "Interrogative (?): Full example question"
                 ],
                 "grammarSubSections": ["Sub-section 1", "Sub-section 2"],
                 "edgeCases": ["Edge case / common mistake 1", "Edge case 2"],
@@ -217,8 +233,9 @@ export async function POST(req: Request) {
 
       STRICT CONSTRAINTS:
       1. VOCABULARY & IDIOMS RULE: If Target Vocabulary is "NONE PROVIDED BY TEACHER", return empty array [] for "vocabulary". If Target Idioms is "NONE PROVIDED BY TEACHER", return empty array [] for "idioms". DO NOT invent unrequested vocabulary/idioms.
-      2. SYNTAX BLUEPRINT RULE: Include an explicit "syntaxFormula" string showing the exact word-order syntax breakdown.
-      3. ZERO generic intro/outro text.
+      2. DEFINITION & USAGE RULE: Provide formal academic "grammarDefinition" and 2-3 "usageCases" (when, why, and in what context students use this rule).
+      3. PURE SYNTAX RULES VS EXAMPLES RULE: Separately provide "syntaxPatterns" (pure structural word-order formulas: positive, negative, interrogative, shortAnswers) and "sentenceModels" (actual full example sentences).
+      4. ZERO generic intro/outro text.
 
       Return ONLY valid JSON adhering strictly to this schema:
       {
@@ -229,14 +246,25 @@ export async function POST(req: Request) {
         "duration": "45 Minutes",
         "theme": "${topic || 'Academic Lesson'}",
         "grammarFocus": "Concise rule summary",
+        "grammarDefinition": "Formal academic definition of this grammatical concept",
+        "usageCases": [
+          "Real-world usage scenario 1",
+          "Real-world usage scenario 2"
+        ],
         "grammarExplanation": "Detailed explanation of when, why, and how to use this grammar in authentic contexts",
         "syntaxFormula": "Word order syntax formula (e.g. [Subject] + [have/has] + [V3])",
+        "syntaxPatterns": {
+          "positive": "[Subject] + [Aux] + [V3]",
+          "negative": "[Subject] + [Aux] + not + [V3]",
+          "interrogative": "[Aux] + [Subject] + [V3]?",
+          "shortAnswers": "Yes, [Subject] + [Aux]. / No, [Subject] + [Aux] + not."
+        },
         "boardLayout": "Whiteboard formula (e.g. Subj + have/has + V3)",
         "grammarScopeLimit": "Specific focus and boundaries for this single session",
         "grammarForms": {
-          "positive": "Formula & Example",
-          "negative": "Formula & Example",
-          "interrogative": "Formula & Example",
+          "positive": "[Subject] + [Aux] + [V3]",
+          "negative": "[Subject] + [Aux] + not + [V3]",
+          "interrogative": "[Aux] + [Subject] + [V3]?",
           "shortAnswers": "Short answer formats"
         },
         "sentenceModels": [

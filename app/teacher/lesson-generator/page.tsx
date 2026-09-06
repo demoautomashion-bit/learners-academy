@@ -1189,12 +1189,24 @@ export default function LessonGeneratorPage() {
                                       </div>
                                     </div>
 
-                                    <div>
-                                      <h5 className="text-xs font-semibold text-primary">{d.topic}</h5>
-                                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-                                        <strong className="text-foreground font-medium">Grammar Focus:</strong> {d.grammarFocus}
-                                      </p>
-                                    </div>
+                                    <div className="space-y-1.5">
+                                       <h5 className="text-xs font-semibold text-primary">{d.topic}</h5>
+                                       <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                         <strong className="text-foreground font-medium">Grammar Focus:</strong> {d.grammarFocus}
+                                       </p>
+                                       {d.grammarDefinition && (
+                                         <p className="text-[11px] text-foreground/90 bg-primary/5 p-2 rounded border border-primary/20 leading-relaxed">
+                                           <strong className="text-primary font-semibold block text-[10px] uppercase tracking-wide">📖 Academic Definition:</strong>
+                                           {d.grammarDefinition}
+                                         </p>
+                                       )}
+                                       {d.syntaxFormula && (
+                                         <div className="bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 font-mono text-[10px]">
+                                           <span className="font-sans font-bold text-emerald-700 dark:text-emerald-400 block text-[9px] uppercase">🔤 Syntax Formula:</span>
+                                           <span className="text-emerald-900 dark:text-emerald-200">{d.syntaxFormula}</span>
+                                         </div>
+                                       )}
+                                     </div>
 
                                     {d.vocabList && d.vocabList.length > 0 && (
                                       <div className="flex flex-wrap items-center gap-1.5 pt-1">
@@ -1247,13 +1259,33 @@ export default function LessonGeneratorPage() {
                                     </p>
                                   </div>
 
-                                  {/* In-Depth Grammar Concept & Usage Explanation */}
-                                  {d.grammarExplanation && (
-                                    <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg space-y-1">
+                                  {/* Grammar Definition & Real-World Usage Scenarios */}
+                                  {(d.grammarDefinition || d.grammarExplanation || (d.usageCases && d.usageCases.length > 0)) && (
+                                    <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg space-y-2">
                                       <span className="text-xs font-bold text-primary flex items-center gap-1.5">
-                                        📘 In-Depth Grammar Concept & Usage Explanation:
+                                        📖 Grammar Definition & Real-World Usage Scenarios:
                                       </span>
-                                      <p className="text-xs text-foreground leading-relaxed">{d.grammarExplanation}</p>
+                                      {d.grammarDefinition && (
+                                        <p className="text-xs font-medium text-foreground leading-relaxed">
+                                          <strong className="text-primary font-bold">Academic Definition:</strong> {d.grammarDefinition}
+                                        </p>
+                                      )}
+                                      {d.grammarExplanation && (
+                                        <p className="text-xs text-foreground leading-relaxed">{d.grammarExplanation}</p>
+                                      )}
+                                      {d.usageCases && d.usageCases.length > 0 && (
+                                        <div className="space-y-1 pt-1.5 border-t border-primary/10">
+                                          <span className="text-[11px] font-bold text-primary block">When, why, and context of usage:</span>
+                                          <ul className="space-y-1 pl-1">
+                                            {d.usageCases.map((uc: string, uci: number) => (
+                                              <li key={uci} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                                <span className="text-primary font-bold">•</span>
+                                                <span>{uc}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
 
@@ -1282,25 +1314,25 @@ export default function LessonGeneratorPage() {
                                     </div>
                                   )}
 
-                                  {/* 3-Part Sentence Structure Matrix (+ / - / ?) */}
-                                  {d.grammarForms && (
+                                  {/* Sentence Syntax Rules (+ / - / ?) */}
+                                  {(d.syntaxPatterns || d.grammarForms) && (
                                     <div className="bg-blue-500/10 border border-blue-500/30 p-3 rounded-lg space-y-2">
                                       <span className="text-xs font-bold text-blue-700 dark:text-blue-400 flex items-center gap-1.5 font-sans">
-                                        📐 Sentence Structure Matrix (+ / - / ?):
+                                        🔤 Sentence Syntax Rules (+ / - / ?):
                                       </span>
                                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono text-[11px]">
                                         <div className="bg-background/90 p-2 rounded border border-blue-500/20 space-y-0.5">
-                                          <span className="font-bold text-blue-600 dark:text-blue-400 block font-sans text-[10px] uppercase">Positive (+)</span>
-                                          <p className="text-foreground leading-normal">{d.grammarForms.positive}</p>
+                                          <span className="font-bold text-blue-600 dark:text-blue-400 block font-sans text-[10px] uppercase">Positive (+) Syntax</span>
+                                          <p className="text-foreground leading-normal">{d.syntaxPatterns?.positive || d.grammarForms?.positive}</p>
                                         </div>
                                         <div className="bg-background/90 p-2 rounded border border-blue-500/20 space-y-0.5">
-                                          <span className="font-bold text-red-600 dark:text-red-400 block font-sans text-[10px] uppercase">Negative (-)</span>
-                                          <p className="text-foreground leading-normal">{d.grammarForms.negative}</p>
+                                          <span className="font-bold text-red-600 dark:text-red-400 block font-sans text-[10px] uppercase">Negative (-) Syntax</span>
+                                          <p className="text-foreground leading-normal">{d.syntaxPatterns?.negative || d.grammarForms?.negative}</p>
                                         </div>
                                         <div className="bg-background/90 p-2 rounded border border-blue-500/20 space-y-0.5">
-                                          <span className="font-bold text-emerald-600 dark:text-emerald-400 block font-sans text-[10px] uppercase">Interrogative (?)</span>
-                                          <p className="text-foreground leading-normal">{d.grammarForms.interrogative}</p>
-                                          <span className="text-[10px] text-muted-foreground block font-sans mt-1"><strong>Short Answers:</strong> {d.grammarForms.shortAnswers}</span>
+                                          <span className="font-bold text-emerald-600 dark:text-emerald-400 block font-sans text-[10px] uppercase">Interrogative (?) Syntax</span>
+                                          <p className="text-foreground leading-normal">{d.syntaxPatterns?.interrogative || d.grammarForms?.interrogative}</p>
+                                          <span className="text-[10px] text-muted-foreground block font-sans mt-1"><strong>Short Answers:</strong> {d.syntaxPatterns?.shortAnswers || d.grammarForms?.shortAnswers}</span>
                                         </div>
                                       </div>
                                     </div>
@@ -1535,66 +1567,67 @@ export default function LessonGeneratorPage() {
                       </TabsContent>
 
                       <TabsContent value="mechanics" className="space-y-4">
-                        {/* In-Depth Grammar Concept & Usage Explanation */}
-                        {generatedResult.grammarExplanation && (
-                          <div className="bg-primary/5 border border-primary/20 p-3.5 rounded-xl space-y-1.5">
+                        {/* Grammar Definition & Real-World Usage Scenarios */}
+                        {(generatedResult.grammarDefinition || generatedResult.grammarExplanation || (generatedResult.usageCases && generatedResult.usageCases.length > 0)) && (
+                          <div className="bg-primary/5 border border-primary/20 p-3.5 rounded-xl space-y-2">
                             <span className="text-xs font-bold text-primary flex items-center gap-1.5">
-                              📘 In-Depth Grammar Concept & Usage Explanation:
+                              📖 Grammar Definition & Real-World Usage Scenarios:
                             </span>
-                            <p className="text-xs text-foreground leading-relaxed">
-                              {generatedResult.grammarExplanation}
-                            </p>
+                            {generatedResult.grammarDefinition && (
+                              <p className="text-xs font-medium text-foreground leading-relaxed">
+                                <strong className="text-primary font-bold">Academic Definition:</strong> {generatedResult.grammarDefinition}
+                              </p>
+                            )}
+                            {generatedResult.grammarExplanation && (
+                              <p className="text-xs text-foreground leading-relaxed">
+                                {generatedResult.grammarExplanation}
+                              </p>
+                            )}
+                            {generatedResult.usageCases && generatedResult.usageCases.length > 0 && (
+                              <div className="space-y-1 pt-1.5 border-t border-primary/10">
+                                <span className="text-[11px] font-bold text-primary block">When, why, and context of usage:</span>
+                                <ul className="space-y-1 pl-1">
+                                  {generatedResult.usageCases.map((uc: string, uci: number) => (
+                                    <li key={uci} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                      <span className="text-primary font-bold">•</span>
+                                      <span>{uc}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                           </div>
                         )}
 
-                        {/* Sentence Syntax Blueprint / Word Order Formula */}
-                        {generatedResult.syntaxFormula && (
-                          <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-xl space-y-1.5">
-                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 block font-sans">
-                              🔤 Sentence Syntax Blueprint (Word Order Formula):
+                        {/* Sentence Syntax Blueprint / Pure Structural Rules */}
+                        {(generatedResult.syntaxFormula || generatedResult.syntaxPatterns || generatedResult.grammarForms) && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 p-3.5 rounded-xl space-y-2 font-sans">
+                            <span className="text-xs font-bold text-blue-700 dark:text-blue-400 block">
+                              🔤 Sentence Syntax Rules (+ / - / ?):
                             </span>
-                            <p className="text-xs font-mono font-semibold text-emerald-900 dark:text-emerald-200">
-                              {generatedResult.syntaxFormula}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Scope limit & Whiteboard formula */}
-                        {generatedResult.grammarScopeLimit && (
-                          <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-lg text-xs space-y-1">
-                            <span className="font-bold text-amber-700 dark:text-amber-400 block">⚠️ Grammar Scope Limit:</span>
-                            <p className="text-amber-800 dark:text-amber-300 leading-normal">{generatedResult.grammarScopeLimit}</p>
-                          </div>
-                        )}
-
-                        {generatedResult.boardLayout && (
-                          <div className="bg-blue-500/10 border border-blue-500/30 p-3 rounded-lg text-xs space-y-1 font-mono">
-                            <span className="font-bold text-blue-700 dark:text-blue-400 block font-sans">📐 Whiteboard Formula / Board Layout:</span>
-                            <p className="text-blue-900 dark:text-blue-200">{generatedResult.boardLayout}</p>
-                          </div>
-                        )}
-
-                        {/* 3-Part Sentence Structure Matrix */}
-                        {generatedResult.grammarForms && (
-                          <div className="bg-blue-500/10 border border-blue-500/30 p-3.5 rounded-xl space-y-2.5">
-                            <span className="text-xs font-bold text-blue-700 dark:text-blue-400 flex items-center gap-1.5 font-sans">
-                              📐 3-Part Sentence Structure Matrix (+ / - / ?):
-                            </span>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono text-xs">
-                              <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
-                                <span className="font-bold text-blue-600 dark:text-blue-400 block font-sans text-[10px] uppercase tracking-wide">Positive (+)</span>
-                                <p className="text-foreground leading-relaxed">{generatedResult.grammarForms.positive}</p>
+                            {generatedResult.syntaxFormula && (
+                              <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 font-mono text-xs space-y-0.5">
+                                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 block uppercase font-sans">Word Order Blueprint:</span>
+                                <span className="text-foreground font-semibold">{generatedResult.syntaxFormula}</span>
                               </div>
-                              <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
-                                <span className="font-bold text-red-600 dark:text-red-400 block font-sans text-[10px] uppercase tracking-wide">Negative (-)</span>
-                                <p className="text-foreground leading-relaxed">{generatedResult.grammarForms.negative}</p>
+                            )}
+                            {(generatedResult.syntaxPatterns || generatedResult.grammarForms) && (
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono text-xs">
+                                <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
+                                  <span className="font-bold text-blue-600 dark:text-blue-400 block font-sans text-[10px] uppercase tracking-wide">Positive (+) Syntax</span>
+                                  <p className="text-foreground leading-relaxed">{generatedResult.syntaxPatterns?.positive || generatedResult.grammarForms?.positive}</p>
+                                </div>
+                                <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
+                                  <span className="font-bold text-red-600 dark:text-red-400 block font-sans text-[10px] uppercase tracking-wide">Negative (-) Syntax</span>
+                                  <p className="text-foreground leading-relaxed">{generatedResult.syntaxPatterns?.negative || generatedResult.grammarForms?.negative}</p>
+                                </div>
+                                <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
+                                  <span className="font-bold text-emerald-600 dark:text-emerald-400 block font-sans text-[10px] uppercase tracking-wide">Interrogative (?) Syntax</span>
+                                  <p className="text-foreground leading-relaxed">{generatedResult.syntaxPatterns?.interrogative || generatedResult.grammarForms?.interrogative}</p>
+                                  <span className="text-[11px] text-muted-foreground block font-sans pt-1 border-t border-border/40 mt-1"><strong>Short Answers:</strong> {generatedResult.syntaxPatterns?.shortAnswers || generatedResult.grammarForms?.shortAnswers}</span>
+                                </div>
                               </div>
-                              <div className="bg-background/90 p-2.5 rounded-lg border border-blue-500/20 space-y-1">
-                                <span className="font-bold text-emerald-600 dark:text-emerald-400 block font-sans text-[10px] uppercase tracking-wide">Interrogative (?)</span>
-                                <p className="text-foreground leading-relaxed">{generatedResult.grammarForms.interrogative}</p>
-                                <span className="text-[11px] text-muted-foreground block font-sans pt-1 border-t border-border/40 mt-1"><strong>Short Answers:</strong> {generatedResult.grammarForms.shortAnswers}</span>
-                              </div>
-                            </div>
+                            )}
                           </div>
                         )}
 
