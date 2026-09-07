@@ -38,6 +38,7 @@ export async function getTeacherAudioFiles(teacherId?: string, retries = 3): Pro
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const files = await db.audioFile.findMany({
+        where: teacherId ? { teacherId } : {},
         orderBy: { createdAt: 'desc' }
       })
       return { success: true, data: files.map(sanitizeAudioFile) }

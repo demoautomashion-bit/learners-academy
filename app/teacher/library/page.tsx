@@ -24,7 +24,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 import { DashboardSkeleton } from '@/components/dashboard-skeleton'
@@ -385,6 +385,19 @@ export default function QuestionLibraryPage() {
     const phaseMatch = phaseFilter === 'all' || q.phase === phaseFilter || (q.phase === 'Both' && (phaseFilter === 'First Test' || phaseFilter === 'Last Test'))
     return categoryMatch && searchMatch && levelMatch && difficultyMatch && phaseMatch
   })
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 12
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab, searchQuery, levelFilter, difficultyFilter, phaseFilter])
+
+  const totalPages = Math.ceil(filteredQuestions.length / ITEMS_PER_PAGE) || 1
+  const paginatedQuestions = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredQuestions.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredQuestions, currentPage])
 
   const classBasedStats = useMemo(() => {
     const stats: Record<string, { total: number; types: Record<string, number> }> = {}
@@ -1813,7 +1826,7 @@ export default function QuestionLibraryPage() {
                   </div>
                 </Card>
               ) : (
-                filteredQuestions.map(q => (
+                paginatedQuestions.map(q => (
                   <motion.div key={q.id} variants={STAGGER_ITEM}>
                     <Card className="glass-1 overflow-hidden hover-lift transition-premium flex flex-col rounded-2xl shadow-premium hover:translate-y-[-2px] h-full">
                       <div className="p-4 sm:p-6">
@@ -1857,14 +1870,35 @@ export default function QuestionLibraryPage() {
                               >
                                 <Edit className="w-3.5 h-3.5" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                className="w-7 h-7 hover:bg-destructive/10 text-destructive/70"
-                                onClick={() => { deleteQuestion(q.id); toast.success('Question removed') }}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    className="w-7 h-7 hover:bg-destructive/10 text-destructive/70"
+                                    title="Delete Question"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="rounded-2xl max-w-md">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="font-serif text-base">Delete Question Block?</AlertDialogTitle>
+                                    <AlertDialogDescription className="text-xs">
+                                      Are you sure you want to delete this question?
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter className="mt-4 gap-2">
+                                    <AlertDialogCancel className="rounded-xl text-xs h-8">Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => deleteQuestion(q.id)}
+                                      className="rounded-xl text-xs h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
 
@@ -1961,7 +1995,7 @@ export default function QuestionLibraryPage() {
                                    )}
                                  </div>
                                )
-                             })()}
+                              })()}
 
                              {q.type === 'MCQ' && (() => {
                                const opts = ensureStringArray(q.options)
@@ -1975,7 +2009,7 @@ export default function QuestionLibraryPage() {
                                    ))}
                                  </div>
                                )
-                             })()}
+                              })()}
 
                             {q.imageUrl && (
                               <div className="relative w-full h-24  overflow-hidden border  mt-1">
@@ -2004,11 +2038,35 @@ export default function QuestionLibraryPage() {
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
-                              <Button variant="ghost" size="icon"
-                                className="w-8 hover:bg-destructive/10 hover:  transition-premium"
-                                onClick={() => { deleteQuestion(q.id); toast.success('Question removed') }}>
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    className="w-8 hover:bg-destructive/10 hover:text-destructive transition-premium"
+                                    title="Delete Question"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="rounded-2xl max-w-md">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="font-serif">Delete Question Block?</AlertDialogTitle>
+                                    <AlertDialogDescription className="text-xs">
+                                      Are you sure you want to delete this question? This operation will purge the block permanently from your bank.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter className="mt-4 gap-2">
+                                    <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => deleteQuestion(q.id)}
+                                      className="rounded-xl text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete Block
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
                         </div>
@@ -2016,6 +2074,40 @@ export default function QuestionLibraryPage() {
                     </Card>
                   </motion.div>
                 ))
+              )}
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-primary/5 px-2">
+                  <p className="text-xs text-muted-foreground">
+                    Showing <span className="font-medium text-foreground">{((currentPage - 1) * ITEMS_PER_PAGE) + 1}</span> to{' '}
+                    <span className="font-medium text-foreground">{Math.min(currentPage * ITEMS_PER_PAGE, filteredQuestions.length)}</span> of{' '}
+                    <span className="font-medium text-foreground">{filteredQuestions.length}</span> blocks
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className="h-8 rounded-xl text-xs px-3"
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-xs font-mono px-2 text-muted-foreground">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className="h-8 rounded-xl text-xs px-3"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
               )}
             </motion.div>
           </Tabs>

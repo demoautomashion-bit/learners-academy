@@ -12,6 +12,10 @@ import {
   Dialog, DialogContent, DialogDescription, 
   DialogFooter, DialogHeader, DialogTitle, DialogTrigger 
 } from '@/components/ui/dialog'
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
+} from '@/components/ui/alert-dialog'
 import { motion, AnimatePresence } from 'framer-motion'
 import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/lib/premium-motion'
 import { 
@@ -261,14 +265,35 @@ export default function AudioLibraryPage() {
                         <FileAudio className="w-5 h-5" />
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="w-8 h-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => deleteAudio(file.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="w-8 h-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+                              title="Delete Audio Asset"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="rounded-2xl max-w-md">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="font-serif">Delete Audio Asset?</AlertDialogTitle>
+                              <AlertDialogDescription className="text-xs">
+                                Are you sure you want to delete "{file.title}"? This operation will purge the file permanently.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="mt-4 gap-2">
+                              <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteAudio(file.id)}
+                                className="rounded-xl text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete Asset
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
 
