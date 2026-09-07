@@ -149,8 +149,13 @@ export default function QuestionLibraryPage() {
   
   const teacherLevels = useMemo(() => {
     const myCourses = (courses || []).filter(c => c.teacherId === user?.id)
-    return Array.from(new Set(myCourses.map(c => c.level))).sort()
-  }, [courses, user?.id])
+    const courseLevels = myCourses.map(c => c.level).filter(Boolean)
+    const questionLevels = (questions || []).map(q => q.classLevel).filter(Boolean) as string[]
+    const academyLevelNames = (ACADEMY_LEVELS || []).map(l => l.name)
+    
+    const levelSet = new Set([...courseLevels, ...questionLevels, ...academyLevelNames])
+    return Array.from(levelSet).sort()
+  }, [courses, questions, user?.id])
 
   const [levelFilter, setLevelFilter] = useState<string>('all')
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all')

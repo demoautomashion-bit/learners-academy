@@ -111,13 +111,36 @@ export async function bulkAddQuestions(questions: Omit<Question, 'id'>[]): Promi
 
 export async function deleteQuestion(id: string, teacherId?: string): Promise<ActionResult> {
   try {
-    // Security Audit: Verify ownership before purge
+    const existing = await db.question.findUnique({ where: { id } })
+    if (!existing) {
+      return { success: false, error: 'Question block not found' }
+    }
+
     if (teacherId) {
-      const existing = await db.question.findUnique({ where: { id } })
-      if (existing && existing.teacherId && existing.teacherId !== teacherId) {
-        return { success: false, error: 'Authorization Failure: You do not own this pedagogical block.' }
+      // Multi-Identifier Resolution: Resolve all valid IDs for the logged-in teacher
+      const teacherRecord = await db.teacher.findFirst({
+        where: {
+          OR: [
+            { id: teacherId },
+            { employeeId: teacherId },
+            { email: teacherId }
+          ]
+        }
+      })
+
+      const validTeacherIds = new Set([
+        teacherId,
+        teacherRecord?.id,
+        teacherRecord?.employeeId,
+        teacherRecord?.email
+      ].filter(Boolean) as string[])
+
+      // Allow purge if question is unassigned or owned by one of the teacher's identifiers
+      if (existing.teacherId && !validTeacherIds.has(existing.teacherId)) {
+        return { success: false, error: 'Authorization Failure: You do not own this question block.' }
       }
     }
+
     const result = await db.question.delete({ where: { id } })
     revalidatePath('/')
     return { success: true, data: result }
@@ -189,10 +212,30 @@ export async function deleteQuestionsByPhase(
       return { success: false, error: 'Authorization failure: No teacher identity provided.' }
     }
 
-    const whereClause: any =
-      phase === 'Both'
-        ? { teacherId }
-        : { teacherId, phase }
+    const teacherRecord = await db.teacher.findFirst({
+      where: {
+        OR: [
+          { id: teacherId },
+          { employeeId: teacherId },
+          { email: teacherId }
+        ]
+      }
+    })
+
+    const validTeacherIds = Array.from(new Set([
+      teacherId,
+      teacherRecord?.id,
+      teacherRecord?.employeeId,
+      teacherRecord?.email
+    ].filter(Boolean) as string[]))
+
+    const whereClause: any = {
+      teacherId: { in: validTeacherIds }
+    }
+
+    if (phase !== 'Both') {
+      whereClause.phase = phase
+    }
 
     if (classLevel) {
       whereClause.classLevel = classLevel

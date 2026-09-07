@@ -264,7 +264,7 @@ export default function AudioLibraryPage() {
                       <div className="p-3 bg-primary/5 rounded-xl text-primary">
                         <FileAudio className="w-5 h-5" />
                       </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button 
