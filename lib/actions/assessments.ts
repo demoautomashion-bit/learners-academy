@@ -25,6 +25,11 @@ export async function getAssessments(teacherId?: string): Promise<ActionResult<A
 
 export async function publishAssessment(assessment: Omit<AssessmentTemplate, 'id' | 'createdAt'>): Promise<ActionResult<AssessmentTemplate>> {
   try {
+    // Ownership Enforcement: Every assessment must be assigned to a teacher
+    if (!assessment.submittedByTeacherId) {
+      return { success: false, error: 'Authorization Failure: Assessments must be linked to a teacher before publishing.' }
+    }
+
     // Check for uniqueness if an access code is provided
     if (assessment.accessCode) {
       const existing = await db.assessmentTemplate.findFirst({
@@ -88,10 +93,11 @@ export async function updateAssessmentReviewAction(id: string, status: Assessmen
 
 export async function updateAssessmentStatus(id: string, status: AssessmentTemplate['status'], teacherId?: string): Promise<ActionResult<AssessmentTemplate>> {
   try {
-    // Security Audit: Verify ownership
+    // Security Audit: Verify ownership — only the owner can update their test
     if (teacherId) {
       const existing = await db.assessmentTemplate.findUnique({ where: { id } })
-      if (existing && existing.submittedByTeacherId && existing.submittedByTeacherId !== teacherId) {
+      const isOwner = existing?.submittedByTeacherId && existing.submittedByTeacherId === teacherId
+      if (existing && !isOwner) {
         return { success: false, error: 'Authorization Failure: You do not have permissions for this assessment.' }
       }
     }
@@ -126,10 +132,11 @@ export async function updateAssessmentStatus(id: string, status: AssessmentTempl
 
 export async function removeAssessment(id: string, teacherId?: string): Promise<ActionResult> {
   try {
-    // Security Audit: Verify ownership
+    // Security Audit: Verify ownership — only the owner can delete their test
     if (teacherId) {
       const existing = await db.assessmentTemplate.findUnique({ where: { id } })
-      if (existing && existing.submittedByTeacherId && existing.submittedByTeacherId !== teacherId) {
+      const isOwner = existing?.submittedByTeacherId && existing.submittedByTeacherId === teacherId
+      if (existing && !isOwner) {
         return { success: false, error: 'Authorization Failure: This assessment is locked for your identity.' }
       }
     }

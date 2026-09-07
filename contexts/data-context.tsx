@@ -274,7 +274,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [user?.id, user?.role])
 
   const retryConnection = useCallback(async () => {
-    setHasError(false)
+    setErrorMsg(null)
     retryCountRef.current = 0
     await refresh()
   }, [refresh])
@@ -294,7 +294,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const executeAction = useCallback(async (
     action: () => Promise<any>, 
     successMsg?: string, 
-    errorMsg?: string
+    errorMsg?: string,
+    skipRefresh?: boolean
   ) => {
     try {
       const result = await action()
@@ -304,14 +305,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (result.diagnostic) err.diagnostic = result.diagnostic
         throw err
       }
-      await refresh()
+      if (!skipRefresh) await refresh()
       if (successMsg) toast.success(successMsg)
       return result
     } catch (err: any) {
       const specificError = err.message || 'Registry sync failed'
       console.error('[DataProvider] ACTION_ERROR:', err)
       toast.error(errorMsg || specificError)
-      await refresh()
+      if (!skipRefresh) await refresh()
       throw err // Re-throw full error object including .diagnostic
     }
   }, [refresh])
@@ -346,15 +347,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setQuestions(prev => [...newItems, ...prev.filter(item => !newItems.some((n: any) => n.id === item.id))])
     }
     return res
-  }, `${qs.length} blocks imported`), [executeAction])
+  }, `${qs.length} blocks imported`, undefined, true), [executeAction])
 
   const deleteQuestion = useCallback((id: string) => executeAction(async () => {
     const res = await dbDeleteQuestion(id, user?.role === 'teacher' ? user?.id : undefined)
     if (res.success) {
       setQuestions(prev => prev.filter(item => item.id !== id))
+      toast.success('Block removed')
     }
     return res
-  }, "Block removed"), [executeAction, user?.id, user?.role])
+  }, undefined, undefined, true), [executeAction, user?.id, user?.role])
 
   const deleteQuestionsByPhase = useCallback((phase: 'First Test' | 'Last Test' | 'Both', classLevel?: string) => executeAction(async () => {
     const res = await dbDeleteQuestionsByPhase(user?.id || '', phase, classLevel)
@@ -491,9 +493,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const res = await dbDeleteAudio(id, user?.id || '')
     if (res.success) {
       setAudioFiles(prev => prev.filter(item => item.id !== id))
+      toast.success('Asset purged')
     }
     return res
-  }, "Asset purged"), [executeAction, user?.id])
+  }, undefined, undefined, true), [executeAction, user?.id])
   const addAnnouncement = useCallback((data: { title: string, summary: string, content: string, category: string, date: string, imageUrl?: string | null }) => executeAction(() => dbCreateAnnouncement(data), "Announcement posted"), [executeAction])
   const saveCardTemplate = useCallback((level: string, backgroundUrl: string, coordinates: any) => executeAction(() => dbSaveCardTemplate(level, backgroundUrl, coordinates), "Card template saved"), [executeAction])
   const deleteCardTemplate = useCallback((level: string) => executeAction(() => dbDeleteCardTemplate(level), "Card template reset"), [executeAction])

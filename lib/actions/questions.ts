@@ -25,6 +25,10 @@ function toOptionalInt(val: any): number | null {
 
 export async function addQuestion(question: Omit<Question, 'id'>): Promise<ActionResult<Question>> {
   try {
+    // Ownership Enforcement: Every question must be assigned to a teacher
+    if (!question.teacherId) {
+      return { success: false, error: 'Authorization Failure: Questions must be assigned to a teacher.' }
+    }
     const result = await db.question.create({
       data: {
         category: question.category,
@@ -59,6 +63,11 @@ export async function addQuestion(question: Omit<Question, 'id'>): Promise<Actio
 
 export async function bulkAddQuestions(questions: Omit<Question, 'id'>[]): Promise<ActionResult<{ count: number }>> {
   try {
+    // Ownership Enforcement: Reject any questions missing a teacherId
+    const missingOwner = questions.some(q => !q.teacherId)
+    if (missingOwner) {
+      return { success: false, error: 'Authorization Failure: All questions must be assigned to a teacher before import.' }
+    }
     const records = questions.map(q => {
       let optionsArray: string[] = []
       if (Array.isArray(q.options)) {
@@ -135,8 +144,10 @@ export async function deleteQuestion(id: string, teacherId?: string): Promise<Ac
         teacherRecord?.email
       ].filter(Boolean) as string[])
 
-      // Allow purge if question is unassigned or owned by one of the teacher's identifiers
-      if (existing.teacherId && !validTeacherIds.has(existing.teacherId)) {
+      // Ownership check: only allow deletion if this teacher owns it
+      // Questions with null teacherId are treated as legacy unowned — block deletion by teachers
+      const isOwner = existing.teacherId && validTeacherIds.has(existing.teacherId)
+      if (!isOwner) {
         return { success: false, error: 'Authorization Failure: You do not own this question block.' }
       }
     }
