@@ -38,6 +38,7 @@ export interface DailySession {
   edge_case_syntax?: string[]
   signalWords?: string[]
   vocabList: string[]
+  idiomList?: string[]
   vocabulary?: {
     word: string
     part_of_speech: string
@@ -780,11 +781,12 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
     ? selectedDays
     : defaultDays.slice(0, sessionsPerWeek)
 
-  // STRICT GUARDRAIL: Only build Vocabulary Pool if user explicitly entered vocabulary or idioms
-  const userEnteredPool = Array.from(new Set([...vocabTags, ...idiomTags])).filter(Boolean)
-  const baseVocabPool = userEnteredPool.length > 0 ? userEnteredPool : []
+  // Clean user entered vocabulary and idioms pools
+  const cleanVocabTags = Array.from(new Set((vocabTags || []).map(v => v.trim()).filter(Boolean)))
+  const cleanIdiomTags = Array.from(new Set((idiomTags || []).map(i => i.trim()).filter(Boolean)))
 
-  const vocabChunks = chunkArray(baseVocabPool, 3)
+  const vocabChunks = chunkArray(cleanVocabTags, 3)
+  const idiomChunks = chunkArray(cleanIdiomTags, 2)
 
   // Determine schedule archetypes per week
   const archetypes = weeklyArchetypes && weeklyArchetypes.length === sessionsPerWeek
@@ -817,6 +819,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
       let boardLayout: string | undefined = undefined
       let sentenceModels: string[] | undefined = undefined
       let vocabList: string[] = []
+      let idiomList: string[] = []
       let activityType = ''
       let activityDetail = ''
       let objective = ''
@@ -837,13 +840,20 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
       
       const grammarDetails = getGrammarDetailsForStructure(targetGrammarTag, cefr, sectionIndex)
 
-      // Vocabulary Chunking: Assign 2-3 word chunks ONLY if user entered vocabulary
-      if (baseVocabPool.length > 0 && (archetype === 'grammar' || archetype === 'reading')) {
-        const currentChunk = vocabChunks[instructionalSessionCounter % vocabChunks.length] || []
-        vocabList = currentChunk
+      // Vocabulary & Idioms Chunking: Assign to Grammar and Reading days
+      if (archetype === 'grammar' || archetype === 'reading') {
+        if (cleanVocabTags.length > 0) {
+          const currentVocabChunk = vocabChunks[instructionalSessionCounter % vocabChunks.length] || []
+          vocabList = currentVocabChunk
+        }
+        if (cleanIdiomTags.length > 0) {
+          const currentIdiomChunk = idiomChunks[instructionalSessionCounter % idiomChunks.length] || []
+          idiomList = currentIdiomChunk
+        }
         instructionalSessionCounter++
       } else {
         vocabList = []
+        idiomList = []
       }
 
       // Check Mid-Term & Final Exams
@@ -855,6 +865,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         activityDetail = 'Students undergo individual oral presentations and written grammar check.'
         objective = 'Evaluate mid-term progress and academic attainment aligned to CEFR criteria.'
         vocabList = []
+        idiomList = []
       } else if (w === termWeeks && d === sessionsPerWeek) {
         type = 'Exam'
         topicTitle = 'FINAL TERM WRITTEN & ORAL GRADUATION ASSESSMENT'
@@ -863,6 +874,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         activityDetail = 'Invigilated written exam followed by 1-on-1 speaking interview and portfolio review.'
         objective = 'Certify CEFR level proficiency and issue formal academic transcripts.'
         vocabList = []
+        idiomList = []
       } else {
         const themeSuffix = cleanTheme ? ` in "${cleanTheme}" context` : ''
         
@@ -971,6 +983,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         edge_case_syntax: isSimplified ? undefined : grammarDetails.edge_case_syntax,
         signalWords: isSimplified ? undefined : grammarDetails.signalWords,
         vocabList,
+        idiomList,
         vocabulary: vocabList.map(v => ({
           word: v,
           part_of_speech: 'noun/verb',
@@ -979,6 +992,14 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
           partOfSpeech: 'noun/verb',
           def: `Key vocabulary term for ${cefr} level.`,
           example: `Example sentence 1 using ${v}.`
+        })),
+        idioms: idiomList.map(idm => ({
+          idiom: idm,
+          definition: `Target idiom expression for ${cefr} level speaking fluency.`,
+          example_sentences: [`Students used "${idm}" fluently during discussion.`, `In context, "${idm}" conveys natural nuance.`],
+          expression: idm,
+          meaning: `Target idiom expression for ${cefr} level speaking fluency.`,
+          usage: `Used for natural speaking fluency.`
         })),
         activityType,
         activityDetail,

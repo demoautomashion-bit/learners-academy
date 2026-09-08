@@ -1242,6 +1242,17 @@ export default function LessonGeneratorPage() {
                                       </div>
                                     )}
 
+                                    {d.idiomList && d.idiomList.length > 0 && (
+                                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Target Idioms:</span>
+                                        {d.idiomList.map((idm: string, ii: number) => (
+                                          <span key={ii} className="bg-purple-500/10 text-purple-700 dark:text-purple-300 text-[10px] px-2 py-0.5 rounded font-mono font-medium">
+                                            "{idm}"
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+
                                     {d.activityType && (
                                       <div className="bg-muted/30 p-2 rounded text-[11px] text-foreground border border-border/50 flex items-start gap-2">
                                         <Target className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
@@ -1508,6 +1519,19 @@ export default function LessonGeneratorPage() {
                                         {d.vocabList.map((v: string, vi: number) => (
                                           <Badge key={vi} variant="secondary" className="text-xs font-mono font-normal">
                                             {v}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {d.idiomList && d.idiomList.length > 0 && (
+                                    <div className="space-y-1.5">
+                                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Target Idioms & Expressions</span>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {d.idiomList.map((idm: string, ii: number) => (
+                                          <Badge key={ii} variant="outline" className="text-xs font-mono font-normal bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-300">
+                                            "{idm}"
                                           </Badge>
                                         ))}
                                       </div>
