@@ -1,4 +1,5 @@
 export * from './auth'
+export * from './lesson'
 
 export interface Teacher {
   id: string

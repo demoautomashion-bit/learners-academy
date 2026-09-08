@@ -240,7 +240,12 @@ export function exportSyllabusToWord(syllabus: any) {
       htmlContent += `
         <h2>Target Vocabulary</h2>
         <ul>
-          ${syllabus.vocabulary.map((v: any) => `<li><strong>${v.word}:</strong> ${v.def}</li>`).join('')}
+          ${syllabus.vocabulary.map((v: any) => {
+            const pos = v.part_of_speech || v.partOfSpeech ? ` <em>(${v.part_of_speech || v.partOfSpeech})</em>` : ''
+            const def = v.definition || v.def || ''
+            const ex = (v.example_sentences && v.example_sentences.length > 0) ? ` — <em>"${v.example_sentences.join(' / ')}"` : (v.example ? ` — <em>"${v.example}"</em>` : '')
+            return `<li><strong>${v.word}</strong>${pos}: ${def}${ex}</li>`
+          }).join('')}
         </ul>
       `
     }
@@ -249,7 +254,12 @@ export function exportSyllabusToWord(syllabus: any) {
       htmlContent += `
         <h2>Target Idioms & Expressions</h2>
         <ul>
-          ${syllabus.idioms.map((idm: any) => `<li><strong>"${idm.expression}":</strong> ${idm.usage}</li>`).join('')}
+          ${syllabus.idioms.map((idm: any) => {
+            const expr = idm.idiom || idm.expression || ''
+            const def = idm.definition || idm.meaning || ''
+            const ex = (idm.example_sentences && idm.example_sentences.length > 0) ? ` — <em>"${idm.example_sentences.join(' / ')}"` : (idm.usage ? ` — <em>"${idm.usage}"</em>` : '')
+            return `<li><strong>"${expr}"</strong>: ${def}${ex}</li>`
+          }).join('')}
         </ul>
       `
     }
@@ -809,7 +819,12 @@ export function exportSyllabusToPDF(syllabus: any) {
       htmlContent += `
         <h2>Target Vocabulary</h2>
         <ul>
-          ${syllabus.vocabulary.map((v: any) => `<li><strong>${v.word}:</strong> ${v.def}</li>`).join('')}
+          ${syllabus.vocabulary.map((v: any) => {
+            const pos = v.part_of_speech || v.partOfSpeech ? ` <em>(${v.part_of_speech || v.partOfSpeech})</em>` : ''
+            const def = v.definition || v.def || ''
+            const ex = (v.example_sentences && v.example_sentences.length > 0) ? ` — <em>"${v.example_sentences.join(' / ')}"` : (v.example ? ` — <em>"${v.example}"</em>` : '')
+            return `<li><strong>${v.word}</strong>${pos}: ${def}${ex}</li>`
+          }).join('')}
         </ul>
       `
     }
@@ -818,7 +833,12 @@ export function exportSyllabusToPDF(syllabus: any) {
       htmlContent += `
         <h2>Target Idioms & Expressions</h2>
         <ul>
-          ${syllabus.idioms.map((idm: any) => `<li><strong>"${idm.expression}":</strong> ${idm.usage}</li>`).join('')}
+          ${syllabus.idioms.map((idm: any) => {
+            const expr = idm.idiom || idm.expression || ''
+            const def = idm.definition || idm.meaning || ''
+            const ex = (idm.example_sentences && idm.example_sentences.length > 0) ? ` — <em>"${idm.example_sentences.join(' / ')}"` : (idm.usage ? ` — <em>"${idm.usage}"</em>` : '')
+            return `<li><strong>"${expr}"</strong>: ${def}${ex}</li>`
+          }).join('')}
         </ul>
       `
     }

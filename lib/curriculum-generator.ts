@@ -27,6 +27,7 @@ export interface DailySession {
   grammarDefinition?: string
   usageCases?: string[]
   grammarExplanation?: string
+  explanation_rationale?: string
   syntaxFormula?: string
   grammarScopeLimit?: string
   boardLayout?: string
@@ -34,8 +35,26 @@ export interface DailySession {
   sentenceModels?: string[]
   grammarSubSections?: string[]
   edgeCases?: string[]
+  edge_case_syntax?: string[]
   signalWords?: string[]
   vocabList: string[]
+  vocabulary?: {
+    word: string
+    part_of_speech: string
+    definition: string
+    example_sentences: string[]
+    partOfSpeech?: string
+    def?: string
+    example?: string
+  }[]
+  idioms?: {
+    idiom: string
+    definition: string
+    example_sentences: string[]
+    expression?: string
+    meaning?: string
+    usage?: string
+  }[]
   activityType: string
   activityDetail: string
   objective: string
@@ -107,6 +126,7 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
         'Reporting recent news or events that produce immediate consequences in the present.'
       ],
       explanation: `In ${cefr}-level communication, distinguishing Present Perfect from Past Simple allows speakers to separate ongoing/open life context from completed historical events. Past Simple links to a closed time window, whereas Present Perfect connects past occurrences to the speaker's present state.`,
+      explanation_rationale: 'Present Perfect links past actions to current state or open time frames, whereas Past Simple anchors completed actions to closed past time windows.',
       syntaxFormula: 'Pres. Perf: [Subject] + [have/has] + [Past Participle V3]  VS  Past Simple: [Subject] + [Past Verb V2] + [Finished Time Marker]',
       scope: 'Focus on contrasting finished time expressions (ago, yesterday, last year) with open time periods (this week, so far, in my life).',
       board: 'Pres. Perf: Subj + have/has + V3 (Indefinite)  VS  Past Simple: Subj + V2 (Finished Time)',
@@ -120,6 +140,10 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       edgeCases: [
         'Been vs. Gone: "She has been to Paris" (visited & returned) vs "She has gone to Paris" (still there now).',
         'Never use specific past timestamps (yesterday, ago, in 2018) with Present Perfect.'
+      ],
+      edge_case_syntax: [
+        'Been vs. Gone Syntax: [Subject] + [have/has] + BEEN (visited & returned) VS [Subject] + [have/has] + GONE (still present there)',
+        'Timestamp Exception: *[Subject] + [have/has] + [V3] + [yesterday/ago/in 2020]* (INCORRECT; use Past Simple with fixed time)'
       ],
       signalWords: ['ever', 'never', 'already', 'yet', 'just', 'recently', 'so far', 'since', 'for', 'yesterday', 'ago'],
       sentenceModels: [
@@ -470,6 +494,7 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
       `Developing spoken fluency and precise expression when discussing complex real-world topics.`
     ],
     explanation: `In ${cefr}-level English mastery, understanding ${grammarTag} provides structural accuracy, preventing communication misunderstandings and ensuring well-formed written and spoken expressions.`,
+    explanation_rationale: `Used to convey structural clarity, accurate timeframe relationships, and precise communication in formal and informal ${cefr} contexts.`,
     syntaxFormula: `[Subject / Focus] + [Auxiliary Verb for ${grammarTag}] + [Main Verb Structure] + [Object / Complement]`,
     scope: `Focus on sentence word-order syntax, auxiliary verb placement, and common L1 student transfer errors associated with ${grammarTag}.`,
     board: `Target Formula: ${grammarTag} (Form & Sentence Transformation Rules)`,
@@ -483,6 +508,10 @@ export function getGrammarDetailsForStructure(grammarTag: string, cefr: string =
     edgeCases: [
       `Pay attention to subject-verb agreement and proper auxiliary verb selection.`,
       `Avoid double negatives or improper tense mixing.`
+    ],
+    edge_case_syntax: [
+      `Subject-Verb Agreement Syntax: [Singular/Plural Subject] + [Matched Auxiliary] + [Main Verb]`,
+      `Negation Pattern Syntax: [Subject] + [Auxiliary] + NOT + [Base Verb]`
     ],
     signalWords: ['always', 'usually', 'sometimes', 'never', 'already', 'yet'],
     sentenceModels: [
@@ -931,6 +960,7 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         grammarDefinition: isSimplified ? undefined : grammarDetails.definition,
         usageCases: isSimplified ? undefined : grammarDetails.usageCases,
         grammarExplanation: isSimplified ? undefined : grammarExplanation,
+        explanation_rationale: isSimplified ? undefined : grammarDetails.explanation_rationale,
         syntaxFormula: isSimplified ? undefined : syntaxFormula,
         grammarScopeLimit: isSimplified ? undefined : grammarScopeLimit,
         boardLayout: isSimplified ? undefined : boardLayout,
@@ -938,8 +968,18 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
         sentenceModels: isSimplified ? undefined : sentenceModels,
         grammarSubSections: isSimplified ? undefined : grammarDetails.subSections,
         edgeCases: isSimplified ? undefined : grammarDetails.edgeCases,
+        edge_case_syntax: isSimplified ? undefined : grammarDetails.edge_case_syntax,
         signalWords: isSimplified ? undefined : grammarDetails.signalWords,
         vocabList,
+        vocabulary: vocabList.map(v => ({
+          word: v,
+          part_of_speech: 'noun/verb',
+          definition: `Key vocabulary term for ${cefr} level.`,
+          example_sentences: [`Example sentence 1 using ${v}.`, `Example sentence 2 using ${v}.`],
+          partOfSpeech: 'noun/verb',
+          def: `Key vocabulary term for ${cefr} level.`,
+          example: `Example sentence 1 using ${v}.`
+        })),
         activityType,
         activityDetail,
         objective,

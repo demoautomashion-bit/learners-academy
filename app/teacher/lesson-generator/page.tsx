@@ -327,6 +327,7 @@ export default function LessonGeneratorPage() {
           theme: cleanTopic || undefined,
           grammarFocus: gInfo.rule,
           grammarExplanation: `In ${selectedCefr} level communication, ${primaryG} is used to articulate concepts clearly and accurately. ${gInfo.scope}`,
+          explanation_rationale: gInfo.explanation_rationale || `Used to convey structural clarity, accurate timeframe relationships, and precise communication in formal and informal ${selectedCefr} contexts.`,
           boardLayout: gInfo.board,
           grammarScopeLimit: gInfo.scope,
           grammarForms: gInfo.forms,
@@ -337,10 +338,32 @@ export default function LessonGeneratorPage() {
           ],
           grammarSubSections: gInfo.subSections,
           edgeCases: gInfo.edgeCases,
+          edge_case_syntax: gInfo.edge_case_syntax,
           signalWords: gInfo.signalWords,
           objectives,
-          vocabulary: activeVocab.map(v => ({ word: v, partOfSpeech: 'key term', def: `Target key vocabulary term aligned to ${selectedCefr} level.`, example: `We need to review ${v} in this context.` })),
-          idioms: activeIdioms.map(idm => ({ expression: idm, meaning: 'Common English idiom for natural speaking fluency.', usage: 'Use in spontaneous speaking.' })),
+          vocabulary: activeVocab.map(v => ({
+            word: v,
+            part_of_speech: 'noun/verb',
+            definition: `Target key vocabulary term aligned to ${selectedCefr} level.`,
+            example_sentences: [
+              `We need to review ${v} in this context.`,
+              `The student used ${v} effectively in written composition.`
+            ],
+            partOfSpeech: 'noun/verb',
+            def: `Target key vocabulary term aligned to ${selectedCefr} level.`,
+            example: `We need to review ${v} in this context.`
+          })),
+          idioms: activeIdioms.map(idm => ({
+            idiom: idm,
+            definition: 'Common English idiom for natural speaking fluency.',
+            example_sentences: [
+              `They used "${idm}" to express ideas fluently.`,
+              `In formal discourse, "${idm}" conveys nuanced meaning.`
+            ],
+            expression: idm,
+            meaning: 'Common English idiom for natural speaking fluency.',
+            usage: 'Use in spontaneous speaking.'
+          })),
           ccqs: detailLevel === 'simplified' ? [] : gInfo.ccqs,
           quiz: [
             {
@@ -1541,12 +1564,31 @@ export default function LessonGeneratorPage() {
                           <div className="p-4 rounded-lg border border-border bg-card space-y-2">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Target Vocabulary</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {generatedResult.vocabulary.map((v: any, idx: number) => (
-                                <div key={idx} className="p-2.5 rounded-lg bg-muted/30 border border-border/60 text-xs">
-                                  <span className="font-bold text-foreground block">{v.word}</span>
-                                  <span className="text-muted-foreground text-[11px]">{v.def}</span>
-                                </div>
-                              ))}
+                              {generatedResult.vocabulary.map((v: any, idx: number) => {
+                                const pos = v.part_of_speech || v.partOfSpeech
+                                const def = v.definition || v.def
+                                const examples = v.example_sentences || (v.example ? [v.example] : [])
+                                return (
+                                  <div key={idx} className="p-3 rounded-lg bg-muted/30 border border-border/60 text-xs space-y-1.5">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <span className="font-bold text-foreground block">{v.word}</span>
+                                      {pos && <Badge variant="outline" className="text-[10px] uppercase font-mono py-0 px-1.5 bg-background">{pos}</Badge>}
+                                    </div>
+                                    <p className="text-muted-foreground text-[11px] leading-relaxed">{def}</p>
+                                    {examples.length > 0 && (
+                                      <div className="pt-1.5 border-t border-border/40 space-y-0.5">
+                                        <span className="text-[10px] font-semibold text-primary block uppercase tracking-wider">Model Sentences:</span>
+                                        {examples.map((ex: string, exi: number) => (
+                                          <p key={exi} className="text-[11px] text-foreground/90 italic flex items-start gap-1">
+                                            <span className="text-primary font-bold">›</span>
+                                            <span>"{ex}"</span>
+                                          </p>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
                             </div>
                           </div>
                         )}
@@ -1555,12 +1597,28 @@ export default function LessonGeneratorPage() {
                           <div className="p-4 rounded-lg border border-border bg-card space-y-2">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Idioms & Collocations</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {generatedResult.idioms.map((idm: any, idx: number) => (
-                                <div key={idx} className="p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-xs">
-                                  <span className="font-bold text-primary block">"{idm.expression}"</span>
-                                  <span className="text-muted-foreground text-[11px]">{idm.usage}</span>
-                                </div>
-                              ))}
+                              {generatedResult.idioms.map((idm: any, idx: number) => {
+                                const idiomText = idm.idiom || idm.expression
+                                const def = idm.definition || idm.meaning
+                                const examples = idm.example_sentences || (idm.usage ? [idm.usage] : [])
+                                return (
+                                  <div key={idx} className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs space-y-1.5">
+                                    <span className="font-bold text-primary block">"{idiomText}"</span>
+                                    <p className="text-muted-foreground text-[11px] leading-relaxed">{def}</p>
+                                    {examples.length > 0 && (
+                                      <div className="pt-1.5 border-t border-primary/10 space-y-0.5">
+                                        <span className="text-[10px] font-semibold text-primary block uppercase tracking-wider">Example Usage:</span>
+                                        {examples.map((ex: string, exi: number) => (
+                                          <p key={exi} className="text-[11px] text-foreground/90 italic flex items-start gap-1">
+                                            <span className="text-primary font-bold">›</span>
+                                            <span>"{ex}"</span>
+                                          </p>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
                             </div>
                           </div>
                         )}
@@ -1568,7 +1626,7 @@ export default function LessonGeneratorPage() {
 
                       <TabsContent value="mechanics" className="space-y-4">
                         {/* Grammar Definition & Real-World Usage Scenarios */}
-                        {(generatedResult.grammarDefinition || generatedResult.grammarExplanation || (generatedResult.usageCases && generatedResult.usageCases.length > 0)) && (
+                        {(generatedResult.grammarDefinition || generatedResult.grammarExplanation || generatedResult.explanation_rationale || (generatedResult.usageCases && generatedResult.usageCases.length > 0)) && (
                           <div className="bg-primary/5 border border-primary/20 p-3.5 rounded-xl space-y-2">
                             <span className="text-xs font-bold text-primary flex items-center gap-1.5">
                               📖 Grammar Definition & Real-World Usage Scenarios:
@@ -1576,6 +1634,11 @@ export default function LessonGeneratorPage() {
                             {generatedResult.grammarDefinition && (
                               <p className="text-xs font-medium text-foreground leading-relaxed">
                                 <strong className="text-primary font-bold">Academic Definition:</strong> {generatedResult.grammarDefinition}
+                              </p>
+                            )}
+                            {generatedResult.explanation_rationale && (
+                              <p className="text-xs font-medium text-primary leading-relaxed bg-primary/10 p-2 rounded-lg border border-primary/20">
+                                <strong className="font-bold">Communicative Rationale:</strong> {generatedResult.explanation_rationale}
                               </p>
                             )}
                             {generatedResult.grammarExplanation && (
@@ -1664,20 +1727,32 @@ export default function LessonGeneratorPage() {
                           </div>
                         )}
 
-                        {/* Edge Cases & Common Student Pitfalls */}
-                        {generatedResult.edgeCases && generatedResult.edgeCases.length > 0 && (
+                        {/* Edge Cases & Structural Syntax Formulas */}
+                        {((generatedResult.edgeCases && generatedResult.edgeCases.length > 0) || (generatedResult.edge_case_syntax && generatedResult.edge_case_syntax.length > 0)) && (
                           <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl space-y-2">
                             <span className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-                              ⚠️ Edge Cases & Common Student Pitfalls:
+                              ⚠️ Edge Cases, Student Pitfalls & Structural Syntax Formulas:
                             </span>
-                            <ul className="space-y-1.5 pl-1">
-                              {generatedResult.edgeCases.map((ec: string, eci: number) => (
-                                <li key={eci} className="text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2">
-                                  <span className="text-amber-600 font-bold">!</span>
-                                  <span>{ec}</span>
-                                </li>
-                              ))}
-                            </ul>
+                            {generatedResult.edgeCases && generatedResult.edgeCases.length > 0 && (
+                              <ul className="space-y-1.5 pl-1">
+                                {generatedResult.edgeCases.map((ec: string, eci: number) => (
+                                  <li key={eci} className="text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2">
+                                    <span className="text-amber-600 font-bold">!</span>
+                                    <span>{ec}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                            {generatedResult.edge_case_syntax && generatedResult.edge_case_syntax.length > 0 && (
+                              <div className="space-y-1 pt-2 border-t border-amber-500/20 font-mono text-xs">
+                                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block uppercase font-sans">Edge-Case Structural Syntax Formulas:</span>
+                                {generatedResult.edge_case_syntax.map((ecs: string, ecsi: number) => (
+                                  <div key={ecsi} className="bg-background/90 p-2 rounded-md border border-amber-500/30 text-amber-950 dark:text-amber-200">
+                                    {ecs}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
 

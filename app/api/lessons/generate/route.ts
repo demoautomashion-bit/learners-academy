@@ -6,6 +6,35 @@ const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null
 
+const SYSTEM_PROMPT = `You are an expert TEFL/ESL curriculum engineer. Generate a structured JSON response for an ESL lesson plan strictly adhering to the schema and rules below. Omit all conversational text, introductory remarks, and unnecessary fluff. Keep descriptions clean, concise, and classroom-ready.
+
+### 1. VOCABULARY & IDIOMS (If provided; otherwise set to [])
+- Vocabulary Objects:
+  - "word": string
+  - "part_of_speech": string (e.g., "noun", "verb", "adjective")
+  - "definition": concise CEFR-aligned meaning
+  - "example_sentences": array of exactly 2 clear model sentences
+- Idiom Objects:
+  - "idiom": string
+  - "definition": concise CEFR-aligned meaning
+  - "example_sentences": array of exactly 2 clear model sentences
+
+### 2. GRAMMAR EXPLANATION & RATIONALE
+- Provide a brief 1-2 sentence explanation covering:
+  - What the targeted grammar structure is used for.
+  - The core communicative reason/rationale behind using it in real-world contexts ("explanation_rationale").
+
+### 3. GRAMMAR CHUNKING, SYNTAX & EDGE CASES
+- Progressive Chunking: Break complex grammar concepts into logical sub-topics for this specific session. Focus strictly on the assigned chunk.
+- Syntax Models: Provide standard formulas using standardized notation (e.g., [Subject] + [have/has] + [V3]).
+- Edge-Case Handling:
+  - Identify key edge cases, irregular forms, and common L1 interference pitfalls specific to this lesson's grammar chunk ("edgeCases").
+  - Provide concise, explicit explanations for why each edge case occurs and how students should avoid mistakes.
+  - Supply explicit structural syntax formulas specifically designed for these edge cases ("edge_case_syntax").
+
+### OUTPUT CONSTRAINTS
+- Strict JSON output matching the target schema. No extra commentary or fluff.`
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()
@@ -76,13 +105,9 @@ export async function POST(req: Request) {
             grammarDefinition: gInfo.definition,
             usageCases: gInfo.usageCases,
             grammarExplanation: gInfo.explanation,
+            explanation_rationale: gInfo.explanation_rationale,
             syntaxFormula: gInfo.syntaxFormula,
-            syntaxPatterns: gInfo.syntaxPatterns || {
-              positive: gInfo.forms?.positive || '[Subject] + [Verb]',
-              negative: gInfo.forms?.negative || '[Subject] + [Auxiliary] + not + [Verb]',
-              interrogative: gInfo.forms?.interrogative || '[Auxiliary] + [Subject] + [Verb]?',
-              shortAnswers: gInfo.forms?.shortAnswers || 'Yes, [Subject] + [Aux]. / No, [Subject] + [Aux] + not.'
-            },
+
             boardLayout: gInfo.board,
             grammarScopeLimit: gInfo.scope,
             grammarForms: gInfo.forms,
@@ -93,6 +118,7 @@ export async function POST(req: Request) {
             ],
             grammarSubSections: gInfo.subSections,
             edgeCases: gInfo.edgeCases,
+            edge_case_syntax: gInfo.edge_case_syntax,
             signalWords: gInfo.signalWords,
             objectives: [
               `Master structural form and sentence syntax of ${primaryGrammar}: ${gInfo.rule}`,
@@ -100,10 +126,31 @@ export async function POST(req: Request) {
               idiomTags.length > 0 ? `Incorporate idioms such as "${idiomTags[0]}" naturally.` : undefined
             ].filter(Boolean),
             vocabulary: vocabTags.length > 0
-              ? vocabTags.map(v => ({ word: v, partOfSpeech: 'noun/verb', def: `Key term for ${cefr} level contexts.`, example: `We need to focus on ${v} during our discussion.` }))
+              ? vocabTags.map((v: string) => ({
+                  word: v,
+                  part_of_speech: 'noun/verb',
+                  definition: `Key term for ${cefr} level contexts.`,
+                  example_sentences: [
+                    `We need to focus on ${v} during our discussion.`,
+                    `The student used ${v} effectively in written composition.`
+                  ],
+                  partOfSpeech: 'noun/verb',
+                  def: `Key term for ${cefr} level contexts.`,
+                  example: `We need to focus on ${v} during our discussion.`
+                }))
               : [],
             idioms: idiomTags.length > 0
-              ? idiomTags.map(idm => ({ expression: idm, meaning: `Common figurative expression.`, usage: `Used to express ideas fluently.` }))
+              ? idiomTags.map((idm: string) => ({
+                  idiom: idm,
+                  definition: `Common figurative expression.`,
+                  example_sentences: [
+                    `They used "${idm}" to express ideas fluently.`,
+                    `In formal discourse, "${idm}" conveys nuanced meaning.`
+                  ],
+                  expression: idm,
+                  meaning: `Common figurative expression.`,
+                  usage: `Used to express ideas fluently.`
+                }))
               : [],
             ccqs: gInfo.ccqs,
             quiz: [
@@ -124,7 +171,7 @@ export async function POST(req: Request) {
 
     // Call OpenAI for live AI generation
     if (scope === 'term') {
-      const prompt = `You are a world-class TEFL/ESL curriculum engineer. Generate a structured JSON response for a ${termWeeks}-Week (${termWeeks * sessionsPerWeek} Total Sessions) Academic Term Roadmap.
+      const prompt = `Generate a structured JSON response for a ${termWeeks}-Week (${termWeeks * sessionsPerWeek} Total Sessions) Academic Term Roadmap.
       
       Parameters:
       - CEFR Level: ${cefr}
@@ -136,10 +183,10 @@ export async function POST(req: Request) {
       - Teaching Days: ${selectedDays.join(', ')}
 
       STRICT CONSTRAINTS:
-      1. VOCABULARY & IDIOMS RULE: If Target Vocabulary is "NONE PROVIDED BY TEACHER", return empty arrays [] for "vocabList" in all session objects. DO NOT invent unrequested vocabulary words. If Target Idioms is "NONE PROVIDED BY TEACHER", do not generate idioms.
-      2. DIVERSE GRAMMAR CHUNKING RULE: Break down complex grammar topics (e.g. Active/Passive Voice, Conditionals, Reported Speech, Tenses, Modals) into progressive, sequential sub-sections across sessions (e.g. Session 1: Present Simple Passive, Session 2: Past & Future Passive, Session 3: Continuous & Perfect Passive, Session 4: Passives with Modals...).
-      3. DEFINITION & USAGE RULE: For every session, provide a formal academic "grammarDefinition" and a list of 2-3 "usageCases" (when, why, and in what context students use this rule in real speech/writing).
-      4. PURE SYNTAX RULES VS EXAMPLES RULE: Separately provide "syntaxPatterns" (pure structural word-order formulas: positive, negative, interrogative, shortAnswers) and "sentenceModels" (actual full example sentences illustrating those formulas).
+      1. VOCABULARY & IDIOMS RULE: If Target Vocabulary is "NONE PROVIDED BY TEACHER", return empty arrays [] for "vocabList" and "vocabulary" in all session objects. DO NOT invent unrequested vocabulary words. If Target Idioms is "NONE PROVIDED BY TEACHER", return empty arrays [] for "idioms".
+      2. DIVERSE GRAMMAR CHUNKING RULE: Break down complex grammar topics (e.g. Active/Passive Voice, Conditionals, Reported Speech, Tenses, Modals) into progressive, sequential sub-sections across sessions.
+      3. DEFINITION & RATIONALE RULE: For every session, provide formal academic "grammarDefinition", 2-3 "usageCases", and a 1-2 sentence "explanation_rationale" (why speakers use this in real-world communicative context).
+      4. EDGE CASE & SYNTAX RULE: Include "edgeCases" (pitfalls/exceptions), "edge_case_syntax" (explicit structural formulas for edge cases), "syntaxPatterns" (pure structural formulas), and "sentenceModels" (concrete example sentences).
 
       Return ONLY valid JSON adhering strictly to this schema:
       {
@@ -169,6 +216,7 @@ export async function POST(req: Request) {
                 "grammarDefinition": "Formal academic definition of this grammatical concept",
                 "usageCases": ["Real-world usage scenario 1", "Real-world usage scenario 2"],
                 "grammarExplanation": "Detailed explanation of when and why to use this structure",
+                "explanation_rationale": "Core communicative rationale explaining real-world communicative value.",
                 "syntaxFormula": "Exact word order syntax breakdown [Subject] + [Auxiliary] + [Verb]...",
                 "syntaxPatterns": {
                   "positive": "[Subject] + [Aux] + [V3]",
@@ -191,8 +239,11 @@ export async function POST(req: Request) {
                 ],
                 "grammarSubSections": ["Sub-section 1", "Sub-section 2"],
                 "edgeCases": ["Edge case / common mistake 1", "Edge case 2"],
+                "edge_case_syntax": ["[Edge Case Formula 1]", "[Edge Case Formula 2]"],
                 "signalWords": ["word1", "word2"],
                 "vocabList": [],
+                "vocabulary": [],
+                "idioms": [],
                 "activityType": "Activity title",
                 "activityDetail": "Step-by-step activity description",
                 "objective": "Session objective",
@@ -208,7 +259,7 @@ export async function POST(req: Request) {
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You output strictly JSON. No markdown backticks or commentary.' },
+          { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: prompt }
         ],
         response_format: { type: 'json_object' },
@@ -221,7 +272,7 @@ export async function POST(req: Request) {
 
     } else {
       // Single Plan AI Generation
-      const prompt = `You are a world-class TEFL/ESL curriculum engineer. Generate a structured JSON response for a Single Session Lesson Plan.
+      const prompt = `Generate a structured JSON response for a Single Session Lesson Plan.
 
       Parameters:
       - CEFR Level: ${cefr}
@@ -233,9 +284,9 @@ export async function POST(req: Request) {
 
       STRICT CONSTRAINTS:
       1. VOCABULARY & IDIOMS RULE: If Target Vocabulary is "NONE PROVIDED BY TEACHER", return empty array [] for "vocabulary". If Target Idioms is "NONE PROVIDED BY TEACHER", return empty array [] for "idioms". DO NOT invent unrequested vocabulary/idioms.
-      2. DEFINITION & USAGE RULE: Provide formal academic "grammarDefinition" and 2-3 "usageCases" (when, why, and in what context students use this rule).
-      3. PURE SYNTAX RULES VS EXAMPLES RULE: Separately provide "syntaxPatterns" (pure structural word-order formulas: positive, negative, interrogative, shortAnswers) and "sentenceModels" (actual full example sentences).
-      4. ZERO generic intro/outro text.
+      2. DEFINITION & RATIONALE RULE: Provide formal academic "grammarDefinition", 2-3 "usageCases", and a 1-2 sentence "explanation_rationale" (communicative purpose).
+      3. PURE SYNTAX RULES VS EXAMPLES RULE: Separately provide "syntaxPatterns" (pure structural formulas) and "sentenceModels" (actual full example sentences).
+      4. EDGE CASE & SYNTAX RULE: Include "edgeCases" and "edge_case_syntax" (explicit structural formulas for edge cases).
 
       Return ONLY valid JSON adhering strictly to this schema:
       {
@@ -252,6 +303,7 @@ export async function POST(req: Request) {
           "Real-world usage scenario 2"
         ],
         "grammarExplanation": "Detailed explanation of when, why, and how to use this grammar in authentic contexts",
+        "explanation_rationale": "Brief 1-2 sentence explanation of what target structure is used for and its core communicative rationale in real-world contexts.",
         "syntaxFormula": "Word order syntax formula (e.g. [Subject] + [have/has] + [V3])",
         "syntaxPatterns": {
           "positive": "[Subject] + [Aux] + [V3]",
@@ -278,13 +330,17 @@ export async function POST(req: Request) {
           "Edge case 1: Common L1 student trap or exception",
           "Edge case 2: Key usage pitfall to avoid"
         ],
+        "edge_case_syntax": [
+          "[Structural syntax formula for Edge Case 1]",
+          "[Structural syntax formula for Edge Case 2]"
+        ],
         "signalWords": ["signal1", "signal2", "signal3"],
         "objectives": [
           "Objective 1",
           "Objective 2"
         ],
-        "vocabulary": ${vocabTags.length > 0 ? '[{"word": "Target Word", "partOfSpeech": "noun", "def": "definition", "example": "example"}]' : '[]'},
-        "idioms": ${idiomTags.length > 0 ? '[{"expression": "Target Idiom", "meaning": "meaning", "usage": "usage"}]' : '[]'},
+        "vocabulary": ${vocabTags.length > 0 ? `[${vocabTags.map((v: string) => JSON.stringify({ word: v, part_of_speech: 'noun', definition: `Definition of ${v}`, example_sentences: [`Example 1 using ${v}.`, `Example 2 using ${v}.`] })).join(',')}]` : '[]'},
+        "idioms": ${idiomTags.length > 0 ? `[${idiomTags.map((idm: string) => JSON.stringify({ idiom: idm, definition: `Definition of ${idm}`, example_sentences: [`Example 1 using ${idm}.`, `Example 2 using ${idm}.`] })).join(',')}]` : '[]'},
         "ccqs": ["CCQ 1?", "CCQ 2?", "CCQ 3?"],
         "quiz": [
           {
@@ -301,7 +357,7 @@ export async function POST(req: Request) {
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You output strictly JSON. No markdown backticks or commentary.' },
+          { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: prompt }
         ],
         response_format: { type: 'json_object' },
