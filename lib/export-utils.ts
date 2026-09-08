@@ -124,9 +124,34 @@ export function exportSyllabusToWord(syllabus: any) {
             <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 15px; background: #fafafa;">
               <h3 style="color: #1e3a8a; margin-top: 0; margin-bottom: 4px; font-size: 11pt;">${d.day}: ${d.topic}</h3>
               <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}</p>
+              
+              ${d.grammarDefinition ? `
+                <div style="background: #f0f9ff; border-left: 3px solid #0284c7; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt; color: #0369a1;">
+                  <strong>📘 Academic Definition:</strong> ${d.grammarDefinition}
+                </div>
+              ` : ''}
+
+              ${d.grammarExplanation ? `
+                <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt; color: #14532d;">
+                  <strong>📘 In-Depth Concept Explanation:</strong> ${d.grammarExplanation}
+                </div>
+              ` : ''}
+
+              ${d.explanation_rationale ? `
+                <div style="background: #faf5ff; border-left: 3px solid #9333ea; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt; color: #6b21a8;">
+                  <strong>💡 Communicative Rationale:</strong> ${d.explanation_rationale}
+                </div>
+              ` : ''}
+
               ${d.grammarScopeLimit ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 4px;"><strong>Grammar Scope Limit:</strong> ${d.grammarScopeLimit}</p>` : ''}
               ${d.boardLayout ? `<p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #1e3a8a; background: #e0e7ff; padding: 4px 8px; border-radius: 4px; font-family: monospace;"><strong>Whiteboard Formula:</strong> ${d.boardLayout}</p>` : ''}
               
+              ${d.syntaxFormula ? `
+                <p style="margin: 0 0 8px 0; font-size: 8.5pt; color: #166534; background: #dcfce7; padding: 4px 8px; border-radius: 4px; font-family: monospace;">
+                  <strong>📐 Word Order Blueprint:</strong> ${d.syntaxFormula}
+                </p>
+              ` : ''}
+
               ${d.grammarForms ? `
                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 8.5pt;">
                   <strong style="color: #1e3a8a;">📐 Sentence Structure Matrix (+ / - / ?):</strong>
@@ -136,11 +161,29 @@ export function exportSyllabusToWord(syllabus: any) {
                 </div>
               ` : ''}
 
+              ${d.sentenceModels && d.sentenceModels.length > 0 ? `
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong style="color: #065f46;">💬 Model Sentence Formation Examples:</strong>
+                  <ol style="margin: 2px 0 0 0; padding-left: 18px; color: #064e3b; font-family: monospace;">
+                    ${d.sentenceModels.map((sm: string) => `<li>${sm}</li>`).join('')}
+                  </ol>
+                </div>
+              ` : ''}
+
               ${d.grammarSubSections && d.grammarSubSections.length > 0 ? `
                 <div style="background: #f8fafc; border-left: 3px solid #1e3a8a; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
                   <strong>🎯 Functional Grammar Sub-Sections to Cover:</strong>
                   <ul style="margin: 2px 0 0 0; padding-left: 15px;">
                     ${d.grammarSubSections.map((sec: string) => `<li>${sec}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+
+              ${d.usageCases && d.usageCases.length > 0 ? `
+                <div style="background: #f8fafc; border-left: 3px solid #475569; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong>📋 When, Why & Context of Usage:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                    ${d.usageCases.map((uc: string) => `<li>${uc}</li>`).join('')}
                   </ul>
                 </div>
               ` : ''}
@@ -154,11 +197,48 @@ export function exportSyllabusToWord(syllabus: any) {
                 </div>
               ` : ''}
 
+              ${d.edge_case_syntax && d.edge_case_syntax.length > 0 ? `
+                <div style="background: #fef3c7; border-left: 3px solid #b45309; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt; color: #92400e;">
+                  <strong>⚡ Edge Case Syntax Patterns:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                    ${d.edge_case_syntax.map((ecs: string) => `<li>${ecs}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+
               ${d.signalWords && d.signalWords.length > 0 ? `
                 <p style="margin: 0 0 8px 0; font-size: 8.5pt;"><strong>Key Signal Words & Placement:</strong> ${d.signalWords.join(', ')}</p>
               ` : ''}
 
-              ${d.vocabList && d.vocabList.length > 0 ? `<p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${d.vocabList.join(', ')}</p>` : ''}
+              ${(d.vocabulary && d.vocabulary.length > 0) ? `
+                <div style="margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong>📚 Target Vocabulary:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                    ${d.vocabulary.map((v: any) => {
+                      const pos = v.part_of_speech || v.partOfSpeech ? ` <em>(${v.part_of_speech || v.partOfSpeech})</em>` : ''
+                      const def = v.definition || v.def || ''
+                      const ex = (v.example_sentences && v.example_sentences.length > 0) ? ` — <em>"${v.example_sentences.join(' / ')}"` : (v.example ? ` — <em>"${v.example}"</em>` : '')
+                      return `<li><strong>${v.word}</strong>${pos}: ${def}${ex}</li>`
+                    }).join('')}
+                  </ul>
+                </div>
+              ` : (d.vocabList && d.vocabList.length > 0 ? `
+                <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${d.vocabList.join(', ')}</p>
+              ` : '')}
+
+              ${d.idioms && d.idioms.length > 0 ? `
+                <div style="margin-bottom: 8px; font-size: 8.5pt;">
+                  <strong>💬 Target Idioms & Expressions:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                    ${d.idioms.map((idm: any) => {
+                      const expr = idm.idiom || idm.expression || ''
+                      const def = idm.definition || idm.meaning || ''
+                      const ex = (idm.example_sentences && idm.example_sentences.length > 0) ? ` — <em>"${idm.example_sentences.join(' / ')}"` : (idm.usage ? ` — <em>"${idm.usage}"</em>` : '')
+                      return `<li><strong>"${expr}"</strong>: ${def}${ex}</li>`
+                    }).join('')}
+                  </ul>
+                </div>
+              ` : ''}
             </div>
           `
         })
@@ -172,8 +252,16 @@ export function exportSyllabusToWord(syllabus: any) {
       htmlContent += `<p style="font-size: 9.5pt; color: #334155; margin-bottom: 10px;"><strong>Grammar Rule / Focus:</strong> ${syllabus.grammarFocus}</p>`
     }
 
+    if (syllabus.grammarDefinition) {
+      htmlContent += `<div style="background: #f0f9ff; border-left: 3px solid #0284c7; padding: 8px 12px; margin-bottom: 12px; font-size: 9pt; color: #0369a1;"><strong>📘 Academic Definition:</strong> ${syllabus.grammarDefinition}</div>`
+    }
+
     if (syllabus.grammarExplanation) {
       htmlContent += `<div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 8px 12px; margin-bottom: 12px; font-size: 9pt; color: #14532d;"><strong>📘 In-Depth Concept Explanation:</strong> ${syllabus.grammarExplanation}</div>`
+    }
+
+    if (syllabus.explanation_rationale) {
+      htmlContent += `<div style="background: #faf5ff; border-left: 3px solid #9333ea; padding: 8px 12px; margin-bottom: 12px; font-size: 9pt; color: #6b21a8;"><strong>💡 Communicative Rationale:</strong> ${syllabus.explanation_rationale}</div>`
     }
 
     if (syllabus.grammarScopeLimit) {
@@ -182,6 +270,10 @@ export function exportSyllabusToWord(syllabus: any) {
 
     if (syllabus.boardLayout) {
       htmlContent += `<p style="font-size: 8.5pt; color: #1e3a8a; background: #e0e7ff; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; font-family: monospace;"><strong>Whiteboard Formula:</strong> ${syllabus.boardLayout}</p>`
+    }
+
+    if (syllabus.syntaxFormula) {
+      htmlContent += `<p style="font-size: 8.5pt; color: #166534; background: #dcfce7; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; font-family: monospace;"><strong>📐 Word Order Blueprint:</strong> ${syllabus.syntaxFormula}</p>`
     }
 
     if (syllabus.grammarForms) {
@@ -199,9 +291,9 @@ export function exportSyllabusToWord(syllabus: any) {
       htmlContent += `
         <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 9pt;">
           <strong style="color: #065f46; font-size: 9.5pt;">💬 Model Sentence Formation Examples:</strong>
-          <ul style="margin: 4px 0 0 0; padding-left: 18px; color: #064e3b; font-family: monospace;">
+          <ol style="margin: 4px 0 0 0; padding-left: 18px; color: #064e3b; font-family: monospace;">
             ${syllabus.sentenceModels.map((sm: string) => `<li>${sm}</li>`).join('')}
-          </ul>
+          </ol>
         </div>
       `
     }
@@ -217,12 +309,34 @@ export function exportSyllabusToWord(syllabus: any) {
       `
     }
 
+    if (syllabus.usageCases && syllabus.usageCases.length > 0) {
+      htmlContent += `
+        <div style="background: #f8fafc; border-left: 3px solid #475569; padding: 8px 12px; margin-bottom: 14px; font-size: 9pt;">
+          <strong>📋 When, Why & Context of Usage:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+            ${syllabus.usageCases.map((uc: string) => `<li>${uc}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
     if (syllabus.edgeCases && syllabus.edgeCases.length > 0) {
       htmlContent += `
         <div style="background: #fef3c7; border-left: 3px solid #d97706; padding: 8px 12px; margin-bottom: 14px; font-size: 9pt; color: #92400e;">
           <strong>⚠️ Edge Cases & Common Student Pitfalls:</strong>
           <ul style="margin: 4px 0 0 0; padding-left: 18px;">
             ${syllabus.edgeCases.map((ec: string) => `<li>${ec}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
+    if (syllabus.edge_case_syntax && syllabus.edge_case_syntax.length > 0) {
+      htmlContent += `
+        <div style="background: #fef3c7; border-left: 3px solid #b45309; padding: 8px 12px; margin-bottom: 14px; font-size: 9pt; color: #92400e;">
+          <strong>⚡ Edge Case Syntax Patterns:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+            ${syllabus.edge_case_syntax.map((ecs: string) => `<li>${ecs}</li>`).join('')}
           </ul>
         </div>
       `
@@ -663,6 +777,24 @@ export function exportSyllabusToPDF(syllabus: any) {
                 <strong>Grammar Sub-Rule:</strong> ${d.grammarFocus || d.objective}
               </div>
 
+              ${d.grammarDefinition ? `
+                <div style="font-size: 10.5px; color: #0369a1; background: #f0f9ff; border-left: 3px solid #0284c7; padding: 6px 10px; border-radius: 4px; margin-bottom: 6px;">
+                  <strong>📘 Academic Definition:</strong> ${d.grammarDefinition}
+                </div>
+              ` : ''}
+
+              ${d.grammarExplanation ? `
+                <div style="font-size: 10.5px; color: #14532d; background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; border-radius: 4px; margin-bottom: 6px;">
+                  <strong>📘 Concept Explanation:</strong> ${d.grammarExplanation}
+                </div>
+              ` : ''}
+
+              ${d.explanation_rationale ? `
+                <div style="font-size: 10.5px; color: #6b21a8; background: #faf5ff; border-left: 3px solid #9333ea; padding: 6px 10px; border-radius: 4px; margin-bottom: 6px;">
+                  <strong>💡 Communicative Rationale:</strong> ${d.explanation_rationale}
+                </div>
+              ` : ''}
+
               ${d.grammarScopeLimit ? `
                 <div style="font-size: 10px; color: #92400e; background: #fef3c7; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px;">
                   <strong>Grammar Scope Limit:</strong> ${d.grammarScopeLimit}
@@ -675,6 +807,12 @@ export function exportSyllabusToPDF(syllabus: any) {
                 </div>
               ` : ''}
 
+              ${d.syntaxFormula ? `
+                <div style="font-size: 10px; color: #166534; background: #dcfce7; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; font-family: monospace;">
+                  <strong>📐 Word Order Blueprint:</strong> ${d.syntaxFormula}
+                </div>
+              ` : ''}
+
               ${d.grammarForms ? `
                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 10px;">
                   <strong style="color: #1e3a8a;">📐 Sentence Structure Matrix (+ / - / ?):</strong>
@@ -684,11 +822,29 @@ export function exportSyllabusToPDF(syllabus: any) {
                 </div>
               ` : ''}
 
+              ${d.sentenceModels && d.sentenceModels.length > 0 ? `
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 10px;">
+                  <strong style="color: #065f46;">💬 Model Sentence Formation Examples:</strong>
+                  <ol style="margin: 2px 0 0 0; padding-left: 16px; color: #064e3b; font-family: monospace;">
+                    ${d.sentenceModels.map((sm: string) => `<li>${sm}</li>`).join('')}
+                  </ol>
+                </div>
+              ` : ''}
+
               ${d.grammarSubSections && d.grammarSubSections.length > 0 ? `
                 <div style="background: #f8fafc; border-left: 3px solid #1e3a8a; padding: 6px 10px; margin-bottom: 8px; font-size: 10px;">
                   <strong style="color: #0f172a;">🎯 Functional Grammar Sub-Sections to Cover:</strong>
                   <ul style="margin: 2px 0 0 0; padding-left: 14px; color: #334155;">
                     ${d.grammarSubSections.map((sec: string) => `<li>${sec}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+
+              ${d.usageCases && d.usageCases.length > 0 ? `
+                <div style="background: #f8fafc; border-left: 3px solid #475569; padding: 6px 10px; margin-bottom: 8px; font-size: 10px;">
+                  <strong style="color: #0f172a;">📋 When, Why & Context of Usage:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 14px; color: #334155;">
+                    ${d.usageCases.map((uc: string) => `<li>${uc}</li>`).join('')}
                   </ul>
                 </div>
               ` : ''}
@@ -702,15 +858,50 @@ export function exportSyllabusToPDF(syllabus: any) {
                 </div>
               ` : ''}
 
+              ${d.edge_case_syntax && d.edge_case_syntax.length > 0 ? `
+                <div style="background: #fef3c7; border-left: 3px solid #b45309; padding: 6px 10px; margin-bottom: 8px; font-size: 10px; color: #92400e;">
+                  <strong>⚡ Edge Case Syntax Patterns:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 14px;">
+                    ${d.edge_case_syntax.map((ecs: string) => `<li>${ecs}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+
               ${d.signalWords && d.signalWords.length > 0 ? `
                 <div style="font-size: 10px; color: #334155; margin-bottom: 8px;">
                   <strong>Key Signal Words & Placement:</strong> ${d.signalWords.join(', ')}
                 </div>
               ` : ''}
 
-              ${d.vocabList && d.vocabList.length > 0 ? `
+              ${(d.vocabulary && d.vocabulary.length > 0) ? `
+                <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
+                  <strong>📚 Target Vocabulary:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 14px;">
+                    ${d.vocabulary.map((v: any) => {
+                      const pos = v.part_of_speech || v.partOfSpeech ? ` <em>(${v.part_of_speech || v.partOfSpeech})</em>` : ''
+                      const def = v.definition || v.def || ''
+                      const ex = (v.example_sentences && v.example_sentences.length > 0) ? ` — <em>"${v.example_sentences.join(' / ')}"` : (v.example ? ` — <em>"${v.example}"</em>` : '')
+                      return `<li><strong>${v.word}</strong>${pos}: ${def}${ex}</li>`
+                    }).join('')}
+                  </ul>
+                </div>
+              ` : (d.vocabList && d.vocabList.length > 0 ? `
                 <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
                   <strong>Target Vocabulary:</strong> <span style="color: #1e3a8a; font-weight: 600;">${d.vocabList.join(', ')}</span>
+                </div>
+              ` : '')}
+
+              ${d.idioms && d.idioms.length > 0 ? `
+                <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
+                  <strong>💬 Target Idioms & Expressions:</strong>
+                  <ul style="margin: 2px 0 0 0; padding-left: 14px;">
+                    ${d.idioms.map((idm: any) => {
+                      const expr = idm.idiom || idm.expression || ''
+                      const def = idm.definition || idm.meaning || ''
+                      const ex = (idm.example_sentences && idm.example_sentences.length > 0) ? ` — <em>"${idm.example_sentences.join(' / ')}"` : (idm.usage ? ` — <em>"${idm.usage}"</em>` : '')
+                      return `<li><strong>"${expr}"</strong>: ${def}${ex}</li>`
+                    }).join('')}
+                  </ul>
                 </div>
               ` : ''}
 
@@ -766,12 +957,28 @@ export function exportSyllabusToPDF(syllabus: any) {
       htmlContent += `<div style="font-size: 11px; color: #334155; margin-bottom: 10px;"><strong>Grammar Rule / Focus:</strong> ${syllabus.grammarFocus}</div>`
     }
 
+    if (syllabus.grammarDefinition) {
+      htmlContent += `<div style="font-size: 10.5px; color: #0369a1; background: #f0f9ff; border-left: 3px solid #0284c7; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"><strong>📘 Academic Definition:</strong> ${syllabus.grammarDefinition}</div>`
+    }
+
+    if (syllabus.grammarExplanation) {
+      htmlContent += `<div style="font-size: 10.5px; color: #14532d; background: #f0fdf4; border-left: 3px solid #16a34a; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"><strong>📘 Concept Explanation:</strong> ${syllabus.grammarExplanation}</div>`
+    }
+
+    if (syllabus.explanation_rationale) {
+      htmlContent += `<div style="font-size: 10.5px; color: #6b21a8; background: #faf5ff; border-left: 3px solid #9333ea; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"><strong>💡 Communicative Rationale:</strong> ${syllabus.explanation_rationale}</div>`
+    }
+
     if (syllabus.grammarScopeLimit) {
       htmlContent += `<div style="font-size: 10px; color: #92400e; background: #fef3c7; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px;"><strong>Grammar Scope Limit:</strong> ${syllabus.grammarScopeLimit}</div>`
     }
 
     if (syllabus.boardLayout) {
       htmlContent += `<div style="font-size: 10px; color: #1e3a8a; background: #e0e7ff; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; font-family: monospace;"><strong>Whiteboard Formula:</strong> ${syllabus.boardLayout}</div>`
+    }
+
+    if (syllabus.syntaxFormula) {
+      htmlContent += `<div style="font-size: 10px; color: #166534; background: #dcfce7; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; font-family: monospace;"><strong>📐 Word Order Blueprint:</strong> ${syllabus.syntaxFormula}</div>`
     }
 
     if (syllabus.grammarForms) {
@@ -781,6 +988,17 @@ export function exportSyllabusToPDF(syllabus: any) {
           <div style="margin-top: 6px;"><strong>Positive (+):</strong> ${syllabus.grammarForms.positive}</div>
           <div style="margin-top: 4px;"><strong>Negative (-):</strong> ${syllabus.grammarForms.negative}</div>
           <div style="margin-top: 4px;"><strong>Interrogative (?):</strong> ${syllabus.grammarForms.interrogative} <em>(${syllabus.grammarForms.shortAnswers})</em></div>
+        </div>
+      `
+    }
+
+    if (syllabus.sentenceModels && syllabus.sentenceModels.length > 0) {
+      htmlContent += `
+        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 10.5px;">
+          <strong style="color: #065f46;">💬 Model Sentence Formation Examples:</strong>
+          <ol style="margin: 4px 0 0 0; padding-left: 18px; color: #064e3b; font-family: monospace;">
+            ${syllabus.sentenceModels.map((sm: string) => `<li>${sm}</li>`).join('')}
+          </ol>
         </div>
       `
     }
@@ -796,12 +1014,34 @@ export function exportSyllabusToPDF(syllabus: any) {
       `
     }
 
+    if (syllabus.usageCases && syllabus.usageCases.length > 0) {
+      htmlContent += `
+        <div style="background: #f8fafc; border-left: 3px solid #475569; padding: 8px 12px; margin-bottom: 14px; font-size: 10.5px;">
+          <strong style="color: #0f172a;">📋 When, Why & Context of Usage:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px; color: #334155;">
+            ${syllabus.usageCases.map((uc: string) => `<li>${uc}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
     if (syllabus.edgeCases && syllabus.edgeCases.length > 0) {
       htmlContent += `
         <div style="background: #fef3c7; border-left: 3px solid #d97706; padding: 8px 12px; margin-bottom: 14px; font-size: 10.5px; color: #92400e;">
           <strong>⚠️ Edge Cases & Common Student Pitfalls:</strong>
           <ul style="margin: 4px 0 0 0; padding-left: 18px;">
             ${syllabus.edgeCases.map((ec: string) => `<li>${ec}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    }
+
+    if (syllabus.edge_case_syntax && syllabus.edge_case_syntax.length > 0) {
+      htmlContent += `
+        <div style="background: #fef3c7; border-left: 3px solid #b45309; padding: 8px 12px; margin-bottom: 14px; font-size: 10.5px; color: #92400e;">
+          <strong>⚡ Edge Case Syntax Patterns:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+            ${syllabus.edge_case_syntax.map((ecs: string) => `<li>${ecs}</li>`).join('')}
           </ul>
         </div>
       `
