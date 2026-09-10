@@ -4,6 +4,70 @@
  * Embeds official academy branding, logo, and a top preview navigation bar.
  */
 
+function getVocabStrings(d: any): string[] {
+  if (!d) return []
+  if (d.vocabList && Array.isArray(d.vocabList) && d.vocabList.length > 0) {
+    return d.vocabList.map((v: any) => typeof v === 'string' ? v : (v.word || v.term || '')).filter(Boolean)
+  }
+  if (d.vocabulary && Array.isArray(d.vocabulary) && d.vocabulary.length > 0) {
+    return d.vocabulary.map((v: any) => typeof v === 'string' ? v : (v.word || v.term || '')).filter(Boolean)
+  }
+  return []
+}
+
+function getIdiomStrings(d: any): string[] {
+  if (!d) return []
+  if (d.idiomList && Array.isArray(d.idiomList) && d.idiomList.length > 0) {
+    return d.idiomList.map((i: any) => typeof i === 'string' ? i : (i.idiom || i.expression || '')).filter(Boolean)
+  }
+  if (d.idioms && Array.isArray(d.idioms) && d.idioms.length > 0) {
+    return d.idioms.map((idm: any) => typeof idm === 'string' ? idm : (idm.idiom || idm.expression || '')).filter(Boolean)
+  }
+  return []
+}
+
+function getVocabObjects(d: any): Array<{ word: string; pos: string; def: string; ex: string }> {
+  if (!d) return []
+  if (d.vocabulary && Array.isArray(d.vocabulary) && d.vocabulary.length > 0) {
+    return d.vocabulary.map((v: any) => {
+      const word = typeof v === 'string' ? v : (v.word || v.term || '')
+      const pos = typeof v === 'string' ? '' : (v.part_of_speech || v.partOfSpeech || '')
+      const def = typeof v === 'string' ? '' : (v.definition || v.def || '')
+      const ex = typeof v === 'string' ? '' : ((v.example_sentences && v.example_sentences.length > 0) ? v.example_sentences.join(' / ') : (v.example || ''))
+      return { word, pos, def, ex }
+    }).filter((x: any) => Boolean(x.word))
+  }
+  if (d.vocabList && Array.isArray(d.vocabList) && d.vocabList.length > 0) {
+    return d.vocabList.map((v: any) => ({
+      word: typeof v === 'string' ? v : (v.word || v.term || ''),
+      pos: '',
+      def: '',
+      ex: ''
+    })).filter((x: any) => Boolean(x.word))
+  }
+  return []
+}
+
+function getIdiomObjects(d: any): Array<{ expr: string; def: string; ex: string }> {
+  if (!d) return []
+  if (d.idioms && Array.isArray(d.idioms) && d.idioms.length > 0) {
+    return d.idioms.map((idm: any) => {
+      const expr = typeof idm === 'string' ? idm : (idm.idiom || idm.expression || '')
+      const def = typeof idm === 'string' ? '' : (idm.definition || idm.meaning || '')
+      const ex = typeof idm === 'string' ? '' : ((idm.example_sentences && idm.example_sentences.length > 0) ? idm.example_sentences.join(' / ') : (idm.usage || ''))
+      return { expr, def, ex }
+    }).filter((x: any) => Boolean(x.expr))
+  }
+  if (d.idiomList && Array.isArray(d.idiomList) && d.idiomList.length > 0) {
+    return d.idiomList.map((i: any) => ({
+      expr: typeof i === 'string' ? i : (i.idiom || i.expression || ''),
+      def: '',
+      ex: ''
+    })).filter((x: any) => Boolean(x.expr))
+  }
+  return []
+}
+
 export function exportSyllabusToWord(syllabus: any) {
   if (!syllabus) return
 
@@ -100,9 +164,15 @@ export function exportSyllabusToWord(syllabus: any) {
             </td>
             <td><strong>${d.topic}</strong><br><span style="font-size: 8.5pt; color: #475569;">${d.grammarFocus || d.objective}</span></td>
             <td>
-              ${(d.vocabList && d.vocabList.length > 0) ? `<div style="margin-bottom: 2px;"><strong>Vocab:</strong> ${d.vocabList.join(', ')}</div>` : ''}
-              ${(d.idiomList && d.idiomList.length > 0) ? `<div><strong>Idioms:</strong> ${d.idiomList.map((i: string) => `"${i}"`).join(', ')}</div>` : ''}
-              ${(!d.vocabList || d.vocabList.length === 0) && (!d.idiomList || d.idiomList.length === 0) ? '—' : ''}
+              ${(() => {
+                const vStrs = getVocabStrings(d)
+                const iStrs = getIdiomStrings(d)
+                let cellHtml = ''
+                if (vStrs.length > 0) cellHtml += `<div style="margin-bottom: 2px;"><strong>Vocab:</strong> ${vStrs.join(', ')}</div>`
+                if (iStrs.length > 0) cellHtml += `<div><strong>Idioms:</strong> ${iStrs.map(i => `"${i}"`).join(', ')}</div>`
+                if (!cellHtml) cellHtml = '—'
+                return cellHtml
+              })()}
             </td>
             <td><strong>${d.activityType || 'Activity'}</strong><br><span style="font-size: 8.5pt; color: #334155;">${d.activityDetail || d.objective}</span></td>
           </tr>
@@ -214,38 +284,40 @@ export function exportSyllabusToWord(syllabus: any) {
                 <p style="margin: 0 0 8px 0; font-size: 8.5pt;"><strong>Key Signal Words & Placement:</strong> ${d.signalWords.join(', ')}</p>
               ` : ''}
 
-              ${(d.vocabulary && d.vocabulary.length > 0) ? `
-                <div style="margin-bottom: 8px; font-size: 8.5pt;">
-                  <strong>📚 Target Vocabulary:</strong>
-                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
-                    ${d.vocabulary.map((v: any) => {
-                      const word = typeof v === 'string' ? v : (v.word || v.term || '')
-                      const pos = typeof v === 'string' ? '' : (v.part_of_speech || v.partOfSpeech ? ` <em>(${v.part_of_speech || v.partOfSpeech})</em>` : '')
-                      const def = typeof v === 'string' ? '' : (v.definition || v.def || '')
-                      const ex = typeof v === 'string' ? '' : ((v.example_sentences && v.example_sentences.length > 0) ? ` — <em>"${v.example_sentences.join(' / ')}"` : (v.example ? ` — <em>"${v.example}"</em>` : ''))
-                      return `<li><strong>${word}</strong>${pos}${def ? `: ${def}` : ''}${ex}</li>`
-                    }).join('')}
-                  </ul>
-                </div>
-              ` : (d.vocabList && d.vocabList.length > 0 ? `
-                <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Vocabulary:</strong> ${d.vocabList.join(', ')}</p>
-              ` : '')}
+              ${(() => {
+                const vObjs = getVocabObjects(d)
+                if (vObjs.length === 0) return ''
+                return `
+                  <div style="margin-bottom: 8px; font-size: 8.5pt;">
+                    <strong>📚 Target Vocabulary:</strong>
+                    <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                      ${vObjs.map(v => {
+                        const pos = v.pos ? ` <em>(${v.pos})</em>` : ''
+                        const def = v.def ? `: ${v.def}` : ''
+                        const ex = v.ex ? ` — <em>"${v.ex}"</em>` : ''
+                        return `<li><strong>${v.word}</strong>${pos}${def}${ex}</li>`
+                      }).join('')}
+                    </ul>
+                  </div>
+                `
+              })()}
 
-              ${(d.idioms && d.idioms.length > 0) ? `
-                <div style="margin-bottom: 8px; font-size: 8.5pt;">
-                  <strong>💬 Target Idioms & Expressions:</strong>
-                  <ul style="margin: 2px 0 0 0; padding-left: 15px;">
-                    ${d.idioms.map((idm: any) => {
-                      const expr = typeof idm === 'string' ? idm : (idm.idiom || idm.expression || '')
-                      const def = typeof idm === 'string' ? '' : (idm.definition || idm.meaning || '')
-                      const ex = typeof idm === 'string' ? '' : ((idm.example_sentences && idm.example_sentences.length > 0) ? ` — <em>"${idm.example_sentences.join(' / ')}"` : (idm.usage ? ` — <em>"${idm.usage}"</em>` : ''))
-                      return `<li><strong>"${expr}"</strong>${def ? `: ${def}` : ''}${ex}</li>`
-                    }).join('')}
-                  </ul>
-                </div>
-              ` : (d.idiomList && d.idiomList.length > 0 ? `
-                <p style="margin: 0 0 8px 0; font-size: 9pt;"><strong>Target Idioms:</strong> ${d.idiomList.map((i: string) => `"${i}"`).join(', ')}</p>
-              ` : '')}
+              ${(() => {
+                const iObjs = getIdiomObjects(d)
+                if (iObjs.length === 0) return ''
+                return `
+                  <div style="margin-bottom: 8px; font-size: 8.5pt;">
+                    <strong>💬 Target Idioms & Expressions:</strong>
+                    <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                      ${iObjs.map(idm => {
+                        const def = idm.def ? `: ${idm.def}` : ''
+                        const ex = idm.ex ? ` — <em>"${idm.ex}"</em>` : ''
+                        return `<li><strong>"${idm.expr}"</strong>${def}${ex}</li>`
+                      }).join('')}
+                    </ul>
+                  </div>
+                `
+              })()}
             </div>
           `
         })
@@ -357,29 +429,30 @@ export function exportSyllabusToWord(syllabus: any) {
       `
     }
 
-    if (syllabus.vocabulary && syllabus.vocabulary.length > 0) {
+    const wordVObjs = getVocabObjects(syllabus)
+    if (wordVObjs.length > 0) {
       htmlContent += `
         <h2>Target Vocabulary</h2>
         <ul>
-          ${syllabus.vocabulary.map((v: any) => {
-            const pos = v.part_of_speech || v.partOfSpeech ? ` <em>(${v.part_of_speech || v.partOfSpeech})</em>` : ''
-            const def = v.definition || v.def || ''
-            const ex = (v.example_sentences && v.example_sentences.length > 0) ? ` — <em>"${v.example_sentences.join(' / ')}"` : (v.example ? ` — <em>"${v.example}"</em>` : '')
-            return `<li><strong>${v.word}</strong>${pos}: ${def}${ex}</li>`
+          ${wordVObjs.map(v => {
+            const pos = v.pos ? ` <em>(${v.pos})</em>` : ''
+            const def = v.def ? `: ${v.def}` : ''
+            const ex = v.ex ? ` — <em>"${v.ex}"</em>` : ''
+            return `<li><strong>${v.word}</strong>${pos}${def}${ex}</li>`
           }).join('')}
         </ul>
       `
     }
 
-    if (syllabus.idioms && syllabus.idioms.length > 0) {
+    const wordIObjs = getIdiomObjects(syllabus)
+    if (wordIObjs.length > 0) {
       htmlContent += `
         <h2>Target Idioms & Expressions</h2>
         <ul>
-          ${syllabus.idioms.map((idm: any) => {
-            const expr = idm.idiom || idm.expression || ''
-            const def = idm.definition || idm.meaning || ''
-            const ex = (idm.example_sentences && idm.example_sentences.length > 0) ? ` — <em>"${idm.example_sentences.join(' / ')}"` : (idm.usage ? ` — <em>"${idm.usage}"</em>` : '')
-            return `<li><strong>"${expr}"</strong>: ${def}${ex}</li>`
+          ${wordIObjs.map(idm => {
+            const def = idm.def ? `: ${idm.def}` : ''
+            const ex = idm.ex ? ` — <em>"${idm.ex}"</em>` : ''
+            return `<li><strong>"${idm.expr}"</strong>${def}${ex}</li>`
           }).join('')}
         </ul>
       `
@@ -754,9 +827,15 @@ export function exportSyllabusToPDF(syllabus: any) {
             </td>
             <td><strong>${d.topic}</strong><br/><span style="font-size: 10px; color: #475569;">${d.grammarFocus || d.objective}</span></td>
             <td>
-              ${(d.vocabList && d.vocabList.length > 0) ? `<div style="margin-bottom: 2px;"><strong>Vocab:</strong> ${d.vocabList.join(', ')}</div>` : ''}
-              ${(d.idiomList && d.idiomList.length > 0) ? `<div><strong>Idioms:</strong> ${d.idiomList.map((i: string) => `"${i}"`).join(', ')}</div>` : ''}
-              ${(!d.vocabList || d.vocabList.length === 0) && (!d.idiomList || d.idiomList.length === 0) ? '—' : ''}
+              ${(() => {
+                const vStrs = getVocabStrings(d)
+                const iStrs = getIdiomStrings(d)
+                let cellHtml = ''
+                if (vStrs.length > 0) cellHtml += `<div style="margin-bottom: 2px;"><strong>Vocab:</strong> ${vStrs.join(', ')}</div>`
+                if (iStrs.length > 0) cellHtml += `<div><strong>Idioms:</strong> ${iStrs.map(i => `"${i}"`).join(', ')}</div>`
+                if (!cellHtml) cellHtml = '—'
+                return cellHtml
+              })()}
             </td>
             <td><strong>${d.activityType || 'Activity'}</strong><br/><span style="font-size: 10px; color: #334155;">${d.activityDetail || d.objective}</span></td>
           </tr>
@@ -884,42 +963,40 @@ export function exportSyllabusToPDF(syllabus: any) {
                 </div>
               ` : ''}
 
-              ${(d.vocabulary && d.vocabulary.length > 0) ? `
-                <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
-                  <strong>📚 Target Vocabulary:</strong>
-                  <ul style="margin: 2px 0 0 0; padding-left: 14px;">
-                    ${d.vocabulary.map((v: any) => {
-                      const word = typeof v === 'string' ? v : (v.word || v.term || '')
-                      const pos = typeof v === 'string' ? '' : (v.part_of_speech || v.partOfSpeech ? ` <em>(${v.part_of_speech || v.partOfSpeech})</em>` : '')
-                      const def = typeof v === 'string' ? '' : (v.definition || v.def || '')
-                      const ex = typeof v === 'string' ? '' : ((v.example_sentences && v.example_sentences.length > 0) ? ` — <em>"${v.example_sentences.join(' / ')}"` : (v.example ? ` — <em>"${v.example}"</em>` : ''))
-                      return `<li><strong>${word}</strong>${pos}${def ? `: ${def}` : ''}${ex}</li>`
-                    }).join('')}
-                  </ul>
-                </div>
-              ` : (d.vocabList && d.vocabList.length > 0 ? `
-                <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
-                  <strong>Target Vocabulary:</strong> <span style="color: #1e3a8a; font-weight: 600;">${d.vocabList.join(', ')}</span>
-                </div>
-              ` : '')}
+              ${(() => {
+                const vObjs = getVocabObjects(d)
+                if (vObjs.length === 0) return ''
+                return `
+                  <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
+                    <strong>📚 Target Vocabulary:</strong>
+                    <ul style="margin: 2px 0 0 0; padding-left: 14px;">
+                      ${vObjs.map(v => {
+                        const pos = v.pos ? ` <em>(${v.pos})</em>` : ''
+                        const def = v.def ? `: ${v.def}` : ''
+                        const ex = v.ex ? ` — <em>"${v.ex}"</em>` : ''
+                        return `<li><strong>${v.word}</strong>${pos}${def}${ex}</li>`
+                      }).join('')}
+                    </ul>
+                  </div>
+                `
+              })()}
 
-              ${(d.idioms && d.idioms.length > 0) ? `
-                <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
-                  <strong>💬 Target Idioms & Expressions:</strong>
-                  <ul style="margin: 2px 0 0 0; padding-left: 14px;">
-                    ${d.idioms.map((idm: any) => {
-                      const expr = typeof idm === 'string' ? idm : (idm.idiom || idm.expression || '')
-                      const def = typeof idm === 'string' ? '' : (idm.definition || idm.meaning || '')
-                      const ex = typeof idm === 'string' ? '' : ((idm.example_sentences && idm.example_sentences.length > 0) ? ` — <em>"${idm.example_sentences.join(' / ')}"` : (idm.usage ? ` — <em>"${idm.usage}"</em>` : ''))
-                      return `<li><strong>"${expr}"</strong>${def ? `: ${def}` : ''}${ex}</li>`
-                    }).join('')}
-                  </ul>
-                </div>
-              ` : (d.idiomList && d.idiomList.length > 0 ? `
-                <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
-                  <strong>Target Idioms:</strong> <span style="color: #1e3a8a; font-weight: 600;">${d.idiomList.map((i: string) => `"${i}"`).join(', ')}</span>
-                </div>
-              ` : '')}
+              ${(() => {
+                const iObjs = getIdiomObjects(d)
+                if (iObjs.length === 0) return ''
+                return `
+                  <div style="font-size: 10.5px; color: #334155; margin-bottom: 8px;">
+                    <strong>💬 Target Idioms & Expressions:</strong>
+                    <ul style="margin: 2px 0 0 0; padding-left: 14px;">
+                      ${iObjs.map(idm => {
+                        const def = idm.def ? `: ${idm.def}` : ''
+                        const ex = idm.ex ? ` — <em>"${idm.ex}"</em>` : ''
+                        return `<li><strong>"${idm.expr}"</strong>${def}${ex}</li>`
+                      }).join('')}
+                    </ul>
+                  </div>
+                `
+              })()}
 
               ${d.discussionTopics && d.discussionTopics.length > 0 ? `
                 <div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; font-size: 10px;">
@@ -1071,29 +1148,30 @@ export function exportSyllabusToPDF(syllabus: any) {
       `
     }
 
-    if (syllabus.vocabulary && syllabus.vocabulary.length > 0) {
+    const pdfVObjs = getVocabObjects(syllabus)
+    if (pdfVObjs.length > 0) {
       htmlContent += `
         <h2>Target Vocabulary</h2>
         <ul>
-          ${syllabus.vocabulary.map((v: any) => {
-            const pos = v.part_of_speech || v.partOfSpeech ? ` <em>(${v.part_of_speech || v.partOfSpeech})</em>` : ''
-            const def = v.definition || v.def || ''
-            const ex = (v.example_sentences && v.example_sentences.length > 0) ? ` — <em>"${v.example_sentences.join(' / ')}"` : (v.example ? ` — <em>"${v.example}"</em>` : '')
-            return `<li><strong>${v.word}</strong>${pos}: ${def}${ex}</li>`
+          ${pdfVObjs.map(v => {
+            const pos = v.pos ? ` <em>(${v.pos})</em>` : ''
+            const def = v.def ? `: ${v.def}` : ''
+            const ex = v.ex ? ` — <em>"${v.ex}"</em>` : ''
+            return `<li><strong>${v.word}</strong>${pos}${def}${ex}</li>`
           }).join('')}
         </ul>
       `
     }
 
-    if (syllabus.idioms && syllabus.idioms.length > 0) {
+    const pdfIObjs = getIdiomObjects(syllabus)
+    if (pdfIObjs.length > 0) {
       htmlContent += `
         <h2>Target Idioms & Expressions</h2>
         <ul>
-          ${syllabus.idioms.map((idm: any) => {
-            const expr = idm.idiom || idm.expression || ''
-            const def = idm.definition || idm.meaning || ''
-            const ex = (idm.example_sentences && idm.example_sentences.length > 0) ? ` — <em>"${idm.example_sentences.join(' / ')}"` : (idm.usage ? ` — <em>"${idm.usage}"</em>` : '')
-            return `<li><strong>"${expr}"</strong>: ${def}${ex}</li>`
+          ${pdfIObjs.map(idm => {
+            const def = idm.def ? `: ${idm.def}` : ''
+            const ex = idm.ex ? ` — <em>"${idm.ex}"</em>` : ''
+            return `<li><strong>"${idm.expr}"</strong>${def}${ex}</li>`
           }).join('')}
         </ul>
       `

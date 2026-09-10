@@ -30,10 +30,70 @@ const SYSTEM_PROMPT = `You are an expert TEFL/ESL curriculum engineer. Generate 
 - Edge-Case Handling:
   - Identify key edge cases, irregular forms, and common L1 interference pitfalls specific to this lesson's grammar chunk ("edgeCases").
   - Provide concise, explicit explanations for why each edge case occurs and how students should avoid mistakes.
-  - Supply explicit structural syntax formulas specifically designed for these edge cases ("edge_case_syntax").
-
 ### OUTPUT CONSTRAINTS
 - Strict JSON output matching the target schema. No extra commentary or fluff.`
+
+function postProcessTermData(parsedData: any, vocabTags: string[], idiomTags: string[], cefr: string = 'B1') {
+  if (!parsedData || !parsedData.weeks || !Array.isArray(parsedData.weeks)) return parsedData
+
+  const cleanVocab = Array.from(new Set((vocabTags || []).map(v => v.trim()).filter(Boolean)))
+  const cleanIdioms = Array.from(new Set((idiomTags || []).map(i => i.trim()).filter(Boolean)))
+
+  if (cleanVocab.length === 0 && cleanIdioms.length === 0) return parsedData
+
+  let sessionCount = 0
+
+  parsedData.weeks.forEach((w: any) => {
+    (w.days || []).forEach((d: any) => {
+      sessionCount++
+
+      // Ensure vocab
+      if (cleanVocab.length > 0) {
+        const chunkIndex = (sessionCount - 1) % Math.max(1, Math.ceil(cleanVocab.length / 3))
+        const chunk = cleanVocab.slice(chunkIndex * 3, chunkIndex * 3 + 3)
+        const activeVocabChunk = chunk.length > 0 ? chunk : cleanVocab.slice(0, 3)
+
+        if (!d.vocabList || !Array.isArray(d.vocabList) || d.vocabList.length === 0) {
+          d.vocabList = activeVocabChunk
+        }
+        if (!d.vocabulary || !Array.isArray(d.vocabulary) || d.vocabulary.length === 0) {
+          d.vocabulary = activeVocabChunk.map((v: string) => ({
+            word: v,
+            part_of_speech: 'noun/verb',
+            definition: `Target vocabulary term for ${cefr} level context.`,
+            example_sentences: [`Model sentence 1 using "${v}".`, `Model sentence 2 using "${v}".`],
+            partOfSpeech: 'noun/verb',
+            def: `Target vocabulary term for ${cefr} level context.`,
+            example: `Model sentence 1 using "${v}".`
+          }))
+        }
+      }
+
+      // Ensure idioms
+      if (cleanIdioms.length > 0) {
+        const idiomChunkIndex = (sessionCount - 1) % Math.max(1, Math.ceil(cleanIdioms.length / 2))
+        const idiomChunk = cleanIdioms.slice(idiomChunkIndex * 2, idiomChunkIndex * 2 + 2)
+        const activeIdiomChunk = idiomChunk.length > 0 ? idiomChunk : cleanIdioms.slice(0, 2)
+
+        if (!d.idiomList || !Array.isArray(d.idiomList) || d.idiomList.length === 0) {
+          d.idiomList = activeIdiomChunk
+        }
+        if (!d.idioms || !Array.isArray(d.idioms) || d.idioms.length === 0) {
+          d.idioms = activeIdiomChunk.map((idm: string) => ({
+            idiom: idm,
+            definition: `Target expression for ${cefr} level speaking.`,
+            example_sentences: [`In context, "${idm}" conveys natural nuance.`, `Students applied "${idm}" in conversation.`],
+            expression: idm,
+            meaning: `Target expression for ${cefr} level speaking.`,
+            usage: `In context, "${idm}" conveys natural nuance.`
+          }))
+        }
+      }
+    })
+  })
+
+  return parsedData
+}
 
 export async function POST(req: Request) {
   try {
@@ -267,7 +327,8 @@ export async function POST(req: Request) {
       })
 
       const content = completion.choices[0].message.content || '{}'
-      const parsedData = JSON.parse(content)
+      let parsedData = JSON.parse(content)
+      parsedData = postProcessTermData(parsedData, vocabTags, idiomTags, cefr)
       return NextResponse.json({ success: true, data: parsedData })
 
     } else {

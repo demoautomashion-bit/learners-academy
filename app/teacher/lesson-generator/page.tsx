@@ -1512,18 +1512,27 @@ export default function LessonGeneratorPage() {
                                     </div>
                                   )}
 
-                                  {d.vocabList && d.vocabList.length > 0 && (
-                                    <div className="space-y-1.5">
-                                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Target Classroom Vocabulary</span>
-                                      <div className="flex flex-wrap gap-1.5">
-                                        {d.vocabList.map((v: string, vi: number) => (
-                                          <Badge key={vi} variant="secondary" className="text-xs font-mono font-normal">
-                                            {v}
-                                          </Badge>
-                                        ))}
+                                  {/* Target Vocabulary Badges */}
+                                  {(() => {
+                                    const vBadges = (d.vocabList && d.vocabList.length > 0)
+                                      ? d.vocabList.map((v: any) => typeof v === 'string' ? v : (v.word || v.term || ''))
+                                      : (d.vocabulary && d.vocabulary.length > 0)
+                                        ? d.vocabulary.map((v: any) => typeof v === 'string' ? v : (v.word || v.term || ''))
+                                        : []
+                                    if (vBadges.length === 0) return null
+                                    return (
+                                      <div className="space-y-1.5">
+                                        <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Target Classroom Vocabulary</span>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {vBadges.map((v: string, vi: number) => (
+                                            <Badge key={vi} variant="secondary" className="text-xs font-mono font-normal">
+                                              {v}
+                                            </Badge>
+                                          ))}
+                                        </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    )
+                                  })()}
 
                                   {/* Rich Vocabulary Detail Cards */}
                                   {d.vocabulary && d.vocabulary.length > 0 && (
@@ -1531,16 +1540,18 @@ export default function LessonGeneratorPage() {
                                       <span className="text-[11px] font-bold text-primary uppercase tracking-wider block">📖 Vocabulary Definitions & Model Sentences</span>
                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         {d.vocabulary.map((v: any, vi: number) => {
-                                          const pos = v.part_of_speech || v.partOfSpeech
-                                          const def = v.definition || v.def
-                                          const examples = v.example_sentences || (v.example ? [v.example] : [])
+                                          const word = typeof v === 'string' ? v : (v.word || v.term || '')
+                                          const pos = typeof v === 'string' ? undefined : (v.part_of_speech || v.partOfSpeech)
+                                          const def = typeof v === 'string' ? undefined : (v.definition || v.def)
+                                          const examples = typeof v === 'string' ? [] : (v.example_sentences || (v.example ? [v.example] : []))
+                                          if (!word) return null
                                           return (
                                             <div key={vi} className="p-2.5 rounded-lg bg-muted/30 border border-border/60 text-xs space-y-1.5">
                                               <div className="flex items-center justify-between gap-1">
-                                                <span className="font-bold text-foreground block">{v.word}</span>
+                                                <span className="font-bold text-foreground block">{word}</span>
                                                 {pos && <Badge variant="outline" className="text-[10px] uppercase font-mono py-0 px-1.5 bg-background">{pos}</Badge>}
                                               </div>
-                                              <p className="text-muted-foreground text-[11px] leading-relaxed">{def}</p>
+                                              {def && <p className="text-muted-foreground text-[11px] leading-relaxed">{def}</p>}
                                               {examples.length > 0 && (
                                                 <div className="pt-1 border-t border-border/40 space-y-0.5">
                                                   <span className="text-[10px] font-semibold text-primary block uppercase tracking-wider">Model Sentences:</span>
@@ -1559,18 +1570,27 @@ export default function LessonGeneratorPage() {
                                     </div>
                                   )}
 
-                                  {d.idiomList && d.idiomList.length > 0 && (
-                                    <div className="space-y-1.5">
-                                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Target Idioms & Expressions</span>
-                                      <div className="flex flex-wrap gap-1.5">
-                                        {d.idiomList.map((idm: string, ii: number) => (
-                                          <Badge key={ii} variant="outline" className="text-xs font-mono font-normal bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-300">
-                                            "{idm}"
-                                          </Badge>
-                                        ))}
+                                  {/* Target Idioms Badges */}
+                                  {(() => {
+                                    const iBadges = (d.idiomList && d.idiomList.length > 0)
+                                      ? d.idiomList.map((i: any) => typeof i === 'string' ? i : (i.idiom || i.expression || ''))
+                                      : (d.idioms && d.idioms.length > 0)
+                                        ? d.idioms.map((i: any) => typeof i === 'string' ? i : (i.idiom || i.expression || ''))
+                                        : []
+                                    if (iBadges.length === 0) return null
+                                    return (
+                                      <div className="space-y-1.5">
+                                        <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Target Idioms & Expressions</span>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {iBadges.map((idm: string, ii: number) => (
+                                            <Badge key={ii} variant="outline" className="text-xs font-mono font-normal bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-300">
+                                              "{idm}"
+                                            </Badge>
+                                          ))}
+                                        </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    )
+                                  })()}
 
                                   {/* Rich Idiom Detail Cards */}
                                   {d.idioms && d.idioms.length > 0 && (
@@ -1578,13 +1598,14 @@ export default function LessonGeneratorPage() {
                                       <span className="text-[11px] font-bold text-primary uppercase tracking-wider block">💬 Idiom Definitions & Example Usage</span>
                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         {d.idioms.map((idm: any, ii: number) => {
-                                          const idiomText = idm.idiom || idm.expression
-                                          const def = idm.definition || idm.meaning
-                                          const examples = idm.example_sentences || (idm.usage ? [idm.usage] : [])
+                                          const idiomText = typeof idm === 'string' ? idm : (idm.idiom || idm.expression || '')
+                                          const def = typeof idm === 'string' ? undefined : (idm.definition || idm.meaning)
+                                          const examples = typeof idm === 'string' ? [] : (idm.example_sentences || (idm.usage ? [idm.usage] : []))
+                                          if (!idiomText) return null
                                           return (
                                             <div key={ii} className="p-2.5 rounded-lg bg-purple-500/5 border border-purple-500/20 text-xs space-y-1.5">
                                               <span className="font-bold text-purple-700 dark:text-purple-300 block">"{idiomText}"</span>
-                                              <p className="text-muted-foreground text-[11px] leading-relaxed">{def}</p>
+                                              {def && <p className="text-muted-foreground text-[11px] leading-relaxed">{def}</p>}
                                               {examples.length > 0 && (
                                                 <div className="pt-1 border-t border-purple-500/10 space-y-0.5">
                                                   <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-400 block uppercase tracking-wider">Example Usage:</span>
