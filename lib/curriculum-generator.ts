@@ -840,21 +840,16 @@ export function generateGranularTermRoadmap(params: GeneratorParams): GranularWe
       
       const grammarDetails = getGrammarDetailsForStructure(targetGrammarTag, cefr, sectionIndex)
 
-      // Vocabulary & Idioms Chunking: Assign to Grammar and Reading days
-      if (archetype === 'grammar' || archetype === 'reading') {
-        if (cleanVocabTags.length > 0) {
-          const currentVocabChunk = vocabChunks[instructionalSessionCounter % vocabChunks.length] || []
-          vocabList = currentVocabChunk
-        }
-        if (cleanIdiomTags.length > 0) {
-          const currentIdiomChunk = idiomChunks[instructionalSessionCounter % idiomChunks.length] || []
-          idiomList = currentIdiomChunk
-        }
-        instructionalSessionCounter++
-      } else {
-        vocabList = []
-        idiomList = []
+      // Vocabulary & Idioms Chunking: Distribute across ALL session types
+      if (cleanVocabTags.length > 0) {
+        const currentVocabChunk = vocabChunks[instructionalSessionCounter % vocabChunks.length] || []
+        vocabList = currentVocabChunk
       }
+      if (cleanIdiomTags.length > 0) {
+        const currentIdiomChunk = idiomChunks[instructionalSessionCounter % idiomChunks.length] || []
+        idiomList = currentIdiomChunk
+      }
+      instructionalSessionCounter++
 
       // Check Mid-Term & Final Exams
       if (w === Math.floor(termWeeks / 2) && d === sessionsPerWeek) {

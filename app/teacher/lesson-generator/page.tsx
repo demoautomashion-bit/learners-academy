@@ -1525,6 +1525,40 @@ export default function LessonGeneratorPage() {
                                     </div>
                                   )}
 
+                                  {/* Rich Vocabulary Detail Cards */}
+                                  {d.vocabulary && d.vocabulary.length > 0 && (
+                                    <div className="space-y-2">
+                                      <span className="text-[11px] font-bold text-primary uppercase tracking-wider block">📖 Vocabulary Definitions & Model Sentences</span>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {d.vocabulary.map((v: any, vi: number) => {
+                                          const pos = v.part_of_speech || v.partOfSpeech
+                                          const def = v.definition || v.def
+                                          const examples = v.example_sentences || (v.example ? [v.example] : [])
+                                          return (
+                                            <div key={vi} className="p-2.5 rounded-lg bg-muted/30 border border-border/60 text-xs space-y-1.5">
+                                              <div className="flex items-center justify-between gap-1">
+                                                <span className="font-bold text-foreground block">{v.word}</span>
+                                                {pos && <Badge variant="outline" className="text-[10px] uppercase font-mono py-0 px-1.5 bg-background">{pos}</Badge>}
+                                              </div>
+                                              <p className="text-muted-foreground text-[11px] leading-relaxed">{def}</p>
+                                              {examples.length > 0 && (
+                                                <div className="pt-1 border-t border-border/40 space-y-0.5">
+                                                  <span className="text-[10px] font-semibold text-primary block uppercase tracking-wider">Model Sentences:</span>
+                                                  {examples.map((ex: string, exi: number) => (
+                                                    <p key={exi} className="text-[11px] text-foreground/90 italic flex items-start gap-1">
+                                                      <span className="text-primary font-bold">›</span>
+                                                      <span>"{ex}"</span>
+                                                    </p>
+                                                  ))}
+                                                </div>
+                                              )}
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+
                                   {d.idiomList && d.idiomList.length > 0 && (
                                     <div className="space-y-1.5">
                                       <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">Target Idioms & Expressions</span>
@@ -1534,6 +1568,37 @@ export default function LessonGeneratorPage() {
                                             "{idm}"
                                           </Badge>
                                         ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Rich Idiom Detail Cards */}
+                                  {d.idioms && d.idioms.length > 0 && (
+                                    <div className="space-y-2">
+                                      <span className="text-[11px] font-bold text-primary uppercase tracking-wider block">💬 Idiom Definitions & Example Usage</span>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {d.idioms.map((idm: any, ii: number) => {
+                                          const idiomText = idm.idiom || idm.expression
+                                          const def = idm.definition || idm.meaning
+                                          const examples = idm.example_sentences || (idm.usage ? [idm.usage] : [])
+                                          return (
+                                            <div key={ii} className="p-2.5 rounded-lg bg-purple-500/5 border border-purple-500/20 text-xs space-y-1.5">
+                                              <span className="font-bold text-purple-700 dark:text-purple-300 block">"{idiomText}"</span>
+                                              <p className="text-muted-foreground text-[11px] leading-relaxed">{def}</p>
+                                              {examples.length > 0 && (
+                                                <div className="pt-1 border-t border-purple-500/10 space-y-0.5">
+                                                  <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-400 block uppercase tracking-wider">Example Usage:</span>
+                                                  {examples.map((ex: string, exi: number) => (
+                                                    <p key={exi} className="text-[11px] text-foreground/90 italic flex items-start gap-1">
+                                                      <span className="text-purple-600 font-bold">›</span>
+                                                      <span>"{ex}"</span>
+                                                    </p>
+                                                  ))}
+                                                </div>
+                                              )}
+                                            </div>
+                                          )
+                                        })}
                                       </div>
                                     </div>
                                   )}
