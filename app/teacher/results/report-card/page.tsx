@@ -309,7 +309,12 @@ async function renderStudentCanvas(
   drawLeftText(displayScore !== '0' ? displayScore : '', 43.5, standY1, 23, '700')
   drawLeftText(v.percentage || calcPct, 66.5, standY1, 23, '700')
   drawLeftText(v.grade || tlaGrade.grade, 43.5, standY2, 23, '700')
-  drawLeftText(v.comments ?? tlaGrade.remark, 64.5, standY2, 22, '700')
+  const canvasRemark = (v as any).remarksTouched
+    ? (v.comments ?? '')
+    : (v.comments !== undefined && v.comments !== ''
+      ? v.comments
+      : (calcTotalScore > 0 ? tlaGrade.remark : ''))
+  drawLeftText(canvasRemark, 64.5, standY2, 22, '700')
 
   return canvas
 }
@@ -332,7 +337,7 @@ function buildCardValues(
   )
 
   if (existingEval) {
-    const scoresObj = (existingEval.scores as Record<string, number>) || {}
+    const scoresObj = (existingEval.scores as Record<string, any>) || {}
     const normLevel = (course.title || '').toLowerCase().trim()
     const isL6OrAdv = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel.includes('advanced') || normLevel.includes('adv')
 
@@ -349,6 +354,7 @@ function buildCardValues(
       const totalMarks = (Number(listeningMarks) || 0) + (Number(speakingMarks) || 0) + (Number(readingMarks) || 0) + (Number(writingMarks) || 0) + (Number(grammarMarks) || 0) + (Number(attendanceMarks) || 0) + (Number(participationMarks) || 0) + (Number(disciplineMarks) || 0)
       const pct = (totalMarks / 600) * 100
       const tlaResult = getTLAGrading(pct)
+      const savedRemark = typeof scoresObj.remarks === 'string' ? scoresObj.remarks : undefined
 
       return {
         studentName: student.name,
@@ -366,7 +372,8 @@ function buildCardValues(
         percentage: totalMarks > 0 ? pct.toFixed(1) + '%' : '',
         overallResult: tlaResult.isPass ? 'PASS' : 'FAIL',
         grade: totalMarks > 0 ? tlaResult.grade : '',
-        comments: totalMarks > 0 ? tlaResult.remark : '',
+        comments: savedRemark !== undefined ? savedRemark : (totalMarks > 0 ? tlaResult.remark : ''),
+        ...(savedRemark !== undefined ? { remarksTouched: true } : {}),
         dateOfCompletion: new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
           month: 'long', day: 'numeric', year: 'numeric'
         }),
@@ -723,7 +730,10 @@ function ReportCardGeneratorContent() {
           speaking: Number((cardValues as any).speakingMarks) || 0,
           reading: Number((cardValues as any).readingMarks) || 0,
           writing: Number((cardValues as any).writingMarks) || 0,
-          grammar: Number((cardValues as any).grammarMarks) || 0
+          grammar: Number((cardValues as any).grammarMarks) || 0,
+          ...((cardValues as any).remarksTouched || cardValues.comments !== undefined
+            ? { remarks: cardValues.comments ?? '' }
+            : {})
         }
       } else {
         evalPayload.midterm = Number(cardValues.midtermObtained) || 0
@@ -1368,12 +1378,19 @@ function ReportCardGeneratorContent() {
                       totalScore: (cardValues as any).totalScore,
                       percentage: cardValues.percentage,
                       finalGrade: cardValues.grade,
-                      remarks: cardValues.comments
+                      remarks: cardValues.comments,
+                      remarksTouched: (cardValues as any).remarksTouched
                     }}
                     cardRef={cardRef as React.RefObject<HTMLDivElement>}
                     onChange={(newValues) => {
                       isManuallyEdited.current = true
-                      setCardValues(prev => ({ ...prev, ...newValues, grade: newValues.finalGrade, comments: newValues.remarks }))
+                      setCardValues(prev => ({
+                        ...prev,
+                        ...newValues,
+                        grade: newValues.finalGrade,
+                        comments: newValues.remarks,
+                        remarksTouched: newValues.remarksTouched
+                      }))
                     }}
                   />
                 ) : isAdv ? (
@@ -1394,12 +1411,19 @@ function ReportCardGeneratorContent() {
                       totalScore: (cardValues as any).totalScore,
                       percentage: cardValues.percentage,
                       finalGrade: cardValues.grade,
-                      remarks: cardValues.comments
+                      remarks: cardValues.comments,
+                      remarksTouched: (cardValues as any).remarksTouched
                     }}
                     cardRef={cardRef as React.RefObject<HTMLDivElement>}
                     onChange={(newValues) => {
                       isManuallyEdited.current = true
-                      setCardValues(prev => ({ ...prev, ...newValues, grade: newValues.finalGrade, comments: newValues.remarks }))
+                      setCardValues(prev => ({
+                        ...prev,
+                        ...newValues,
+                        grade: newValues.finalGrade,
+                        comments: newValues.remarks,
+                        remarksTouched: newValues.remarksTouched
+                      }))
                     }}
                   />
                 ) : isA5 ? (
