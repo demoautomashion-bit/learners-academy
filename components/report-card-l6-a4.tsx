@@ -234,6 +234,7 @@ return (
     {/* STUDENT INFORMATION OVERLAYS */}
     <input
       type="text"
+      data-field="studentName"
       value={values.studentName}
       onChange={e => handleValueChange('studentName', e.target.value)}
       disabled={readOnly}
@@ -244,6 +245,7 @@ return (
 
     <input
       type="text"
+      data-field="fatherName"
       value={values.fatherName || ''}
       onChange={e => handleValueChange('fatherName', e.target.value)}
       disabled={readOnly}
@@ -254,6 +256,7 @@ return (
 
     <input
       type="text"
+      data-field="programLevel"
       value={values.programLevel || 'Level Six'}
       onChange={e => handleValueChange('programLevel', e.target.value)}
       disabled={readOnly}
@@ -264,6 +267,7 @@ return (
 
     <input
       type="text"
+      data-field="dateOfCompletion"
       value={values.dateOfCompletion || ''}
       onChange={e => handleValueChange('dateOfCompletion', e.target.value)}
       disabled={readOnly}
@@ -274,6 +278,7 @@ return (
 
     <input
       type="text"
+      data-field="transcriptNo"
       value={values.transcriptNo || defaultTranscriptNo}
       onChange={e => handleValueChange('transcriptNo', e.target.value)}
       disabled={readOnly}
@@ -285,6 +290,7 @@ return (
     {/* OBTAINED MARKS OVERLAYS (Centered in 75.5% to 94% cell) */}
     <input
       type="text"
+      data-field="listeningMarks"
       value={values.listeningMarks ?? ''}
       onChange={e => handleValueChange('listeningMarks', e.target.value)}
       disabled={readOnly}
@@ -294,6 +300,7 @@ return (
 
     <input
       type="text"
+      data-field="speakingMarks"
       value={values.speakingMarks ?? ''}
       onChange={e => handleValueChange('speakingMarks', e.target.value)}
       disabled={readOnly}
@@ -303,6 +310,7 @@ return (
 
     <input
       type="text"
+      data-field="readingMarks"
       value={values.readingMarks ?? ''}
       onChange={e => handleValueChange('readingMarks', e.target.value)}
       disabled={readOnly}
@@ -312,6 +320,7 @@ return (
 
     <input
       type="text"
+      data-field="writingMarks"
       value={values.writingMarks ?? ''}
       onChange={e => handleValueChange('writingMarks', e.target.value)}
       disabled={readOnly}
@@ -321,6 +330,7 @@ return (
 
     <input
       type="text"
+      data-field="grammarMarks"
       value={values.grammarMarks ?? ''}
       onChange={e => handleValueChange('grammarMarks', e.target.value)}
       disabled={readOnly}
@@ -330,6 +340,7 @@ return (
 
     <input
       type="text"
+      data-field="attendanceMarks"
       value={values.attendanceMarks ?? ''}
       onChange={e => handleValueChange('attendanceMarks', e.target.value)}
       disabled={readOnly}
@@ -339,6 +350,7 @@ return (
 
     <input
       type="text"
+      data-field="participationMarks"
       value={values.participationMarks ?? ''}
       onChange={e => handleValueChange('participationMarks', e.target.value)}
       disabled={readOnly}
@@ -348,6 +360,7 @@ return (
 
     <input
       type="text"
+      data-field="disciplineMarks"
       value={values.disciplineMarks ?? ''}
       onChange={e => handleValueChange('disciplineMarks', e.target.value)}
       disabled={readOnly}
@@ -358,6 +371,7 @@ return (
     {/* GRAND TOTAL OBTAINED OVERLAY */}
     <input
       type="text"
+      data-field="totalScore"
       value={displayTotalScore}
       onChange={e => handleValueChange('totalScore', e.target.value)}
       disabled={readOnly}
@@ -368,6 +382,7 @@ return (
     {/* ACADEMIC STANDING OVERLAYS */}
     <input
       type="text"
+      data-field="totalScore"
       value={displayTotalScore}
       onChange={e => handleValueChange('totalScore', e.target.value)}
       disabled={readOnly}
@@ -377,6 +392,7 @@ return (
 
     <input
       type="text"
+      data-field="percentage"
       value={displayPercentage}
       onChange={e => handleValueChange('percentage', e.target.value)}
       disabled={readOnly}
@@ -386,6 +402,7 @@ return (
 
     <input
       type="text"
+      data-field="finalGrade"
       value={displayGrade}
       onChange={e => handleValueChange('finalGrade', e.target.value)}
       disabled={readOnly}
@@ -395,6 +412,7 @@ return (
 
     <input
       type="text"
+      data-field="remarks"
       value={displayRemarks}
       onChange={e => handleValueChange('remarks', e.target.value)}
       onFocus={() => setRemarksTouched(true)}

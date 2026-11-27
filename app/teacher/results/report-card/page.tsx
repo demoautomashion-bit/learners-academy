@@ -376,7 +376,7 @@ function buildCardValues(
         grade: totalMarks > 0 ? tlaResult.grade : '',
         comments: savedRemark !== undefined ? savedRemark : (totalMarks > 0 ? tlaResult.remark : ''),
         ...(savedRemark !== undefined ? { remarksTouched: true } : {}),
-          dateOfCompletion: savedDateOfCompletion || new Date(existingEval.updatedAt || existingEval.createdAt).toLocaleDateString('en-US', {
+          dateOfCompletion: savedDateOfCompletion || new Date().toLocaleDateString('en-US', {
             month: 'long', day: 'numeric', year: 'numeric'
           }),
           transcriptNo: savedTranscriptNo || generateTranscriptNumber(course.title || 'Level Six', sequenceNumber),
@@ -470,6 +470,36 @@ function buildCardValues(
       }),
       courseDuration: formatDateRange(course.startDate, course.endDate)
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // Read live <input data-field="..."> values from the preview DOM
+  // so single-student downloads and saves always match the preview 100%
+  // ─────────────────────────────────────────────
+  function getLivePreviewValues(
+    baseValues: Partial<ReportCardValues>,
+    cardEl: HTMLElement | null
+  ): Partial<ReportCardValues> {
+    if (!cardEl) return baseValues
+    const inputs = cardEl.querySelectorAll<HTMLInputElement>('input[data-field]')
+    if (inputs.length === 0) return baseValues
+
+    const live: Record<string, any> = { ...baseValues }
+    inputs.forEach(input => {
+      const field = input.dataset.field
+      if (!field) return
+      if (field === 'finalGrade') {
+        live.grade = input.value
+        live.finalGrade = input.value
+      } else if (field === 'remarks') {
+        live.comments = input.value
+        live.remarks = input.value
+        live.remarksTouched = true
+      } else {
+        live[field] = input.value
+      }
+    })
+    return live
   }
 
   // ─────────────────────────────────────────────
@@ -717,7 +747,8 @@ function buildCardValues(
 
       setIsSaving(true)
       try {
-        const normLevel = (course.title || cardValues.level || '').toLowerCase().trim()
+        const liveValues = getLivePreviewValues(cardValues, cardRef.current)
+        const normLevel = (course.title || liveValues.level || '').toLowerCase().trim()
         const isL6OrAdv = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel.includes('advanced') || normLevel.includes('adv')
 
         const evalPayload: any = {
@@ -726,297 +757,299 @@ function buildCardValues(
         }
 
         if (isL6OrAdv) {
-          evalPayload.attendance = Number((cardValues as any).attendanceMarks) || 0
-          evalPayload.participation = Number((cardValues as any).participationMarks) || 0
-          evalPayload.discipline = Number((cardValues as any).disciplineMarks) || 0
+          evalPayload.attendance = Number((liveValues as any).attendanceMarks) || 0
+          evalPayload.participation = Number((liveValues as any).participationMarks) || 0
+          evalPayload.discipline = Number((liveValues as any).disciplineMarks) || 0
           evalPayload.scores = {
-            listening: Number((cardValues as any).listeningMarks) || 0,
-            speaking: Number((cardValues as any).speakingMarks) || 0,
-            reading: Number((cardValues as any).readingMarks) || 0,
-            writing: Number((cardValues as any).writingMarks) || 0,
-            grammar: Number((cardValues as any).grammarMarks) || 0,
-            ...((cardValues as any).remarksTouched || cardValues.comments !== undefined
-              ? { remarks: cardValues.comments ?? '' }
-            : { }),
-          ...((cardValues as any).transcriptNo ? { transcriptNo: (cardValues as any).transcriptNo } : {}),
-          ...(cardValues.dateOfCompletion ? { dateOfCompletion: cardValues.dateOfCompletion } : {})
-  }
-} else {
-  evalPayload.midterm = Number(cardValues.midtermObtained) || 0
-  evalPayload.final = Number(cardValues.finalObtained) || 0
-  evalPayload.attendance = Number(cardValues.attendanceObtained) || 0
-  evalPayload.participation = Number(cardValues.participationObtained) || 0
-  evalPayload.discipline = Number(cardValues.disciplineObtained) || 0
-  evalPayload.extra = Number(cardValues.extraCurricularObtained) || 0
-}
-
-await saveEvaluations(course.id, [evalPayload])
-toast.success('Report card marks synchronized and recorded successfully.')
-    } catch {
-  toast.error('Failed to save report card marks.')
-} finally {
-  setIsSaving(false)
-}
-  }
-
-// ─────────────────────────────────────────────
-// Handle Print
-// ─────────────────────────────────────────────
-const handlePrint = () => {
-  if (selectedStudentId === 'all') { toast.error('Please select a student before printing.'); return }
-  window.print()
-}
-
-// ─────────────────────────────────────────────
-// Download: Single PDF
-// ─────────────────────────────────────────────
-const handleDownloadPDF = async () => {
-  if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
-  setActiveDownload('pdf')
-  try {
-    let dataUrl = ''
-    const currentTier = getTierForLevel(cardValues.level || '')
-    const normLevel = (cardValues.level || '').toLowerCase().trim()
-    const isL6 = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel === 'level 6'
-    const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
-    const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
-
-    const studentIdx = teacherStudents.findIndex(s => s.id === selectedStudentId)
-    const seqNum = studentIdx >= 0 ? studentIdx + 1 : 1
-
-    if (isA5) {
-      const cardEl = containerRef.current?.querySelector('.report-card-container') as HTMLElement | null
-      if (cardEl) {
-        const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
-        dataUrl = domCanvas.toDataURL('image/jpeg', 0.95)
-      } else {
-        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
-        dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-      }
-
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
-      pdf.addImage(dataUrl, 'JPEG', 0, 0, 148, 105)
-      pdf.addImage(dataUrl, 'JPEG', 0, 105, 148, 105)
-      const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
-      pdf.save(`${name}-report-card-a5-2up.pdf`)
-    } else {
-      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
-      dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
-      const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
-      pdf.save(`${name}-report-card.pdf`)
-    }
-
-    toast.success('PDF downloaded successfully!')
-  } catch (err: any) {
-    console.error('PDF download error:', err)
-    const details = err?.message || String(err)
-    toast.error(`PDF Download Error: ${details}`, { duration: 10000 })
-  } finally {
-    setActiveDownload(null)
-  }
-}
-
-// ─────────────────────────────────────────────
-// Download: Single Image (JPG or PNG)
-// ─────────────────────────────────────────────
-const handleDownloadImage = async (format: 'jpg' | 'png') => {
-  if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
-  setActiveDownload(format)
-  try {
-    let dataUrl = ''
-    const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
-    const quality = format === 'png' ? undefined : 0.95
-
-    const currentTier = getTierForLevel(cardValues.level || '')
-    const normLevel = (cardValues.level || '').toLowerCase().trim()
-    const isL6 = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel === 'level 6'
-    const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
-    const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
-
-    const studentIdx = teacherStudents.findIndex(s => s.id === selectedStudentId)
-    const seqNum = studentIdx >= 0 ? studentIdx + 1 : 1
-
-    if (isA5) {
-      const cardEl = containerRef.current?.querySelector('.report-card-container') as HTMLElement | null
-      if (cardEl) {
-        const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
-        dataUrl = domCanvas.toDataURL(mimeType, quality)
-      } else {
-        const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
-        dataUrl = canvas.toDataURL(mimeType, quality)
-      }
-    } else {
-      const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
-      dataUrl = canvas.toDataURL(mimeType, quality)
-    }
-
-    const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
-    triggerDownload(dataUrl, `${name}-report-card.${format}`)
-    toast.success(`${format.toUpperCase()} downloaded successfully!`)
-  } catch (err: any) {
-    console.error('Image download error:', err)
-    const details = err?.message || String(err)
-    toast.error(`Image Download Error: ${details}`, { duration: 10000 })
-  } finally {
-    setActiveDownload(null)
-  }
-}
-
-// ─────────────────────────────────────────────
-// Download: Bulk PDF (all students in class)
-// ─────────────────────────────────────────────
-const handleBulkPDF = async () => {
-  const pairs = getBulkStudents()
-  if (pairs.length === 0) { toast.error('No students found in the selected class.'); return }
-  setActiveDownload('bulk-pdf')
-  setBulkProgress({ current: 0, total: pairs.length })
-  try {
-    const firstCourseTitle = pairs[0]?.course?.title || ''
-    const currentTier = getTierForLevel(firstCourseTitle)
-    const isA5 = currentTier === 'pre-foundation-lvl-5'
-
-    if (isA5) {
-      // A5 Portrait PDF with 2 cards per sheet
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
-
-      for (let i = 0; i < pairs.length; i += 2) {
-        if (i > 0) pdf.addPage()
-
-        // Card 1 (Top)
-        const pair1 = pairs[i]
-        setBulkProgress({ current: i + 1, total: pairs.length })
-        const val1 = buildCardValues(pair1.student, pair1.course, evaluations, submissions, assessments, formatDateRange, i + 1)
-        const canvas1 = await renderStudentCanvas(val1, pair1.student.name, cardTemplates, i + 1)
-        pdf.addImage(canvas1.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 148, 105)
-
-        // Card 2 (Bottom) - If odd count, duplicate card 1 or render student 2
-        if (i + 1 < pairs.length) {
-          const pair2 = pairs[i + 1]
-          setBulkProgress({ current: i + 2, total: pairs.length })
-          const val2 = buildCardValues(pair2.student, pair2.course, evaluations, submissions, assessments, formatDateRange, i + 2)
-          const canvas2 = await renderStudentCanvas(val2, pair2.student.name, cardTemplates, i + 2)
-          pdf.addImage(canvas2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 105, 148, 105)
+            listening: Number((liveValues as any).listeningMarks) || 0,
+            speaking: Number((liveValues as any).speakingMarks) || 0,
+            reading: Number((liveValues as any).readingMarks) || 0,
+            writing: Number((liveValues as any).writingMarks) || 0,
+            grammar: Number((liveValues as any).grammarMarks) || 0,
+            ...((liveValues as any).remarksTouched || liveValues.comments !== undefined
+              ? { remarks: liveValues.comments ?? '' }
+              : {}),
+          ...((liveValues as any).transcriptNo ? { transcriptNo: (liveValues as any).transcriptNo } : {}),
+            ...(liveValues.dateOfCompletion ? { dateOfCompletion: liveValues.dateOfCompletion } : {})
+          }
         } else {
-          // Duplicate single card for 2-up sheet
-          pdf.addImage(canvas1.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 105, 148, 105)
+          evalPayload.midterm = Number(liveValues.midtermObtained) || 0
+          evalPayload.final = Number(liveValues.finalObtained) || 0
+          evalPayload.attendance = Number(liveValues.attendanceObtained) || 0
+          evalPayload.participation = Number(liveValues.participationObtained) || 0
+          evalPayload.discipline = Number(liveValues.disciplineObtained) || 0
+          evalPayload.extra = Number(liveValues.extraCurricularObtained) || 0
         }
+
+        await saveEvaluations(course.id, [evalPayload])
+        toast.success('Report card marks synchronized and recorded successfully.')
+      } catch {
+        toast.error('Failed to save report card marks.')
+      } finally {
+        setIsSaving(false)
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Handle Print
+    // ─────────────────────────────────────────────
+    const handlePrint = () => {
+      if (selectedStudentId === 'all') { toast.error('Please select a student before printing.'); return }
+      window.print()
+    }
+
+    // ─────────────────────────────────────────────
+    // Download: Single PDF
+    // ─────────────────────────────────────────────
+    const handleDownloadPDF = async () => {
+      if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
+      setActiveDownload('pdf')
+      try {
+        let dataUrl = ''
+        const currentTier = getTierForLevel(cardValues.level || '')
+        const normLevel = (cardValues.level || '').toLowerCase().trim()
+        const isL6 = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel === 'level 6'
+        const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
+        const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
+
+        const studentIdx = teacherStudents.findIndex(s => s.id === selectedStudentId)
+        const seqNum = studentIdx >= 0 ? studentIdx + 1 : 1
+
+        if (isA5) {
+          const cardEl = containerRef.current?.querySelector('.report-card-container') as HTMLElement | null
+          if (cardEl) {
+            const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
+            dataUrl = domCanvas.toDataURL('image/jpeg', 0.95)
+          } else {
+            const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
+            dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+          }
+
+          const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
+          pdf.addImage(dataUrl, 'JPEG', 0, 0, 148, 105)
+          pdf.addImage(dataUrl, 'JPEG', 0, 105, 148, 105)
+          const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
+          pdf.save(`${name}-report-card-a5-2up.pdf`)
+        } else {
+          const liveValues = getLivePreviewValues(cardValues, cardRef.current)
+          const canvas = await renderStudentCanvas(liveValues, liveValues.studentName || '', cardTemplates, seqNum)
+          dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+
+          const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+          pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
+          const name = (liveValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
+          pdf.save(`${name}-report-card.pdf`)
+        }
+
+        toast.success('PDF downloaded successfully!')
+      } catch (err: any) {
+        console.error('PDF download error:', err)
+        const details = err?.message || String(err)
+        toast.error(`PDF Download Error: ${details}`, { duration: 10000 })
+      } finally {
+        setActiveDownload(null)
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Download: Single Image (JPG or PNG)
+    // ─────────────────────────────────────────────
+    const handleDownloadImage = async (format: 'jpg' | 'png') => {
+      if (selectedStudentId === 'all') { toast.error('Please select a student before downloading.'); return }
+      setActiveDownload(format)
+      try {
+        let dataUrl = ''
+        const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
+        const quality = format === 'png' ? undefined : 0.95
+
+        const currentTier = getTierForLevel(cardValues.level || '')
+        const normLevel = (cardValues.level || '').toLowerCase().trim()
+        const isL6 = normLevel.includes('six') || normLevel.includes('lvl 6') || normLevel === 'level 6'
+        const isAdv = normLevel.includes('advanced') || normLevel.includes('adv')
+        const isA5 = currentTier === 'pre-foundation-lvl-5' && !isL6 && !isAdv
+
+        const studentIdx = teacherStudents.findIndex(s => s.id === selectedStudentId)
+        const seqNum = studentIdx >= 0 ? studentIdx + 1 : 1
+
+        if (isA5) {
+          const cardEl = containerRef.current?.querySelector('.report-card-container') as HTMLElement | null
+          if (cardEl) {
+            const domCanvas = await html2canvas(cardEl, { scale: 3, useCORS: true, allowTaint: true, logging: false })
+            dataUrl = domCanvas.toDataURL(mimeType, quality)
+          } else {
+            const canvas = await renderStudentCanvas(cardValues, cardValues.studentName || '', cardTemplates, seqNum)
+            dataUrl = canvas.toDataURL(mimeType, quality)
+          }
+        } else {
+          const liveValues = getLivePreviewValues(cardValues, cardRef.current)
+          const canvas = await renderStudentCanvas(liveValues, liveValues.studentName || '', cardTemplates, seqNum)
+          dataUrl = canvas.toDataURL(mimeType, quality)
+        }
+
+        const name = (cardValues.studentName || 'report-card').replace(/\s+/g, '-').toLowerCase()
+        triggerDownload(dataUrl, `${name}-report-card.${format}`)
+        toast.success(`${format.toUpperCase()} downloaded successfully!`)
+      } catch (err: any) {
+        console.error('Image download error:', err)
+        const details = err?.message || String(err)
+        toast.error(`Image Download Error: ${details}`, { duration: 10000 })
+      } finally {
+        setActiveDownload(null)
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Download: Bulk PDF (all students in class)
+    // ─────────────────────────────────────────────
+    const handleBulkPDF = async () => {
+      const pairs = getBulkStudents()
+      if (pairs.length === 0) { toast.error('No students found in the selected class.'); return }
+      setActiveDownload('bulk-pdf')
+      setBulkProgress({ current: 0, total: pairs.length })
+      try {
+        const firstCourseTitle = pairs[0]?.course?.title || ''
+        const currentTier = getTierForLevel(firstCourseTitle)
+        const isA5 = currentTier === 'pre-foundation-lvl-5'
+
+        if (isA5) {
+          // A5 Portrait PDF with 2 cards per sheet
+          const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
+
+          for (let i = 0; i < pairs.length; i += 2) {
+            if (i > 0) pdf.addPage()
+
+            // Card 1 (Top)
+            const pair1 = pairs[i]
+            setBulkProgress({ current: i + 1, total: pairs.length })
+            const val1 = buildCardValues(pair1.student, pair1.course, evaluations, submissions, assessments, formatDateRange, i + 1)
+            const canvas1 = await renderStudentCanvas(val1, pair1.student.name, cardTemplates, i + 1)
+            pdf.addImage(canvas1.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 148, 105)
+
+            // Card 2 (Bottom) - If odd count, duplicate card 1 or render student 2
+            if (i + 1 < pairs.length) {
+              const pair2 = pairs[i + 1]
+              setBulkProgress({ current: i + 2, total: pairs.length })
+              const val2 = buildCardValues(pair2.student, pair2.course, evaluations, submissions, assessments, formatDateRange, i + 2)
+              const canvas2 = await renderStudentCanvas(val2, pair2.student.name, cardTemplates, i + 2)
+              pdf.addImage(canvas2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 105, 148, 105)
+            } else {
+              // Duplicate single card for 2-up sheet
+              pdf.addImage(canvas1.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 105, 148, 105)
+            }
+          }
+
+          const courseName = firstCourseTitle.replace(/\s+/g, '-').toLowerCase()
+          pdf.save(`${courseName}-bulk-report-cards-a5-2up.pdf`)
+        } else {
+          const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+          for (let i = 0; i < pairs.length; i++) {
+            const { student, course } = pairs[i]
+            setBulkProgress({ current: i + 1, total: pairs.length })
+            const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
+            const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+            if (i > 0) pdf.addPage()
+            pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
+          }
+          const courseName = firstCourseTitle.replace(/\s+/g, '-').toLowerCase()
+          pdf.save(`${courseName}-bulk-report-cards.pdf`)
+        }
+
+        toast.success(`Bulk PDF with ${pairs.length} cards downloaded!`)
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to generate bulk PDF.')
+      } finally {
+        setActiveDownload(null)
+        setBulkProgress(null)
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Download: Bulk Images (sequential downloads)
+    // ─────────────────────────────────────────────
+    const handleBulkImages = async (format: 'jpg' | 'png') => {
+      const pairs = getBulkStudents()
+      if (pairs.length === 0) { toast.error('No students found in the selected class.'); return }
+      setActiveDownload(format === 'jpg' ? 'bulk-jpg' : 'bulk-png')
+      setBulkProgress({ current: 0, total: pairs.length })
+      try {
+        const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
+        const quality = format === 'png' ? undefined : 0.95
+        for (let i = 0; i < pairs.length; i++) {
+          const { student, course } = pairs[i]
+          setBulkProgress({ current: i + 1, total: pairs.length })
+          const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
+          const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
+          const dataUrl = canvas.toDataURL(mimeType, quality)
+          const name = student.name.replace(/\s+/g, '-').toLowerCase()
+          triggerDownload(dataUrl, `${name}-report-card.${format}`)
+          // Brief pause between downloads to avoid browser throttling
+          await new Promise(r => setTimeout(r, 300))
+        }
+        toast.success(`${pairs.length} ${format.toUpperCase()} files downloaded!`)
+      } catch (err) {
+        console.error(err)
+        toast.error(`Failed to generate bulk ${format.toUpperCase()} files.`)
+      } finally {
+        setActiveDownload(null)
+        setBulkProgress(null)
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Download: ZIP of JPGs (single or bulk)
+    // ─────────────────────────────────────────────
+    const handleZipJPGs = async (bulk: boolean) => {
+      if (!bulk && selectedStudentId === 'all') {
+        toast.error('Please select a student before downloading.'); return
       }
 
-      const courseName = firstCourseTitle.replace(/\s+/g, '-').toLowerCase()
-      pdf.save(`${courseName}-bulk-report-cards-a5-2up.pdf`)
-    } else {
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      for (let i = 0; i < pairs.length; i++) {
-        const { student, course } = pairs[i]
-        setBulkProgress({ current: i + 1, total: pairs.length })
-        const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
-        const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-        if (i > 0) pdf.addPage()
-        pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297)
-      }
-      const courseName = firstCourseTitle.replace(/\s+/g, '-').toLowerCase()
-      pdf.save(`${courseName}-bulk-report-cards.pdf`)
-    }
+      const pairs = bulk
+        ? getBulkStudents()
+        : (() => {
+          const student = students.find(s => s.id === selectedStudentId)
+          let course = teacherCourses.find(c => c.id === selectedCourseId)
+          if (!course) course = teacherCourses.find(c => isStudentInCourse(student, c))
+          return student && course ? [{ student, course }] : []
+        })()
 
-    toast.success(`Bulk PDF with ${pairs.length} cards downloaded!`)
-  } catch (err) {
-    console.error(err)
-    toast.error('Failed to generate bulk PDF.')
-  } finally {
-    setActiveDownload(null)
-    setBulkProgress(null)
+      if (pairs.length === 0) { toast.error('No student data available for ZIP.'); return }
+
+      setActiveDownload(bulk ? 'bulk-zip-jpg' : 'zip-jpg')
+      setBulkProgress({ current: 0, total: pairs.length })
+
+      try {
+        const zip = new JSZip()
+        for (let i = 0; i < pairs.length; i++) {
+          const { student, course } = pairs[i]
+          setBulkProgress({ current: i + 1, total: pairs.length })
+          const values = bulk
+            ? buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
+        : getLivePreviewValues(cardValues, cardRef.current)
+    const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
+    // Convert data URL to blob for zip
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
+    const base64 = dataUrl.split(',')[1]
+    const name = student.name.replace(/\s+/g, '-').toLowerCase()
+    zip.file(`${name}-report-card.jpg`, base64, { base64: true })
   }
+
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } })
+  const url = URL.createObjectURL(blob)
+  const zipName = bulk
+    ? `${pairs[0].course.title.replace(/\s+/g, '-').toLowerCase()}-report-cards.zip`
+    : `${pairs[0].student.name.replace(/\s+/g, '-').toLowerCase()}-report-card.zip`
+  triggerDownload(url, zipName)
+  URL.revokeObjectURL(url)
+  toast.success(`ZIP with ${pairs.length} card${pairs.length > 1 ? 's' : ''} downloaded!`)
+} catch (err) {
+  console.error(err)
+  toast.error('Failed to generate ZIP file.')
+} finally {
+  setActiveDownload(null)
+  setBulkProgress(null)
 }
-
-// ─────────────────────────────────────────────
-// Download: Bulk Images (sequential downloads)
-// ─────────────────────────────────────────────
-const handleBulkImages = async (format: 'jpg' | 'png') => {
-  const pairs = getBulkStudents()
-  if (pairs.length === 0) { toast.error('No students found in the selected class.'); return }
-  setActiveDownload(format === 'jpg' ? 'bulk-jpg' : 'bulk-png')
-  setBulkProgress({ current: 0, total: pairs.length })
-  try {
-    const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
-    const quality = format === 'png' ? undefined : 0.95
-    for (let i = 0; i < pairs.length; i++) {
-      const { student, course } = pairs[i]
-      setBulkProgress({ current: i + 1, total: pairs.length })
-      const values = buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
-      const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
-      const dataUrl = canvas.toDataURL(mimeType, quality)
-      const name = student.name.replace(/\s+/g, '-').toLowerCase()
-      triggerDownload(dataUrl, `${name}-report-card.${format}`)
-      // Brief pause between downloads to avoid browser throttling
-      await new Promise(r => setTimeout(r, 300))
-    }
-    toast.success(`${pairs.length} ${format.toUpperCase()} files downloaded!`)
-  } catch (err) {
-    console.error(err)
-    toast.error(`Failed to generate bulk ${format.toUpperCase()} files.`)
-  } finally {
-    setActiveDownload(null)
-    setBulkProgress(null)
-  }
-}
-
-// ─────────────────────────────────────────────
-// Download: ZIP of JPGs (single or bulk)
-// ─────────────────────────────────────────────
-const handleZipJPGs = async (bulk: boolean) => {
-  if (!bulk && selectedStudentId === 'all') {
-    toast.error('Please select a student before downloading.'); return
-  }
-
-  const pairs = bulk
-    ? getBulkStudents()
-    : (() => {
-      const student = students.find(s => s.id === selectedStudentId)
-      let course = teacherCourses.find(c => c.id === selectedCourseId)
-      if (!course) course = teacherCourses.find(c => isStudentInCourse(student, c))
-      return student && course ? [{ student, course }] : []
-    })()
-
-  if (pairs.length === 0) { toast.error('No student data available for ZIP.'); return }
-
-  setActiveDownload(bulk ? 'bulk-zip-jpg' : 'zip-jpg')
-  setBulkProgress({ current: 0, total: pairs.length })
-
-  try {
-    const zip = new JSZip()
-    for (let i = 0; i < pairs.length; i++) {
-      const { student, course } = pairs[i]
-      setBulkProgress({ current: i + 1, total: pairs.length })
-      const values = bulk
-        ? buildCardValues(student, course, evaluations, submissions, assessments, formatDateRange, i + 1)
-        : cardValues
-      const canvas = await renderStudentCanvas(values, student.name, cardTemplates, i + 1)
-      // Convert data URL to blob for zip
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
-      const base64 = dataUrl.split(',')[1]
-      const name = student.name.replace(/\s+/g, '-').toLowerCase()
-      zip.file(`${name}-report-card.jpg`, base64, { base64: true })
-    }
-
-    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } })
-    const url = URL.createObjectURL(blob)
-    const zipName = bulk
-      ? `${pairs[0].course.title.replace(/\s+/g, '-').toLowerCase()}-report-cards.zip`
-      : `${pairs[0].student.name.replace(/\s+/g, '-').toLowerCase()}-report-card.zip`
-    triggerDownload(url, zipName)
-    URL.revokeObjectURL(url)
-    toast.success(`ZIP with ${pairs.length} card${pairs.length > 1 ? 's' : ''} downloaded!`)
-  } catch (err) {
-    console.error(err)
-    toast.error('Failed to generate ZIP file.')
-  } finally {
-    setActiveDownload(null)
-    setBulkProgress(null)
-  }
 }
 
 // ─────────────────────────────────────────────
