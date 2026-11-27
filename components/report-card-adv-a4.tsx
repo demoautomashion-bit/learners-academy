@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { getTLAGrading } from '@/lib/utils/tla-grading'
 import { generateTranscriptNumber } from '@/lib/utils/transcript-number'
@@ -66,6 +66,11 @@ export function ReportCardAdvA4({
     ...initialValues
   })
 
+  // Track whether the teacher has interacted with the remarks field.
+  // Once touched, the auto-remark fallback is disabled so the teacher
+  // can freely clear and rewrite remarks without snap-back.
+  const [remarksTouched, setRemarksTouched] = useState(false)
+
   useEffect(() => {
     if (initialValues) {
       setValues(prev => ({
@@ -120,21 +125,25 @@ export function ReportCardAdvA4({
 
   const autoPercentageNum = hasAnyMarks ? (autoGrandTotal / 600) * 100 : 0
   const autoPercentageStr = hasAnyMarks ? autoPercentageNum.toFixed(1) + '%' : ''
-  
+
   const displayPercentage = values.percentage !== undefined && values.percentage !== ''
     ? values.percentage
     : autoPercentageStr
 
-  // Grade & Remarks based on shared TLA logic
-  const tlaGrading = getTLAGrading(autoPercentageNum)
+  // Grade & Remarks based on shared TLA logic (memoized to stabilize random remark)
+  const tlaGrading = useMemo(() => getTLAGrading(autoPercentageNum), [autoPercentageNum])
 
   const displayGrade = values.finalGrade !== undefined && values.finalGrade !== ''
     ? values.finalGrade
     : (hasAnyMarks ? tlaGrading.grade : '')
 
-  const displayRemarks = values.remarks !== undefined && values.remarks !== ''
-    ? values.remarks
-    : (hasAnyMarks ? tlaGrading.remark : '')
+  // Once the teacher touches the remarks field, they own it completely —
+  // even an empty string is respected (no snap-back to auto-remark).
+  const displayRemarks = remarksTouched
+    ? (values.remarks ?? '')
+    : (values.remarks !== undefined && values.remarks !== ''
+      ? values.remarks
+      : (hasAnyMarks ? tlaGrading.remark : ''))
 
   return (
     <div
@@ -159,7 +168,8 @@ export function ReportCardAdvA4({
         crossOrigin="anonymous"
       />
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
 
         .adv-overlay-input {
@@ -372,6 +382,7 @@ export function ReportCardAdvA4({
         type="text"
         value={displayRemarks}
         onChange={e => handleValueChange('remarks', e.target.value)}
+        onFocus={() => setRemarksTouched(true)}
         disabled={readOnly}
         className="adv-overlay-input font-bold"
         style={{ top: '77.5%', left: '64.5%', width: '29%', height: '1.9%', fontSize: '13px' }}

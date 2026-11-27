@@ -151,13 +151,13 @@ async function renderStudentCanvas(
     const grand = v.grandTotalObtained !== undefined && v.grandTotalObtained !== ''
       ? String(v.grandTotalObtained)
       : String(
-          (parseFloat(String(v.midtermObtained || 0)) || 0) +
-          (parseFloat(String(v.finalObtained || 0)) || 0) +
-          (parseFloat(String(v.attendanceObtained || 0)) || 0) +
-          (parseFloat(String(v.participationObtained || 0)) || 0) +
-          (parseFloat(String(v.disciplineObtained || 0)) || 0) +
-          (parseFloat(String(v.extraCurricularObtained || 0)) || 0)
-        )
+        (parseFloat(String(v.midtermObtained || 0)) || 0) +
+        (parseFloat(String(v.finalObtained || 0)) || 0) +
+        (parseFloat(String(v.attendanceObtained || 0)) || 0) +
+        (parseFloat(String(v.participationObtained || 0)) || 0) +
+        (parseFloat(String(v.disciplineObtained || 0)) || 0) +
+        (parseFloat(String(v.extraCurricularObtained || 0)) || 0)
+      )
     drawCenterText(grand !== '0' ? grand : '', colCenterX, 62.9, 24, '800')
 
     const summaryCenterX = 84.8
@@ -217,7 +217,7 @@ async function renderStudentCanvas(
   try {
     await document.fonts.load('bold 26px "Montserrat"')
     await document.fonts.load('500 24px "Montserrat"')
-  } catch (e) {}
+  } catch (e) { }
 
   const drawLeftText = (text: string, xPct: number, yPct: number, fontSize = 24, weight = '500') => {
     if (!text) return
@@ -250,11 +250,11 @@ async function renderStudentCanvas(
   const defaultDateComp = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 
   // Student info Y midpoints (top + 0.95) — using exact preview top values per card type
-  const nameY  = isL6 ? (20.0 + 0.95) : (19.3 + 0.95)   // L6: top 20.0%, Adv: top 19.3%
+  const nameY = isL6 ? (20.0 + 0.95) : (19.3 + 0.95)   // L6: top 20.0%, Adv: top 19.3%
   const fatherY = isL6 ? (22.1 + 0.95) : (21.4 + 0.95)  // L6: top 22.1%, Adv: top 21.4%
-  const progY  = isL6 ? (24.2 + 0.95) : (23.5 + 0.95)   // L6: top 24.2%, Adv: top 23.5%
-  const dateY  = isL6 ? (26.3 + 0.95) : (25.6 + 0.95)   // L6: top 26.3%, Adv: top 25.6%
-  const trY    = isL6 ? (28.4 + 0.95) : (27.7 + 0.95)   // L6: top 28.4%, Adv: top 27.7%
+  const progY = isL6 ? (24.2 + 0.95) : (23.5 + 0.95)   // L6: top 24.2%, Adv: top 23.5%
+  const dateY = isL6 ? (26.3 + 0.95) : (25.6 + 0.95)   // L6: top 26.3%, Adv: top 25.6%
+  const trY = isL6 ? (28.4 + 0.95) : (27.7 + 0.95)   // L6: top 28.4%, Adv: top 27.7%
 
   // All student info fields left-align at 52% (matching preview left: 52.0%)
   drawLeftText(v.studentName || studentName || '', 52.0, nameY, 24, '700')
@@ -309,7 +309,7 @@ async function renderStudentCanvas(
   drawLeftText(displayScore !== '0' ? displayScore : '', 43.5, standY1, 23, '700')
   drawLeftText(v.percentage || calcPct, 66.5, standY1, 23, '700')
   drawLeftText(v.grade || tlaGrade.grade, 43.5, standY2, 23, '700')
-  drawLeftText(v.comments || tlaGrade.remark, 64.5, standY2, 22, '700')
+  drawLeftText(v.comments ?? tlaGrade.remark, 64.5, standY2, 22, '700')
 
   return canvas
 }
@@ -621,8 +621,8 @@ function ReportCardGeneratorContent() {
     : 0
   const barColor =
     barPct >= 80 ? '#10b981' :
-    barPct >= 50 ? '#f59e0b' :
-    '#ef4444'
+      barPct >= 50 ? '#f59e0b' :
+        '#ef4444'
 
   // ── URL query parameter pre-fill ──────────────
   useEffect(() => {
@@ -665,7 +665,7 @@ function ReportCardGeneratorContent() {
     if (JSON.stringify(cardValues) !== JSON.stringify(newValues)) {
       setCardValues(newValues)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStudentId, selectedCourseId, isInitialized, students, teacherCourses, submissions, assessments, evaluations])
 
   // ── Mobile scaling ────────────────────────────
@@ -865,7 +865,7 @@ function ReportCardGeneratorContent() {
       if (isA5) {
         // A5 Portrait PDF with 2 cards per sheet
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
-        
+
         for (let i = 0; i < pairs.length; i += 2) {
           if (i > 0) pdf.addPage()
 
@@ -959,11 +959,11 @@ function ReportCardGeneratorContent() {
     const pairs = bulk
       ? getBulkStudents()
       : (() => {
-          const student = students.find(s => s.id === selectedStudentId)
-          let course = teacherCourses.find(c => c.id === selectedCourseId)
-          if (!course) course = teacherCourses.find(c => isStudentInCourse(student, c))
-          return student && course ? [{ student, course }] : []
-        })()
+        const student = students.find(s => s.id === selectedStudentId)
+        let course = teacherCourses.find(c => c.id === selectedCourseId)
+        if (!course) course = teacherCourses.find(c => isStudentInCourse(student, c))
+        return student && course ? [{ student, course }] : []
+      })()
 
     if (pairs.length === 0) { toast.error('No student data available for ZIP.'); return }
 
@@ -1022,7 +1022,8 @@ function ReportCardGeneratorContent() {
   return (
     <PageShell>
       {/* Print styles */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media print {
           aside, header, .no-print, button, .page-header-container, .filters-container {
             display: none !important;
